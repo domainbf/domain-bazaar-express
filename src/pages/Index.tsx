@@ -28,76 +28,116 @@ const Index = () => {
     i18n.changeLanguage(i18n.language === 'en' ? 'zh' : 'en');
   };
 
+  const sections = [
+    {
+      title: t('premiumDomains'),
+      description: t('premiumDomainsDesc'),
+      domains: availableDomains.slice(0, 7)
+    },
+    {
+      title: t('shortDomains'),
+      description: t('shortDomainsDesc'),
+      domains: availableDomains.slice(7, 14)
+    },
+    {
+      title: t('specialDomains'),
+      description: t('specialDomainsDesc'),
+      domains: availableDomains.slice(14, 21)
+    },
+    {
+      title: t('otherDomains'),
+      description: t('otherDomainsDesc'),
+      domains: availableDomains.slice(21)
+    }
+  ];
+
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header with theme and language toggles */}
-        <div className="flex justify-end gap-4 mb-8">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="rounded-full"
-          >
-            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleLanguage}
-            className="rounded-full"
-          >
-            <Languages className="h-5 w-5" />
-          </Button>
-        </div>
+    <div className="min-h-screen">
+      {/* Header */}
+      <header className="fixed top-0 right-0 p-4 z-50 flex gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          className="rounded-full bg-background/20 backdrop-blur-lg"
+        >
+          {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleLanguage}
+          className="rounded-full bg-background/20 backdrop-blur-lg"
+        >
+          <Languages className="h-5 w-5" />
+        </Button>
+      </header>
 
-        {/* Title Section */}
-        <div className="text-center mb-16 space-y-4">
-          <h1 className="text-5xl font-bold neon-text bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-cyan-500 animate-glow">
-            {t('title')}
-          </h1>
-          <p className="text-xl text-gray-400">
-            {t('subtitle')}
-          </p>
-        </div>
+      {/* Hero Section */}
+      <section className="pt-24 pb-16 px-4 text-center">
+        <h1 className="text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-cyan-500 animate-glow">
+          {t('title')}
+        </h1>
+        <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+          {t('subtitle')}
+        </p>
+      </section>
 
-        {/* Filter Buttons */}
-        <div className="flex justify-center gap-4 mb-12">
-          <Button
-            onClick={() => setFilter('all')}
-            variant={filter === 'all' ? 'default' : 'secondary'}
-            className="rounded-full transition-all"
-          >
-            {t('all')}
-          </Button>
-          <Button
-            onClick={() => setFilter('available')}
-            variant={filter === 'available' ? 'default' : 'secondary'}
-            className="rounded-full transition-all"
-          >
-            {t('available')}
-          </Button>
-          <Button
-            onClick={() => setFilter('sold')}
-            variant={filter === 'sold' ? 'default' : 'secondary'}
-            className="rounded-full transition-all"
-          >
-            {t('sold')}
-          </Button>
-        </div>
+      {/* Filter Section */}
+      <div className="flex justify-center gap-4 mb-12 px-4">
+        <Button
+          onClick={() => setFilter('all')}
+          variant={filter === 'all' ? 'default' : 'secondary'}
+          className="rounded-full"
+        >
+          {t('all')}
+        </Button>
+        <Button
+          onClick={() => setFilter('available')}
+          variant={filter === 'available' ? 'default' : 'secondary'}
+          className="rounded-full"
+        >
+          {t('available')}
+        </Button>
+        <Button
+          onClick={() => setFilter('sold')}
+          variant={filter === 'sold' ? 'default' : 'secondary'}
+          className="rounded-full"
+        >
+          {t('sold')}
+        </Button>
+      </div>
 
-        {/* Domain Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {(filter === 'all' || filter === 'available') &&
-            availableDomains.map((domain) => (
-              <DomainCard key={domain} domain={domain} />
-            ))}
-          
-          {(filter === 'all' || filter === 'sold') &&
-            soldDomains.map((domain) => (
-              <DomainCard key={domain} domain={domain} isSold={true} />
-            ))}
-        </div>
+      {/* Domain Sections */}
+      <div className="max-w-7xl mx-auto px-4 space-y-24 mb-24">
+        {sections.map((section, index) => (
+          <section key={index} className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold mb-4">{section.title}</h2>
+              <p className="text-gray-400 max-w-2xl mx-auto">{section.description}</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {section.domains.map((domain) => (
+                <DomainCard key={domain} domain={domain} />
+              ))}
+            </div>
+          </section>
+        ))}
+
+        {/* Sold Domains Section */}
+        {(filter === 'all' || filter === 'sold') && (
+          <section className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold mb-4">{t('soldDomains')}</h2>
+              <p className="text-gray-400 max-w-2xl mx-auto">{t('soldDomainsDesc')}</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {soldDomains.map((domain) => (
+                <DomainCard key={domain} domain={domain} isSold={true} />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );
