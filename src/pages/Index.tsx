@@ -6,17 +6,15 @@ import { Moon, Sun, Languages } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
 const availableDomains = [
-  "nic.bn", "X.RW", "F.AF", "L.KE", "Y.CR", "CXL.NET", "Top.vg", "Dev.ug",
-  "BUG.KZ", "Fil.ng", "DOMAIN.BF", "WHOIS.LS", "GAME.kg", "Rule.ml",
-  "SORA.mk", "Name.cf", "Fuck.bf", "Fuck.fo", "1024.pw", "0451.me",
-  "0451.xyz", "Hello.uy", "Met.as", "Tools.st", "intels.at",
-  "HUANGPIAN.NET", "KUAIGAN.NET", "liaoliao.me"
-];
-
-const soldDomains = [
-  "sold.com",
-  "example.net",
-  "demo.org"
+  { name: "nic.bn", price: "50,000", category: "premium" },
+  { name: "X.RW", price: "25,000", category: "short" },
+  { name: "F.AF", price: "30,000", category: "short" },
+  { name: "L.KE", price: "28,000", category: "short" },
+  { name: "Y.CR", price: "32,000", category: "short" },
+  { name: "CXL.NET", price: "15,000", category: "premium" },
+  { name: "Top.vg", price: "12,000", category: "premium" },
+  { name: "Dev.ug", price: "8,000", category: "dev" },
+  { name: "BUG.KZ", price: "10,000", category: "dev" }
 ];
 
 const Index = () => {
@@ -28,27 +26,9 @@ const Index = () => {
     i18n.changeLanguage(i18n.language === 'en' ? 'zh' : 'en');
   };
 
-  const features = [
-    {
-      title: t('premiumDomains'),
-      description: t('premiumDomainsDesc'),
-      domains: availableDomains.slice(0, 3)
-    },
-    {
-      title: t('shortDomains'),
-      description: t('shortDomainsDesc'),
-      domains: availableDomains.slice(3, 6)
-    },
-    {
-      title: t('specialDomains'),
-      description: t('specialDomainsDesc'),
-      domains: availableDomains.slice(6, 9)
-    }
-  ];
-
   return (
     <div className="min-h-screen">
-      {/* Header */}
+      {/* Header Controls */}
       <header className="fixed top-0 right-0 p-4 z-50 flex gap-4">
         <Button
           variant="ghost"
@@ -69,39 +49,19 @@ const Index = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-24 pb-16 px-4 text-center">
-        <h1 className="text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-cyan-500 animate-glow">
+      <section className="relative pt-24 pb-16 px-4 text-center overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-cyan-500/10 animate-pulse" />
+        <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-cyan-500 animate-glow relative z-10">
           {t('title')}
         </h1>
-        <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-12">
+        <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-12 relative z-10">
           {t('subtitle')}
         </p>
       </section>
 
-      {/* Features Grid */}
-      <div className="max-w-7xl mx-auto px-4 grid gap-8 grid-cols-1 md:grid-cols-3 mb-24">
-        {features.map((feature, index) => (
-          <div key={index} className="glass-card p-8 rounded-2xl space-y-6">
-            <h3 className="text-2xl font-bold">{feature.title}</h3>
-            <p className="text-gray-400">{feature.description}</p>
-            <div className="space-y-4">
-              {feature.domains.map((domain) => (
-                <DomainCard key={domain} domain={domain} />
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* All Domains Section */}
-      <div className="max-w-7xl mx-auto px-4 mb-24">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">{t('allDomains')}</h2>
-          <p className="text-gray-400 max-w-2xl mx-auto">{t('allDomainsDesc')}</p>
-        </div>
-
-        {/* Filter Buttons */}
-        <div className="flex justify-center gap-4 mb-12">
+      {/* Filter Section */}
+      <div className="max-w-7xl mx-auto px-4 mb-12">
+        <div className="flex flex-wrap justify-center gap-4">
           <Button
             onClick={() => setFilter('all')}
             variant={filter === 'all' ? 'default' : 'secondary'}
@@ -110,33 +70,89 @@ const Index = () => {
             {t('all')}
           </Button>
           <Button
-            onClick={() => setFilter('available')}
-            variant={filter === 'available' ? 'default' : 'secondary'}
+            onClick={() => setFilter('premium')}
+            variant={filter === 'premium' ? 'default' : 'secondary'}
             className="rounded-full"
           >
-            {t('available')}
+            {t('premium')}
           </Button>
           <Button
-            onClick={() => setFilter('sold')}
-            variant={filter === 'sold' ? 'default' : 'secondary'}
+            onClick={() => setFilter('short')}
+            variant={filter === 'short' ? 'default' : 'secondary'}
             className="rounded-full"
           >
-            {t('sold')}
+            {t('short')}
+          </Button>
+          <Button
+            onClick={() => setFilter('dev')}
+            variant={filter === 'dev' ? 'default' : 'secondary'}
+            className="rounded-full"
+          >
+            {t('dev')}
           </Button>
         </div>
+      </div>
 
-        {/* Domains Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {(filter === 'all' || filter === 'available') &&
-            availableDomains.map((domain) => (
-              <DomainCard key={domain} domain={domain} />
-            ))}
-          {(filter === 'all' || filter === 'sold') &&
-            soldDomains.map((domain) => (
-              <DomainCard key={domain} domain={domain} isSold={true} />
+      {/* Domains Grid */}
+      <div className="max-w-7xl mx-auto px-4 mb-24">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {availableDomains
+            .filter(domain => filter === 'all' || domain.category === filter)
+            .map((domain) => (
+              <DomainCard 
+                key={domain.name} 
+                domain={domain.name} 
+                price={domain.price}
+              />
             ))}
         </div>
       </div>
+
+      {/* Features Section */}
+      <section className="py-24 bg-gradient-to-b from-background/50 to-background">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Premium Domains */}
+            <div className="glass-card p-8 rounded-2xl text-center">
+              <h3 className="text-2xl font-bold mb-4">{t('premiumDomains')}</h3>
+              <p className="text-gray-400 mb-6">{t('premiumDomainsDesc')}</p>
+              <div className="space-y-4">
+                {availableDomains.filter(d => d.category === 'premium').slice(0, 3).map(domain => (
+                  <div key={domain.name} className="p-3 bg-background/40 rounded-lg">
+                    {domain.name}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Short Domains */}
+            <div className="glass-card p-8 rounded-2xl text-center">
+              <h3 className="text-2xl font-bold mb-4">{t('shortDomains')}</h3>
+              <p className="text-gray-400 mb-6">{t('shortDomainsDesc')}</p>
+              <div className="space-y-4">
+                {availableDomains.filter(d => d.category === 'short').slice(0, 3).map(domain => (
+                  <div key={domain.name} className="p-3 bg-background/40 rounded-lg">
+                    {domain.name}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Developer Domains */}
+            <div className="glass-card p-8 rounded-2xl text-center">
+              <h3 className="text-2xl font-bold mb-4">{t('devDomains')}</h3>
+              <p className="text-gray-400 mb-6">{t('devDomainsDesc')}</p>
+              <div className="space-y-4">
+                {availableDomains.filter(d => d.category === 'dev').slice(0, 3).map(domain => (
+                  <div key={domain.name} className="p-3 bg-background/40 rounded-lg">
+                    {domain.name}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
