@@ -28,26 +28,21 @@ const Index = () => {
     i18n.changeLanguage(i18n.language === 'en' ? 'zh' : 'en');
   };
 
-  const sections = [
+  const features = [
     {
       title: t('premiumDomains'),
       description: t('premiumDomainsDesc'),
-      domains: availableDomains.slice(0, 7)
+      domains: availableDomains.slice(0, 3)
     },
     {
       title: t('shortDomains'),
       description: t('shortDomainsDesc'),
-      domains: availableDomains.slice(7, 14)
+      domains: availableDomains.slice(3, 6)
     },
     {
       title: t('specialDomains'),
       description: t('specialDomainsDesc'),
-      domains: availableDomains.slice(14, 21)
-    },
-    {
-      title: t('otherDomains'),
-      description: t('otherDomainsDesc'),
-      domains: availableDomains.slice(21)
+      domains: availableDomains.slice(6, 9)
     }
   ];
 
@@ -78,66 +73,69 @@ const Index = () => {
         <h1 className="text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-cyan-500 animate-glow">
           {t('title')}
         </h1>
-        <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+        <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-12">
           {t('subtitle')}
         </p>
       </section>
 
-      {/* Filter Section */}
-      <div className="flex justify-center gap-4 mb-12 px-4">
-        <Button
-          onClick={() => setFilter('all')}
-          variant={filter === 'all' ? 'default' : 'secondary'}
-          className="rounded-full"
-        >
-          {t('all')}
-        </Button>
-        <Button
-          onClick={() => setFilter('available')}
-          variant={filter === 'available' ? 'default' : 'secondary'}
-          className="rounded-full"
-        >
-          {t('available')}
-        </Button>
-        <Button
-          onClick={() => setFilter('sold')}
-          variant={filter === 'sold' ? 'default' : 'secondary'}
-          className="rounded-full"
-        >
-          {t('sold')}
-        </Button>
-      </div>
-
-      {/* Domain Sections */}
-      <div className="max-w-7xl mx-auto px-4 space-y-24 mb-24">
-        {sections.map((section, index) => (
-          <section key={index} className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold mb-4">{section.title}</h2>
-              <p className="text-gray-400 max-w-2xl mx-auto">{section.description}</p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {section.domains.map((domain) => (
+      {/* Features Grid */}
+      <div className="max-w-7xl mx-auto px-4 grid gap-8 grid-cols-1 md:grid-cols-3 mb-24">
+        {features.map((feature, index) => (
+          <div key={index} className="glass-card p-8 rounded-2xl space-y-6">
+            <h3 className="text-2xl font-bold">{feature.title}</h3>
+            <p className="text-gray-400">{feature.description}</p>
+            <div className="space-y-4">
+              {feature.domains.map((domain) => (
                 <DomainCard key={domain} domain={domain} />
               ))}
             </div>
-          </section>
+          </div>
         ))}
+      </div>
 
-        {/* Sold Domains Section */}
-        {(filter === 'all' || filter === 'sold') && (
-          <section className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold mb-4">{t('soldDomains')}</h2>
-              <p className="text-gray-400 max-w-2xl mx-auto">{t('soldDomainsDesc')}</p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {soldDomains.map((domain) => (
-                <DomainCard key={domain} domain={domain} isSold={true} />
-              ))}
-            </div>
-          </section>
-        )}
+      {/* All Domains Section */}
+      <div className="max-w-7xl mx-auto px-4 mb-24">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-4">{t('allDomains')}</h2>
+          <p className="text-gray-400 max-w-2xl mx-auto">{t('allDomainsDesc')}</p>
+        </div>
+
+        {/* Filter Buttons */}
+        <div className="flex justify-center gap-4 mb-12">
+          <Button
+            onClick={() => setFilter('all')}
+            variant={filter === 'all' ? 'default' : 'secondary'}
+            className="rounded-full"
+          >
+            {t('all')}
+          </Button>
+          <Button
+            onClick={() => setFilter('available')}
+            variant={filter === 'available' ? 'default' : 'secondary'}
+            className="rounded-full"
+          >
+            {t('available')}
+          </Button>
+          <Button
+            onClick={() => setFilter('sold')}
+            variant={filter === 'sold' ? 'default' : 'secondary'}
+            className="rounded-full"
+          >
+            {t('sold')}
+          </Button>
+        </div>
+
+        {/* Domains Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {(filter === 'all' || filter === 'available') &&
+            availableDomains.map((domain) => (
+              <DomainCard key={domain} domain={domain} />
+            ))}
+          {(filter === 'all' || filter === 'sold') &&
+            soldDomains.map((domain) => (
+              <DomainCard key={domain} domain={domain} isSold={true} />
+            ))}
+        </div>
       </div>
     </div>
   );
