@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -5,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Crown, Star, Diamond, Award } from 'lucide-react';
+import { supabase } from "@/integrations/supabase/client";
 
 interface DomainCardProps {
   domain: string;
@@ -16,39 +18,42 @@ interface DomainCardProps {
 export const DomainCard = ({ domain, price, highlight, isSold = false }: DomainCardProps) => {
   const [offer, setOffer] = useState('');
   const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+
     try {
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`
-        },
-        body: JSON.stringify({
-          from: 'noreply@domain.bf',
-          to: 'sales@domain.bf',
-          subject: `新域名报价: ${domain}`,
-          html: `
-            <h2>新域名报价详情</h2>
-            <p><strong>域名:</strong> ${domain}</p>
-            <p><strong>报价:</strong> $${offer}</p>
-            <p><strong>联系邮箱:</strong> ${email}</p>
-          `
-        })
-      });
+      const response = await fetch(
+        'https://trqxaizkwuizuhlfmdup.functions.supabase.co/send-offer',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`
+          },
+          body: JSON.stringify({
+            domain,
+            offer,
+            email
+          })
+        }
+      );
 
       if (response.ok) {
         toast.success(t('offerSuccess'));
         setOffer('');
         setEmail('');
       } else {
-        toast.error(t('offerError'));
+        const error = await response.json();
+        toast.error(error.message || t('offerError'));
       }
     } catch (error) {
       toast.error(t('offerError'));
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -58,34 +63,24 @@ export const DomainCard = ({ domain, price, highlight, isSold = false }: DomainC
         ? 'bg-gradient-to-br from-violet-500/20 via-fuchsia-500/20 to-cyan-500/20 hover:from-violet-500/30 hover:via-fuchsia-500/30 hover:to-cyan-500/30' 
         : 'bg-gradient-to-br from-white/5 via-purple-500/5 to-cyan-500/5 hover:from-white/10 hover:via-purple-500/10 hover:to-cyan-500/10'
     }`}>
-      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-violet-500/10 via-fuchsia-500/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl" />
-      
       <div className="absolute inset-[1px] rounded-xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl z-0" />
       
       <div className="relative z-10 flex flex-col items-center space-y-4">
         {highlight && (
-          <div className="absolute -top-3 -right-3 p-2 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-full shadow-lg animate-pulse">
-            <Crown className="w-4 h-4 text-white" />
+          <div className="absolute -top-3 -right-3">
+            <Diamond className="w-6 h-6 text-violet-400 animate-pulse" />
           </div>
         )}
-
-        <div className="flex items-center gap-2 mb-2">
-          {highlight ? (
-            <Diamond className="w-5 h-5 text-violet-400" />
-          ) : (
-            <Star className="w-5 h-5 text-cyan-400" />
-          )}
-          <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-purple-200 to-cyan-200">
-            {domain}
-          </h3>
-        </div>
+        
+        <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+          {domain}
+          {highlight && <Crown className="w-5 h-5 text-amber-400" />}
+        </h3>
         
         {price && (
           <div className="flex items-center gap-2">
-            <Award className="w-4 h-4 text-fuchsia-400" />
-            <div className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400">
-              ${price}
-            </div>
+            <Award className="w-5 h-5 text-cyan-400" />
+            <span className="text-xl font-semibold text-cyan-400">${price}</span>
           </div>
         )}
         
@@ -133,9 +128,10 @@ export const DomainCard = ({ domain, price, highlight, isSold = false }: DomainC
                 </div>
                 <Button 
                   type="submit"
+                  disabled={isLoading}
                   className="w-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-500 hover:from-violet-600 hover:via-fuchsia-600 hover:to-cyan-600 transition-all duration-300 shadow-lg hover:shadow-violet-500/25"
                 >
-                  {t('submit')}
+                  {isLoading ? t('submitting') : t('submit')}
                 </Button>
               </form>
             </DialogContent>
