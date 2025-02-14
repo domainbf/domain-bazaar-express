@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -21,18 +20,36 @@ export const DomainCard = ({ domain, price, highlight, isSold = false }: DomainC
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const emailContent = `
-      Domain: ${domain}
-      Offer: $${offer}
-      Contact Email: ${email}
-    `;
-    
-    console.log('Sending email to domain@nic.bn:', emailContent);
-    
-    toast.success(t('offerSuccess'));
-    setOffer('');
-    setEmail('');
+    try {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`
+        },
+        body: JSON.stringify({
+          from: 'noreply@domain.bf',
+          to: 'sales@domain.bf',
+          subject: `新域名报价: ${domain}`,
+          html: `
+            <h2>新域名报价详情</h2>
+            <p><strong>域名:</strong> ${domain}</p>
+            <p><strong>报价:</strong> $${offer}</p>
+            <p><strong>联系邮箱:</strong> ${email}</p>
+          `
+        })
+      });
+
+      if (response.ok) {
+        toast.success(t('offerSuccess'));
+        setOffer('');
+        setEmail('');
+      } else {
+        toast.error(t('offerError'));
+      }
+    } catch (error) {
+      toast.error(t('offerError'));
+    }
   };
 
   return (
@@ -41,22 +58,17 @@ export const DomainCard = ({ domain, price, highlight, isSold = false }: DomainC
         ? 'bg-gradient-to-br from-violet-500/20 via-fuchsia-500/20 to-cyan-500/20 hover:from-violet-500/30 hover:via-fuchsia-500/30 hover:to-cyan-500/30' 
         : 'bg-gradient-to-br from-white/5 via-purple-500/5 to-cyan-500/5 hover:from-white/10 hover:via-purple-500/10 hover:to-cyan-500/10'
     }`}>
-      {/* Glowing background effect */}
       <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-violet-500/10 via-fuchsia-500/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl" />
       
-      {/* Glass effect with subtle border */}
       <div className="absolute inset-[1px] rounded-xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl z-0" />
       
-      {/* Content */}
       <div className="relative z-10 flex flex-col items-center space-y-4">
-        {/* Premium indicator */}
         {highlight && (
           <div className="absolute -top-3 -right-3 p-2 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-full shadow-lg animate-pulse">
             <Crown className="w-4 h-4 text-white" />
           </div>
         )}
 
-        {/* Domain name with icon */}
         <div className="flex items-center gap-2 mb-2">
           {highlight ? (
             <Diamond className="w-5 h-5 text-violet-400" />
@@ -68,7 +80,6 @@ export const DomainCard = ({ domain, price, highlight, isSold = false }: DomainC
           </h3>
         </div>
         
-        {/* Price with award icon */}
         {price && (
           <div className="flex items-center gap-2">
             <Award className="w-4 h-4 text-fuchsia-400" />

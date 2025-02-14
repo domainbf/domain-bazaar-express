@@ -60,48 +60,12 @@ const Index = () => {
         </div>
 
         <div className="relative z-10">
-          <h1 className="inline-block text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-cyan-400 drop-shadow-lg animate-glow">
+          <h1 className="inline-block text-4xl md:text-6xl font-bold mb-6 neon-text bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-cyan-400">
             {t('title')}
           </h1>
           <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto mb-12 leading-relaxed">
             {t('subtitle')}
           </p>
-        </div>
-      </section>
-
-      <section className="max-w-7xl mx-auto px-4 mb-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="relative p-6 rounded-xl bg-white/5 backdrop-blur-lg transform hover:scale-105 transition-all duration-300">
-            <div className="absolute -top-3 -right-3 p-2 bg-gradient-to-br from-violet-500 to-cyan-500 rounded-full">
-              <Globe2 className="w-5 h-5 text-white" />
-            </div>
-            <h3 className="text-xl font-semibold mb-3 text-violet-300">选择域名</h3>
-            <p className="text-gray-400">浏览我们精选的优质域名列表，找到适合您的完美域名</p>
-          </div>
-          
-          <div className="relative p-6 rounded-xl bg-white/5 backdrop-blur-lg transform hover:scale-105 transition-all duration-300">
-            <div className="absolute -top-3 -right-3 p-2 bg-gradient-to-br from-violet-500 to-cyan-500 rounded-full">
-              <MessageSquare className="w-5 h-5 text-white" />
-            </div>
-            <h3 className="text-xl font-semibold mb-3 text-violet-300">提交报价</h3>
-            <p className="text-gray-400">提供您的报价和联系方式，我们将尽快与您沟通</p>
-          </div>
-          
-          <div className="relative p-6 rounded-xl bg-white/5 backdrop-blur-lg transform hover:scale-105 transition-all duration-300">
-            <div className="absolute -top-3 -right-3 p-2 bg-gradient-to-br from-violet-500 to-cyan-500 rounded-full">
-              <CreditCard className="w-5 h-5 text-white" />
-            </div>
-            <h3 className="text-xl font-semibold mb-3 text-violet-300">安全支付</h3>
-            <p className="text-gray-400">通过安全的支付渠道完成交易，确保资金安全</p>
-          </div>
-          
-          <div className="relative p-6 rounded-xl bg-white/5 backdrop-blur-lg transform hover:scale-105 transition-all duration-300">
-            <div className="absolute -top-3 -right-3 p-2 bg-gradient-to-br from-violet-500 to-cyan-500 rounded-full">
-              <CheckCircle2 className="w-5 h-5 text-white" />
-            </div>
-            <h3 className="text-xl font-semibold mb-3 text-violet-300">域名转移</h3>
-            <p className="text-gray-400">我们将协助您完成域名转移的全过程</p>
-          </div>
         </div>
       </section>
 
@@ -169,39 +133,6 @@ const Index = () => {
         </div>
       </div>
 
-      <section className="py-16 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-cyan-400">
-            为什么选择我们
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="p-6 rounded-xl bg-white/5 backdrop-blur-lg border border-violet-500/10 hover:border-violet-500/20 transition-all duration-300">
-              <Shield className="w-10 h-10 text-violet-400 mb-4" />
-              <h3 className="text-xl font-semibold mb-3 text-violet-300">安全保障</h3>
-              <p className="text-gray-400">
-                采用业内领先的安全措施，保护您的交易安全。专业的托管服务，确保双方权益。
-              </p>
-            </div>
-            
-            <div className="p-6 rounded-xl bg-white/5 backdrop-blur-lg border border-violet-500/10 hover:border-violet-500/20 transition-all duration-300">
-              <CreditCard className="w-10 h-10 text-violet-400 mb-4" />
-              <h3 className="text-xl font-semibold mb-3 text-violet-300">灵活付款</h3>
-              <p className="text-gray-400">
-                支持多种支付方式，可分期付款。专业的财务团队，确保资金流转安全。
-              </p>
-            </div>
-            
-            <div className="p-6 rounded-xl bg-white/5 backdrop-blur-lg border border-violet-500/10 hover:border-violet-500/20 transition-all duration-300">
-              <MessageSquare className="w-10 h-10 text-violet-400 mb-4" />
-              <h3 className="text-xl font-semibold mb-3 text-violet-300">专业服务</h3>
-              <p className="text-gray-400">
-                7x24小时客户服务，专业团队全程指导。快速响应您的每一个需求。
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section className="py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent" />
         <div className="max-w-7xl mx-auto px-4 relative z-10">
@@ -246,6 +177,39 @@ const Index = () => {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 relative overflow-hidden bg-black/20 backdrop-blur-lg">
+        <div className="max-w-7xl mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-cyan-400">
+            购买流程
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="p-6 rounded-xl bg-white/5 backdrop-blur-lg">
+              <Globe2 className="w-8 h-8 text-violet-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-3 text-violet-300 text-center">选择域名</h3>
+              <p className="text-gray-400 text-center">浏览我们精选的优质域名列表，找到适合您的完美域名</p>
+            </div>
+            
+            <div className="p-6 rounded-xl bg-white/5 backdrop-blur-lg">
+              <MessageSquare className="w-8 h-8 text-violet-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-3 text-violet-300 text-center">提交报价</h3>
+              <p className="text-gray-400 text-center">提供您的报价和联系方式，我们将尽快与您沟通</p>
+            </div>
+            
+            <div className="p-6 rounded-xl bg-white/5 backdrop-blur-lg">
+              <CreditCard className="w-8 h-8 text-violet-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-3 text-violet-300 text-center">安全支付</h3>
+              <p className="text-gray-400 text-center">通过安全的支付渠道完成交易，确保资金安全</p>
+            </div>
+            
+            <div className="p-6 rounded-xl bg-white/5 backdrop-blur-lg">
+              <CheckCircle2 className="w-8 h-8 text-violet-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-3 text-violet-300 text-center">域名转移</h3>
+              <p className="text-gray-400 text-center">我们将协助您完成域名转移的全过程</p>
             </div>
           </div>
         </div>
