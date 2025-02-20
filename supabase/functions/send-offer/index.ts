@@ -60,7 +60,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     // 发送邮件通知
     try {
-      const emailResponse = await resend.emails.send({
+      // 发送管理员通知邮件
+      await resend.emails.send({
         from: "Domain Sales <noreply@domain.bf>",
         to: ["sales@domain.bf"],
         subject: `新域名报价: ${domain}`,
@@ -72,7 +73,26 @@ const handler = async (req: Request): Promise<Response> => {
         `,
       });
 
-      console.log('Email sent successfully:', emailResponse);
+      // 发送用户确认邮件
+      await resend.emails.send({
+        from: "Domain Sales <noreply@domain.bf>",
+        to: [email],
+        subject: `您的域名报价已收到 - ${domain}`,
+        html: `
+          <h2>感谢您的报价!</h2>
+          <p>我们已收到您对以下域名的报价：</p>
+          <p><strong>域名:</strong> ${domain}</p>
+          <p><strong>报价金额:</strong> $${offer}</p>
+          <br>
+          <p>我们会尽快审核您的报价并与您联系。</p>
+          <p>如有任何问题，请随时回复此邮件。</p>
+          <br>
+          <p>顺祝商祺，</p>
+          <p>Domain Sales 团队</p>
+        `,
+      });
+
+      console.log('Emails sent successfully to admin and user');
     } catch (emailError) {
       console.error('Email sending error:', emailError);
       // 不阻止流程继续，只记录错误
@@ -98,7 +118,7 @@ const handler = async (req: Request): Promise<Response> => {
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200, // 改为200以避免客户端的non-2xx错误
+        status: 200, // 保持200以避免客户端的non-2xx错误
       }
     );
   }
