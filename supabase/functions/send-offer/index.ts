@@ -1,8 +1,13 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "npm:resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const supabaseClient = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,7 +30,46 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { domain, offer, email }: OfferRequest = await req.json();
 
-    // Send email using Resend
+    // 验证输入数据
+    if (!domain || !offer || !email) {
+      throw new Error('所有字段都是必填的');
+    }
+
+    // 检查域名是否存在且可出售
+    const { data: domainData, error: domainError } = await supabaseClient
+      .from('domains')
+      .select('id, status')
+      .eq('name', domain)
+      .single();
+
+    if (domainError || !domainData) {
+      throw new Error('域名不存在或无法出售');
+    }
+
+    if (domainData.status === 'sold') {
+      throw new Error('该域名已售出');
+    }
+
+    // 保存报价到数据库
+    const { data: offerData, error: offerError } = await supabaseClient
+      .from('domain_offers')
+      .insert([
+        {
+          domain_name: domain,
+          offer_amount: parseFloat(offer),
+          contact_email: email,
+          status: 'pending'
+        }
+      ])
+      .select()
+      .single();
+
+    if (offerError) {
+      console.error('数据库保存错误:', offerError);
+      throw new Error('保存报价时出错');
+    }
+
+    // 发送邮件通知
     const emailResponse = await resend.emails.send({
       from: "Domain Sales <noreply@domain.bf>",
       to: ["sales@domain.bf"],
@@ -38,40 +82,28 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
-    // Also store the offer in the database
-    const { data: offerData, error: offerError } = await fetch(
-      'https://trqxaizkwuizuhlfmdup.supabase.co/rest/v1/domain_offers',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': Deno.env.get("SUPABASE_ANON_KEY") || '',
-          'Authorization': `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`
-        },
-        body: JSON.stringify({
-          domain_name: domain,
-          offer_amount: offer,
-          contact_email: email,
-          status: 'pending'
-        })
-      }
-    ).then(res => res.json());
-
-    if (offerError) {
-      throw new Error('Failed to store offer in database');
-    }
-
-    return new Response(JSON.stringify({ success: true }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
+    console.log('报价处理成功:', {
+      offer: offerData,
+      email: emailResponse
     });
-  } catch (error: any) {
-    console.error("Error in send-offer function:", error);
+
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ success: true, message: '报价已成功提交' }), 
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
+        status: 200,
+      }
+    );
+  } catch (error: any) {
+    console.error("报价处理错误:", error);
+    return new Response(
+      JSON.stringify({ 
+        success: false, 
+        error: error.message || '提交报价时发生错误'
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
       }
     );
   }

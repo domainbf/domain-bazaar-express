@@ -19,6 +19,7 @@ export const DomainCard = ({ domain, price, highlight, isSold = false }: DomainC
   const [offer, setOffer] = useState('');
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,14 +36,17 @@ export const DomainCard = ({ domain, price, highlight, isSold = false }: DomainC
       });
 
       if (error) {
-        throw error;
+        console.error('提交报价错误:', error);
+        toast.error(error.message || t('offerError'));
+        return;
       }
 
       toast.success(t('offerSuccess'));
       setOffer('');
       setEmail('');
-    } catch (error) {
-      console.error('Error submitting offer:', error);
+      setIsDialogOpen(false);
+    } catch (error: any) {
+      console.error('报价系统错误:', error);
       toast.error(t('offerError'));
     } finally {
       setIsLoading(false);
@@ -81,7 +85,7 @@ export const DomainCard = ({ domain, price, highlight, isSold = false }: DomainC
             {t('sold')}
           </span>
         ) : (
-          <Dialog>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button 
                 className="w-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-500 hover:from-violet-600 hover:via-fuchsia-600 hover:to-cyan-600 transition-all duration-300 shadow-lg hover:shadow-violet-500/25"
@@ -104,6 +108,7 @@ export const DomainCard = ({ domain, price, highlight, isSold = false }: DomainC
                     value={offer}
                     onChange={(e) => setOffer(e.target.value)}
                     required
+                    min="1"
                     className="bg-white/5 border-violet-500/20 focus:border-violet-500/40 transition-colors"
                   />
                 </div>
