@@ -26,31 +26,23 @@ export const DomainCard = ({ domain, price, highlight, isSold = false }: DomainC
     setIsLoading(true);
 
     try {
-      const response = await fetch(
-        'https://trqxaizkwuizuhlfmdup.functions.supabase.co/send-offer',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`
-          },
-          body: JSON.stringify({
-            domain,
-            offer,
-            email
-          })
+      const { data, error } = await supabase.functions.invoke('send-offer', {
+        body: {
+          domain,
+          offer,
+          email
         }
-      );
+      });
 
-      if (response.ok) {
-        toast.success(t('offerSuccess'));
-        setOffer('');
-        setEmail('');
-      } else {
-        const error = await response.json();
-        toast.error(error.message || t('offerError'));
+      if (error) {
+        throw error;
       }
+
+      toast.success(t('offerSuccess'));
+      setOffer('');
+      setEmail('');
     } catch (error) {
+      console.error('Error submitting offer:', error);
       toast.error(t('offerError'));
     } finally {
       setIsLoading(false);
