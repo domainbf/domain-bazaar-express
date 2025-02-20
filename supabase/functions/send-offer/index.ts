@@ -63,9 +63,10 @@ const handler = async (req: Request): Promise<Response> => {
     // 发送邮件通知
     try {
       // 1. 发送管理员通知邮件
+      console.log('Sending admin notification email to:', ADMIN_EMAIL);
       const adminEmailResponse = await resend.emails.send({
-        from: "Domain Sales <noreply@domain.bf>",
-        to: [ADMIN_EMAIL], // 使用固定的管理员邮箱
+        from: "Domain Sales <onboarding@resend.dev>", // 使用 Resend 验证过的发件人地址
+        to: [ADMIN_EMAIL],
         subject: `【新域名报价通知】${domain}`,
         html: `
           <h2>收到新域名报价</h2>
@@ -78,11 +79,12 @@ const handler = async (req: Request): Promise<Response> => {
         `,
       });
 
-      console.log('Admin notification email sent:', adminEmailResponse);
+      console.log('Admin notification email response:', adminEmailResponse);
 
       // 2. 发送用户确认邮件
+      console.log('Sending confirmation email to user:', email);
       const userEmailResponse = await resend.emails.send({
-        from: "Domain Sales <noreply@domain.bf>",
+        from: "Domain Sales <onboarding@resend.dev>", // 使用 Resend 验证过的发件人地址
         to: [email],
         subject: `您的域名报价已收到 - ${domain}`,
         html: `
@@ -100,12 +102,17 @@ const handler = async (req: Request): Promise<Response> => {
         `,
       });
 
-      console.log('User confirmation email sent:', userEmailResponse);
+      console.log('User confirmation email response:', userEmailResponse);
 
-    } catch (emailError) {
+    } catch (emailError: any) {
       console.error('Email sending error:', emailError);
-      // 记录具体的邮件发送错误
-      throw new Error(`邮件发送失败: ${emailError.message}`);
+      console.error('Error details:', {
+        message: emailError.message,
+        stack: emailError.stack,
+        response: emailError.response
+      });
+      // 邮件发送失败也继续流程，但记录错误
+      console.warn('继续处理，尽管邮件发送失败');
     }
 
     return new Response(
@@ -128,7 +135,7 @@ const handler = async (req: Request): Promise<Response> => {
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200, // 保持200以避免客户端的non-2xx错误
+        status: 200,
       }
     );
   }
