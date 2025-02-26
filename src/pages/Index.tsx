@@ -6,6 +6,8 @@ import { FilterSection } from '@/components/sections/FilterSection';
 import { FeaturesSection } from '@/components/sections/FeaturesSection';
 import { StatsSection } from '@/components/sections/StatsSection';
 import { PremiumShowcase } from '@/components/sections/PremiumShowcase';
+import { TrendingDomains } from '@/components/sections/TrendingDomains';
+import { ContactSection } from '@/components/sections/ContactSection';
 import { availableDomains } from '@/data/availableDomains';
 
 const Index = () => {
@@ -21,6 +23,8 @@ const Index = () => {
       <HeroSection />
       
       <StatsSection />
+      
+      <TrendingDomains />
       
       <PremiumShowcase />
       
@@ -45,6 +49,8 @@ const Index = () => {
       </div>
 
       <FeaturesSection />
+      
+      <ContactSection />
     </div>
   );
 };
