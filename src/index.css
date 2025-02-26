@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -36,19 +37,41 @@
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   transition: all 0.3s ease;
 }
 
 .glass-card:hover {
   transform: translateY(-5px);
+  border-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 25px rgba(184, 41, 227, 0.2);
 }
 
-.neon-text {
-  text-shadow: 0 0 10px rgba(184, 41, 227, 0.8),
-               0 0 20px rgba(184, 41, 227, 0.8),
-               0 0 30px rgba(184, 41, 227, 0.8);
+.animate-glow {
+  animation: glow 3s ease-in-out infinite;
 }
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% {
+    text-shadow: 0 0 20px rgba(184, 41, 227, 0.5);
+  }
+  50% {
+    text-shadow: 0 0 30px rgba(0, 247, 255, 0.7);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+

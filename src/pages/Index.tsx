@@ -1,8 +1,18 @@
+
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DomainCard } from '@/components/DomainCard';
 import { Button } from '@/components/ui/button';
-import { Moon, Sun, Languages, Sparkles, CreditCard, Shield, Globe2, MessageSquare, CheckCircle2 } from 'lucide-react';
+import { 
+  Diamond, 
+  Globe2, 
+  Sparkles, 
+  GemIcon, 
+  ShieldCheck, 
+  Rocket,
+  Crown,
+  Star
+} from 'lucide-react';
 import { useTheme } from 'next-themes';
 
 const availableDomains = [
@@ -20,104 +30,76 @@ const availableDomains = [
 const Index = () => {
   const [filter, setFilter] = useState('all');
   const { theme, setTheme } = useTheme();
-  const { t, i18n } = useTranslation();
-
-  const toggleLanguage = () => {
-    i18n.changeLanguage(i18n.language === 'en' ? 'zh' : 'en');
-  };
+  const { t } = useTranslation();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <header className="fixed top-0 right-0 p-4 z-50 flex gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="rounded-full bg-white/10 backdrop-blur-lg hover:bg-white/20"
-        >
-          {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleLanguage}
-          className="rounded-full bg-white/10 backdrop-blur-lg hover:bg-white/20"
-        >
-          <Languages className="h-5 w-5" />
-        </Button>
-      </header>
-
-      <section className="relative pt-24 pb-16 px-4 text-center overflow-hidden">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
-        
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950">
+      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20" />
+      
+      {/* Hero Section with Animated Elements */}
+      <section className="relative pt-32 pb-20 px-4 overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 animate-pulse">
-            <Sparkles className="w-6 h-6 text-violet-400" />
+          <div className="absolute top-20 left-1/4 animate-float">
+            <Diamond className="w-8 h-8 text-violet-400/60" />
           </div>
-          <div className="absolute top-1/3 right-1/3 animate-pulse delay-300">
-            <Sparkles className="w-6 h-6 text-cyan-400" />
+          <div className="absolute top-40 right-1/3 animate-float delay-300">
+            <Crown className="w-6 h-6 text-amber-400/60" />
+          </div>
+          <div className="absolute bottom-20 left-1/3 animate-float delay-500">
+            <Star className="w-5 h-5 text-cyan-400/60" />
           </div>
         </div>
 
-        <div className="relative z-10">
-          <h1 className="inline-block text-4xl md:text-6xl font-bold mb-6 neon-text bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-cyan-400">
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 animate-glow">
             {t('title')}
           </h1>
           <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto mb-12 leading-relaxed">
             {t('subtitle')}
           </p>
+          
+          {/* Value Proposition Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+            <div className="glass-card p-6 rounded-xl backdrop-blur-md border border-white/10">
+              <GemIcon className="w-10 h-10 text-violet-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2 text-violet-200">独特价值</h3>
+              <p className="text-gray-400">每个域名都是独一无二的数字资产</p>
+            </div>
+            <div className="glass-card p-6 rounded-xl backdrop-blur-md border border-white/10">
+              <ShieldCheck className="w-10 h-10 text-cyan-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2 text-cyan-200">安全保障</h3>
+              <p className="text-gray-400">规范的交易流程，确保您的投资安全</p>
+            </div>
+            <div className="glass-card p-6 rounded-xl backdrop-blur-md border border-white/10">
+              <Rocket className="w-10 h-10 text-amber-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2 text-amber-200">增值潜力</h3>
+              <p className="text-gray-400">优质域名具备巨大的升值空间</p>
+            </div>
+          </div>
         </div>
       </section>
 
+      {/* Filter Buttons */}
       <div className="max-w-7xl mx-auto px-4 mb-12">
         <div className="flex flex-wrap justify-center gap-4">
-          <Button
-            onClick={() => setFilter('all')}
-            variant={filter === 'all' ? 'default' : 'secondary'}
-            className={`rounded-full backdrop-blur-md transition-all duration-300 ${
-              filter === 'all' 
-                ? 'bg-gradient-to-r from-violet-500 to-cyan-500 hover:from-violet-600 hover:to-cyan-600' 
-                : 'bg-white/10 hover:bg-white/20'
-            }`}
-          >
-            {t('all')}
-          </Button>
-          <Button
-            onClick={() => setFilter('premium')}
-            variant={filter === 'premium' ? 'default' : 'secondary'}
-            className={`rounded-full backdrop-blur-md transition-all duration-300 ${
-              filter === 'premium' 
-                ? 'bg-gradient-to-r from-violet-500 to-cyan-500 hover:from-violet-600 hover:to-cyan-600' 
-                : 'bg-white/10 hover:bg-white/20'
-            }`}
-          >
-            {t('premium')}
-          </Button>
-          <Button
-            onClick={() => setFilter('short')}
-            variant={filter === 'short' ? 'default' : 'secondary'}
-            className={`rounded-full backdrop-blur-md transition-all duration-300 ${
-              filter === 'short' 
-                ? 'bg-gradient-to-r from-violet-500 to-cyan-500 hover:from-violet-600 hover:to-cyan-600' 
-                : 'bg-white/10 hover:bg-white/20'
-            }`}
-          >
-            {t('short')}
-          </Button>
-          <Button
-            onClick={() => setFilter('dev')}
-            variant={filter === 'dev' ? 'default' : 'secondary'}
-            className={`rounded-full backdrop-blur-md transition-all duration-300 ${
-              filter === 'dev' 
-                ? 'bg-gradient-to-r from-violet-500 to-cyan-500 hover:from-violet-600 hover:to-cyan-600' 
-                : 'bg-white/10 hover:bg-white/20'
-            }`}
-          >
-            {t('dev')}
-          </Button>
+          {['all', 'premium', 'short', 'dev'].map((category) => (
+            <Button
+              key={category}
+              onClick={() => setFilter(category)}
+              variant={filter === category ? 'default' : 'secondary'}
+              className={`rounded-full backdrop-blur-md transition-all duration-300 ${
+                filter === category 
+                  ? 'bg-gradient-to-r from-violet-500 to-cyan-500 hover:from-violet-600 hover:to-cyan-600' 
+                  : 'bg-white/10 hover:bg-white/20'
+              }`}
+            >
+              {t(category)}
+            </Button>
+          ))}
         </div>
       </div>
 
+      {/* Domain Cards Grid */}
       <div className="max-w-7xl mx-auto px-4 mb-24">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {availableDomains
@@ -133,83 +115,33 @@ const Index = () => {
         </div>
       </div>
 
+      {/* Features Section */}
       <section className="py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent" />
         <div className="max-w-7xl mx-auto px-4 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="glass-card p-8 rounded-2xl text-center transform hover:scale-105 transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-600/20 to-cyan-600/20 rounded-2xl" />
-              <h3 className="text-2xl font-bold mb-4 relative z-10">{t('premiumDomains')}</h3>
-              <p className="text-gray-300 mb-6 relative z-10">{t('premiumDomainsDesc')}</p>
-              <div className="space-y-4 relative z-10">
-                {availableDomains.filter(d => d.category === 'premium').slice(0, 3).map(domain => (
-                  <div key={domain.name} 
-                    className="p-3 rounded-lg bg-gradient-to-r from-violet-500/10 to-cyan-500/10 backdrop-blur-md border border-white/10 hover:border-white/20 transition-all duration-300">
-                    {domain.name}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="glass-card p-8 rounded-2xl text-center transform hover:scale-105 transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-600/20 to-cyan-600/20 rounded-2xl" />
-              <h3 className="text-2xl font-bold mb-4 relative z-10">{t('shortDomains')}</h3>
-              <p className="text-gray-300 mb-6 relative z-10">{t('shortDomainsDesc')}</p>
-              <div className="space-y-4 relative z-10">
-                {availableDomains.filter(d => d.category === 'short').slice(0, 3).map(domain => (
-                  <div key={domain.name} 
-                    className="p-3 rounded-lg bg-gradient-to-r from-violet-500/10 to-cyan-500/10 backdrop-blur-md border border-white/10 hover:border-white/20 transition-all duration-300">
-                    {domain.name}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="glass-card p-8 rounded-2xl text-center transform hover:scale-105 transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-600/20 to-cyan-600/20 rounded-2xl" />
-              <h3 className="text-2xl font-bold mb-4 relative z-10">{t('devDomains')}</h3>
-              <p className="text-gray-300 mb-6 relative z-10">{t('devDomainsDesc')}</p>
-              <div className="space-y-4 relative z-10">
-                {availableDomains.filter(d => d.category === 'dev').slice(0, 3).map(domain => (
-                  <div key={domain.name} 
-                    className="p-3 rounded-lg bg-gradient-to-r from-violet-500/10 to-cyan-500/10 backdrop-blur-md border border-white/10 hover:border-white/20 transition-all duration-300">
-                    {domain.name}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16 relative overflow-hidden bg-black/20 backdrop-blur-lg">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-cyan-400">
-            购买流程
-          </h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="p-6 rounded-xl bg-white/5 backdrop-blur-lg">
-              <Globe2 className="w-8 h-8 text-violet-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-3 text-violet-300 text-center">选择域名</h3>
-              <p className="text-gray-400 text-center">浏览我们精选的优质域名列表，找到适合您的完美域名</p>
+            <div className="glass-card p-8 rounded-2xl text-center transform hover:scale-105 transition-all duration-300">
+              <Globe2 className="w-10 h-10 text-violet-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-3 text-violet-200">全球可达</h3>
+              <p className="text-gray-400">覆盖全球的域名交易网络，随时随地交易</p>
             </div>
             
-            <div className="p-6 rounded-xl bg-white/5 backdrop-blur-lg">
-              <MessageSquare className="w-8 h-8 text-violet-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-3 text-violet-300 text-center">提交报价</h3>
-              <p className="text-gray-400 text-center">提供您的报价和联系方式，我们将尽快与您沟通</p>
+            <div className="glass-card p-8 rounded-2xl text-center transform hover:scale-105 transition-all duration-300">
+              <Sparkles className="w-10 h-10 text-cyan-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-3 text-cyan-200">优质精选</h3>
+              <p className="text-gray-400">严选优质域名，确保投资价值</p>
             </div>
             
-            <div className="p-6 rounded-xl bg-white/5 backdrop-blur-lg">
-              <CreditCard className="w-8 h-8 text-violet-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-3 text-violet-300 text-center">安全支付</h3>
-              <p className="text-gray-400 text-center">通过安全的支付渠道完成交易，确保资金安全</p>
+            <div className="glass-card p-8 rounded-2xl text-center transform hover:scale-105 transition-all duration-300">
+              <Crown className="w-10 h-10 text-amber-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-3 text-amber-200">尊享服务</h3>
+              <p className="text-gray-400">专业的域名顾问团队，全程贴心服务</p>
             </div>
             
-            <div className="p-6 rounded-xl bg-white/5 backdrop-blur-lg">
-              <CheckCircle2 className="w-8 h-8 text-violet-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-3 text-violet-300 text-center">域名转移</h3>
-              <p className="text-gray-400 text-center">我们将协助您完成域名转移的全过程</p>
+            <div className="glass-card p-8 rounded-2xl text-center transform hover:scale-105 transition-all duration-300">
+              <Diamond className="w-10 h-10 text-rose-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-3 text-rose-200">增值保障</h3>
+              <p className="text-gray-400">持续的价值评估，助力资产增值</p>
             </div>
           </div>
         </div>
