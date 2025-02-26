@@ -11,8 +11,8 @@ export const FilterSection = ({ currentFilter, onFilterChange }: FilterSectionPr
   const { t } = useTranslation();
 
   return (
-    <div className="max-w-7xl mx-auto px-4 mb-12">
-      <div className="flex flex-wrap justify-center gap-4">
+    <div className="mb-8">
+      <div className="flex flex-wrap gap-3 justify-center">
         {['all', 'premium', 'short', 'dev'].map((category) => (
           <Button
             key={category}
