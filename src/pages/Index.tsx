@@ -4,6 +4,8 @@ import { DomainCard } from '@/components/DomainCard';
 import { HeroSection } from '@/components/sections/HeroSection';
 import { FilterSection } from '@/components/sections/FilterSection';
 import { FeaturesSection } from '@/components/sections/FeaturesSection';
+import { StatsSection } from '@/components/sections/StatsSection';
+import { PremiumShowcase } from '@/components/sections/PremiumShowcase';
 import { availableDomains } from '@/data/availableDomains';
 
 const Index = () => {
@@ -11,16 +13,22 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950">
-      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20" />
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20" />
+        <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 via-transparent to-cyan-500/10" />
+      </div>
       
       <HeroSection />
+      
+      <StatsSection />
+      
+      <PremiumShowcase />
       
       <FilterSection 
         currentFilter={filter}
         onFilterChange={setFilter}
       />
 
-      {/* Domain Cards Grid */}
       <div className="max-w-7xl mx-auto px-4 mb-24">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {availableDomains
