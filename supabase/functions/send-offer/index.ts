@@ -65,17 +65,36 @@ const handler = async (req: Request): Promise<Response> => {
       // 1. 发送管理员通知邮件
       console.log('Sending admin notification email to:', ADMIN_EMAIL);
       const adminEmailResponse = await resend.emails.send({
-        from: "Domain Sales <onboarding@resend.dev>", // 使用 Resend 验证过的发件人地址
+        from: "Domain Sales <offers@domain.bf>", // 使用验证过的发件人地址
         to: [ADMIN_EMAIL],
         subject: `【新域名报价通知】${domain}`,
         html: `
-          <h2>收到新域名报价</h2>
-          <p>系统收到了新的域名报价请求，详情如下：</p>
-          <p><strong>域名:</strong> ${domain}</p>
-          <p><strong>报价金额:</strong> $${offer}</p>
-          <p><strong>报价用户邮箱:</strong> ${email}</p>
-          <hr>
-          <p>请及时处理该报价请求。</p>
+          <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #1e293b, #312e81); color: #fff; border-radius: 10px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #a78bfa; margin-bottom: 0;">新域名报价通知</h1>
+              <p style="color: #94a3b8; font-size: 14px;">管理员专属通知</p>
+            </div>
+            
+            <div style="background: rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+              <h2 style="color: #f0abfc; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 10px; margin-top: 0;">报价详情</h2>
+              <div style="margin: 15px 0;">
+                <p style="margin: 5px 0; display: flex;"><strong style="width: 100px; color: #a5b4fc;">域名:</strong> <span style="color: #e2e8f0;">${domain}</span></p>
+                <p style="margin: 5px 0; display: flex;"><strong style="width: 100px; color: #a5b4fc;">报价金额:</strong> <span style="color: #e2e8f0;">$${offer}</span></p>
+                <p style="margin: 5px 0; display: flex;"><strong style="width: 100px; color: #a5b4fc;">联系邮箱:</strong> <span style="color: #e2e8f0;">${email}</span></p>
+                <p style="margin: 5px 0; display: flex;"><strong style="width: 100px; color: #a5b4fc;">报价时间:</strong> <span style="color: #e2e8f0;">${new Date().toLocaleString('zh-CN')}</span></p>
+              </div>
+            </div>
+            
+            <div style="background: rgba(147, 51, 234, 0.1); border-radius: 8px; padding: 20px;">
+              <h3 style="color: #c4b5fd; margin-top: 0;">后续操作</h3>
+              <p style="color: #cbd5e1;">请登录管理后台及时处理该报价请求。您可以直接回复客户邮件或通过系统发送回复。</p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); color: #94a3b8; font-size: 12px;">
+              <p>此邮件由系统自动发送，请勿直接回复</p>
+              <p>© 2023 Domain Sales. 保留所有权利。</p>
+            </div>
+          </div>
         `,
       });
 
@@ -84,21 +103,40 @@ const handler = async (req: Request): Promise<Response> => {
       // 2. 发送用户确认邮件
       console.log('Sending confirmation email to user:', email);
       const userEmailResponse = await resend.emails.send({
-        from: "Domain Sales <onboarding@resend.dev>", // 使用 Resend 验证过的发件人地址
+        from: "Domain Sales <offers@domain.bf>", // 使用验证过的发件人地址
         to: [email],
         subject: `您的域名报价已收到 - ${domain}`,
         html: `
-          <h2>感谢您的报价!</h2>
-          <p>尊敬的用户您好，</p>
-          <p>我们已收到您对以下域名的报价：</p>
-          <p><strong>域名:</strong> ${domain}</p>
-          <p><strong>报价金额:</strong> $${offer}</p>
-          <br>
-          <p>我们的团队会尽快审核您的报价并与您联系。</p>
-          <p>如有任何问题，请随时回复此邮件或联系我们的客服团队。</p>
-          <br>
-          <p>顺祝商祺，</p>
-          <p>Domain Sales 团队</p>
+          <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #0f172a, #4c1d95); color: #fff; border-radius: 10px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #c4b5fd; margin-bottom: 5px;">感谢您的域名报价！</h1>
+              <p style="color: #94a3b8; font-size: 14px;">我们已收到您的请求</p>
+            </div>
+            
+            <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+              <h2 style="color: #e0aaff; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 10px; margin-top: 0;">您的报价信息</h2>
+              <div style="margin: 15px 0;">
+                <p style="margin: 8px 0;"><strong style="color: #a5b4fc;">域名:</strong> <span style="color: #e2e8f0; display: inline-block; margin-left: 10px;">${domain}</span></p>
+                <p style="margin: 8px 0;"><strong style="color: #a5b4fc;">您的报价:</strong> <span style="color: #e2e8f0; display: inline-block; margin-left: 10px;">$${offer}</span></p>
+                <p style="margin: 8px 0;"><strong style="color: #a5b4fc;">提交时间:</strong> <span style="color: #e2e8f0; display: inline-block; margin-left: 10px;">${new Date().toLocaleString('zh-CN')}</span></p>
+              </div>
+            </div>
+            
+            <div style="background: rgba(79, 70, 229, 0.1); border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+              <h3 style="color: #ddd6fe; margin-top: 0;">下一步</h3>
+              <p style="color: #cbd5e1; line-height: 1.6;">我们的团队会尽快审核您的报价并与您联系。如果您的报价被接受，我们将指导您完成域名转让的后续步骤。</p>
+            </div>
+            
+            <div style="background: rgba(139, 92, 246, 0.1); border-radius: 8px; padding: 20px;">
+              <h3 style="color: #ddd6fe; margin-top: 0;">有疑问？</h3>
+              <p style="color: #cbd5e1;">如有任何问题，请随时回复此邮件或联系我们的客服团队。我们很乐意为您提供帮助！</p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); color: #94a3b8; font-size: 12px;">
+              <p>感谢您对我们平台的信任与支持</p>
+              <p>© 2023 Domain Sales. 保留所有权利。</p>
+            </div>
+          </div>
         `,
       });
 
@@ -135,7 +173,7 @@ const handler = async (req: Request): Promise<Response> => {
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
+        status: 500, // Changed to 500 to better reflect server error
       }
     );
   }
