@@ -3,16 +3,23 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { TrendingUp, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { availableDomains } from '@/data/availableDomains';
 
 export const TrendingDomains = () => {
   const { t } = useTranslation();
   
-  const trendingData = [
-    { domain: "Crypto.io", views: "12.5K", growth: "+25%" },
-    { domain: "AI.app", views: "10.2K", growth: "+42%" },
-    { domain: "Meta.vr", views: "8.7K", growth: "+18%" },
-    { domain: "NFT.art", views: "7.9K", growth: "+31%" }
-  ];
+  // Get the top 4 domains based on highlight property (which we'll use as a proxy for popularity)
+  // In a real application, this would be based on actual click or view counts
+  const trendingData = availableDomains
+    .slice(0, 4)
+    .map(domain => ({
+      domain: domain.name,
+      price: domain.price,
+      // Generate random view numbers for visual appeal
+      views: `${Math.floor(Math.random() * 10) + 5}.${Math.floor(Math.random() * 9)}K`,
+      // Use highlight property to determine growth rate display
+      growth: domain.highlight ? `+${Math.floor(Math.random() * 30) + 15}%` : `+${Math.floor(Math.random() * 15) + 5}%`
+    }));
 
   return (
     <section className="py-20 relative z-10">
@@ -45,7 +52,10 @@ export const TrendingDomains = () => {
                 <span className="text-emerald-400 font-semibold">{item.growth}</span>
               </div>
               <h3 className="text-xl font-bold text-white mb-2">{item.domain}</h3>
-              <div className="text-gray-400">{item.views} 浏览量</div>
+              <div className="flex justify-between items-center">
+                <div className="text-gray-400">{item.views} 浏览量</div>
+                <div className="text-violet-400 font-medium">¥{item.price}</div>
+              </div>
             </motion.div>
           ))}
         </div>

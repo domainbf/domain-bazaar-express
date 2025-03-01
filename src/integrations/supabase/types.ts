@@ -48,6 +48,41 @@ export type Database = {
         }
         Relationships: []
       }
+      domain_analytics: {
+        Row: {
+          domain_id: string | null
+          favorites: number | null
+          id: string
+          last_updated: string | null
+          offers: number | null
+          views: number | null
+        }
+        Insert: {
+          domain_id?: string | null
+          favorites?: number | null
+          id?: string
+          last_updated?: string | null
+          offers?: number | null
+          views?: number | null
+        }
+        Update: {
+          domain_id?: string | null
+          favorites?: number | null
+          id?: string
+          last_updated?: string | null
+          offers?: number | null
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "domain_analytics_domain_id_fkey"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "domains"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       domain_history: {
         Row: {
           action: string
@@ -167,6 +202,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "domain_sale_settings_domain_id_fkey"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "domains"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      domain_verifications: {
+        Row: {
+          created_at: string | null
+          domain_id: string | null
+          id: string
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+          verification_data: Json | null
+          verification_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          domain_id?: string | null
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          verification_data?: Json | null
+          verification_type: string
+        }
+        Update: {
+          created_at?: string | null
+          domain_id?: string | null
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          verification_data?: Json | null
+          verification_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "domain_verifications_domain_id_fkey"
             columns: ["domain_id"]
             isOneToOne: false
             referencedRelation: "domains"
@@ -352,44 +428,62 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          company_name: string | null
+          contact_email: string | null
+          contact_phone: string | null
           created_at: string
           full_name: string | null
           id: string
           is_seller: boolean | null
           payment_info: Json | null
+          preferred_payment_methods: string[] | null
           seller_rating: number | null
           seller_verified: boolean | null
           total_sales: number | null
           updated_at: string
           username: string | null
+          verification_documents: Json | null
+          verification_status: string | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          company_name?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string
           full_name?: string | null
           id: string
           is_seller?: boolean | null
           payment_info?: Json | null
+          preferred_payment_methods?: string[] | null
           seller_rating?: number | null
           seller_verified?: boolean | null
           total_sales?: number | null
           updated_at?: string
           username?: string | null
+          verification_documents?: Json | null
+          verification_status?: string | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          company_name?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
           is_seller?: boolean | null
           payment_info?: Json | null
+          preferred_payment_methods?: string[] | null
           seller_rating?: number | null
           seller_verified?: boolean | null
           total_sales?: number | null
           updated_at?: string
           username?: string | null
+          verification_documents?: Json | null
+          verification_status?: string | null
         }
         Relationships: []
       }
@@ -568,6 +662,35 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "languages"
             referencedColumns: ["code"]
+          },
+        ]
+      }
+      user_favorites: {
+        Row: {
+          created_at: string | null
+          domain_id: string | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          domain_id?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          domain_id?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorites_domain_id_fkey"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "domains"
+            referencedColumns: ["id"]
           },
         ]
       }
