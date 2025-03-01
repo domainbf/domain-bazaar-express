@@ -8,17 +8,31 @@ import { availableDomains } from '@/data/availableDomains';
 export const TrendingDomains = () => {
   const { t } = useTranslation();
   
-  // Get the top 4 domains based on highlight property (which we'll use as a proxy for popularity)
-  // In a real application, this would be based on actual click or view counts
-  const trendingData = availableDomains
+  // Use actual domain data and sort by highlight status (as a proxy for popularity)
+  // In a real app, this would be based on actual click tracking data
+  const trendingData = [...availableDomains]
+    .sort((a, b) => {
+      // First prioritize highlighted domains
+      if (a.highlight && !b.highlight) return -1;
+      if (!a.highlight && b.highlight) return 1;
+      
+      // Then sort by price (higher price = more premium/popular)
+      const priceA = parseInt(a.price.replace(/,/g, ''));
+      const priceB = parseInt(b.price.replace(/,/g, ''));
+      return priceB - priceA;
+    })
     .slice(0, 4)
     .map(domain => ({
       domain: domain.name,
       price: domain.price,
-      // Generate random view numbers for visual appeal
-      views: `${Math.floor(Math.random() * 10) + 5}.${Math.floor(Math.random() * 9)}K`,
-      // Use highlight property to determine growth rate display
-      growth: domain.highlight ? `+${Math.floor(Math.random() * 30) + 15}%` : `+${Math.floor(Math.random() * 15) + 5}%`
+      // Generate view numbers for display purposes based on price and highlight
+      views: domain.highlight 
+        ? `${Math.floor(Math.random() * 10) + 10}.${Math.floor(Math.random() * 9)}K`
+        : `${Math.floor(Math.random() * 5) + 5}.${Math.floor(Math.random() * 9)}K`,
+      // Generate growth rate based on highlight status
+      growth: domain.highlight 
+        ? `+${Math.floor(Math.random() * 30) + 20}%` 
+        : `+${Math.floor(Math.random() * 15) + 5}%`
     }));
 
   return (
