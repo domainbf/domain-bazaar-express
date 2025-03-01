@@ -27,6 +27,7 @@ export const DomainCard = ({ domain, price, highlight, isSold = false }: DomainC
     setIsLoading(true);
 
     try {
+      console.log('提交报价:', { domain, offer, email });
       const { data, error } = await supabase.functions.invoke('send-offer', {
         body: {
           domain,
@@ -41,6 +42,7 @@ export const DomainCard = ({ domain, price, highlight, isSold = false }: DomainC
         return;
       }
 
+      console.log('报价提交成功:', data);
       toast.success(t('offerSuccess'));
       setOffer('');
       setEmail('');

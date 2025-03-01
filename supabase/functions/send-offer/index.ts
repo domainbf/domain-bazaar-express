@@ -3,19 +3,16 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "npm:resend@2.0.0";
 
+// Initialize Resend with API key from environment variables
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-const supabaseClient = createClient(
-  Deno.env.get('SUPABASE_URL') ?? '',
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-);
-
-const ADMIN_EMAIL = "9208522@qq.com"; // 设置管理员邮箱
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
+
+// Admin email for notifications
+const ADMIN_EMAIL = "9208522@qq.com";
 
 interface OfferRequest {
   domain: string;
@@ -31,41 +28,19 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const { domain, offer, email }: OfferRequest = await req.json();
-
-    console.log('Received offer request:', { domain, offer, email });
-
-    // 验证输入数据
+    
+    console.log("Received offer request:", { domain, offer, email });
+    
+    // Validate required fields
     if (!domain || !offer || !email) {
-      throw new Error('所有字段都是必填的');
+      throw new Error("Missing required fields");
     }
 
-    // 保存报价到数据库
-    const { data: offerData, error: offerError } = await supabaseClient
-      .from('domain_offers')
-      .insert([
-        {
-          domain_id: domain,
-          amount: parseFloat(offer),
-          contact_email: email,
-          status: 'pending'
-        }
-      ])
-      .select()
-      .single();
-
-    if (offerError) {
-      console.error('Database error:', offerError);
-      throw new Error('保存报价时出错');
-    }
-
-    console.log('Offer saved successfully:', offerData);
-
-    // 发送邮件通知
+    // Send admin notification email
+    console.log("Sending admin notification email to:", ADMIN_EMAIL);
     try {
-      // 1. 发送管理员通知邮件
-      console.log('Sending admin notification email to:', ADMIN_EMAIL);
       const adminEmailResponse = await resend.emails.send({
-        from: "Domain Sales <offers@domain.bf>", // 使用验证过的发件人地址
+        from: "Domain Sales <offers@domain.bf>",
         to: [ADMIN_EMAIL],
         subject: `【新域名报价通知】${domain}`,
         html: `
@@ -97,13 +72,17 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
         `,
       });
+      console.log("Admin notification email sent:", adminEmailResponse);
+    } catch (emailError) {
+      console.error("Failed to send admin email:", emailError);
+      // Continue even if admin email fails
+    }
 
-      console.log('Admin notification email response:', adminEmailResponse);
-
-      // 2. 发送用户确认邮件
-      console.log('Sending confirmation email to user:', email);
+    // Send user confirmation email
+    console.log("Sending confirmation email to user:", email);
+    try {
       const userEmailResponse = await resend.emails.send({
-        from: "Domain Sales <offers@domain.bf>", // 使用验证过的发件人地址
+        from: "Domain Sales <offers@domain.bf>",
         to: [email],
         subject: `您的域名报价已收到 - ${domain}`,
         html: `
@@ -139,41 +118,33 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
         `,
       });
-
-      console.log('User confirmation email response:', userEmailResponse);
-
-    } catch (emailError: any) {
-      console.error('Email sending error:', emailError);
-      console.error('Error details:', {
-        message: emailError.message,
-        stack: emailError.stack,
-        response: emailError.response
-      });
-      // 邮件发送失败也继续流程，但记录错误
-      console.warn('继续处理，尽管邮件发送失败');
+      console.log("User confirmation email sent:", userEmailResponse);
+    } catch (emailError) {
+      console.error("Failed to send user email:", emailError);
+      // Continue even if user email fails
     }
 
+    // Return success response
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: '报价已成功提交，确认邮件已发送',
-        data: offerData 
-      }), 
+      JSON.stringify({
+        success: true,
+        message: "报价已成功提交，确认邮件已发送"
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error in send-offer function:", error);
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message || '提交报价时发生错误'
+      JSON.stringify({
+        success: false,
+        error: error instanceof Error ? error.message : "提交报价时发生错误",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500, // Changed to 500 to better reflect server error
+        status: 500,
       }
     );
   }
