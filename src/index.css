@@ -45,7 +45,7 @@
 
 /* Button styles */
 .primary-button {
-  @apply bg-black text-white hover:bg-gray-800 transition-colors;
+  @apply bg-gray-900 text-white hover:bg-gray-800 transition-colors;
 }
 
 /* Simple animations */
@@ -60,4 +60,28 @@
   to {
     opacity: 1;
   }
+}
+
+/* Responsive layout adjustments */
+@media (max-width: 640px) {
+  .hero-section {
+    @apply py-16;
+  }
+  
+  .hero-title {
+    @apply text-3xl;
+  }
+}
+
+/* Dark theme elements */
+.dark-section {
+  @apply bg-gray-900 text-white;
+}
+
+.dark-card {
+  @apply bg-gray-800 text-white border-gray-700;
+}
+
+.dark-button {
+  @apply bg-gray-800 text-white hover:bg-gray-700;
 }
