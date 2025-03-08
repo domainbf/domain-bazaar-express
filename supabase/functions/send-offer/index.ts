@@ -1,97 +1,166 @@
 
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@1.0.0";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { Resend } from "npm:resend@2.0.0";
 
-serve(async (req) => {
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+};
+
+interface OfferRequest {
+  domain: string;
+  offer: string;
+  email: string;
+  message?: string;
+  buyerId?: string | null;
+}
+
+serve(async (req: Request) => {
+  // Handle CORS preflight requests
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   try {
-    const { domain, offer, email } = await req.json();
-    
-    // Validate input
-    if (!domain || !offer || !email) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: "Missing required fields" 
-        }),
-        { 
-          headers: { "Content-Type": "application/json" },
-          status: 400 
-        }
-      );
-    }
-    
-    const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-    
-    // Send email to user
+    const { domain, offer, email, message = "", buyerId = null }: OfferRequest = await req.json();
+
+    // Email template for the user (buyer)
+    const userEmailHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Your Domain Offer has been received</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background-color: #000; color: white; padding: 20px; text-align: center; }
+            .content { padding: 20px; border: 1px solid #eaeaea; }
+            .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+            .details { background-color: #f9f9f9; padding: 15px; margin: 15px 0; border-radius: 4px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Your Offer Has Been Submitted</h1>
+            </div>
+            <div class="content">
+              <p>Dear Domain Buyer,</p>
+              <p>Thank you for your interest in <strong>${domain}</strong>. We have received your offer of <strong>$${offer}</strong> and have forwarded it to the domain owner.</p>
+              
+              <div class="details">
+                <h3>Offer Details:</h3>
+                <p><strong>Domain:</strong> ${domain}</p>
+                <p><strong>Offer Amount:</strong> $${offer}</p>
+                ${message ? `<p><strong>Your Message:</strong> ${message}</p>` : ''}
+              </div>
+              
+              <p>The domain owner will review your offer and respond as soon as possible. You will receive a notification when they respond.</p>
+              <p>If you have any questions, please reply to this email.</p>
+              <p>Best regards,<br>The DomainX Team</p>
+            </div>
+            <div class="footer">
+              <p>© 2024 DomainX. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    // Email template for the admin/seller
+    const adminEmailHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>New Domain Offer Received</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background-color: #000; color: white; padding: 20px; text-align: center; }
+            .content { padding: 20px; border: 1px solid #eaeaea; }
+            .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+            .details { background-color: #f9f9f9; padding: 15px; margin: 15px 0; border-radius: 4px; }
+            .cta { background-color: #000; color: white; display: inline-block; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-top: 15px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>New Domain Offer</h1>
+            </div>
+            <div class="content">
+              <p>Hello Domain Owner,</p>
+              <p>You have received a new offer for your domain <strong>${domain}</strong>.</p>
+              
+              <div class="details">
+                <h3>Offer Details:</h3>
+                <p><strong>Domain:</strong> ${domain}</p>
+                <p><strong>Offer Amount:</strong> $${offer}</p>
+                <p><strong>Buyer Email:</strong> ${email}</p>
+                ${message ? `<p><strong>Buyer Message:</strong> ${message}</p>` : ''}
+                ${buyerId ? `<p><strong>Buyer Account:</strong> Registered User</p>` : `<p><strong>Buyer Account:</strong> Guest</p>`}
+              </div>
+              
+              <p>You can respond to this offer by logging into your dashboard. If you choose to accept this offer, please contact the buyer using the provided email address to arrange the domain transfer and payment.</p>
+              <a href="https://your-domain-website.com/dashboard" class="cta">View in Dashboard</a>
+              <p>Best regards,<br>The DomainX Team</p>
+            </div>
+            <div class="footer">
+              <p>© 2024 DomainX. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    // Send confirmation email to the user/buyer
     const userEmailResponse = await resend.emails.send({
-      from: 'noreply@domain.bf',
-      to: email,
-      subject: `您的域名报价已收到 - ${domain}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #000; background-color: #fff; border: 1px solid #eaeaea; border-radius: 5px;">
-          <h1 style="color: #000; text-align: center; margin-bottom: 30px;">您的报价已收到</h1>
-          
-          <div style="background-color: #f9f9f9; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
-            <h2 style="color: #000; margin-top: 0;">报价详情</h2>
-            <p style="margin-bottom: 10px;"><strong>域名:</strong> ${domain}</p>
-            <p style="margin-bottom: 10px;"><strong>报价金额:</strong> $${offer}</p>
-            <p style="margin-bottom: 10px;"><strong>联系邮箱:</strong> ${email}</p>
-          </div>
-          
-          <p style="margin-bottom: 20px;">我们已收到您的报价，我们的团队将尽快审核并与您联系。如有任何疑问，请随时回复此邮件。</p>
-          
-          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eaeaea;">
-            <p style="color: #666; font-size: 14px;">© 2024 域名交易平台. 保留所有权利.</p>
-          </div>
-        </div>
-      `,
+      from: "DomainX <no-reply@domain.bf>",
+      to: [email],
+      subject: `Your offer for ${domain} has been received`,
+      html: userEmailHtml,
     });
-    
-    // Send email to admin
+
+    console.log("User email sent:", userEmailResponse);
+
+    // Send notification email to the admin
     const adminEmailResponse = await resend.emails.send({
-      from: 'noreply@domain.bf',
-      to: '9208522@qq.com',
-      subject: `新域名报价 - ${domain}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #000; background-color: #fff; border: 1px solid #eaeaea; border-radius: 5px;">
-          <h1 style="color: #000; text-align: center; margin-bottom: 30px;">新域名报价</h1>
-          
-          <div style="background-color: #f9f9f9; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
-            <h2 style="color: #000; margin-top: 0;">报价详情</h2>
-            <p style="margin-bottom: 10px;"><strong>域名:</strong> ${domain}</p>
-            <p style="margin-bottom: 10px;"><strong>报价金额:</strong> $${offer}</p>
-            <p style="margin-bottom: 10px;"><strong>联系邮箱:</strong> ${email}</p>
-          </div>
-          
-          <p style="margin-bottom: 20px;">有用户提交了新的域名报价，请尽快处理。</p>
-        </div>
-      `,
+      from: "DomainX <no-reply@domain.bf>",
+      to: ["9208522@qq.com"],
+      subject: `New offer for ${domain}: $${offer}`,
+      html: adminEmailHtml,
     });
-    
-    console.log("User email response:", userEmailResponse);
-    console.log("Admin email response:", adminEmailResponse);
-    
+
+    console.log("Admin email sent:", adminEmailResponse);
+
     return new Response(
       JSON.stringify({ 
-        success: true, 
-        message: "Emails sent successfully" 
+        message: "Offer submitted successfully",
+        userEmail: userEmailResponse,
+        adminEmail: adminEmailResponse
       }),
-      { 
-        headers: { "Content-Type": "application/json" },
-        status: 200 
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
+        },
       }
     );
-  } catch (error) {
-    console.error("Error:", error);
+  } catch (error: any) {
+    console.error("Error in send-offer function:", error);
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        message: "An error occurred while processing your request",
-        error: error.message 
-      }),
-      { 
-        headers: { "Content-Type": "application/json" },
-        status: 500 
+      JSON.stringify({ error: error.message }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
   }
