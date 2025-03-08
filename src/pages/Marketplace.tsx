@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { DomainCard } from '@/components/DomainCard';
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,7 @@ import { Navbar } from '@/components/Navbar';
 interface Domain {
   id: string;
   name: string;
-  price: string;
+  price: number;  // Changed from string to number to match Supabase
   category: string;
   highlight: boolean;
   status: string;
@@ -68,13 +69,13 @@ export const Marketplace = () => {
     // Apply price range
     if (priceRange.min) {
       filteredDomains = filteredDomains.filter(domain => 
-        parseFloat(domain.price) >= parseFloat(priceRange.min)
+        domain.price >= parseFloat(priceRange.min)
       );
     }
     
     if (priceRange.max) {
       filteredDomains = filteredDomains.filter(domain => 
-        parseFloat(domain.price) <= parseFloat(priceRange.max)
+        domain.price <= parseFloat(priceRange.max)
       );
     }
     

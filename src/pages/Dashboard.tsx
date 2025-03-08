@@ -12,24 +12,28 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 interface DomainListing {
   id: string;
   name: string;
-  price: string;
+  price: number;
   description: string;
   category: string;
   highlight: boolean;
   status: string;
   created_at: string;
+  owner_id: string;
 }
 
 interface DomainOffer {
   id: string;
   domain_id: string;
-  amount: string;
+  amount: number;
   status: string;
   message: string;
   created_at: string;
   contact_email: string;
   domain_name?: string;
   buyer_email?: string;
+  seller_id?: string;
+  buyer_id?: string;
+  updated_at?: string;
 }
 
 export const Dashboard = () => {
@@ -77,10 +81,7 @@ export const Dashboard = () => {
       // Load received offers (for domains user owns)
       const { data: received, error: receivedError } = await supabase
         .from('domain_offers')
-        .select(`
-          *,
-          domain_id
-        `)
+        .select('*')
         .eq('seller_id', (await supabase.auth.getUser()).data.user?.id)
         .order('created_at', { ascending: false });
       
@@ -102,15 +103,12 @@ export const Dashboard = () => {
         })
       );
       
-      setReceivedOffers(receivedWithDomains as DomainOffer[]);
+      setReceivedOffers(receivedWithDomains as unknown as DomainOffer[]);
 
       // Load sent offers
       const { data: sent, error: sentError } = await supabase
         .from('domain_offers')
-        .select(`
-          *,
-          domain_id
-        `)
+        .select('*')
         .eq('buyer_id', (await supabase.auth.getUser()).data.user?.id)
         .order('created_at', { ascending: false });
       
@@ -132,7 +130,7 @@ export const Dashboard = () => {
         })
       );
       
-      setSentOffers(sentWithDomains as DomainOffer[]);
+      setSentOffers(sentWithDomains as unknown as DomainOffer[]);
     } catch (error: any) {
       console.error('Error loading dashboard data:', error);
       toast.error(error.message || 'Failed to load dashboard data');
@@ -211,7 +209,7 @@ export const Dashboard = () => {
   const handleEditDomain = (domain: DomainListing) => {
     setEditingDomain(domain);
     setDomainName(domain.name);
-    setDomainPrice(domain.price);
+    setDomainPrice(domain.price.toString());
     setDomainDescription(domain.description || '');
     setDomainCategory(domain.category || 'standard');
     setIsHighlighted(domain.highlight);

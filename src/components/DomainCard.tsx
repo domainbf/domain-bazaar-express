@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface DomainCardProps {
   domain: string;
-  price?: string;
+  price?: number | string;  // Updated to accept both number and string
   highlight?: boolean;
   isSold?: boolean;
   domainId?: string;
@@ -108,7 +108,7 @@ export const DomainCard = ({ domain, price, highlight, isSold = false, domainId,
         </h3>
         
         {price && (
-          <span className="text-xl font-semibold text-black">${price}</span>
+          <span className="text-xl font-semibold text-black">${typeof price === 'number' ? price : price}</span>
         )}
         
         {isSold ? (
