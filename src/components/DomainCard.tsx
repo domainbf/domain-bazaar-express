@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Crown, Star, Diamond, Award, Mail, Send } from 'lucide-react';
+import { Mail, Send } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 
 interface DomainCardProps {
@@ -56,59 +56,43 @@ export const DomainCard = ({ domain, price, highlight, isSold = false }: DomainC
   };
 
   return (
-    <div className={`relative group rounded-xl p-6 transition-all duration-500 ${
-      highlight 
-        ? 'bg-gradient-to-br from-violet-500/20 via-fuchsia-500/20 to-cyan-500/20 hover:from-violet-500/30 hover:via-fuchsia-500/30 hover:to-cyan-500/30' 
-        : 'bg-gradient-to-br from-white/5 via-purple-500/5 to-cyan-500/5 hover:from-white/10 hover:via-purple-500/10 hover:to-cyan-500/10'
-    }`}>
-      <div className="absolute inset-[1px] rounded-xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl z-0" />
-      
-      <div className="relative z-10 flex flex-col items-center space-y-4">
-        {highlight && (
-          <div className="absolute -top-3 -right-3">
-            <Diamond className="w-6 h-6 text-violet-400 animate-pulse" />
-          </div>
-        )}
-        
-        <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+    <div className={`simple-card p-6 ${highlight ? 'border-black' : ''}`}>
+      <div className="flex flex-col items-center space-y-4">
+        <h3 className="text-2xl font-bold text-black">
           {domain}
-          {highlight && <Crown className="w-5 h-5 text-amber-400" />}
         </h3>
         
         {price && (
-          <div className="flex items-center gap-2">
-            <Award className="w-5 h-5 text-cyan-400" />
-            <span className="text-xl font-semibold text-cyan-400">${price}</span>
-          </div>
+          <span className="text-xl font-semibold text-black">${price}</span>
         )}
         
         {isSold ? (
-          <span className="px-4 py-2 rounded-full bg-red-500/20 text-red-300 backdrop-blur-md">
+          <span className="px-4 py-2 rounded-full bg-gray-100 text-gray-500">
             {t('sold')}
           </span>
         ) : (
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button 
-                className="w-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-500 hover:from-violet-600 hover:via-fuchsia-600 hover:to-cyan-600 transition-all duration-300 shadow-lg hover:shadow-violet-500/25"
+                className="w-full bg-black text-white hover:bg-gray-800"
               >
                 {t('makeOffer')}
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-gradient-to-br from-slate-900/95 to-purple-900/95 backdrop-blur-xl border-violet-500/20 max-w-md">
+            <DialogContent className="bg-white border-gray-200 max-w-md">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400">
+                <DialogTitle className="text-2xl font-bold text-center text-black">
                   {domain} - {t('makeOffer')}
                 </DialogTitle>
-                <DialogDescription className="text-center text-gray-300 mt-2">
+                <DialogDescription className="text-center text-gray-600 mt-2">
                   {t('offerDescription')}
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-300">{t('yourOffer')}</label>
+                  <label className="text-sm font-medium text-gray-700">{t('yourOffer')}</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
                     <Input
                       type="number"
                       placeholder="1000"
@@ -116,28 +100,28 @@ export const DomainCard = ({ domain, price, highlight, isSold = false }: DomainC
                       onChange={(e) => setOffer(e.target.value)}
                       required
                       min="1"
-                      className="pl-8 bg-white/5 border-violet-500/20 focus:border-violet-500/40 transition-colors"
+                      className="pl-8 bg-white border-gray-300 focus:border-black transition-colors"
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-300">{t('contactEmail')}</label>
+                  <label className="text-sm font-medium text-gray-700">{t('contactEmail')}</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
                     <Input
                       type="email"
                       placeholder="your@email.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="pl-10 bg-white/5 border-violet-500/20 focus:border-violet-500/40 transition-colors"
+                      className="pl-10 bg-white border-gray-300 focus:border-black transition-colors"
                     />
                   </div>
                 </div>
                 <Button 
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-500 hover:from-violet-600 hover:via-fuchsia-600 hover:to-cyan-600 transition-all duration-300 shadow-lg hover:shadow-violet-500/25"
+                  className="w-full bg-black text-white hover:bg-gray-800 transition-colors"
                 >
                   {isLoading ? (
                     <span className="flex items-center gap-2">
