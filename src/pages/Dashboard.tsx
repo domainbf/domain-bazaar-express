@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -73,39 +72,67 @@ export const Dashboard = () => {
         .order('created_at', { ascending: false });
       
       if (domainsError) throw domainsError;
-      setMyDomains(domains || []);
+      setMyDomains(domains as DomainListing[] || []);
 
       // Load received offers (for domains user owns)
       const { data: received, error: receivedError } = await supabase
         .from('domain_offers')
         .select(`
           *,
-          domain_listings(name)
+          domain_id
         `)
         .eq('seller_id', (await supabase.auth.getUser()).data.user?.id)
         .order('created_at', { ascending: false });
       
       if (receivedError) throw receivedError;
-      setReceivedOffers(received?.map(offer => ({
-        ...offer,
-        domain_name: offer.domain_listings?.name
-      })) || []);
+      
+      // Get domain names for received offers
+      const receivedWithDomains = await Promise.all(
+        (received || []).map(async (offer) => {
+          const { data: domain } = await supabase
+            .from('domain_listings')
+            .select('name')
+            .eq('id', offer.domain_id)
+            .single();
+          
+          return {
+            ...offer,
+            domain_name: domain?.name || 'Unknown domain'
+          };
+        })
+      );
+      
+      setReceivedOffers(receivedWithDomains as DomainOffer[]);
 
       // Load sent offers
       const { data: sent, error: sentError } = await supabase
         .from('domain_offers')
         .select(`
           *,
-          domain_listings(name)
+          domain_id
         `)
         .eq('buyer_id', (await supabase.auth.getUser()).data.user?.id)
         .order('created_at', { ascending: false });
       
       if (sentError) throw sentError;
-      setSentOffers(sent?.map(offer => ({
-        ...offer,
-        domain_name: offer.domain_listings?.name
-      })) || []);
+      
+      // Get domain names for sent offers
+      const sentWithDomains = await Promise.all(
+        (sent || []).map(async (offer) => {
+          const { data: domain } = await supabase
+            .from('domain_listings')
+            .select('name')
+            .eq('id', offer.domain_id)
+            .single();
+          
+          return {
+            ...offer,
+            domain_name: domain?.name || 'Unknown domain'
+          };
+        })
+      );
+      
+      setSentOffers(sentWithDomains as DomainOffer[]);
     } catch (error: any) {
       console.error('Error loading dashboard data:', error);
       toast.error(error.message || 'Failed to load dashboard data');

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { DomainCard } from '@/components/DomainCard';
 import { Input } from "@/components/ui/input";
@@ -41,7 +40,7 @@ export const Marketplace = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      setDomains(data || []);
+      setDomains(data as Domain[] || []);
     } catch (error: any) {
       console.error('Error loading domains:', error);
       toast.error(error.message || 'Failed to load domains');

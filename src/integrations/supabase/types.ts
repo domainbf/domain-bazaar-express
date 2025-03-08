@@ -124,10 +124,47 @@ export type Database = {
           },
         ]
       }
+      domain_listings: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          highlight: boolean | null
+          id: string
+          name: string
+          owner_id: string | null
+          price: number
+          status: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          highlight?: boolean | null
+          id?: string
+          name: string
+          owner_id?: string | null
+          price: number
+          status?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          highlight?: boolean | null
+          id?: string
+          name?: string
+          owner_id?: string | null
+          price?: number
+          status?: string | null
+        }
+        Relationships: []
+      }
       domain_offers: {
         Row: {
           amount: number
           buyer_id: string | null
+          contact_email: string | null
           created_at: string | null
           domain_id: string | null
           id: string
@@ -139,6 +176,7 @@ export type Database = {
         Insert: {
           amount: number
           buyer_id?: string | null
+          contact_email?: string | null
           created_at?: string | null
           domain_id?: string | null
           id?: string
@@ -150,6 +188,7 @@ export type Database = {
         Update: {
           amount?: number
           buyer_id?: string | null
+          contact_email?: string | null
           created_at?: string | null
           domain_id?: string | null
           id?: string
@@ -164,6 +203,13 @@ export type Database = {
             columns: ["domain_id"]
             isOneToOne: false
             referencedRelation: "domains"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_domain_listings"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "domain_listings"
             referencedColumns: ["id"]
           },
         ]
