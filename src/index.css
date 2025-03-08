@@ -30,13 +30,20 @@
 
 @layer base {
   body {
-    @apply bg-white text-black min-h-screen;
+    @apply bg-gray-100 text-black min-h-screen font-sans;
+  }
+
+  /* Improve readability on mobile */
+  @media (max-width: 640px) {
+    html {
+      font-size: 15px;
+    }
   }
 }
 
-/* Simple card design */
+/* Simple card design with better mobile styling */
 .simple-card {
-  @apply bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-300;
+  @apply bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-300 h-full;
 }
 
 .simple-card:hover {
@@ -65,15 +72,25 @@
 /* Responsive layout adjustments */
 @media (max-width: 640px) {
   .hero-section {
-    @apply py-16;
+    @apply py-12;
   }
   
   .hero-title {
-    @apply text-3xl;
+    @apply text-2xl;
+  }
+
+  /* Prevent horizontal overflow */
+  .overflow-x-hidden {
+    overflow-x: hidden;
+  }
+
+  /* Better touch targets for mobile */
+  button, a {
+    @apply min-h-10;
   }
 }
 
-/* Dark theme elements */
+/* Dark theme elements with stronger colors */
 .dark-section {
   @apply bg-gray-900 text-white;
 }
@@ -84,4 +101,32 @@
 
 .dark-button {
   @apply bg-gray-800 text-white hover:bg-gray-700;
+}
+
+/* Mobile navigation */
+.mobile-nav-item {
+  @apply block w-full py-3 px-4 text-left;
+}
+
+/* Hamburger menu animation */
+.menu-enter {
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.2s ease;
+}
+
+.menu-enter-active {
+  max-height: 500px;
+  opacity: 1;
+}
+
+.menu-exit {
+  max-height: 500px;
+  opacity: 1;
+}
+
+.menu-exit-active {
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.2s ease;
 }
