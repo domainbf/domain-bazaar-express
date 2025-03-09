@@ -25,3 +25,15 @@ export interface DomainOffer {
   buyer_id?: string;
   updated_at?: string;
 }
+
+export interface Domain {
+  id: string;
+  name: string;
+  price: number;
+  category: string;
+  highlight: boolean;
+  status: string;
+  description?: string;
+  owner_id: string;
+  created_at?: string;
+}

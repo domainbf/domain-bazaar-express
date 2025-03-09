@@ -41,33 +41,181 @@
   }
 }
 
-/* Enhanced button styles for better visibility */
-.primary-button {
-  @apply bg-gray-900 text-white hover:bg-gray-800 transition-colors font-semibold;
+/* Base Layout Styles */
+@layer components {
+  /* Enhanced button styles for better visibility */
+  .primary-button {
+    @apply bg-gray-900 text-white hover:bg-gray-800 transition-colors font-semibold;
+  }
+
+  .secondary-button {
+    @apply bg-white text-gray-900 hover:bg-gray-100 transition-colors font-semibold;
+  }
+
+  .outline-button {
+    @apply border-2 border-white bg-transparent text-white hover:bg-gray-800 transition-colors font-semibold;
+  }
+
+  /* Better card design with better mobile styling */
+  .simple-card {
+    @apply bg-white border border-gray-300 rounded-lg shadow-sm transition-all duration-300 h-full;
+  }
+
+  .simple-card:hover {
+    @apply shadow-md;
+  }
+
+  /* Simple animations */
+  .fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  /* Domain card button improvements */
+  .domain-card-btn {
+    @apply bg-gray-900 text-white font-bold border-0;
+  }
+
+  /* Filter button improvements */
+  .filter-button {
+    @apply bg-white text-gray-900 border-2 border-gray-300 font-bold hover:bg-gray-100;
+  }
+
+  .filter-button-active {
+    @apply bg-black text-white font-bold hover:bg-gray-800;
+  }
+
+  /* Enhanced filter text visibility */
+  .filter-text {
+    @apply text-base font-bold;
+  }
 }
 
-.secondary-button {
-  @apply bg-white text-gray-900 hover:bg-gray-100 transition-colors font-semibold;
+/* Responsive Utilities */
+@layer utilities {
+  /* Responsive layout adjustments with better text visibility */
+  @media (max-width: 640px) {
+    .hero-section {
+      @apply py-12;
+    }
+    
+    .hero-title {
+      @apply text-2xl;
+    }
+  
+    /* Prevent horizontal overflow */
+    .overflow-x-hidden {
+      overflow-x: hidden;
+    }
+  
+    /* Better touch targets for mobile */
+    button, a {
+      @apply min-h-[44px] font-semibold;
+    }
+    
+    /* Improved text contrast for mobile */
+    .text-small {
+      @apply text-base;
+    }
+    
+    .text-nav {
+      @apply text-[16px] font-semibold;
+    }
+
+    /* Mobile filter button improvements */
+    .mobile-filter-button {
+      @apply min-w-[80px] py-2 px-3 bg-white text-gray-900 border-2 border-gray-400 font-bold shadow-sm;
+    }
+    
+    .mobile-filter-button-active {
+      @apply min-w-[80px] py-2 px-3 bg-black text-white font-bold shadow-sm;
+    }
+  }
 }
 
-.outline-button {
-  @apply border-2 border-white bg-transparent text-white hover:bg-gray-800 transition-colors font-semibold;
+/* Dark Mode & High Contrast Components */
+@layer components {
+  /* Dark theme elements with stronger contrast */
+  .dark-section {
+    @apply bg-gray-900 text-white;
+  }
+
+  .dark-card {
+    @apply bg-gray-800 text-white border-gray-700;
+  }
+
+  .dark-button {
+    @apply bg-gray-800 text-white hover:bg-gray-700 font-semibold;
+  }
+
+  /* Mobile navigation improvements */
+  .mobile-nav-item {
+    @apply block w-full py-3 px-4 text-left font-semibold text-white bg-gray-800 hover:bg-gray-700 rounded-md;
+  }
+
+  /* Enhanced mobile text readability */
+  .mobile-text-enhanced {
+    @apply text-[16px] font-semibold tracking-wide;
+  }
+  
+  .mobile-heading-enhanced {
+    @apply text-[20px] font-bold tracking-wide;
+  }
+
+  /* New improved text contrast */
+  .text-enhanced {
+    @apply text-gray-900 font-semibold;
+  }
+
+  .text-secondary-enhanced {
+    @apply text-gray-800 font-medium;
+  }
+
+  .text-white-enhanced {
+    @apply text-white font-semibold;
+  }
+
+  .text-dark-enhanced {
+    @apply text-gray-900 font-bold;
+  }
+
+  /* Improved gray text contrast */
+  .text-gray-enhanced {
+    @apply text-gray-700 font-medium;
+  }
 }
 
-/* Better card design with better mobile styling */
-.simple-card {
-  @apply bg-white border border-gray-300 rounded-lg shadow-sm transition-all duration-300 h-full;
+/* Button Variants */
+@layer components {
+  /* Additional button contrast improvements */
+  .btn-high-contrast {
+    @apply bg-gray-900 text-white hover:bg-gray-800 font-bold;
+  }
+
+  .btn-high-contrast-outline {
+    @apply border-2 border-gray-700 bg-transparent text-gray-900 hover:bg-gray-100 font-bold;
+  }
+
+  /* High-contrast button text for dark backgrounds */
+  .btn-dark-bg {
+    @apply border-2 border-white bg-transparent text-white hover:bg-white hover:text-gray-900 font-bold;
+  }
+
+  /* Improved button text contrast on mobile */
+  .mobile-btn-text {
+    @apply text-lg font-bold tracking-wide;
+  }
+  
+  /* Make mobile menu buttons more visible */
+  .mobile-nav-btn {
+    @apply bg-white text-gray-900 font-bold;
+  }
+  
+  .mobile-nav-btn-outline {
+    @apply border-2 border-white bg-transparent text-white font-bold;
+  }
 }
 
-.simple-card:hover {
-  @apply shadow-md;
-}
-
-/* Simple animations */
-.fade-in {
-  animation: fadeIn 0.5s ease-out;
-}
-
+/* Animation Keyframes */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -77,55 +225,7 @@
   }
 }
 
-/* Responsive layout adjustments with better text visibility */
-@media (max-width: 640px) {
-  .hero-section {
-    @apply py-12;
-  }
-  
-  .hero-title {
-    @apply text-2xl;
-  }
-
-  /* Prevent horizontal overflow */
-  .overflow-x-hidden {
-    overflow-x: hidden;
-  }
-
-  /* Better touch targets for mobile */
-  button, a {
-    @apply min-h-[44px] font-semibold;
-  }
-  
-  /* Improved text contrast for mobile */
-  .text-small {
-    @apply text-base;
-  }
-  
-  .text-nav {
-    @apply text-[16px] font-semibold;
-  }
-}
-
-/* Dark theme elements with stronger contrast */
-.dark-section {
-  @apply bg-gray-900 text-white;
-}
-
-.dark-card {
-  @apply bg-gray-800 text-white border-gray-700;
-}
-
-.dark-button {
-  @apply bg-gray-800 text-white hover:bg-gray-700 font-semibold;
-}
-
-/* Mobile navigation improvements */
-.mobile-nav-item {
-  @apply block w-full py-3 px-4 text-left font-semibold text-white bg-gray-800 hover:bg-gray-700 rounded-md;
-}
-
-/* Hamburger menu animation */
+/* Menu Animation */
 .menu-enter {
   max-height: 0;
   opacity: 0;
@@ -146,102 +246,4 @@
   max-height: 0;
   opacity: 0;
   transition: max-height 0.3s ease, opacity 0.2s ease;
-}
-
-/* Enhanced mobile text readability */
-@media (max-width: 640px) {
-  .mobile-text-enhanced {
-    @apply text-[16px] font-semibold tracking-wide;
-  }
-  
-  .mobile-heading-enhanced {
-    @apply text-[20px] font-bold tracking-wide;
-  }
-  
-  /* Improved button text visibility */
-  button, .button {
-    @apply font-semibold tracking-wide;
-  }
-}
-
-/* New improved text contrast */
-.text-enhanced {
-  @apply text-gray-900 font-semibold;
-}
-
-.text-secondary-enhanced {
-  @apply text-gray-800 font-medium;
-}
-
-.text-white-enhanced {
-  @apply text-white font-semibold;
-}
-
-.text-dark-enhanced {
-  @apply text-gray-900 font-bold;
-}
-
-/* Improved gray text contrast */
-.text-gray-enhanced {
-  @apply text-gray-700 font-medium;
-}
-
-/* Additional button contrast improvements */
-.btn-high-contrast {
-  @apply bg-gray-900 text-white hover:bg-gray-800 font-bold;
-}
-
-.btn-high-contrast-outline {
-  @apply border-2 border-gray-700 bg-transparent text-gray-900 hover:bg-gray-100 font-bold;
-}
-
-/* High-contrast button text for dark backgrounds */
-.btn-dark-bg {
-  @apply border-2 border-white bg-transparent text-white hover:bg-white hover:text-gray-900 font-bold;
-}
-
-/* Improved button text contrast on mobile */
-@media (max-width: 640px) {
-  .mobile-btn-text {
-    @apply text-lg font-bold tracking-wide;
-  }
-  
-  /* Make mobile menu buttons more visible */
-  .mobile-nav-btn {
-    @apply bg-white text-gray-900 font-bold;
-  }
-  
-  .mobile-nav-btn-outline {
-    @apply border-2 border-white bg-transparent text-white font-bold;
-  }
-}
-
-/* Domain card button improvements */
-.domain-card-btn {
-  @apply bg-gray-900 text-white font-bold border-0;
-}
-
-/* Filter button improvements */
-.filter-button {
-  @apply bg-white text-gray-900 border-2 border-gray-300 font-bold hover:bg-gray-100;
-}
-
-.filter-button-active {
-  @apply bg-black text-white font-bold hover:bg-gray-800;
-}
-
-/* Enhanced filter text visibility */
-.filter-text {
-  @apply text-base font-bold;
-}
-
-/* Mobile filter button improvements */
-@media (max-width: 640px) {
-  .mobile-filter-button {
-    @apply min-w-[80px] py-2 px-3 bg-white text-gray-900 border-2 border-gray-400 font-bold shadow-sm;
-  }
-  
-  .mobile-filter-button-active {
-    @apply min-w-[80px] py-2 px-3 bg-black text-white font-bold shadow-sm;
-  }
 }
