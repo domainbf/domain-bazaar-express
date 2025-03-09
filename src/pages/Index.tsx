@@ -25,21 +25,21 @@ const Index = () => {
       {/* Hero Section - Improved mobile readability */}
       <header className="pt-16 pb-20 md:py-24 bg-gray-900 text-white">
         <div className="max-w-6xl mx-auto px-4 md:px-8 text-center">
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 md:mb-8 leading-tight">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 md:mb-8 leading-tight text-white-enhanced">
             Find Your Ideal Domain
           </h1>
-          <p className="text-base md:text-xl text-gray-200 mb-8 md:mb-12 max-w-3xl mx-auto px-2 font-medium">
+          <p className="text-base md:text-xl text-white mb-8 md:mb-12 max-w-3xl mx-auto px-2 font-semibold">
             Premium domains available for purchase or make your offer
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center px-2">
             <Link to="/marketplace" className="w-full sm:w-auto">
-              <Button className="w-full sm:w-auto bg-white text-gray-900 hover:bg-gray-100 px-6 py-2 md:px-8 md:py-6 text-base md:text-lg font-semibold">
+              <Button className="w-full sm:w-auto bg-white text-gray-900 hover:bg-gray-100 px-6 py-2 md:px-8 md:py-6 text-base md:text-lg font-bold">
                 Browse Marketplace
               </Button>
             </Link>
             <Link to="/dashboard" className="w-full sm:w-auto">
-              <Button variant="outline" className="w-full sm:w-auto border-gray-400 text-white hover:bg-gray-800 px-6 py-2 md:px-8 md:py-6 text-base md:text-lg font-semibold">
+              <Button variant="outline" className="w-full sm:w-auto border-gray-400 border-2 text-white hover:bg-gray-800 px-6 py-2 md:px-8 md:py-6 text-base md:text-lg font-bold">
                 Sell Your Domains
               </Button>
             </Link>
@@ -50,7 +50,7 @@ const Index = () => {
       {/* Filter Section - Better readable text */}
       <section className="py-12 md:py-16 bg-white">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-8 md:mb-10">Featured Domains</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-center text-dark-enhanced mb-8 md:mb-10">Featured Domains</h2>
           
           {/* Filter buttons with better contrast */}
           <div className="overflow-x-auto pb-4 mb-8">
@@ -58,7 +58,7 @@ const Index = () => {
               <Button
                 variant={filter === 'all' ? 'default' : 'outline'}
                 onClick={() => setFilter('all')}
-                className={filter === 'all' ? 'bg-gray-900 text-white font-medium' : 'text-gray-900 border-gray-400 font-medium'}
+                className={filter === 'all' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
                 size="sm"
               >
                 All
@@ -66,7 +66,7 @@ const Index = () => {
               <Button
                 variant={filter === 'premium' ? 'default' : 'outline'}
                 onClick={() => setFilter('premium')}
-                className={filter === 'premium' ? 'bg-gray-900 text-white font-medium' : 'text-gray-900 border-gray-400 font-medium'}
+                className={filter === 'premium' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
                 size="sm"
               >
                 Premium
@@ -74,7 +74,7 @@ const Index = () => {
               <Button
                 variant={filter === 'short' ? 'default' : 'outline'}
                 onClick={() => setFilter('short')}
-                className={filter === 'short' ? 'bg-gray-900 text-white font-medium' : 'text-gray-900 border-gray-400 font-medium'}
+                className={filter === 'short' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
                 size="sm"
               >
                 Short
@@ -82,7 +82,7 @@ const Index = () => {
               <Button
                 variant={filter === 'dev' ? 'default' : 'outline'}
                 onClick={() => setFilter('dev')}
-                className={filter === 'dev' ? 'bg-gray-900 text-white font-medium' : 'text-gray-900 border-gray-400 font-medium'}
+                className={filter === 'dev' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
                 size="sm"
               >
                 Development
@@ -97,9 +97,9 @@ const Index = () => {
                 placeholder="Search domains..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-10 md:h-12 pl-12 pr-4 bg-white border-gray-400 focus:border-gray-900"
+                className="w-full h-10 md:h-12 pl-12 pr-4 bg-white border-gray-500 focus:border-gray-900 text-gray-900 font-medium"
               />
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 w-5 h-5" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-700 w-5 h-5" />
             </div>
           </div>
 
@@ -120,24 +120,24 @@ const Index = () => {
       {/* Features Section - Improved contrast */}
       <section className="py-16 md:py-20 bg-gray-900 text-white">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-10 md:mb-16">How It Works</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-10 md:mb-16 text-white-enhanced">How It Works</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
             <div className="bg-gray-800 rounded-xl p-6 md:p-8 text-center">
               <div className="bg-white text-gray-900 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">1</div>
-              <h3 className="text-lg md:text-xl font-semibold mb-3 md:mb-4">Create an Account</h3>
-              <p className="text-gray-200 text-sm md:text-base font-medium">Sign up for free to buy or sell domains</p>
+              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-white-enhanced">Create an Account</h3>
+              <p className="text-white text-sm md:text-base font-semibold">Sign up for free to buy or sell domains</p>
             </div>
             
             <div className="bg-gray-800 rounded-xl p-6 md:p-8 text-center">
               <div className="bg-white text-gray-900 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">2</div>
-              <h3 className="text-lg md:text-xl font-semibold mb-3 md:mb-4">List or Browse</h3>
-              <p className="text-gray-200 text-sm md:text-base font-medium">List your domains or browse marketplace</p>
+              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-white-enhanced">List or Browse</h3>
+              <p className="text-white text-sm md:text-base font-semibold">List your domains or browse marketplace</p>
             </div>
             
             <div className="bg-gray-800 rounded-xl p-6 md:p-8 text-center">
               <div className="bg-white text-gray-900 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">3</div>
-              <h3 className="text-lg md:text-xl font-semibold mb-3 md:mb-4">Make Deals</h3>
-              <p className="text-gray-200 text-sm md:text-base font-medium">Complete transactions securely</p>
+              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-white-enhanced">Make Deals</h3>
+              <p className="text-white text-sm md:text-base font-semibold">Complete transactions securely</p>
             </div>
           </div>
         </div>
@@ -146,23 +146,23 @@ const Index = () => {
       {/* Statistics Section - Better contrast */}
       <section className="py-16 md:py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-10 md:mb-16">Platform Statistics</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-center text-dark-enhanced mb-10 md:mb-16">Platform Statistics</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             <div className="text-center p-4 md:p-6 bg-gray-100 rounded-lg shadow-sm">
               <div className="text-2xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-3">50,000+</div>
-              <div className="text-gray-800 text-sm md:text-base font-medium">Active Users</div>
+              <div className="text-gray-800 text-sm md:text-base font-semibold">Active Users</div>
             </div>
             <div className="text-center p-4 md:p-6 bg-gray-100 rounded-lg shadow-sm">
               <div className="text-2xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-3">100+</div>
-              <div className="text-gray-800 text-sm md:text-base font-medium">Countries</div>
+              <div className="text-gray-800 text-sm md:text-base font-semibold">Countries</div>
             </div>
             <div className="text-center p-4 md:p-6 bg-gray-100 rounded-lg shadow-sm">
               <div className="text-2xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-3">$100M+</div>
-              <div className="text-gray-800 text-sm md:text-base font-medium">Transaction Volume</div>
+              <div className="text-gray-800 text-sm md:text-base font-semibold">Transaction Volume</div>
             </div>
             <div className="text-center p-4 md:p-6 bg-gray-100 rounded-lg shadow-sm">
               <div className="text-2xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-3">24/7</div>
-              <div className="text-gray-800 text-sm md:text-base font-medium">Customer Support</div>
+              <div className="text-gray-800 text-sm md:text-base font-semibold">Customer Support</div>
             </div>
           </div>
         </div>
@@ -171,18 +171,18 @@ const Index = () => {
       {/* Call to Action - Better contrast */}
       <section className="py-16 md:py-20 bg-gray-900 text-white">
         <div className="max-w-4xl mx-auto px-4 md:px-8 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Ready to Buy or Sell Domains?</h2>
-          <p className="text-base md:text-xl text-gray-200 mb-8 md:mb-10 font-medium">
+          <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-white-enhanced">Ready to Buy or Sell Domains?</h2>
+          <p className="text-base md:text-xl text-white mb-8 md:mb-10 font-semibold">
             Join our platform today and start trading domains with ease
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/marketplace" className="w-full sm:w-auto">
-              <Button className="w-full sm:w-auto bg-white text-gray-900 hover:bg-gray-100 px-6 py-2 md:px-6 md:py-3 text-base font-semibold">
+              <Button className="w-full sm:w-auto bg-white text-gray-900 hover:bg-gray-100 px-6 py-2 md:px-6 md:py-3 text-base font-bold">
                 Browse Domains
               </Button>
             </Link>
             <Link to="/dashboard" className="w-full sm:w-auto">
-              <Button variant="outline" className="w-full sm:w-auto border-gray-400 text-white hover:bg-gray-800 px-6 py-2 md:px-6 md:py-3 text-base font-semibold">
+              <Button variant="outline" className="w-full sm:w-auto border-gray-400 border-2 text-white hover:bg-gray-800 px-6 py-2 md:px-6 md:py-3 text-base font-bold">
                 Sell Domains
               </Button>
             </Link>
@@ -193,7 +193,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="py-8 md:py-12 bg-black text-white">
         <div className="max-w-6xl mx-auto px-4 md:px-8 text-center">
-          <p className="text-sm md:text-base">© 2024 DomainX Trading Platform. All rights reserved.</p>
+          <p className="text-sm md:text-base font-semibold">© 2024 DomainX Trading Platform. All rights reserved.</p>
         </div>
       </footer>
     </div>

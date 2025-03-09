@@ -35,25 +35,25 @@ export const DomainCard = ({ domain, price, highlight, isSold = false, domainId,
   };
 
   return (
-    <div className={`simple-card p-6 hover:shadow-md ${highlight ? 'border-black' : ''}`}>
+    <div className={`simple-card p-6 hover:shadow-md ${highlight ? 'border-black border-2' : ''}`}>
       <div className="flex flex-col items-center space-y-4">
-        <h3 className="text-2xl font-bold text-black">
+        <h3 className="text-2xl font-bold text-gray-900">
           {domain}
         </h3>
         
         {price && (
-          <span className="text-xl font-semibold text-black">${typeof price === 'number' ? price : price}</span>
+          <span className="text-xl font-bold text-gray-900">${typeof price === 'number' ? price : price}</span>
         )}
         
         {isSold ? (
-          <span className="px-4 py-2 rounded-full bg-gray-100 text-gray-500">
+          <span className="px-4 py-2 rounded-full bg-gray-200 text-gray-700 font-semibold">
             Sold
           </span>
         ) : (
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button 
-                className="w-full bg-black text-white hover:bg-gray-800"
+                className="w-full bg-gray-900 text-white hover:bg-gray-800 font-bold"
                 onClick={handleOpenDialog}
               >
                 Make Offer
@@ -61,7 +61,7 @@ export const DomainCard = ({ domain, price, highlight, isSold = false, domainId,
             </DialogTrigger>
             <DialogContent className="bg-white border-gray-200 max-w-md">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-bold text-center text-black">
+                <DialogTitle className="text-2xl font-bold text-center text-gray-900">
                   {domain} - Make an Offer
                 </DialogTitle>
               </DialogHeader>

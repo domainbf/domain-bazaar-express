@@ -43,15 +43,15 @@
 
 /* Enhanced button styles for better visibility */
 .primary-button {
-  @apply bg-gray-900 text-white hover:bg-gray-800 transition-colors font-medium;
+  @apply bg-gray-900 text-white hover:bg-gray-800 transition-colors font-semibold;
 }
 
 .secondary-button {
-  @apply bg-white text-gray-900 hover:bg-gray-100 transition-colors font-medium;
+  @apply bg-white text-gray-900 hover:bg-gray-100 transition-colors font-semibold;
 }
 
 .outline-button {
-  @apply border-2 border-gray-400 text-white hover:bg-gray-800 transition-colors font-medium;
+  @apply border-2 border-gray-400 text-white hover:bg-gray-800 transition-colors font-semibold;
 }
 
 /* Better card design with better mobile styling */
@@ -94,7 +94,7 @@
 
   /* Better touch targets for mobile */
   button, a {
-    @apply min-h-[44px] font-medium;
+    @apply min-h-[44px] font-semibold;
   }
   
   /* Improved text contrast for mobile */
@@ -103,7 +103,7 @@
   }
   
   .text-nav {
-    @apply text-[16px] font-medium;
+    @apply text-[16px] font-semibold;
   }
 }
 
@@ -117,12 +117,12 @@
 }
 
 .dark-button {
-  @apply bg-gray-800 text-white hover:bg-gray-700 font-medium;
+  @apply bg-gray-800 text-white hover:bg-gray-700 font-semibold;
 }
 
 /* Mobile navigation improvements */
 .mobile-nav-item {
-  @apply block w-full py-3 px-4 text-left font-medium text-white bg-gray-800 hover:bg-gray-700 rounded-md;
+  @apply block w-full py-3 px-4 text-left font-semibold text-white bg-gray-800 hover:bg-gray-700 rounded-md;
 }
 
 /* Hamburger menu animation */
@@ -151,7 +151,7 @@
 /* Enhanced mobile text readability */
 @media (max-width: 640px) {
   .mobile-text-enhanced {
-    @apply text-[16px] font-medium tracking-wide;
+    @apply text-[16px] font-semibold tracking-wide;
   }
   
   .mobile-heading-enhanced {
@@ -162,4 +162,35 @@
   button, .button {
     @apply font-semibold tracking-wide;
   }
+}
+
+/* New improved text contrast */
+.text-enhanced {
+  @apply text-gray-900 font-semibold;
+}
+
+.text-secondary-enhanced {
+  @apply text-gray-800 font-medium;
+}
+
+.text-white-enhanced {
+  @apply text-white font-semibold;
+}
+
+.text-dark-enhanced {
+  @apply text-gray-900 font-bold;
+}
+
+/* Improved gray text contrast */
+.text-gray-enhanced {
+  @apply text-gray-700 font-medium;
+}
+
+/* Additional button contrast improvements */
+.btn-high-contrast {
+  @apply bg-gray-900 text-white hover:bg-gray-800 font-bold;
+}
+
+.btn-high-contrast-outline {
+  @apply border-2 border-gray-700 text-gray-900 hover:bg-gray-100 font-bold;
 }

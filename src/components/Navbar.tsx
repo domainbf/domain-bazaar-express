@@ -75,16 +75,16 @@ export const Navbar = () => {
           
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-6">
-            <Link to="/" className="text-white hover:text-gray-300 transition-colors font-medium">Home</Link>
-            <Link to="/marketplace" className="text-white hover:text-gray-300 transition-colors font-medium">Marketplace</Link>
+            <Link to="/" className="text-white hover:text-gray-300 transition-colors font-semibold">Home</Link>
+            <Link to="/marketplace" className="text-white hover:text-gray-300 transition-colors font-semibold">Marketplace</Link>
             
             {user ? (
               <>
-                <Link to="/dashboard" className="text-white hover:text-gray-300 transition-colors font-medium">Dashboard</Link>
+                <Link to="/dashboard" className="text-white hover:text-gray-300 transition-colors font-semibold">Dashboard</Link>
                 <Button 
                   variant="outline" 
                   onClick={handleSignOut}
-                  className="border-gray-400 text-white hover:bg-gray-700 font-medium"
+                  className="border-white border-2 text-white hover:bg-gray-700 font-semibold"
                 >
                   Sign Out
                 </Button>
@@ -94,13 +94,13 @@ export const Navbar = () => {
                 <Button 
                   variant="outline" 
                   onClick={() => openAuthModal('signin')}
-                  className="border-gray-400 text-white hover:bg-gray-700 font-medium"
+                  className="border-white border-2 text-white hover:bg-gray-700 font-semibold"
                 >
                   Sign In
                 </Button>
                 <Button 
                   onClick={() => openAuthModal('signup')}
-                  className="bg-white text-gray-900 hover:bg-gray-200 font-medium"
+                  className="bg-white text-gray-900 hover:bg-gray-200 font-semibold"
                 >
                   Sign Up
                 </Button>
@@ -114,14 +114,14 @@ export const Navbar = () => {
           <div className="md:hidden mt-4 py-2 space-y-3 flex flex-col bg-gray-800 rounded-lg animate-fade-in border border-gray-700">
             <Link 
               to="/" 
-              className="text-white hover:text-gray-300 py-3 px-4 block font-medium hover:bg-gray-700 rounded-md"
+              className="text-white hover:text-gray-300 py-3 px-4 block font-semibold hover:bg-gray-700 rounded-md"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Home
             </Link>
             <Link 
               to="/marketplace" 
-              className="text-white hover:text-gray-300 py-3 px-4 block font-medium hover:bg-gray-700 rounded-md"
+              className="text-white hover:text-gray-300 py-3 px-4 block font-semibold hover:bg-gray-700 rounded-md"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Marketplace
@@ -131,7 +131,7 @@ export const Navbar = () => {
               <>
                 <Link 
                   to="/dashboard" 
-                  className="text-white hover:text-gray-300 py-3 px-4 block font-medium hover:bg-gray-700 rounded-md"
+                  className="text-white hover:text-gray-300 py-3 px-4 block font-semibold hover:bg-gray-700 rounded-md"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Dashboard
@@ -140,7 +140,7 @@ export const Navbar = () => {
                   <Button 
                     variant="outline" 
                     onClick={handleSignOut}
-                    className="border-gray-600 text-white hover:bg-gray-700 w-full font-medium"
+                    className="border-white border-2 text-white hover:bg-gray-700 w-full font-semibold"
                   >
                     Sign Out
                   </Button>
@@ -151,13 +151,13 @@ export const Navbar = () => {
                 <Button 
                   variant="outline" 
                   onClick={() => openAuthModal('signin')}
-                  className="border-gray-600 text-white hover:bg-gray-700 w-full font-medium"
+                  className="border-white border-2 text-white hover:bg-gray-700 w-full font-semibold"
                 >
                   Sign In
                 </Button>
                 <Button 
                   onClick={() => openAuthModal('signup')}
-                  className="bg-white text-gray-900 hover:bg-gray-200 w-full font-medium"
+                  className="bg-white text-gray-900 hover:bg-gray-200 w-full font-semibold"
                 >
                   Sign Up
                 </Button>
