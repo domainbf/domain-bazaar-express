@@ -84,7 +84,7 @@ export const Navbar = () => {
                 <Button 
                   variant="outline" 
                   onClick={handleSignOut}
-                  className="border-white border-2 text-white hover:bg-gray-700 font-semibold"
+                  className="border-white text-white hover:bg-gray-700 hover:text-white font-semibold"
                 >
                   Sign Out
                 </Button>
@@ -94,7 +94,7 @@ export const Navbar = () => {
                 <Button 
                   variant="outline" 
                   onClick={() => openAuthModal('signin')}
-                  className="border-white border-2 text-white hover:bg-gray-700 font-semibold"
+                  className="border-white border-2 bg-transparent text-white hover:bg-gray-700 hover:text-white font-semibold"
                 >
                   Sign In
                 </Button>
@@ -140,7 +140,7 @@ export const Navbar = () => {
                   <Button 
                     variant="outline" 
                     onClick={handleSignOut}
-                    className="border-white border-2 text-white hover:bg-gray-700 w-full font-semibold"
+                    className="border-white border-2 bg-transparent text-white hover:bg-gray-700 w-full font-semibold"
                   >
                     Sign Out
                   </Button>
@@ -151,7 +151,7 @@ export const Navbar = () => {
                 <Button 
                   variant="outline" 
                   onClick={() => openAuthModal('signin')}
-                  className="border-white border-2 text-white hover:bg-gray-700 w-full font-semibold"
+                  className="border-white border-2 bg-transparent text-white hover:bg-gray-700 w-full font-semibold"
                 >
                   Sign In
                 </Button>

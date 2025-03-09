@@ -51,7 +51,7 @@
 }
 
 .outline-button {
-  @apply border-2 border-gray-400 text-white hover:bg-gray-800 transition-colors font-semibold;
+  @apply border-2 border-white bg-transparent text-white hover:bg-gray-800 transition-colors font-semibold;
 }
 
 /* Better card design with better mobile styling */
@@ -192,5 +192,31 @@
 }
 
 .btn-high-contrast-outline {
-  @apply border-2 border-gray-700 text-gray-900 hover:bg-gray-100 font-bold;
+  @apply border-2 border-gray-700 bg-transparent text-gray-900 hover:bg-gray-100 font-bold;
+}
+
+/* High-contrast button text for dark backgrounds */
+.btn-dark-bg {
+  @apply border-2 border-white bg-transparent text-white hover:bg-white hover:text-gray-900 font-bold;
+}
+
+/* Improved button text contrast on mobile */
+@media (max-width: 640px) {
+  .mobile-btn-text {
+    @apply text-lg font-bold tracking-wide;
+  }
+  
+  /* Make mobile menu buttons more visible */
+  .mobile-nav-btn {
+    @apply bg-white text-gray-900 font-bold;
+  }
+  
+  .mobile-nav-btn-outline {
+    @apply border-2 border-white bg-transparent text-white font-bold;
+  }
+}
+
+/* Domain card button improvements */
+.domain-card-btn {
+  @apply bg-gray-900 text-white font-bold border-0;
 }
