@@ -220,3 +220,28 @@
 .domain-card-btn {
   @apply bg-gray-900 text-white font-bold border-0;
 }
+
+/* Filter button improvements */
+.filter-button {
+  @apply bg-white text-gray-900 border-2 border-gray-300 font-bold hover:bg-gray-100;
+}
+
+.filter-button-active {
+  @apply bg-black text-white font-bold hover:bg-gray-800;
+}
+
+/* Enhanced filter text visibility */
+.filter-text {
+  @apply text-base font-bold;
+}
+
+/* Mobile filter button improvements */
+@media (max-width: 640px) {
+  .mobile-filter-button {
+    @apply min-w-[80px] py-2 px-3 bg-white text-gray-900 border-2 border-gray-400 font-bold shadow-sm;
+  }
+  
+  .mobile-filter-button-active {
+    @apply min-w-[80px] py-2 px-3 bg-black text-white font-bold shadow-sm;
+  }
+}

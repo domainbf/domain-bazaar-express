@@ -7,7 +7,7 @@ import { DomainOfferForm } from './domain/DomainOfferForm';
 
 interface DomainCardProps {
   domain: string;
-  price?: number | string;  // Updated to accept both number and string
+  price?: number | string;
   highlight?: boolean;
   isSold?: boolean;
   domainId?: string;
@@ -53,7 +53,7 @@ export const DomainCard = ({ domain, price, highlight, isSold = false, domainId,
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button 
-                className="w-full bg-gray-900 text-white hover:bg-gray-800 font-bold"
+                className="w-full bg-black text-white hover:bg-gray-800 font-bold text-base shadow-md"
                 onClick={handleOpenDialog}
               >
                 Make Offer

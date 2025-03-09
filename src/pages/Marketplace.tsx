@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { DomainCard } from '@/components/DomainCard';
 import { Input } from "@/components/ui/input";
@@ -11,7 +10,7 @@ import { Navbar } from '@/components/Navbar';
 interface Domain {
   id: string;
   name: string;
-  price: number;  // Changed from string to number to match Supabase
+  price: number;
   category: string;
   highlight: boolean;
   status: string;
@@ -53,12 +52,10 @@ export const Marketplace = () => {
   const applyFilters = () => {
     let filteredDomains = domains;
     
-    // Apply category filter
     if (filter !== 'all') {
       filteredDomains = filteredDomains.filter(domain => domain.category === filter);
     }
     
-    // Apply search query
     if (searchQuery) {
       filteredDomains = filteredDomains.filter(domain => 
         domain.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -66,7 +63,6 @@ export const Marketplace = () => {
       );
     }
     
-    // Apply price range
     if (priceRange.min) {
       filteredDomains = filteredDomains.filter(domain => 
         domain.price >= parseFloat(priceRange.min)
@@ -83,6 +79,14 @@ export const Marketplace = () => {
   };
 
   const filteredDomains = applyFilters();
+
+  const categoryFilters = [
+    { id: 'all', label: 'All' },
+    { id: 'premium', label: 'Premium' },
+    { id: 'short', label: 'Short' },
+    { id: 'dev', label: 'Development' },
+    { id: 'brandable', label: 'Brandable' }
+  ];
 
   return (
     <div className="min-h-screen bg-white">
@@ -118,47 +122,22 @@ export const Marketplace = () => {
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex justify-between items-center mb-4">
             <div className="flex flex-wrap gap-2">
-              <Button
-                variant={filter === 'all' ? 'default' : 'outline'}
-                onClick={() => setFilter('all')}
-                className={filter === 'all' ? 'bg-black text-white' : 'text-gray-700 border-gray-300'}
-              >
-                All
-              </Button>
-              <Button
-                variant={filter === 'premium' ? 'default' : 'outline'}
-                onClick={() => setFilter('premium')}
-                className={filter === 'premium' ? 'bg-black text-white' : 'text-gray-700 border-gray-300'}
-              >
-                Premium
-              </Button>
-              <Button
-                variant={filter === 'short' ? 'default' : 'outline'}
-                onClick={() => setFilter('short')}
-                className={filter === 'short' ? 'bg-black text-white' : 'text-gray-700 border-gray-300'}
-              >
-                Short
-              </Button>
-              <Button
-                variant={filter === 'dev' ? 'default' : 'outline'}
-                onClick={() => setFilter('dev')}
-                className={filter === 'dev' ? 'bg-black text-white' : 'text-gray-700 border-gray-300'}
-              >
-                Development
-              </Button>
-              <Button
-                variant={filter === 'brandable' ? 'default' : 'outline'}
-                onClick={() => setFilter('brandable')}
-                className={filter === 'brandable' ? 'bg-black text-white' : 'text-gray-700 border-gray-300'}
-              >
-                Brandable
-              </Button>
+              {categoryFilters.map(category => (
+                <Button
+                  key={category.id}
+                  variant={filter === category.id ? 'filterActive' : 'filter'}
+                  onClick={() => setFilter(category.id)}
+                  className="min-w-[80px]"
+                >
+                  {category.label}
+                </Button>
+              ))}
             </div>
             
             <Button
-              variant="outline"
+              variant="filter"
               onClick={() => setShowFilters(!showFilters)}
-              className="text-gray-700 border-gray-300"
+              className="text-gray-900"
             >
               <Filter className="w-4 h-4 mr-2" />
               Filters
@@ -192,8 +171,8 @@ export const Marketplace = () => {
                 </div>
                 <Button
                   onClick={() => setPriceRange({min: '', max: ''})}
-                  variant="outline"
-                  className="text-gray-700 border-gray-300"
+                  variant="filter"
+                  className="text-gray-900"
                 >
                   Reset
                 </Button>
