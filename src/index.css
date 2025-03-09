@@ -36,23 +36,31 @@
   /* Improve readability on mobile */
   @media (max-width: 640px) {
     html {
-      font-size: 15px;
+      font-size: 16px;
     }
   }
 }
 
-/* Simple card design with better mobile styling */
+/* Enhanced button styles for better visibility */
+.primary-button {
+  @apply bg-gray-900 text-white hover:bg-gray-800 transition-colors font-medium;
+}
+
+.secondary-button {
+  @apply bg-white text-gray-900 hover:bg-gray-100 transition-colors font-medium;
+}
+
+.outline-button {
+  @apply border-2 border-gray-400 text-white hover:bg-gray-800 transition-colors font-medium;
+}
+
+/* Better card design with better mobile styling */
 .simple-card {
-  @apply bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-300 h-full;
+  @apply bg-white border border-gray-300 rounded-lg shadow-sm transition-all duration-300 h-full;
 }
 
 .simple-card:hover {
   @apply shadow-md;
-}
-
-/* Button styles */
-.primary-button {
-  @apply bg-gray-900 text-white hover:bg-gray-800 transition-colors;
 }
 
 /* Simple animations */
@@ -69,7 +77,7 @@
   }
 }
 
-/* Responsive layout adjustments */
+/* Responsive layout adjustments with better text visibility */
 @media (max-width: 640px) {
   .hero-section {
     @apply py-12;
@@ -86,11 +94,20 @@
 
   /* Better touch targets for mobile */
   button, a {
-    @apply min-h-10;
+    @apply min-h-[44px] font-medium;
+  }
+  
+  /* Improved text contrast for mobile */
+  .text-small {
+    @apply text-base;
+  }
+  
+  .text-nav {
+    @apply text-[16px] font-medium;
   }
 }
 
-/* Dark theme elements with stronger colors */
+/* Dark theme elements with stronger contrast */
 .dark-section {
   @apply bg-gray-900 text-white;
 }
@@ -100,12 +117,12 @@
 }
 
 .dark-button {
-  @apply bg-gray-800 text-white hover:bg-gray-700;
+  @apply bg-gray-800 text-white hover:bg-gray-700 font-medium;
 }
 
-/* Mobile navigation */
+/* Mobile navigation improvements */
 .mobile-nav-item {
-  @apply block w-full py-3 px-4 text-left;
+  @apply block w-full py-3 px-4 text-left font-medium text-white bg-gray-800 hover:bg-gray-700 rounded-md;
 }
 
 /* Hamburger menu animation */
@@ -129,4 +146,20 @@
   max-height: 0;
   opacity: 0;
   transition: max-height 0.3s ease, opacity 0.2s ease;
+}
+
+/* Enhanced mobile text readability */
+@media (max-width: 640px) {
+  .mobile-text-enhanced {
+    @apply text-[16px] font-medium tracking-wide;
+  }
+  
+  .mobile-heading-enhanced {
+    @apply text-[20px] font-bold tracking-wide;
+  }
+  
+  /* Improved button text visibility */
+  button, .button {
+    @apply font-semibold tracking-wide;
+  }
 }

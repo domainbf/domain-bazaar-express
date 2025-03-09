@@ -6,7 +6,7 @@ import { AuthModal } from "@/components/AuthModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { User } from '@supabase/supabase-js';
-import { Menu } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 export const Navbar = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -66,21 +66,25 @@ export const Navbar = () => {
             onClick={toggleMobileMenu}
             aria-label="Toggle menu"
           >
-            <Menu className="h-6 w-6 text-white" />
+            {isMobileMenuOpen ? (
+              <X className="h-6 w-6 text-white" />
+            ) : (
+              <Menu className="h-6 w-6 text-white" />
+            )}
           </button>
           
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-6">
-            <Link to="/" className="text-white hover:text-gray-300 transition-colors">Home</Link>
-            <Link to="/marketplace" className="text-white hover:text-gray-300 transition-colors">Marketplace</Link>
+            <Link to="/" className="text-white hover:text-gray-300 transition-colors font-medium">Home</Link>
+            <Link to="/marketplace" className="text-white hover:text-gray-300 transition-colors font-medium">Marketplace</Link>
             
             {user ? (
               <>
-                <Link to="/dashboard" className="text-white hover:text-gray-300 transition-colors">Dashboard</Link>
+                <Link to="/dashboard" className="text-white hover:text-gray-300 transition-colors font-medium">Dashboard</Link>
                 <Button 
                   variant="outline" 
                   onClick={handleSignOut}
-                  className="border-gray-600 text-white hover:bg-gray-700"
+                  className="border-gray-400 text-white hover:bg-gray-700 font-medium"
                 >
                   Sign Out
                 </Button>
@@ -90,13 +94,13 @@ export const Navbar = () => {
                 <Button 
                   variant="outline" 
                   onClick={() => openAuthModal('signin')}
-                  className="border-gray-600 text-white hover:bg-gray-700"
+                  className="border-gray-400 text-white hover:bg-gray-700 font-medium"
                 >
                   Sign In
                 </Button>
                 <Button 
                   onClick={() => openAuthModal('signup')}
-                  className="bg-white text-gray-900 hover:bg-gray-200"
+                  className="bg-white text-gray-900 hover:bg-gray-200 font-medium"
                 >
                   Sign Up
                 </Button>
@@ -105,19 +109,19 @@ export const Navbar = () => {
           </div>
         </div>
         
-        {/* Mobile Menu */}
+        {/* Mobile Menu - Improved contrast and readability */}
         {isMobileMenuOpen && (
-          <div className="md:hidden mt-4 py-2 space-y-3 flex flex-col bg-gray-900 animate-fade-in">
+          <div className="md:hidden mt-4 py-2 space-y-3 flex flex-col bg-gray-800 rounded-lg animate-fade-in border border-gray-700">
             <Link 
               to="/" 
-              className="text-white hover:text-gray-300 py-2 block"
+              className="text-white hover:text-gray-300 py-3 px-4 block font-medium hover:bg-gray-700 rounded-md"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Home
             </Link>
             <Link 
               to="/marketplace" 
-              className="text-white hover:text-gray-300 py-2 block"
+              className="text-white hover:text-gray-300 py-3 px-4 block font-medium hover:bg-gray-700 rounded-md"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Marketplace
@@ -127,31 +131,33 @@ export const Navbar = () => {
               <>
                 <Link 
                   to="/dashboard" 
-                  className="text-white hover:text-gray-300 py-2 block"
+                  className="text-white hover:text-gray-300 py-3 px-4 block font-medium hover:bg-gray-700 rounded-md"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Dashboard
                 </Link>
-                <Button 
-                  variant="outline" 
-                  onClick={handleSignOut}
-                  className="border-gray-600 text-white hover:bg-gray-700 w-full mt-2"
-                >
-                  Sign Out
-                </Button>
+                <div className="px-4 py-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleSignOut}
+                    className="border-gray-600 text-white hover:bg-gray-700 w-full font-medium"
+                  >
+                    Sign Out
+                  </Button>
+                </div>
               </>
             ) : (
-              <div className="flex flex-col space-y-2 pt-2">
+              <div className="flex flex-col space-y-2 px-4 py-2">
                 <Button 
                   variant="outline" 
                   onClick={() => openAuthModal('signin')}
-                  className="border-gray-600 text-white hover:bg-gray-700 w-full"
+                  className="border-gray-600 text-white hover:bg-gray-700 w-full font-medium"
                 >
                   Sign In
                 </Button>
                 <Button 
                   onClick={() => openAuthModal('signup')}
-                  className="bg-white text-gray-900 hover:bg-gray-200 w-full"
+                  className="bg-white text-gray-900 hover:bg-gray-200 w-full font-medium"
                 >
                   Sign Up
                 </Button>
