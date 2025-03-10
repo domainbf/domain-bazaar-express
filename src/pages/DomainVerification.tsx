@@ -187,14 +187,14 @@ export const DomainVerification = () => {
         {verification && verification.status === 'pending' && (
           <VerificationInstructions 
             verification={verification}
-            domainName={domain.name || ''}
+            domainName={domain?.name || ''}
             onRefresh={loadDomainAndVerification}
             onCheck={checkVerification}
           />
         )}
         
         {verification && verification.status === 'verified' && (
-          <VerificationSuccess domainName={domain.name || ''} />
+          <VerificationSuccess domainName={domain?.name || ''} />
         )}
         
         <div className="flex justify-end">

@@ -170,6 +170,7 @@ export const Navbar = () => {
           isOpen={isAuthModalOpen} 
           onClose={() => setIsAuthModalOpen(false)} 
           mode={authMode} 
+          onChangeMode={setAuthMode}
         />
       </div>
     </nav>
