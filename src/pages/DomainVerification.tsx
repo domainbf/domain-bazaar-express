@@ -6,11 +6,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Domain, DomainVerification as DomainVerificationType } from '@/types/domain';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Link, Check, AlertTriangle, FileText, ExternalLink } from 'lucide-react';
+import { Link, Check, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { VerificationOptions } from '@/components/verification/VerificationOptions';
+import { VerificationInstructions } from '@/components/verification/VerificationInstructions';
+import { VerificationSuccess } from '@/components/verification/VerificationSuccess';
 
 export const DomainVerification = () => {
   const { domainId } = useParams<{ domainId: string }>();
@@ -19,7 +20,6 @@ export const DomainVerification = () => {
   const [domain, setDomain] = useState<Domain | null>(null);
   const [verification, setVerification] = useState<DomainVerificationType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [verificationMethod, setVerificationMethod] = useState('dns');
 
   useEffect(() => {
     if (domainId) {
@@ -61,7 +61,7 @@ export const DomainVerification = () => {
     }
   };
 
-  const startVerification = async () => {
+  const startVerification = async (verificationMethod: string) => {
     try {
       // Check if user owns this domain
       if (domain?.owner_id !== user?.id) {
@@ -205,135 +205,20 @@ export const DomainVerification = () => {
         )}
         
         {!verification && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Verify Domain Ownership</CardTitle>
-              <CardDescription>
-                Verifying your domain proves you own it and increases buyer trust.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="dns" onValueChange={setVerificationMethod}>
-                <TabsList className="mb-4">
-                  <TabsTrigger value="dns">DNS Verification</TabsTrigger>
-                  <TabsTrigger value="file">File Verification</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="dns">
-                  <div className="space-y-4">
-                    <p>Add a TXT record to your domain's DNS settings to verify ownership.</p>
-                    <div className="bg-gray-50 p-4 rounded-md">
-                      <p className="text-sm font-medium mb-1">Once you start the verification, you'll need to add a TXT record with:</p>
-                      <p className="text-sm text-gray-600">Record Type: TXT</p>
-                      <p className="text-sm text-gray-600">Record Name: _domainverify.yourdomain.com</p>
-                      <p className="text-sm text-gray-600">Record Value: A verification code we'll provide</p>
-                    </div>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="file">
-                  <div className="space-y-4">
-                    <p>Upload a verification file to your domain's web server.</p>
-                    <div className="bg-gray-50 p-4 rounded-md">
-                      <p className="text-sm font-medium mb-1">Once you start verification, you'll need to:</p>
-                      <p className="text-sm text-gray-600">1. Create a file at: /.well-known/domain-verification.txt</p>
-                      <p className="text-sm text-gray-600">2. Add the verification code we'll provide to the file</p>
-                      <p className="text-sm text-gray-600">3. Make the file accessible via: https://{domain.name}/.well-known/domain-verification.txt</p>
-                    </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-            <CardFooter>
-              <Button onClick={startVerification}>Start Verification</Button>
-            </CardFooter>
-          </Card>
+          <VerificationOptions onStartVerification={startVerification} />
         )}
         
         {verification && verification.status === 'pending' && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Complete Verification</CardTitle>
-              <CardDescription>
-                Follow these steps to verify your domain ownership
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {verification.verification_type === 'dns' ? (
-                <div className="space-y-4">
-                  <p>Add the following TXT record to your domain's DNS settings:</p>
-                  <div className="bg-gray-50 p-4 rounded-md space-y-2">
-                    <div>
-                      <p className="text-sm font-medium">Record Type:</p>
-                      <p className="text-sm font-mono bg-gray-100 p-1 rounded">TXT</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">Record Name:</p>
-                      <p className="text-sm font-mono bg-gray-100 p-1 rounded">{verification.verification_data.recordName}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">Record Value:</p>
-                      <p className="text-sm font-mono bg-gray-100 p-1 rounded">{verification.verification_data.recordValue}</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-600">DNS changes can take up to 24-48 hours to propagate, but often happen much faster.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <p>Create a verification file on your web server:</p>
-                  <div className="bg-gray-50 p-4 rounded-md space-y-2">
-                    <div>
-                      <p className="text-sm font-medium">File Location:</p>
-                      <p className="text-sm font-mono bg-gray-100 p-1 rounded">{verification.verification_data.fileLocation}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">File Content:</p>
-                      <p className="text-sm font-mono bg-gray-100 p-1 rounded">{verification.verification_data.fileContent}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">File URL:</p>
-                      <p className="text-sm font-mono bg-gray-100 p-1 rounded flex items-center">
-                        https://{domain.name}{verification.verification_data.fileLocation}
-                        <a href={`https://${domain.name}${verification.verification_data.fileLocation}`} target="_blank" rel="noopener noreferrer" className="ml-2 inline-flex">
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button variant="outline" onClick={loadDomainAndVerification}>Refresh Status</Button>
-              <Button onClick={checkVerification}>Check Verification</Button>
-            </CardFooter>
-          </Card>
+          <VerificationInstructions 
+            verification={verification}
+            domainName={domain.name || ''}
+            onRefresh={loadDomainAndVerification}
+            onCheck={checkVerification}
+          />
         )}
         
         {verification && verification.status === 'verified' && (
-          <Card className="mb-8 border-green-200">
-            <CardHeader className="bg-green-50">
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5 text-green-600" />
-                <CardTitle>Domain Verified</CardTitle>
-              </div>
-              <CardDescription>
-                Your domain has been successfully verified as authentic
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <p>Your domain {domain.name} is now verified and has the following benefits:</p>
-              <ul className="list-disc pl-5 mt-2 space-y-1">
-                <li>Higher visibility in marketplace searches</li>
-                <li>Verification badge shown to potential buyers</li>
-                <li>Increased trust and credibility</li>
-                <li>Priority support for your listings</li>
-              </ul>
-            </CardContent>
-            <CardFooter>
-              <Button variant="outline" onClick={() => navigate('/dashboard')}>Return to Dashboard</Button>
-            </CardFooter>
-          </Card>
+          <VerificationSuccess domainName={domain.name || ''} />
         )}
         
         <div className="flex justify-end">

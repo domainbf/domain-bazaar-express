@@ -133,7 +133,7 @@ serve(async (req: Request) => {
     // Send notification email to the admin
     const adminEmailResponse = await resend.emails.send({
       from: "DomainX <no-reply@domain.bf>",
-      to: ["9208522@qq.com"],
+      to: ["admin@example.com"], // Replace with actual admin email
       subject: `New offer for ${domain}: $${offer}`,
       html: adminEmailHtml,
     });

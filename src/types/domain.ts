@@ -1,4 +1,5 @@
 
+
 export interface Domain {
   id?: string;
   name?: string;
@@ -52,3 +53,4 @@ export interface AdminStats {
   total_offers: number;
   recent_transactions: number;
 }
+
