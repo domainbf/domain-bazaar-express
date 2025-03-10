@@ -14,6 +14,7 @@ export const Marketplace = () => {
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [priceRange, setPriceRange] = useState<{min: string, max: string}>({min: '', max: ''});
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
 
   useEffect(() => {
     loadDomains();
@@ -64,6 +65,10 @@ export const Marketplace = () => {
       );
     }
     
+    if (verifiedOnly) {
+      filteredDomains = filteredDomains.filter(domain => domain.is_verified);
+    }
+    
     return filteredDomains;
   };
 
@@ -83,6 +88,8 @@ export const Marketplace = () => {
         setFilter={setFilter} 
         priceRange={priceRange} 
         setPriceRange={setPriceRange} 
+        verifiedOnly={verifiedOnly}
+        setVerifiedOnly={setVerifiedOnly}
       />
 
       <section className="py-12">
