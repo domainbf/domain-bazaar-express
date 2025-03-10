@@ -30,7 +30,8 @@ export const Marketplace = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      setDomains(data as Domain[] || []);
+      console.log('Fetched domains:', data); // Add this log to debug
+      setDomains(data || []);
     } catch (error: any) {
       console.error('Error loading domains:', error);
       toast.error(error.message || 'Failed to load domains');
@@ -87,7 +88,7 @@ export const Marketplace = () => {
         filter={filter} 
         setFilter={setFilter} 
         priceRange={priceRange} 
-        setPriceRange={setPriceRange} 
+        setPriceRange={setPriceRange}
         verifiedOnly={verifiedOnly}
         setVerifiedOnly={setVerifiedOnly}
       />
