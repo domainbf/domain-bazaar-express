@@ -6,18 +6,29 @@ import { toast } from 'sonner';
 
 interface ProtectedRouteProps {
   children: ReactNode;
+  adminOnly?: boolean;
 }
 
-export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { user, isLoading } = useAuth();
+export const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRouteProps) => {
+  const { user, isLoading, profile } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!isLoading && !user) {
       toast.error('Please sign in to access this page');
       navigate('/');
+      return;
     }
-  }, [user, isLoading, navigate]);
+
+    if (!isLoading && user && adminOnly) {
+      // Check if user has admin role (using profile.role or any other admin check)
+      const isAdmin = profile?.role === 'admin';
+      if (!isAdmin) {
+        toast.error('You do not have permission to access this page');
+        navigate('/dashboard');
+      }
+    }
+  }, [user, isLoading, navigate, adminOnly, profile]);
 
   if (isLoading) {
     return (

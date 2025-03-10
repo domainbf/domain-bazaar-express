@@ -10,13 +10,17 @@ interface FilterSectionProps {
   setFilter: (filter: string) => void;
   priceRange: { min: string; max: string };
   setPriceRange: (range: { min: string; max: string }) => void;
+  verifiedOnly?: boolean;
+  setVerifiedOnly?: (verified: boolean) => void;
 }
 
 export const FilterSection = ({ 
   filter, 
   setFilter, 
   priceRange, 
-  setPriceRange 
+  setPriceRange,
+  verifiedOnly = false,
+  setVerifiedOnly
 }: FilterSectionProps) => {
   const [showFilters, setShowFilters] = useState(false);
   
@@ -49,7 +53,24 @@ export const FilterSection = ({
         </div>
         
         {showFilters && (
-          <PriceRangeFilter priceRange={priceRange} setPriceRange={setPriceRange} />
+          <div className="space-y-4">
+            <PriceRangeFilter priceRange={priceRange} setPriceRange={setPriceRange} />
+            
+            {setVerifiedOnly && (
+              <div className="flex items-center space-x-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="verifiedOnly"
+                  checked={verifiedOnly}
+                  onChange={(e) => setVerifiedOnly(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <label htmlFor="verifiedOnly" className="text-sm font-medium text-gray-700">
+                  Verified domains only
+                </label>
+              </div>
+            )}
+          </div>
         )}
       </div>
     </section>
