@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
@@ -7,11 +6,12 @@ import { toast } from "sonner";
 import { Domain, DomainVerification as DomainVerificationType } from '@/types/domain';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Link, Check, AlertTriangle } from 'lucide-react';
+import { Link, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { VerificationOptions } from '@/components/verification/VerificationOptions';
 import { VerificationInstructions } from '@/components/verification/VerificationInstructions';
 import { VerificationSuccess } from '@/components/verification/VerificationSuccess';
+import { VerificationStatus } from '@/components/verification/VerificationStatus';
 
 export const DomainVerification = () => {
   const { domainId } = useParams<{ domainId: string }>();
@@ -178,31 +178,7 @@ export const DomainVerification = () => {
           <h1 className="text-2xl font-bold text-gray-900">Domain Verification: {domain.name}</h1>
         </div>
         
-        {domain.verification_status === 'verified' ? (
-          <Alert className="mb-8 bg-green-50 border-green-200">
-            <Check className="h-4 w-4 text-green-600" />
-            <AlertTitle className="text-green-600">Verified Domain</AlertTitle>
-            <AlertDescription className="text-green-700">
-              This domain has been successfully verified and is marked as authentic in our marketplace.
-            </AlertDescription>
-          </Alert>
-        ) : verification?.status === 'pending' ? (
-          <Alert className="mb-8 bg-yellow-50 border-yellow-200">
-            <AlertTriangle className="h-4 w-4 text-yellow-600" />
-            <AlertTitle className="text-yellow-600">Verification Pending</AlertTitle>
-            <AlertDescription className="text-yellow-700">
-              Please complete the verification steps below to verify ownership of this domain.
-            </AlertDescription>
-          </Alert>
-        ) : (
-          <Alert className="mb-8">
-            <Link className="h-4 w-4" />
-            <AlertTitle>Domain Not Verified</AlertTitle>
-            <AlertDescription>
-              Verified domains receive higher visibility and trust in our marketplace.
-            </AlertDescription>
-          </Alert>
-        )}
+        <VerificationStatus domain={domain} />
         
         {!verification && (
           <VerificationOptions onStartVerification={startVerification} />

@@ -1,5 +1,3 @@
-
-
 export interface Domain {
   id?: string;
   name?: string;
@@ -14,7 +12,6 @@ export interface Domain {
   verification_status?: string;
 }
 
-// For consistency, the DomainListing interface should extend Domain
 export interface DomainListing extends Domain {
   // Add any additional fields specific to listings
   // but inherit all fields from Domain
@@ -53,4 +50,3 @@ export interface AdminStats {
   total_offers: number;
   recent_transactions: number;
 }
-

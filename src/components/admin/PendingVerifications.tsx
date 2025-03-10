@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { DomainVerification } from '@/types/domain';
 import { Button } from "@/components/ui/button";
-import { VerificationCard } from './verification/VerificationCard';
+import { VerificationsList } from './verification/VerificationsList';
+import { EmptyState } from './verification/EmptyState';
 import { fetchPendingVerifications, approveVerification, rejectVerification } from './verification/VerificationService';
 
 export const PendingVerifications = () => {
@@ -57,15 +58,6 @@ export const PendingVerifications = () => {
     );
   }
 
-  if (verifications.length === 0) {
-    return (
-      <div className="text-center py-12 bg-gray-50 rounded-lg">
-        <p className="text-gray-600 mb-4">No pending verifications</p>
-        <Button variant="outline" onClick={loadPendingVerifications}>Refresh</Button>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -75,29 +67,15 @@ export const PendingVerifications = () => {
         </Button>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-50">
-              <th className="text-left p-4 border-b">Domain</th>
-              <th className="text-left p-4 border-b">Type</th>
-              <th className="text-left p-4 border-b">Submitted</th>
-              <th className="text-left p-4 border-b">Verification Data</th>
-              <th className="text-left p-4 border-b">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {verifications.map((verification) => (
-              <VerificationCard 
-                key={verification.id}
-                verification={verification}
-                onApprove={handleApproveVerification}
-                onReject={handleRejectVerification}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {verifications.length === 0 ? (
+        <EmptyState onRefresh={loadPendingVerifications} />
+      ) : (
+        <VerificationsList 
+          verifications={verifications}
+          onApprove={handleApproveVerification}
+          onReject={handleRejectVerification}
+        />
+      )}
     </div>
   );
 };

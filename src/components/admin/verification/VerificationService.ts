@@ -10,7 +10,9 @@ export async function fetchPendingVerifications(): Promise<DomainVerification[]>
       domain_listings:domain_id (
         id,
         name,
-        owner_id
+        owner_id,
+        verification_status,
+        is_verified
       )
     `)
     .eq('status', 'pending')
@@ -34,7 +36,8 @@ export async function approveVerification(id: string, domainId: string): Promise
     .from('domain_listings')
     .update({ 
       verification_status: 'verified',
-      is_verified: true
+      is_verified: true,
+      status: 'available'
     })
     .eq('id', domainId);
   
@@ -55,7 +58,8 @@ export async function rejectVerification(id: string, domainId: string): Promise<
     .from('domain_listings')
     .update({ 
       verification_status: 'rejected',
-      is_verified: false
+      is_verified: false,
+      status: 'available'
     })
     .eq('id', domainId);
   
