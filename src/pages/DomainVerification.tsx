@@ -1,21 +1,22 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Domain, DomainVerification as DomainVerificationType } from '@/types/domain';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Link, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { VerificationOptions } from '@/components/verification/VerificationOptions';
 import { VerificationInstructions } from '@/components/verification/VerificationInstructions';
 import { VerificationSuccess } from '@/components/verification/VerificationSuccess';
 import { VerificationStatus } from '@/components/verification/VerificationStatus';
+import { DomainHeader } from '@/components/verification/DomainHeader';
+import { VerificationFooter } from '@/components/verification/VerificationFooter';
+import { LoadingIndicator } from '@/components/verification/LoadingIndicator';
+import { DomainNotFound } from '@/components/verification/DomainNotFound';
 
 export const DomainVerification = () => {
   const { domainId } = useParams<{ domainId: string }>();
-  const navigate = useNavigate();
   const { user } = useAuth();
   const [domain, setDomain] = useState<Domain | null>(null);
   const [verification, setVerification] = useState<DomainVerificationType | null>(null);
@@ -140,43 +141,18 @@ export const DomainVerification = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white">
-        <Navbar />
-        <div className="max-w-4xl mx-auto px-4 py-12 flex justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-        </div>
-      </div>
-    );
-  }
+  const renderContent = () => {
+    if (isLoading) {
+      return <LoadingIndicator />;
+    }
 
-  if (!domain) {
-    return (
-      <div className="min-h-screen bg-white">
-        <Navbar />
-        <div className="max-w-4xl mx-auto px-4 py-12">
-          <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>
-              Domain not found. <Button variant="link" onClick={() => navigate('/dashboard')}>Return to Dashboard</Button>
-            </AlertDescription>
-          </Alert>
-        </div>
-      </div>
-    );
-  }
+    if (!domain) {
+      return <DomainNotFound />;
+    }
 
-  return (
-    <div className="min-h-screen bg-white">
-      <Navbar />
-      
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex items-center gap-3 mb-8">
-          <Link className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold text-gray-900">Domain Verification: {domain?.name}</h1>
-        </div>
+    return (
+      <>
+        <DomainHeader domainName={domain?.name} />
         
         <VerificationStatus domain={domain} />
         
@@ -197,11 +173,16 @@ export const DomainVerification = () => {
           <VerificationSuccess domainName={domain?.name || ''} />
         )}
         
-        <div className="flex justify-end">
-          <Button variant="outline" onClick={() => navigate('/dashboard')}>
-            Back to Dashboard
-          </Button>
-        </div>
+        <VerificationFooter />
+      </>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-white">
+      <Navbar />
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {renderContent()}
       </div>
     </div>
   );

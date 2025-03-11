@@ -2,9 +2,10 @@
 import { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { DomainVerification } from '@/types/domain';
-import { Button } from "@/components/ui/button";
 import { VerificationsList } from './verification/VerificationsList';
 import { EmptyState } from './verification/EmptyState';
+import { LoadingState } from './verification/LoadingState';
+import { HeaderSection } from './verification/HeaderSection';
 import { fetchPendingVerifications, approveVerification, rejectVerification } from './verification/VerificationService';
 
 export const PendingVerifications = () => {
@@ -51,21 +52,12 @@ export const PendingVerifications = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Pending Domain Verifications</h2>
-        <Button size="sm" variant="outline" onClick={loadPendingVerifications}>
-          Refresh
-        </Button>
-      </div>
+      <HeaderSection onRefresh={loadPendingVerifications} />
 
       {verifications.length === 0 ? (
         <EmptyState onRefresh={loadPendingVerifications} />
