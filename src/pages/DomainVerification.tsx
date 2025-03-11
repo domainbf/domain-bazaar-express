@@ -175,7 +175,7 @@ export const DomainVerification = () => {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="flex items-center gap-3 mb-8">
           <Link className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold text-gray-900">Domain Verification: {domain.name}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Domain Verification: {domain?.name}</h1>
         </div>
         
         <VerificationStatus domain={domain} />

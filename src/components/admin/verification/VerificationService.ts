@@ -1,6 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { DomainVerification } from '@/types/domain';
+import { DomainVerification, Domain } from '@/types/domain';
 
 export async function fetchPendingVerifications(): Promise<DomainVerification[]> {
   const { data, error } = await supabase
@@ -19,7 +18,14 @@ export async function fetchPendingVerifications(): Promise<DomainVerification[]>
     .order('created_at', { ascending: false });
   
   if (error) throw error;
-  return data || [];
+  
+  // Transform the data to match the DomainVerification type
+  const transformedData = data?.map(item => ({
+    ...item,
+    domain_listings: item.domain_listings as unknown as Domain
+  })) || [];
+  
+  return transformedData;
 }
 
 export async function approveVerification(id: string, domainId: string): Promise<void> {
