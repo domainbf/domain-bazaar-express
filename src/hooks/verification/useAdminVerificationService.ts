@@ -7,14 +7,16 @@ import { DomainVerification } from "@/types/domain";
 export const useAdminVerificationService = () => {
   const queryClient = useQueryClient();
 
-  // Fetch pending verifications from real data
   const fetchPendingVerifications = async (): Promise<DomainVerification[]> => {
     try {
       const { data: verifications, error } = await supabase
         .from('domain_verifications')
         .select(`
           *,
-          domain_listings(name, owner_id)
+          domain_listings:domain_id (
+            name,
+            owner_id
+          )
         `)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
@@ -27,10 +29,8 @@ export const useAdminVerificationService = () => {
     }
   };
 
-  // Approve verification
-  const approveVerification = async ({ id, domainId }: { id: string, domainId: string }) => {
+  const approveVerification = async ({ id }: { id: string }) => {
     try {
-      // Update the verification status
       const { error: verificationError } = await supabase
         .from('domain_verifications')
         .update({ status: 'verified' })
@@ -38,30 +38,34 @@ export const useAdminVerificationService = () => {
       
       if (verificationError) throw verificationError;
       
-      // Update the domain listing status
-      const { error: domainError } = await supabase
-        .from('domain_listings')
-        .update({
-          verification_status: 'verified',
-          is_verified: true
-        })
-        .eq('id', domainId);
+      // Get the domain_id from the verification
+      const { data: verification } = await supabase
+        .from('domain_verifications')
+        .select('domain_id')
+        .eq('id', id)
+        .single();
       
-      if (domainError) throw domainError;
+      if (verification) {
+        const { error: domainError } = await supabase
+          .from('domain_listings')
+          .update({
+            verification_status: 'verified',
+            is_verified: true
+          })
+          .eq('id', verification.domain_id);
+        
+        if (domainError) throw domainError;
+      }
       
-      toast.success('Domain verification approved');
       return { success: true };
     } catch (error) {
       console.error('Error approving verification:', error);
-      toast.error('Failed to approve verification');
       throw error;
     }
   };
 
-  // Reject verification
-  const rejectVerification = async ({ id, domainId }: { id: string, domainId: string }) => {
+  const rejectVerification = async ({ id }: { id: string }) => {
     try {
-      // Update the verification status
       const { error: verificationError } = await supabase
         .from('domain_verifications')
         .update({ status: 'rejected' })
@@ -69,56 +73,34 @@ export const useAdminVerificationService = () => {
       
       if (verificationError) throw verificationError;
       
-      // Update the domain listing status
-      const { error: domainError } = await supabase
-        .from('domain_listings')
-        .update({
-          verification_status: 'rejected'
-        })
-        .eq('id', domainId);
+      // Get the domain_id from the verification
+      const { data: verification } = await supabase
+        .from('domain_verifications')
+        .select('domain_id')
+        .eq('id', id)
+        .single();
       
-      if (domainError) throw domainError;
+      if (verification) {
+        const { error: domainError } = await supabase
+          .from('domain_listings')
+          .update({
+            verification_status: 'rejected'
+          })
+          .eq('id', verification.domain_id);
+        
+        if (domainError) throw domainError;
+      }
       
-      toast.success('Domain verification rejected');
       return { success: true };
     } catch (error) {
       console.error('Error rejecting verification:', error);
-      toast.error('Failed to reject verification');
       throw error;
     }
   };
 
-  const pendingVerificationsQuery = useQuery({
-    queryKey: ['pending-verifications'],
-    queryFn: fetchPendingVerifications,
-  });
-
-  const approveMutation = useMutation({
-    mutationFn: ({ id, domainId }: { id: string, domainId: string }) => 
-      approveVerification({ id, domainId }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pending-verifications'] });
-    }
-  });
-
-  const rejectMutation = useMutation({
-    mutationFn: ({ id, domainId }: { id: string, domainId: string }) => 
-      rejectVerification({ id, domainId }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pending-verifications'] });
-    }
-  });
-  
   return {
     fetchPendingVerifications,
     approveVerification,
     rejectVerification,
-    pendingVerifications: pendingVerificationsQuery.data || [],
-    isLoading: pendingVerificationsQuery.isLoading,
-    isError: pendingVerificationsQuery.isError,
-    error: pendingVerificationsQuery.error,
-    refetch: pendingVerificationsQuery.refetch,
-    approveMutation,
-    rejectMutation
   };
 };

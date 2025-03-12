@@ -29,9 +29,9 @@ export const PendingVerifications = () => {
     }
   };
 
-  const handleApproveVerification = async (id, domainId) => {
+  const handleApproveVerification = async (id) => {
     try {
-      await approveVerification(id, domainId);
+      await approveVerification({ id });
       toast.success('Domain verification approved');
       loadPendingVerifications();
     } catch (error) {
@@ -40,9 +40,9 @@ export const PendingVerifications = () => {
     }
   };
 
-  const handleRejectVerification = async (id, domainId) => {
+  const handleRejectVerification = async (id) => {
     try {
-      await rejectVerification(id, domainId);
+      await rejectVerification({ id });
       toast.success('Domain verification rejected');
       loadPendingVerifications();
     } catch (error) {
