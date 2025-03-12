@@ -3,6 +3,7 @@ import { ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -10,7 +11,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRouteProps) => {
-  const { user, isLoading, profile } = useAuth();
+  const { user, isLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,22 +22,27 @@ export const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRoutePr
     }
 
     if (!isLoading && user && adminOnly) {
-      // Check if user has admin role (using profile.role or any other admin check)
-      const isAdmin = profile?.role === 'admin';
+      // Check if user has admin role
+      const isAdmin = user.app_metadata?.role === 'admin';
       if (!isAdmin) {
         toast.error('You do not have permission to access this page');
         navigate('/dashboard');
       }
     }
-  }, [user, isLoading, navigate, adminOnly, profile]);
+  }, [user, isLoading, navigate, adminOnly]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
 
-  return user ? <>{children}</> : null;
+  if (!user) return null;
+  
+  // Admin check for sensitive routes
+  if (adminOnly && user.app_metadata?.role !== 'admin') return null;
+
+  return <>{children}</>;
 };

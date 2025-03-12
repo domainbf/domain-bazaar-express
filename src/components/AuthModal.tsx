@@ -8,13 +8,15 @@ import { Loader2, Mail, Lock, User } from 'lucide-react';
 import { useAuth } from "@/contexts/AuthContext";
 
 interface AuthModalProps {
-  isOpen: boolean;
+  open: boolean;
+  isOpen?: boolean; // For backward compatibility
   onClose: () => void;
-  mode: 'signin' | 'signup';
-  onChangeMode: (mode: 'signin' | 'signup') => void;
+  mode?: 'signin' | 'signup';
+  onChangeMode?: (mode: 'signin' | 'signup') => void;
 }
 
-export const AuthModal = ({ isOpen, onClose, mode, onChangeMode }: AuthModalProps) => {
+export const AuthModal = ({ open, isOpen, onClose, mode = 'signin', onChangeMode }: AuthModalProps) => {
+  const [activeMode, setActiveMode] = useState<'signin' | 'signup'>(mode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -22,6 +24,9 @@ export const AuthModal = ({ isOpen, onClose, mode, onChangeMode }: AuthModalProp
   const [errorMessage, setErrorMessage] = useState('');
   const [showResetPassword, setShowResetPassword] = useState(false);
   const { signIn, signUp, resetPassword } = useAuth();
+  
+  // Use either open or isOpen (for backward compatibility)
+  const isModalOpen = open || isOpen;
 
   // Clear form on open/close or mode change
   useEffect(() => {
@@ -30,7 +35,8 @@ export const AuthModal = ({ isOpen, onClose, mode, onChangeMode }: AuthModalProp
     setFullName('');
     setErrorMessage('');
     setShowResetPassword(false);
-  }, [isOpen, mode]);
+    setActiveMode(mode);
+  }, [isModalOpen, mode]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +44,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onChangeMode }: AuthModalProp
     setErrorMessage('');
 
     try {
-      if (mode === 'signup') {
+      if (activeMode === 'signup') {
         await signUp(email, password, {
           full_name: fullName
         });
@@ -70,6 +76,11 @@ export const AuthModal = ({ isOpen, onClose, mode, onChangeMode }: AuthModalProp
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleModeChange = (newMode: 'signin' | 'signup') => {
+    setActiveMode(newMode);
+    if (onChangeMode) onChangeMode(newMode);
   };
 
   const renderResetPasswordForm = () => (
@@ -117,7 +128,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onChangeMode }: AuthModalProp
 
   const renderAuthForm = () => (
     <form onSubmit={handleAuth} className="space-y-4 mt-4">
-      {mode === 'signup' && (
+      {activeMode === 'signup' && (
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
             <User className="w-4 h-4" /> Full Name
@@ -158,11 +169,11 @@ export const AuthModal = ({ isOpen, onClose, mode, onChangeMode }: AuthModalProp
           required
           className="bg-white border-gray-300 focus:border-black transition-colors"
           minLength={6}
-          placeholder={mode === 'signup' ? "Minimum 6 characters" : "Your password"}
+          placeholder={activeMode === 'signup' ? "Minimum 6 characters" : "Your password"}
         />
       </div>
       
-      {mode === 'signin' && (
+      {activeMode === 'signin' && (
         <div className="text-right">
           <button 
             type="button"
@@ -182,19 +193,19 @@ export const AuthModal = ({ isOpen, onClose, mode, onChangeMode }: AuthModalProp
         {isLoading ? (
           <span className="flex items-center gap-2">
             <Loader2 className="animate-spin w-4 h-4" />
-            {mode === 'signin' ? 'Signing in...' : 'Creating account...'}
+            {activeMode === 'signin' ? 'Signing in...' : 'Creating account...'}
           </span>
         ) : (
-          mode === 'signin' ? 'Sign In' : 'Sign Up'
+          activeMode === 'signin' ? 'Sign In' : 'Sign Up'
         )}
       </Button>
       
-      {mode === 'signin' ? (
+      {activeMode === 'signin' ? (
         <p className="text-center text-sm text-gray-600">
           Don't have an account?{' '}
           <button 
             type="button"
-            onClick={() => onChangeMode('signup')}
+            onClick={() => handleModeChange('signup')}
             className="text-black font-medium hover:underline"
           >
             Sign up
@@ -205,7 +216,7 @@ export const AuthModal = ({ isOpen, onClose, mode, onChangeMode }: AuthModalProp
           Already have an account?{' '}
           <button 
             type="button"
-            onClick={() => onChangeMode('signin')}
+            onClick={() => handleModeChange('signin')}
             className="text-black font-medium hover:underline"
           >
             Sign in
@@ -216,11 +227,11 @@ export const AuthModal = ({ isOpen, onClose, mode, onChangeMode }: AuthModalProp
   );
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isModalOpen} onOpenChange={onClose}>
       <DialogContent className="bg-white border-gray-200 max-w-md">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center text-black">
-            {showResetPassword ? 'Reset Password' : (mode === 'signin' ? 'Sign In' : 'Create an Account')}
+            {showResetPassword ? 'Reset Password' : (activeMode === 'signin' ? 'Sign In' : 'Create an Account')}
           </DialogTitle>
         </DialogHeader>
         

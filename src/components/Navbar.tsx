@@ -8,12 +8,12 @@ import { useState } from 'react';
 import { AuthModal } from './AuthModal';
 
 export const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await logout();
+    await signOut();
     toast.success('Logged out successfully');
     navigate('/');
   };
@@ -34,8 +34,8 @@ export const Navbar = () => {
               </>
             )}
             
-            {/* Add admin link for admin users - in a real app, you'd check for admin role */}
-            {user && (
+            {/* Add admin link for users with admin role */}
+            {user && user.app_metadata?.role === 'admin' && (
               <Link to="/admin" className="text-gray-700 hover:text-gray-900">Admin</Link>
             )}
           </div>

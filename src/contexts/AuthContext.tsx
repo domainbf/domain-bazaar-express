@@ -11,7 +11,8 @@ interface AuthContextType {
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, userData?: any) => Promise<void>;
-  signOut: () => Promise<void>;
+  signOut: () => Promise<void>; // Renamed for consistency
+  logout: () => Promise<void>; // Keep for backward compatibility
   refreshProfile: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
 }
@@ -112,7 +113,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signOut = async () => {
+  const handleSignOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
@@ -142,7 +143,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isLoading,
     signIn,
     signUp,
-    signOut,
+    signOut: handleSignOut,
+    logout: handleSignOut, // For backward compatibility
     refreshProfile,
     resetPassword,
   };

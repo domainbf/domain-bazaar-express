@@ -1,7 +1,7 @@
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from "sonner";
-import { Index } from './pages/Index';
+import Index from './pages/Index'; // Fixed import
 import { Marketplace } from './pages/Marketplace';
 import { Dashboard } from './pages/Dashboard';
 import { AdminPanel } from './pages/AdminPanel';
@@ -42,7 +42,7 @@ function App() {
             <Route 
               path="/admin" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute adminOnly={true}>
                   <AdminPanel />
                 </ProtectedRoute>
               } 
