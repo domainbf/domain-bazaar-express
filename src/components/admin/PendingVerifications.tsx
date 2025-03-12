@@ -4,13 +4,14 @@ import { toast } from "sonner";
 import { DomainVerification } from '@/types/domain';
 import { VerificationsList } from './verification/VerificationsList';
 import { EmptyState } from './verification/EmptyState';
-import { LoadingState } from './verification/LoadingState';
 import { HeaderSection } from './verification/HeaderSection';
-import { fetchPendingVerifications, approveVerification, rejectVerification } from './verification/VerificationService';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { useAdminVerificationService } from '@/hooks/verification/useAdminVerificationService';
 
 export const PendingVerifications = () => {
   const [verifications, setVerifications] = useState<DomainVerification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { fetchPendingVerifications, approveVerification, rejectVerification } = useAdminVerificationService();
 
   useEffect(() => {
     loadPendingVerifications();
@@ -52,7 +53,7 @@ export const PendingVerifications = () => {
   };
 
   if (isLoading) {
-    return <LoadingState />;
+    return <LoadingSpinner />;
   }
 
   return (

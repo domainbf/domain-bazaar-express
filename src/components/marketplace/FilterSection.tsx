@@ -43,9 +43,8 @@ export const FilterSection = ({
           />
           
           <Button
-            variant="filter"
+            variant="outline"
             onClick={() => setShowFilters(!showFilters)}
-            className="text-gray-900"
           >
             <Filter className="w-4 h-4 mr-2" />
             Filters

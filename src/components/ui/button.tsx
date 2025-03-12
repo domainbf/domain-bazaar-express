@@ -10,17 +10,17 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 font-bold",
+        default: "bg-gray-900 text-white hover:bg-gray-800 font-bold",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold",
         outline:
-          "border-2 border-gray-400 bg-transparent text-gray-900 hover:bg-gray-100 hover:text-gray-900 dark:text-white dark:hover:bg-gray-800 dark:hover:text-white font-bold",
+          "border-2 border-gray-300 bg-white text-gray-900 hover:bg-gray-100 hover:text-gray-900 dark:text-white dark:hover:bg-gray-800 dark:hover:text-white font-bold",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 font-bold",
         ghost: "hover:bg-accent hover:text-accent-foreground font-bold",
         link: "text-primary underline-offset-4 hover:underline font-bold",
-        filter: "border-2 border-gray-400 bg-white text-gray-900 hover:bg-gray-100 font-bold shadow-sm", // New variant for filter buttons
-        filterActive: "bg-black text-white hover:bg-gray-800 font-bold shadow-sm", // Active state for filter buttons
+        filter: "border-2 border-gray-300 bg-white text-gray-900 hover:bg-gray-100 font-bold shadow-sm", // New variant for filter buttons
+        filterActive: "bg-gray-900 text-white hover:bg-gray-800 font-bold shadow-sm", // Active state for filter buttons
       },
       size: {
         default: "h-11 px-4 py-2",

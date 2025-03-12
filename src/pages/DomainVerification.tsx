@@ -1,19 +1,22 @@
 
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Domain, DomainVerification as DomainVerificationType } from '@/types/domain';
 import { useAuth } from '@/contexts/AuthContext';
+
+// Import refactored components
 import { VerificationOptions } from '@/components/verification/VerificationOptions';
 import { VerificationInstructions } from '@/components/verification/VerificationInstructions';
 import { VerificationSuccess } from '@/components/verification/VerificationSuccess';
 import { VerificationStatus } from '@/components/verification/VerificationStatus';
 import { DomainHeader } from '@/components/verification/DomainHeader';
 import { VerificationFooter } from '@/components/verification/VerificationFooter';
-import { LoadingIndicator } from '@/components/verification/LoadingIndicator';
 import { DomainNotFound } from '@/components/verification/DomainNotFound';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { useVerificationService } from '@/hooks/verification/useVerificationService';
 
 export const DomainVerification = () => {
   const { domainId } = useParams<{ domainId: string }>();
@@ -21,6 +24,7 @@ export const DomainVerification = () => {
   const [domain, setDomain] = useState<Domain | null>(null);
   const [verification, setVerification] = useState<DomainVerificationType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { startVerification, checkVerification } = useVerificationService();
 
   useEffect(() => {
     if (domainId) {
@@ -62,88 +66,38 @@ export const DomainVerification = () => {
     }
   };
 
-  const startVerification = async (verificationMethod: string) => {
-    try {
-      // Check if user owns this domain
-      if (domain?.owner_id !== user?.id) {
-        toast.error('You can only verify domains you own');
-        return;
-      }
-      
-      // Create a verification record
-      const verificationToken = Math.random().toString(36).substring(2, 15);
-      
-      const verificationData = verificationMethod === 'dns' 
-        ? { 
-            recordType: 'TXT', 
-            recordName: `_domainverify.${domain?.name}`,
-            recordValue: `verify-domain=${verificationToken}`
-          }
-        : {
-            fileLocation: `/.well-known/domain-verification.txt`,
-            fileContent: `verify-domain=${verificationToken}`
-          };
-      
-      const { data, error } = await supabase
-        .from('domain_verifications')
-        .insert({
-          domain_id: domainId,
-          verification_type: verificationMethod,
-          status: 'pending',
-          verification_data: verificationData
-        })
-        .select();
-      
-      if (error) throw error;
-      
-      setVerification(data[0]);
+  const handleStartVerification = async (verificationMethod: string) => {
+    if (!domain || !domainId) return;
+    
+    if (domain.owner_id !== user?.id) {
+      toast.error('You can only verify domains you own');
+      return;
+    }
+    
+    const newVerification = await startVerification(domainId, domain.name, verificationMethod);
+    
+    if (newVerification) {
+      setVerification(newVerification);
       toast.success('Verification process started. Follow the instructions to verify your domain.');
-      
-    } catch (error: any) {
-      console.error('Error starting verification:', error);
-      toast.error(error.message || 'Failed to start domain verification process');
     }
   };
 
-  const checkVerification = async () => {
-    try {
-      toast.info('Checking domain verification...');
-      
-      // In a real implementation, you would have a server function to check the DNS or file
-      // For demo purposes, we'll simulate the verification
-      
-      setTimeout(async () => {
-        const { error } = await supabase
-          .from('domain_verifications')
-          .update({ status: 'verified' })
-          .eq('id', verification?.id);
-        
-        if (error) throw error;
-        
-        // Also update the domain listing
-        const { error: domainError } = await supabase
-          .from('domain_listings')
-          .update({ 
-            verification_status: 'verified',
-            is_verified: true
-          })
-          .eq('id', domainId);
-        
-        if (domainError) throw domainError;
-        
-        toast.success('Domain verified successfully!');
-        loadDomainAndVerification();
-      }, 2000);
-      
-    } catch (error: any) {
-      console.error('Error checking verification:', error);
-      toast.error(error.message || 'Failed to check verification status');
+  const handleCheckVerification = async () => {
+    if (!verification || !domainId) return;
+    
+    toast.info('Checking domain verification...');
+    
+    const success = await checkVerification(verification.id, domainId);
+    
+    if (success) {
+      toast.success('Domain verified successfully!');
+      loadDomainAndVerification();
     }
   };
 
   const renderContent = () => {
     if (isLoading) {
-      return <LoadingIndicator />;
+      return <LoadingSpinner />;
     }
 
     if (!domain) {
@@ -157,7 +111,7 @@ export const DomainVerification = () => {
         <VerificationStatus domain={domain} />
         
         {!verification && (
-          <VerificationOptions onStartVerification={startVerification} />
+          <VerificationOptions onStartVerification={handleStartVerification} />
         )}
         
         {verification && verification.status === 'pending' && (
@@ -165,7 +119,7 @@ export const DomainVerification = () => {
             verification={verification}
             domainName={domain?.name || ''}
             onRefresh={loadDomainAndVerification}
-            onCheck={checkVerification}
+            onCheck={handleCheckVerification}
           />
         )}
         

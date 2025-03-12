@@ -18,9 +18,9 @@ export const CategoryFilters = ({ filter, setFilter, categoryFilters }: Category
       {categoryFilters.map(category => (
         <Button
           key={category.id}
-          variant={filter === category.id ? 'filterActive' : 'filter'}
+          variant={filter === category.id ? 'default' : 'outline'}
           onClick={() => setFilter(category.id)}
-          className="min-w-[80px] text-visible" // Added text-visible class
+          className="min-w-[80px]"
         >
           {category.label}
         </Button>
