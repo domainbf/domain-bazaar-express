@@ -4,8 +4,8 @@ import { VerificationCard } from './VerificationCard';
 
 interface VerificationsListProps {
   verifications: DomainVerification[];
-  onApprove: (id: string, domainId: string) => void;
-  onReject: (id: string, domainId: string) => void;
+  onApprove: (id: string) => void;
+  onReject: (id: string) => void;
 }
 
 export const VerificationsList = ({ verifications, onApprove, onReject }: VerificationsListProps) => {

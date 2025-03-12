@@ -5,16 +5,15 @@ import { Check, X, ExternalLink } from 'lucide-react';
 
 interface VerificationCardProps {
   verification: DomainVerification;
-  onApprove: (id: string, domainId: string) => void;
-  onReject: (id: string, domainId: string) => void;
+  onApprove: (id: string) => void;
+  onReject: (id: string) => void;
 }
 
 export const VerificationCard = ({ verification, onApprove, onReject }: VerificationCardProps) => {
   return (
     <tr className="border-b hover:bg-gray-50">
       <td className="p-4 font-medium">
-        {/* @ts-ignore - We know domain_listings exists from our join */}
-        {verification.domain_listings?.name}
+        {verification.domain_listings?.name || 'Unknown Domain'}
       </td>
       <td className="p-4 capitalize">{verification.verification_type}</td>
       <td className="p-4">
@@ -32,7 +31,6 @@ export const VerificationCard = ({ verification, onApprove, onReject }: Verifica
             <div className="flex items-center">
               <p className="text-gray-500 truncate">{verification.verification_data.fileContent}</p>
               <a 
-                /* @ts-ignore - We know domain_listings exists from our join */
                 href={`https://${verification.domain_listings?.name}${verification.verification_data.fileLocation}`} 
                 target="_blank" 
                 rel="noopener noreferrer" 
@@ -50,7 +48,7 @@ export const VerificationCard = ({ verification, onApprove, onReject }: Verifica
             size="sm" 
             variant="outline" 
             className="bg-green-50 border-green-200 text-green-600 hover:bg-green-100"
-            onClick={() => onApprove(verification.id, verification.domain_id)}
+            onClick={() => onApprove(verification.id)}
           >
             <Check className="w-4 h-4 mr-1" />
             Approve
@@ -59,7 +57,7 @@ export const VerificationCard = ({ verification, onApprove, onReject }: Verifica
             size="sm" 
             variant="outline" 
             className="bg-red-50 border-red-200 text-red-600 hover:bg-red-100"
-            onClick={() => onReject(verification.id, verification.domain_id)}
+            onClick={() => onReject(verification.id)}
           >
             <X className="w-4 h-4 mr-1" />
             Reject

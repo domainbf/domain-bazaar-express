@@ -31,7 +31,7 @@ export const PendingVerifications = () => {
 
   const handleApproveVerification = async (id) => {
     try {
-      await approveVerification({ id });
+      await approveVerification(id);
       toast.success('Domain verification approved');
       loadPendingVerifications();
     } catch (error) {
@@ -42,7 +42,7 @@ export const PendingVerifications = () => {
 
   const handleRejectVerification = async (id) => {
     try {
-      await rejectVerification({ id });
+      await rejectVerification(id);
       toast.success('Domain verification rejected');
       loadPendingVerifications();
     } catch (error) {

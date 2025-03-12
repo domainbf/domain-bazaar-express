@@ -9,19 +9,46 @@ export const useAdminVerificationService = () => {
 
   const fetchPendingVerifications = async (): Promise<DomainVerification[]> => {
     try {
+      // First, fetch the domain verifications
       const { data: verifications, error } = await supabase
         .from('domain_verifications')
         .select(`
-          *,
-          domain_listings:domain_id (
-            name,
-            owner_id
-          )
+          *
         `)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
+      
+      // Then, for each verification, fetch the associated domain listing
+      if (verifications && verifications.length > 0) {
+        const enrichedVerifications = await Promise.all(
+          verifications.map(async (verification) => {
+            const { data: domainListing, error: domainError } = await supabase
+              .from('domain_listings')
+              .select('name, owner_id')
+              .eq('id', verification.domain_id)
+              .single();
+            
+            if (domainError) {
+              console.error('Error fetching domain listing:', domainError);
+              // Return verification with empty domain_listings if there's an error
+              return {
+                ...verification,
+                domain_listings: { name: 'Unknown', owner_id: null }
+              };
+            }
+            
+            return {
+              ...verification,
+              domain_listings: domainListing
+            };
+          })
+        );
+        
+        return enrichedVerifications as DomainVerification[];
+      }
+      
       return verifications || [];
     } catch (error) {
       console.error('Error fetching pending verifications:', error);
@@ -29,7 +56,7 @@ export const useAdminVerificationService = () => {
     }
   };
 
-  const approveVerification = async ({ id }: { id: string }) => {
+  const approveVerification = async (id: string) => {
     try {
       const { error: verificationError } = await supabase
         .from('domain_verifications')
@@ -64,7 +91,7 @@ export const useAdminVerificationService = () => {
     }
   };
 
-  const rejectVerification = async ({ id }: { id: string }) => {
+  const rejectVerification = async (id: string) => {
     try {
       const { error: verificationError } = await supabase
         .from('domain_verifications')
