@@ -39,12 +39,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
           fetchProfile(session.user.id);
+          
+          // If this is a password recovery event, show a success message
+          if (event === 'PASSWORD_RECOVERY') {
+            toast.success('Password updated successfully!');
+          }
+          
+          // If this is a signed up event, show a success message
+          if (event === 'SIGNED_UP') {
+            try {
+              // Send welcome email via edge function
+              await supabase.functions.invoke('send-notification', {
+                body: {
+                  type: 'email_verification',
+                  recipient: session.user.email,
+                  data: {
+                    verificationUrl: `${window.location.origin}/auth/verify`
+                  }
+                }
+              });
+            } catch (error) {
+              console.error('Error sending verification email:', error);
+            }
+          }
         } else {
           setProfile(null);
           setIsLoading(false);
@@ -128,7 +151,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
+      
       if (error) throw error;
+      
+      // Send password reset email via edge function
+      try {
+        await supabase.functions.invoke('send-notification', {
+          body: {
+            type: 'password_reset',
+            recipient: email,
+            data: {
+              resetUrl: `${window.location.origin}/reset-password`
+            }
+          }
+        });
+      } catch (invokeError) {
+        console.error('Error sending custom password reset email:', invokeError);
+        // Continue as Supabase will send its default email
+      }
+      
       toast.success('Password reset instructions sent to your email');
     } catch (error: any) {
       toast.error(error.message || 'Error sending password reset');

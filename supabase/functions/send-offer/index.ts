@@ -16,6 +16,8 @@ interface OfferRequest {
   email: string;
   message?: string;
   buyerId?: string | null;
+  domainOwnerId?: string;
+  dashboardUrl?: string;
 }
 
 serve(async (req: Request) => {
@@ -25,7 +27,15 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { domain, offer, email, message = "", buyerId = null }: OfferRequest = await req.json();
+    const { 
+      domain, 
+      offer, 
+      email, 
+      message = "", 
+      buyerId = null,
+      domainOwnerId,
+      dashboardUrl = "https://domainx.com/dashboard"
+    }: OfferRequest = await req.json();
 
     // Email template for the user (buyer)
     const userEmailHtml = `
@@ -109,7 +119,7 @@ serve(async (req: Request) => {
               </div>
               
               <p>You can respond to this offer by logging into your dashboard. If you choose to accept this offer, please contact the buyer using the provided email address to arrange the domain transfer and payment.</p>
-              <a href="https://your-domain-website.com/dashboard" class="cta">View in Dashboard</a>
+              <a href="${dashboardUrl}" class="cta" style="color: white;">View in Dashboard</a>
               <p>Best regards,<br>The DomainX Team</p>
             </div>
             <div class="footer">
@@ -130,10 +140,34 @@ serve(async (req: Request) => {
 
     console.log("User email sent:", userEmailResponse);
 
-    // Send notification email to the admin
+    // Determine admin email based on domainOwnerId or fallback to default
+    let adminEmail = "admin@example.com";
+    
+    if (domainOwnerId) {
+      try {
+        // Fetch the domain owner's email from the profiles table
+        const profileResponse = await fetch(`${Deno.env.get("SUPABASE_URL")}/rest/v1/profiles?id=eq.${domainOwnerId}&select=email`, {
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": Deno.env.get("SUPABASE_ANON_KEY") || "",
+            "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`
+          }
+        });
+        
+        const profileData = await profileResponse.json();
+        if (profileData && profileData.length > 0 && profileData[0].email) {
+          adminEmail = profileData[0].email;
+        }
+      } catch (error) {
+        console.error("Error fetching domain owner email:", error);
+        // Continue with default admin email
+      }
+    }
+
+    // Send notification email to the domain owner or admin
     const adminEmailResponse = await resend.emails.send({
       from: "DomainX <no-reply@domain.bf>",
-      to: ["admin@example.com"], // Replace with actual admin email
+      to: [adminEmail],
       subject: `New offer for ${domain}: $${offer}`,
       html: adminEmailHtml,
     });

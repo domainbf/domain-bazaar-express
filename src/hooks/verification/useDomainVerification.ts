@@ -29,7 +29,7 @@ export const useDomainVerification = (domainId?: string) => {
       // Get verification details if any
       const { data: verificationData, error: verificationError } = await supabase
         .from('domain_verifications')
-        .select('*')
+        .select('id, domain_id, verification_type, status, verification_data, created_at, updated_at')
         .eq('domain_id', domainId)
         .order('created_at', { ascending: false })
         .limit(1);
@@ -37,7 +37,7 @@ export const useDomainVerification = (domainId?: string) => {
       if (verificationError) throw verificationError;
       
       if (verificationData && verificationData.length > 0) {
-        setVerification(verificationData[0]);
+        setVerification(verificationData[0] as DomainVerification);
       } else {
         setVerification(null);
       }
@@ -61,7 +61,7 @@ export const useDomainVerification = (domainId?: string) => {
   };
 
   const handleCheckVerification = async () => {
-    if (!verification || !domainId) return;
+    if (!verification || !domainId) return false;
     
     toast.info('Checking domain verification...');
     
@@ -69,8 +69,11 @@ export const useDomainVerification = (domainId?: string) => {
     
     if (success) {
       toast.success('Domain verified successfully!');
-      loadDomainAndVerification();
+      await loadDomainAndVerification();
+      return true;
     }
+    
+    return false;
   };
 
   return {

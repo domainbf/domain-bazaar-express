@@ -1,9 +1,10 @@
 
 import { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { toast } from "sonner";
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 // Import refactored components
 import { VerificationOptions } from '@/components/verification/VerificationOptions';

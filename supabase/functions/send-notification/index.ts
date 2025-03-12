@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 
@@ -215,6 +214,92 @@ serve(async (req: Request) => {
                     : 
                     `<p>Thank you for your interest. You can continue browsing other domains in our marketplace.</p>`
                   }
+                  <p>Best regards,<br>The DomainX Team</p>
+                </div>
+                <div class="footer">
+                  <p>© 2024 DomainX. All rights reserved.</p>
+                </div>
+              </div>
+            </body>
+          </html>
+        `;
+        break;
+        
+      case 'email_verification':
+        subject = 'Verify your email address for DomainX';
+        html = `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Email Verification</title>
+              <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background-color: #000; color: white; padding: 20px; text-align: center; }
+                .content { padding: 20px; border: 1px solid #eaeaea; }
+                .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+                .button { background-color: #000; color: white; display: inline-block; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-top: 15px; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>Verify Your Email</h1>
+                </div>
+                <div class="content">
+                  <p>Hello,</p>
+                  <p>Thank you for signing up for DomainX. Please verify your email address by clicking the button below:</p>
+                  
+                  <div style="text-align: center; margin: 25px 0;">
+                    <a href="${data.verificationUrl}" class="button" style="color: white;">Verify Email Address</a>
+                  </div>
+                  
+                  <p>If you didn't create an account, you can safely ignore this email.</p>
+                  <p>Best regards,<br>The DomainX Team</p>
+                </div>
+                <div class="footer">
+                  <p>© 2024 DomainX. All rights reserved.</p>
+                </div>
+              </div>
+            </body>
+          </html>
+        `;
+        break;
+        
+      case 'password_reset':
+        subject = 'Reset your DomainX password';
+        html = `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Password Reset</title>
+              <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background-color: #000; color: white; padding: 20px; text-align: center; }
+                .content { padding: 20px; border: 1px solid #eaeaea; }
+                .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+                .button { background-color: #000; color: white; display: inline-block; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-top: 15px; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>Reset Your Password</h1>
+                </div>
+                <div class="content">
+                  <p>Hello,</p>
+                  <p>We received a request to reset your password. Click the button below to create a new password:</p>
+                  
+                  <div style="text-align: center; margin: 25px 0;">
+                    <a href="${data.resetUrl}" class="button" style="color: white;">Reset Password</a>
+                  </div>
+                  
+                  <p>If you didn't request a password reset, you can safely ignore this email.</p>
                   <p>Best regards,<br>The DomainX Team</p>
                 </div>
                 <div class="footer">
