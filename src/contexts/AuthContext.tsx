@@ -44,11 +44,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (session?.user) {
           fetchProfile(session.user.id);
           
-          if (event === AuthChangeEvent.PASSWORD_RECOVERY) {
+          if (event === 'PASSWORD_RECOVERY') {
             toast.success('Password updated successfully!');
           }
           
-          if (event === AuthChangeEvent.SIGNED_UP || event === AuthChangeEvent.SIGNED_IN) {
+          if (event === 'SIGNED_UP' || event === 'SIGNED_IN') {
             try {
               await supabase.functions.invoke('send-notification', {
                 body: {
