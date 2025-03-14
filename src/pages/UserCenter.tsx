@@ -20,7 +20,7 @@ export const UserCenter = () => {
   useEffect(() => {
     // Check if user is authenticated
     if (!user) {
-      toast.error('Please sign in to access your account');
+      toast.error('请登录以访问您的账户');
       navigate('/');
       return;
     }
@@ -59,9 +59,9 @@ export const UserCenter = () => {
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-black">User Center</h1>
+            <h1 className="text-3xl font-bold text-black">用户中心</h1>
             <p className="text-gray-600">
-              Welcome back, {profile?.full_name || user?.email?.split('@')[0] || 'User'}
+              欢迎回来, {profile?.full_name || user?.email?.split('@')[0] || '用户'}
             </p>
           </div>
           
@@ -72,7 +72,7 @@ export const UserCenter = () => {
                 className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
               >
                 <Settings className="w-4 h-4" />
-                Admin Panel
+                管理员面板
               </button>
             </div>
           )}
@@ -82,15 +82,15 @@ export const UserCenter = () => {
           <TabsList className="mb-6 bg-white border">
             <TabsTrigger value="domains" className="flex items-center gap-1 data-[state=active]:bg-black data-[state=active]:text-white">
               <ClipboardList className="w-4 h-4" />
-              My Domains
+              我的域名
             </TabsTrigger>
             <TabsTrigger value="transactions" className="flex items-center gap-1 data-[state=active]:bg-black data-[state=active]:text-white">
               <ClipboardList className="w-4 h-4" />
-              Transactions
+              交易记录
             </TabsTrigger>
             <TabsTrigger value="profile" className="flex items-center gap-1 data-[state=active]:bg-black data-[state=active]:text-white">
               <User className="w-4 h-4" />
-              Profile Settings
+              个人资料设置
             </TabsTrigger>
           </TabsList>
 

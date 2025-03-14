@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           fetchProfile(session.user.id);
           
           if (event === 'PASSWORD_RECOVERY') {
-            toast.success('Password updated successfully!');
+            toast.success('密码已成功更新！');
           }
           
           if (event === 'SIGNED_UP' || event === 'SIGNED_IN') {
@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 }
               });
             } catch (error) {
-              console.error('Error sending verification email:', error);
+              console.error('发送验证邮件时出错:', error);
             }
           }
         } else {
@@ -86,7 +86,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       setProfile(data);
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('获取用户资料时出错:', error);
       // Don't show error toast here, as the profile might not exist yet
     } finally {
       setIsLoading(false);
@@ -106,9 +106,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         password,
       });
       if (error) throw error;
-      toast.success('Signed in successfully!');
+      toast.success('登录成功！');
     } catch (error: any) {
-      toast.error(error.message || 'Error signing in');
+      toast.error(error.message || '登录时出错');
       throw error;
     }
   };
@@ -124,9 +124,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         },
       });
       if (error) throw error;
-      toast.success('Signup successful! Please check your email for verification.');
+      toast.success('注册成功！请检查您的邮箱以完成验证。');
     } catch (error: any) {
-      toast.error(error.message || 'Error signing up');
+      toast.error(error.message || '注册时出错');
       throw error;
     }
   };
@@ -135,9 +135,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      toast.success('Signed out successfully');
+      toast.success('已成功退出登录');
     } catch (error: any) {
-      toast.error(error.message || 'Error signing out');
+      toast.error(error.message || '退出登录时出错');
     }
   };
 
@@ -160,13 +160,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }
         });
       } catch (invokeError) {
-        console.error('Error sending custom password reset email:', invokeError);
+        console.error('发送自定义密码重置邮件时出错:', invokeError);
         // Continue as Supabase will send its default email
       }
       
-      toast.success('Password reset instructions sent to your email');
+      toast.success('密码重置说明已发送到您的邮箱');
     } catch (error: any) {
-      toast.error(error.message || 'Error sending password reset');
+      toast.error(error.message || '发送密码重置邮件时出错');
       throw error;
     }
   };

@@ -29,7 +29,7 @@ export const DomainManagement = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) throw new Error('User not authenticated');
+      if (!user) throw new Error('用户未登录');
 
       const { data, error } = await supabase
         .from('domain_listings')
@@ -51,8 +51,8 @@ export const DomainManagement = () => {
         setDomainStats(stats);
       }
     } catch (error: any) {
-      console.error('Error loading domains:', error);
-      toast.error(error.message || 'Failed to load domains');
+      console.error('加载域名时出错:', error);
+      toast.error(error.message || '加载域名失败');
     } finally {
       setIsLoading(false);
     }
@@ -68,7 +68,7 @@ export const DomainManagement = () => {
   };
 
   const handleDeleteDomain = async (domainId: string) => {
-    const confirmed = window.confirm('Are you sure you want to delete this domain? This action cannot be undone.');
+    const confirmed = window.confirm('您确定要删除这个域名吗？此操作不可撤销。');
     
     if (!confirmed) return;
     
@@ -99,11 +99,11 @@ export const DomainManagement = () => {
       
       if (deleteDomainError) throw deleteDomainError;
       
-      toast.success('Domain deleted successfully');
+      toast.success('域名已成功删除');
       loadDomains();
     } catch (error: any) {
-      console.error('Error deleting domain:', error);
-      toast.error(error.message || 'Failed to delete domain');
+      console.error('删除域名时出错:', error);
+      toast.error(error.message || '删除域名失败');
     }
   };
 
@@ -115,11 +115,11 @@ export const DomainManagement = () => {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
-          <h2 className="text-xl font-semibold mb-2">Your Domains</h2>
+          <h2 className="text-xl font-semibold mb-2">您的域名</h2>
           <div className="flex space-x-4 text-sm">
-            <span>Total: {domainStats.total}</span>
-            <span>Verified: {domainStats.verified}</span>
-            <span>Pending verification: {domainStats.pending}</span>
+            <span>总计: {domainStats.total}</span>
+            <span>已验证: {domainStats.verified}</span>
+            <span>等待验证: {domainStats.pending}</span>
           </div>
         </div>
         <div className="flex space-x-2">
@@ -130,7 +130,7 @@ export const DomainManagement = () => {
             className="flex items-center"
           >
             <RefreshCw className="w-4 h-4 mr-1" />
-            Refresh
+            刷新
           </Button>
           <Button 
             onClick={() => {
@@ -138,18 +138,19 @@ export const DomainManagement = () => {
               setIsAddDomainOpen(true);
             }}
             className="bg-black text-white hover:bg-gray-800"
+            id="add-domain-button"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Add Domain
+            添加域名
           </Button>
         </div>
       </div>
 
       {domains.length === 0 ? (
         <Alert>
-          <AlertTitle>No domains found</AlertTitle>
+          <AlertTitle>未找到域名</AlertTitle>
           <AlertDescription>
-            You haven't added any domains yet. Click the "Add Domain" button to get started.
+            您还没有添加任何域名。点击"添加域名"按钮开始使用。
           </AlertDescription>
         </Alert>
       ) : (
@@ -168,7 +169,7 @@ export const DomainManagement = () => {
         <DialogContent className="bg-white max-w-md">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-center text-black">
-              {editingDomain ? 'Edit Domain' : 'Add New Domain'}
+              {editingDomain ? '编辑域名' : '添加新域名'}
             </DialogTitle>
           </DialogHeader>
           <DomainForm 

@@ -24,11 +24,11 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
 
   useEffect(() => {
     if (editingDomain) {
-      setDomainName(editingDomain.name);
-      setDomainPrice(editingDomain.price.toString());
+      setDomainName(editingDomain.name || '');
+      setDomainPrice(editingDomain.price?.toString() || '');
       setDomainDescription(editingDomain.description || '');
       setDomainCategory(editingDomain.category || 'standard');
-      setIsHighlighted(editingDomain.highlight);
+      setIsHighlighted(editingDomain.highlight || false);
     } else {
       resetForm();
     }
@@ -47,9 +47,13 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
     setFormLoading(true);
 
     try {
+      // Validate inputs
+      if (!domainName) throw new Error('域名不能为空');
+      if (!domainPrice || isNaN(Number(domainPrice))) throw new Error('请输入有效的价格');
+      
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) throw new Error('User not authenticated');
+      if (!user) throw new Error('用户未登录');
 
       const domainData = {
         name: domainName,
@@ -68,7 +72,7 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
           .eq('id', editingDomain.id);
         
         if (error) throw error;
-        toast.success('Domain updated successfully');
+        toast.success('域名已成功更新');
       } else {
         // Add new domain
         const { error } = await supabase
@@ -76,7 +80,7 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
           .insert([domainData]);
         
         if (error) throw error;
-        toast.success('Domain added successfully');
+        toast.success('域名已成功添加');
       }
 
       // Reset form and close dialog
@@ -84,8 +88,8 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
       onClose();
       onSuccess();
     } catch (error: any) {
-      console.error('Error saving domain:', error);
-      toast.error(error.message || 'Failed to save domain');
+      console.error('保存域名时出错:', error);
+      toast.error(error.message || '保存域名失败');
     } finally {
       setFormLoading(false);
     }
@@ -94,7 +98,7 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
   return (
     <form onSubmit={handleSubmit} className="space-y-4 mt-4">
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">Domain Name</label>
+        <label className="text-sm font-medium text-gray-700">域名</label>
         <Input
           value={domainName}
           onChange={(e) => setDomainName(e.target.value)}
@@ -104,7 +108,7 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
         />
       </div>
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">Price ($)</label>
+        <label className="text-sm font-medium text-gray-700">价格 (¥)</label>
         <Input
           type="number"
           value={domainPrice}
@@ -117,27 +121,27 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
         />
       </div>
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">Description</label>
+        <label className="text-sm font-medium text-gray-700">描述</label>
         <textarea
           value={domainDescription}
           onChange={(e) => setDomainDescription(e.target.value)}
           className="w-full bg-white border border-gray-300 rounded-md p-2 text-black"
-          placeholder="Describe your domain (optional)"
+          placeholder="描述您的域名（可选）"
           rows={3}
         />
       </div>
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">Category</label>
+        <label className="text-sm font-medium text-gray-700">分类</label>
         <select
           value={domainCategory}
           onChange={(e) => setDomainCategory(e.target.value)}
           className="w-full bg-white border border-gray-300 rounded-md p-2 text-black"
         >
-          <option value="standard">Standard</option>
-          <option value="premium">Premium</option>
-          <option value="short">Short</option>
-          <option value="dev">Development</option>
-          <option value="brandable">Brandable</option>
+          <option value="standard">标准</option>
+          <option value="premium">高级</option>
+          <option value="short">短域名</option>
+          <option value="dev">开发</option>
+          <option value="brandable">品牌</option>
         </select>
       </div>
       <div className="flex items-center space-x-2">
@@ -149,7 +153,7 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
           className="rounded border-gray-300"
         />
         <label htmlFor="highlight" className="text-sm font-medium text-gray-700">
-          Highlight this domain (featured)
+          设为推荐域名（精选）
         </label>
       </div>
       <Button 
@@ -160,10 +164,10 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
         {formLoading ? (
           <span className="flex items-center gap-2">
             <Loader2 className="animate-spin w-4 h-4" />
-            Saving...
+            保存中...
           </span>
         ) : (
-          editingDomain ? 'Update Domain' : 'Add Domain'
+          editingDomain ? '更新域名' : '添加域名'
         )}
       </Button>
     </form>
