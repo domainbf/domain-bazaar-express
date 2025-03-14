@@ -252,17 +252,17 @@ serve(async (req: Request) => {
                 </div>
                 <div class="content">
                   <p>您好,</p>
-                  <p>感谢您注册 DomainX。请点击下方按钮验证您的邮箱地址:</p>
+                  <p>感谢您注册 DomainX。请点击下方按钮验证您的邮箱地址：</p>
                   
                   <div style="text-align: center; margin: 25px 0;">
                     <a href="${data.verificationUrl || `${siteUrl}/auth/verify`}" class="button" style="color: white;">验证邮箱地址</a>
                   </div>
                   
                   <p>如果您没有创建账户，可以安全地忽略此邮件。</p>
-                  <p>最好的祝福,<br>DomainX 团队</p>
+                  <p>祝好，<br>DomainX 团队</p>
                 </div>
                 <div class="footer">
-                  <p>© 2024 DomainX. 保留所有权利.</p>
+                  <p>© 2024 DomainX - domain.bf</p>
                 </div>
               </div>
             </body>
@@ -294,18 +294,18 @@ serve(async (req: Request) => {
                   <h1>重置您的密码</h1>
                 </div>
                 <div class="content">
-                  <p>您好,</p>
-                  <p>我们收到了重置您密码的请求。点击下方按钮创建新密码:</p>
+                  <p>您好，</p>
+                  <p>我们收到了重置您密码的请求。点击下方按钮创建新密码：</p>
                   
                   <div style="text-align: center; margin: 25px 0;">
                     <a href="${data.resetUrl || `${siteUrl}/reset-password`}" class="button" style="color: white;">重置密码</a>
                   </div>
                   
                   <p>如果您没有请求重置密码，可以安全地忽略此邮件。</p>
-                  <p>最好的祝福,<br>DomainX 团队</p>
+                  <p>祝好，<br>DomainX 团队</p>
                 </div>
                 <div class="footer">
-                  <p>© 2024 DomainX. 保留所有权利.</p>
+                  <p>© 2024 DomainX - domain.bf</p>
                 </div>
               </div>
             </body>

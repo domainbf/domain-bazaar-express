@@ -37,18 +37,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (event: AuthChangeEvent, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
           fetchProfile(session.user.id);
           
-          if (event === 'PASSWORD_RECOVERY') {
+          if (event === AuthChangeEvent.PASSWORD_RECOVERY) {
             toast.success('密码已成功更新！');
           }
           
-          if (event === 'SIGNED_UP' || event === 'SIGNED_IN') {
+          if (event === AuthChangeEvent.SIGNED_UP || event === AuthChangeEvent.SIGNED_IN) {
             try {
               await supabase.functions.invoke('send-notification', {
                 body: {
@@ -59,6 +59,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                   }
                 }
               });
+              
+              if (event === AuthChangeEvent.SIGNED_UP) {
+                toast.success('注册成功！请查看邮箱完成验证。');
+              } else {
+                toast.success('登录成功！');
+              }
             } catch (error) {
               console.error('发送验证邮件时出错:', error);
             }
