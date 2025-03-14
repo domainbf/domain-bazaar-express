@@ -23,6 +23,8 @@ serve(async (req: Request) => {
 
   try {
     const { type, recipient, data }: NotificationRequest = await req.json();
+    console.log(`Processing notification request of type: ${type} for recipient: ${recipient}`);
+    
     let subject = '';
     let html = '';
     const siteUrl = "https://domain.bf";
@@ -214,7 +216,7 @@ serve(async (req: Request) => {
                     `<p>域名所有者已接受您的报价，并将很快联系您安排域名转移和付款。</p>
                     <p>如果您在48小时内没有收到卖家的消息，请联系我们的支持团队。</p>` 
                     : 
-                    `<p>感谢您的兴趣。您可以继续浏览我们市场上的其他域名。</p>`
+                    `<p>感谢您的兴趣。您可��继续浏览我们市场上的其他域名。</p>`
                   }
                   <p>最好的祝福,<br>DomainX 团队</p>
                 </div>

@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, ArrowLeft, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 export const ResetPasswordForm = () => {
   const [email, setEmail] = useState('');
@@ -19,10 +20,13 @@ export const ResetPasswordForm = () => {
     setIsLoading(true);
     
     try {
+      console.log('Attempting to reset password for email:', email);
       await resetPassword(email);
       setIsSubmitted(true);
-    } catch (error) {
+      toast.success('密码重置链接已发送到您的邮箱');
+    } catch (error: any) {
       console.error('重置密码请求出错:', error);
+      toast.error(error.message || '发送重置邮件时出错');
     } finally {
       setIsLoading(false);
     }

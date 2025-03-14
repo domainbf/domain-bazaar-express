@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -45,14 +44,16 @@ export const AuthModal = ({ open, isOpen, onClose, mode = 'signin', onChangeMode
 
     try {
       if (activeMode === 'signup') {
+        console.log('Attempting to sign up with email:', email);
         await signUp(email, password, {
           full_name: fullName
         });
+        // Don't close modal on signup to show confirmation message
       } else {
+        console.log('Attempting to sign in with email:', email);
         await signIn(email, password);
+        onClose();
       }
-      
-      onClose();
     } catch (error: any) {
       console.error('Authentication error:', error);
       setErrorMessage(error.message || 'An error occurred during authentication');
