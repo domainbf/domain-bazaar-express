@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -61,7 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               
               if (event === 'SIGNED_UP') {
                 toast.success('注册成功！请查看邮箱完成验证。');
-              } else {
+              } else if (event === 'SIGNED_IN') {
                 toast.success('登录成功！');
               }
             } catch (error) {
