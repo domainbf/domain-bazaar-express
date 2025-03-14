@@ -25,17 +25,18 @@ serve(async (req: Request) => {
     const { type, recipient, data }: NotificationRequest = await req.json();
     let subject = '';
     let html = '';
+    const siteUrl = "https://domain.bf";
 
     switch (type) {
       case 'verification_approved':
-        subject = `Your domain ${data.domain} has been verified`;
+        subject = `您的域名 ${data.domain} 已通过验证`;
         html = `
           <!DOCTYPE html>
           <html>
             <head>
               <meta charset="utf-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Domain Verification Approved</title>
+              <title>域名验证已通过</title>
               <style>
                 body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
                 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -49,24 +50,24 @@ serve(async (req: Request) => {
             <body>
               <div class="container">
                 <div class="header">
-                  <h1>Domain Verification Approved</h1>
+                  <h1>域名验证已通过</h1>
                 </div>
                 <div class="content">
-                  <p>Congratulations!</p>
-                  <p>Your domain <strong>${data.domain}</strong> has been successfully verified.</p>
+                  <p>恭喜！</p>
+                  <p>您的域名 <strong>${data.domain}</strong> 已成功通过验证。</p>
                   
                   <div class="details">
-                    <p>Your domain is now:</p>
-                    <p><span class="success">✓ Verified</span> and will be highlighted in search results</p>
-                    <p><span class="success">✓ Trusted</span> by potential buyers</p>
-                    <p><span class="success">✓ Prioritized</span> in marketplace listings</p>
+                    <p>您的域名现在:</p>
+                    <p><span class="success">✓ 已验证</span> 并将在搜索结果中突出显示</p>
+                    <p><span class="success">✓ 受到信任</span> 来自潜在买家</p>
+                    <p><span class="success">✓ 在市场列表中享有优先权</span></p>
                   </div>
                   
-                  <p>Thank you for completing the verification process.</p>
-                  <p>Best regards,<br>The DomainX Team</p>
+                  <p>感谢您完成验证过程。</p>
+                  <p>最好的祝福,<br>DomainX 团队</p>
                 </div>
                 <div class="footer">
-                  <p>© 2024 DomainX. All rights reserved.</p>
+                  <p>© 2024 DomainX. 保留所有权利.</p>
                 </div>
               </div>
             </body>
@@ -75,14 +76,14 @@ serve(async (req: Request) => {
         break;
         
       case 'verification_rejected':
-        subject = `Domain verification for ${data.domain} was not approved`;
+        subject = `域名 ${data.domain} 的验证未通过`;
         html = `
           <!DOCTYPE html>
           <html>
             <head>
               <meta charset="utf-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Domain Verification Not Approved</title>
+              <title>域名验证未通过</title>
               <style>
                 body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
                 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -96,27 +97,27 @@ serve(async (req: Request) => {
             <body>
               <div class="container">
                 <div class="header">
-                  <h1>Domain Verification Not Approved</h1>
+                  <h1>域名验证未通过</h1>
                 </div>
                 <div class="content">
-                  <p>Hello,</p>
-                  <p>We were unable to verify your domain <strong>${data.domain}</strong>.</p>
+                  <p>您好,</p>
+                  <p>我们无法验证您的域名 <strong>${data.domain}</strong>。</p>
                   
                   <div class="details">
-                    <p>Possible reasons for verification failure:</p>
+                    <p>验证失败的可能原因:</p>
                     <ul>
-                      <li>The verification records were not found</li>
-                      <li>The verification file was not accessible</li>
-                      <li>The verification data was incorrect or expired</li>
+                      <li>未找到验证记录</li>
+                      <li>验证文件无法访问</li>
+                      <li>验证数据不正确或已过期</li>
                     </ul>
-                    <p>You can try the verification process again from your dashboard.</p>
+                    <p>您可以从控制面板再次尝试验证流程。</p>
                   </div>
                   
-                  <p>If you need assistance, please reply to this email.</p>
-                  <p>Best regards,<br>The DomainX Team</p>
+                  <p>如果您需要帮助，请回复此邮件。</p>
+                  <p>最好的祝福,<br>DomainX 团队</p>
                 </div>
                 <div class="footer">
-                  <p>© 2024 DomainX. All rights reserved.</p>
+                  <p>© 2024 DomainX. 保留所有权利.</p>
                 </div>
               </div>
             </body>
@@ -125,14 +126,14 @@ serve(async (req: Request) => {
         break;
         
       case 'new_offer':
-        subject = `New offer for your domain ${data.domain}: $${data.amount}`;
+        subject = `您的域名 ${data.domain} 有新报价: $${data.amount}`;
         html = `
           <!DOCTYPE html>
           <html>
             <head>
               <meta charset="utf-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>New Domain Offer</title>
+              <title>新域名报价</title>
               <style>
                 body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
                 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -146,26 +147,26 @@ serve(async (req: Request) => {
             <body>
               <div class="container">
                 <div class="header">
-                  <h1>New Domain Offer</h1>
+                  <h1>新域名报价</h1>
                 </div>
                 <div class="content">
-                  <p>Hello,</p>
-                  <p>You have received a new offer for your domain <strong>${data.domain}</strong>.</p>
+                  <p>您好,</p>
+                  <p>您的域名 <strong>${data.domain}</strong> 收到了新的报价。</p>
                   
                   <div class="details">
-                    <h3>Offer Details:</h3>
-                    <p><strong>Domain:</strong> ${data.domain}</p>
-                    <p><strong>Offer Amount:</strong> $${data.amount}</p>
-                    <p><strong>Buyer Email:</strong> ${data.buyerEmail}</p>
-                    ${data.message ? `<p><strong>Message:</strong> ${data.message}</p>` : ''}
+                    <h3>报价详情:</h3>
+                    <p><strong>域名:</strong> ${data.domain}</p>
+                    <p><strong>报价金额:</strong> $${data.amount}</p>
+                    <p><strong>买家邮箱:</strong> ${data.buyerEmail}</p>
+                    ${data.message ? `<p><strong>留言:</strong> ${data.message}</p>` : ''}
                   </div>
                   
-                  <p>You can respond to this offer by logging into your dashboard. If you choose to accept this offer, please contact the buyer using the provided email address to arrange the domain transfer and payment.</p>
-                  <a href="${data.dashboardUrl}" class="btn" style="color: white;">View in Dashboard</a>
-                  <p>Best regards,<br>The DomainX Team</p>
+                  <p>您可以登录控制面板回应此报价。如果您选择接受此报价，请使用提供的邮箱联系买家安排域名转移和付款。</p>
+                  <a href="${data.dashboardUrl || `${siteUrl}/user-center?tab=domains`}" class="btn" style="color: white;">在控制面板查看</a>
+                  <p>最好的祝福,<br>DomainX 团队</p>
                 </div>
                 <div class="footer">
-                  <p>© 2024 DomainX. All rights reserved.</p>
+                  <p>© 2024 DomainX. 保留所有权利.</p>
                 </div>
               </div>
             </body>
@@ -175,14 +176,15 @@ serve(async (req: Request) => {
         
       case 'offer_response':
         const status = data.status.toLowerCase();
-        subject = `Your offer for ${data.domain} has been ${status}`;
+        const statusText = status === 'accepted' ? '已接受' : '已拒绝';
+        subject = `您对域名 ${data.domain} 的报价已${statusText}`;
         html = `
           <!DOCTYPE html>
           <html>
             <head>
               <meta charset="utf-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Domain Offer ${status.charAt(0).toUpperCase() + status.slice(1)}</title>
+              <title>域名报价${statusText}</title>
               <style>
                 body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
                 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -195,29 +197,29 @@ serve(async (req: Request) => {
             <body>
               <div class="container">
                 <div class="header">
-                  <h1>Domain Offer ${status.charAt(0).toUpperCase() + status.slice(1)}</h1>
+                  <h1>域名报价${statusText}</h1>
                 </div>
                 <div class="content">
-                  <p>Hello,</p>
-                  <p>Your offer for the domain <strong>${data.domain}</strong> has been <strong>${status}</strong>.</p>
+                  <p>您好,</p>
+                  <p>您对域名 <strong>${data.domain}</strong> 的报价已<strong>${statusText}</strong>。</p>
                   
                   <div class="details">
-                    <h3>Offer Details:</h3>
-                    <p><strong>Domain:</strong> ${data.domain}</p>
-                    <p><strong>Your Offer:</strong> $${data.amount}</p>
-                    ${data.message ? `<p><strong>Seller Message:</strong> ${data.message}</p>` : ''}
+                    <h3>报价详情:</h3>
+                    <p><strong>域名:</strong> ${data.domain}</p>
+                    <p><strong>您的报价:</strong> $${data.amount}</p>
+                    ${data.message ? `<p><strong>卖家留言:</strong> ${data.message}</p>` : ''}
                   </div>
                   
                   ${status === 'accepted' ? 
-                    `<p>The domain owner has accepted your offer and will contact you shortly to arrange the domain transfer and payment.</p>
-                    <p>If you don't hear from the seller within 48 hours, please contact our support team.</p>` 
+                    `<p>域名所有者已接受您的报价，并将很快联系您安排域名转移和付款。</p>
+                    <p>如果您在48小时内没有收到卖家的消息，请联系我们的支持团队。</p>` 
                     : 
-                    `<p>Thank you for your interest. You can continue browsing other domains in our marketplace.</p>`
+                    `<p>感谢您的兴趣。您可以继续浏览我们市场上的其他域名。</p>`
                   }
-                  <p>Best regards,<br>The DomainX Team</p>
+                  <p>最好的祝福,<br>DomainX 团队</p>
                 </div>
                 <div class="footer">
-                  <p>© 2024 DomainX. All rights reserved.</p>
+                  <p>© 2024 DomainX. 保留所有权利.</p>
                 </div>
               </div>
             </body>
@@ -226,14 +228,14 @@ serve(async (req: Request) => {
         break;
         
       case 'email_verification':
-        subject = 'Verify your email address for DomainX';
+        subject = '验证您的 DomainX 电子邮箱地址';
         html = `
           <!DOCTYPE html>
           <html>
             <head>
               <meta charset="utf-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Email Verification</title>
+              <title>邮箱验证</title>
               <style>
                 body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
                 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -246,21 +248,21 @@ serve(async (req: Request) => {
             <body>
               <div class="container">
                 <div class="header">
-                  <h1>Verify Your Email</h1>
+                  <h1>验证您的邮箱</h1>
                 </div>
                 <div class="content">
-                  <p>Hello,</p>
-                  <p>Thank you for signing up for DomainX. Please verify your email address by clicking the button below:</p>
+                  <p>您好,</p>
+                  <p>感谢您注册 DomainX。请点击下方按钮验证您的邮箱地址:</p>
                   
                   <div style="text-align: center; margin: 25px 0;">
-                    <a href="${data.verificationUrl}" class="button" style="color: white;">Verify Email Address</a>
+                    <a href="${data.verificationUrl || `${siteUrl}/auth/verify`}" class="button" style="color: white;">验证邮箱地址</a>
                   </div>
                   
-                  <p>If you didn't create an account, you can safely ignore this email.</p>
-                  <p>Best regards,<br>The DomainX Team</p>
+                  <p>如果您没有创建账户，可以安全地忽略此邮件。</p>
+                  <p>最好的祝福,<br>DomainX 团队</p>
                 </div>
                 <div class="footer">
-                  <p>© 2024 DomainX. All rights reserved.</p>
+                  <p>© 2024 DomainX. 保留所有权利.</p>
                 </div>
               </div>
             </body>
@@ -269,14 +271,14 @@ serve(async (req: Request) => {
         break;
         
       case 'password_reset':
-        subject = 'Reset your DomainX password';
+        subject = '重置您的 DomainX 密码';
         html = `
           <!DOCTYPE html>
           <html>
             <head>
               <meta charset="utf-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Password Reset</title>
+              <title>密码重置</title>
               <style>
                 body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
                 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -289,21 +291,21 @@ serve(async (req: Request) => {
             <body>
               <div class="container">
                 <div class="header">
-                  <h1>Reset Your Password</h1>
+                  <h1>重置您的密码</h1>
                 </div>
                 <div class="content">
-                  <p>Hello,</p>
-                  <p>We received a request to reset your password. Click the button below to create a new password:</p>
+                  <p>您好,</p>
+                  <p>我们收到了重置您密码的请求。点击下方按钮创建新密码:</p>
                   
                   <div style="text-align: center; margin: 25px 0;">
-                    <a href="${data.resetUrl}" class="button" style="color: white;">Reset Password</a>
+                    <a href="${data.resetUrl || `${siteUrl}/reset-password`}" class="button" style="color: white;">重置密码</a>
                   </div>
                   
-                  <p>If you didn't request a password reset, you can safely ignore this email.</p>
-                  <p>Best regards,<br>The DomainX Team</p>
+                  <p>如果您没有请求重置密码，可以安全地忽略此邮件。</p>
+                  <p>最好的祝福,<br>DomainX 团队</p>
                 </div>
                 <div class="footer">
-                  <p>© 2024 DomainX. All rights reserved.</p>
+                  <p>© 2024 DomainX. 保留所有权利.</p>
                 </div>
               </div>
             </body>
@@ -312,7 +314,7 @@ serve(async (req: Request) => {
         break;
         
       default:
-        throw new Error('Invalid notification type');
+        throw new Error('无效的通知类型');
     }
 
     const emailResponse = await resend.emails.send({
@@ -322,11 +324,11 @@ serve(async (req: Request) => {
       html: html,
     });
 
-    console.log("Email sent successfully:", emailResponse);
+    console.log("邮件成功发送:", emailResponse);
 
     return new Response(
       JSON.stringify({ 
-        message: "Notification sent successfully",
+        message: "通知成功发送",
         emailResponse 
       }),
       {
@@ -338,7 +340,7 @@ serve(async (req: Request) => {
       }
     );
   } catch (error: any) {
-    console.error("Error in send-notification function:", error);
+    console.error("send-notification函数中的错误:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {

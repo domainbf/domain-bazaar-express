@@ -34,7 +34,7 @@ serve(async (req: Request) => {
       message = "", 
       buyerId = null,
       domainOwnerId,
-      dashboardUrl = "https://domainx.com/dashboard"
+      dashboardUrl = "https://domain.bf/user-center?tab=domains"
     }: OfferRequest = await req.json();
 
     // Email template for the user (buyer)
@@ -44,7 +44,7 @@ serve(async (req: Request) => {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Your Domain Offer has been received</title>
+          <title>您的域名报价已收到</title>
           <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -57,25 +57,25 @@ serve(async (req: Request) => {
         <body>
           <div class="container">
             <div class="header">
-              <h1>Your Offer Has Been Submitted</h1>
+              <h1>您的报价已提交</h1>
             </div>
             <div class="content">
-              <p>Dear Domain Buyer,</p>
-              <p>Thank you for your interest in <strong>${domain}</strong>. We have received your offer of <strong>$${offer}</strong> and have forwarded it to the domain owner.</p>
+              <p>尊敬的域名买家,</p>
+              <p>感谢您对 <strong>${domain}</strong> 的兴趣。我们已收到您 <strong>$${offer}</strong> 的报价，并已转发给域名所有者。</p>
               
               <div class="details">
-                <h3>Offer Details:</h3>
-                <p><strong>Domain:</strong> ${domain}</p>
-                <p><strong>Offer Amount:</strong> $${offer}</p>
-                ${message ? `<p><strong>Your Message:</strong> ${message}</p>` : ''}
+                <h3>报价详情:</h3>
+                <p><strong>域名:</strong> ${domain}</p>
+                <p><strong>报价金额:</strong> $${offer}</p>
+                ${message ? `<p><strong>您的留言:</strong> ${message}</p>` : ''}
               </div>
               
-              <p>The domain owner will review your offer and respond as soon as possible. You will receive a notification when they respond.</p>
-              <p>If you have any questions, please reply to this email.</p>
-              <p>Best regards,<br>The DomainX Team</p>
+              <p>域名所有者将审核您的报价并尽快回复。当他们回应时，您将收到通知。</p>
+              <p>如果您有任何问题，请回复此邮件。</p>
+              <p>最好的祝福,<br>DomainX 团队</p>
             </div>
             <div class="footer">
-              <p>© 2024 DomainX. All rights reserved.</p>
+              <p>© 2024 DomainX. 保留所有权利.</p>
             </div>
           </div>
         </body>
@@ -89,7 +89,7 @@ serve(async (req: Request) => {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>New Domain Offer Received</title>
+          <title>收到新域名报价</title>
           <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -103,27 +103,27 @@ serve(async (req: Request) => {
         <body>
           <div class="container">
             <div class="header">
-              <h1>New Domain Offer</h1>
+              <h1>新域名报价</h1>
             </div>
             <div class="content">
-              <p>Hello Domain Owner,</p>
-              <p>You have received a new offer for your domain <strong>${domain}</strong>.</p>
+              <p>您好，域名所有者,</p>
+              <p>您的域名 <strong>${domain}</strong> 收到了新报价。</p>
               
               <div class="details">
-                <h3>Offer Details:</h3>
-                <p><strong>Domain:</strong> ${domain}</p>
-                <p><strong>Offer Amount:</strong> $${offer}</p>
-                <p><strong>Buyer Email:</strong> ${email}</p>
-                ${message ? `<p><strong>Buyer Message:</strong> ${message}</p>` : ''}
-                ${buyerId ? `<p><strong>Buyer Account:</strong> Registered User</p>` : `<p><strong>Buyer Account:</strong> Guest</p>`}
+                <h3>报价详情:</h3>
+                <p><strong>域名:</strong> ${domain}</p>
+                <p><strong>报价金额:</strong> $${offer}</p>
+                <p><strong>买家邮箱:</strong> ${email}</p>
+                ${message ? `<p><strong>买家留言:</strong> ${message}</p>` : ''}
+                ${buyerId ? `<p><strong>买家账户:</strong> 注册用户</p>` : `<p><strong>买家账户:</strong> 访客</p>`}
               </div>
               
-              <p>You can respond to this offer by logging into your dashboard. If you choose to accept this offer, please contact the buyer using the provided email address to arrange the domain transfer and payment.</p>
-              <a href="${dashboardUrl}" class="cta" style="color: white;">View in Dashboard</a>
-              <p>Best regards,<br>The DomainX Team</p>
+              <p>您可以通过登录控制面板回应此报价。如果您选择接受此报价，请使用提供的电子邮件地址联系买家安排域名转移和付款。</p>
+              <a href="${dashboardUrl}" class="cta" style="color: white;">在控制面板查看</a>
+              <p>最好的祝福,<br>DomainX 团队</p>
             </div>
             <div class="footer">
-              <p>© 2024 DomainX. All rights reserved.</p>
+              <p>© 2024 DomainX. 保留所有权利.</p>
             </div>
           </div>
         </body>
@@ -134,11 +134,11 @@ serve(async (req: Request) => {
     const userEmailResponse = await resend.emails.send({
       from: "DomainX <no-reply@domain.bf>",
       to: [email],
-      subject: `Your offer for ${domain} has been received`,
+      subject: `您对 ${domain} 的报价已收到`,
       html: userEmailHtml,
     });
 
-    console.log("User email sent:", userEmailResponse);
+    console.log("用户邮件已发送:", userEmailResponse);
 
     // Determine admin email based on domainOwnerId or fallback to default
     let adminEmail = "admin@example.com";
@@ -159,7 +159,7 @@ serve(async (req: Request) => {
           adminEmail = profileData[0].email;
         }
       } catch (error) {
-        console.error("Error fetching domain owner email:", error);
+        console.error("获取域名所有者邮箱时出错:", error);
         // Continue with default admin email
       }
     }
@@ -168,15 +168,15 @@ serve(async (req: Request) => {
     const adminEmailResponse = await resend.emails.send({
       from: "DomainX <no-reply@domain.bf>",
       to: [adminEmail],
-      subject: `New offer for ${domain}: $${offer}`,
+      subject: `${domain} 的新报价: $${offer}`,
       html: adminEmailHtml,
     });
 
-    console.log("Admin email sent:", adminEmailResponse);
+    console.log("管理员邮件已发送:", adminEmailResponse);
 
     return new Response(
       JSON.stringify({ 
-        message: "Offer submitted successfully",
+        message: "报价提交成功",
         userEmail: userEmailResponse,
         adminEmail: adminEmailResponse
       }),
@@ -189,7 +189,7 @@ serve(async (req: Request) => {
       }
     );
   } catch (error: any) {
-    console.error("Error in send-offer function:", error);
+    console.error("send-offer函数中的错误:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {

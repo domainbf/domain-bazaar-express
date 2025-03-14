@@ -22,7 +22,7 @@ export const ResetPasswordForm = () => {
       await resetPassword(email);
       setIsSubmitted(true);
     } catch (error) {
-      console.error('Error requesting password reset:', error);
+      console.error('重置密码请求出错:', error);
     } finally {
       setIsLoading(false);
     }
@@ -31,11 +31,11 @@ export const ResetPasswordForm = () => {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
+        <CardTitle className="text-2xl font-bold">重置密码</CardTitle>
         <CardDescription>
           {!isSubmitted 
-            ? "Enter your email and we'll send you instructions to reset your password" 
-            : "Check your inbox for instructions"}
+            ? "输入您的邮箱，我们将发送重置密码的说明" 
+            : "请查看您的邮箱获取重置指引"}
         </CardDescription>
       </CardHeader>
       
@@ -44,14 +44,14 @@ export const ResetPasswordForm = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                <Mail className="w-4 h-4" /> Email
+                <Mail className="w-4 h-4" /> 邮箱
               </label>
               <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="you@example.com"
+                placeholder="your@email.com"
                 className="w-full"
                 disabled={isLoading}
               />
@@ -60,12 +60,12 @@ export const ResetPasswordForm = () => {
         ) : (
           <div className="py-4 text-center">
             <div className="bg-green-50 text-green-700 p-4 rounded-md mb-4">
-              <p>Password reset instructions have been sent to:</p>
+              <p>密码重置指引已发送至:</p>
               <p className="font-medium mt-2">{email}</p>
             </div>
             <p className="text-sm text-gray-600 mt-4">
-              Please check your email inbox and follow the instructions to reset your password.
-              If you don't see the email, check your spam folder.
+              请检查您的邮箱并按照指引重置密码。
+              如果没有看到邮件，请检查垃圾邮件文件夹。
             </p>
           </div>
         )}
@@ -80,7 +80,7 @@ export const ResetPasswordForm = () => {
               onClick={() => navigate('/auth')}
               disabled={isLoading}
             >
-              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Login
+              <ArrowLeft className="w-4 h-4 mr-2" /> 返回登录
             </Button>
             <Button 
               type="submit" 
@@ -90,10 +90,10 @@ export const ResetPasswordForm = () => {
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending...
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> 发送中...
                 </>
               ) : (
-                "Reset Password"
+                "重置密码"
               )}
             </Button>
           </>
@@ -103,7 +103,7 @@ export const ResetPasswordForm = () => {
             variant="outline" 
             onClick={() => navigate('/auth')}
           >
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Login
+            <ArrowLeft className="w-4 h-4 mr-2" /> 返回登录
           </Button>
         )}
       </CardFooter>
