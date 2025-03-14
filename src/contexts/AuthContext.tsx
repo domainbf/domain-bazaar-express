@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Session, User, AuthChangeEvent } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,11 +44,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (session?.user) {
           fetchProfile(session.user.id);
           
-          if (event === 'PASSWORD_RECOVERY') {
+          if (event === AuthChangeEvent.PASSWORD_RECOVERY) {
             toast.success('Password updated successfully!');
           }
           
-          if (event === 'SIGNED_UP' || event === 'SIGNED_IN') {
+          if (event === AuthChangeEvent.SIGNED_UP || event === AuthChangeEvent.SIGNED_IN) {
             try {
               await supabase.functions.invoke('send-notification', {
                 body: {
