@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event: AuthChangeEvent, session) => {
+      async (event, session) => {
         console.log('Auth state changed:', event);
         setSession(session);
         setUser(session?.user ?? null);
@@ -45,11 +45,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (session?.user) {
           fetchProfile(session.user.id);
           
-          if (event === 'PASSWORD_RECOVERY') {
+          // Use lowercase string for comparison as per the AuthChangeEvent type
+          if (event === 'password_recovery') {
             toast.success('密码已成功更新！');
           }
           
-          if (event === 'SIGNED_UP' || event === 'SIGNED_IN') {
+          if (event === 'signed_up' || event === 'signed_in') {
             try {
               console.log('Sending verification email for event:', event);
               await supabase.functions.invoke('send-notification', {
@@ -62,9 +63,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 }
               });
               
-              if (event === 'SIGNED_UP') {
+              if (event === 'signed_up') {
                 toast.success('注册成功！请查看邮箱完成验证。');
-              } else if (event === 'SIGNED_IN') {
+              } else if (event === 'signed_in') {
                 toast.success('登录成功！');
               }
             } catch (error) {
