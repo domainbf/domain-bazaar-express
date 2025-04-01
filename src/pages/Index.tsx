@@ -40,7 +40,7 @@ const Index = () => {
             </Link>
             <Link to="/dashboard" className="w-full sm:w-auto">
               <Button variant="outline" className="w-full sm:w-auto border-gray-400 border-2 text-white hover:bg-gray-800 px-6 py-2 md:px-8 md:py-6 text-base md:text-lg font-bold">
-                Sell Your Domains
+                Sell Domains
               </Button>
             </Link>
           </div>
