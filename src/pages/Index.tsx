@@ -22,7 +22,7 @@ const Index = () => {
     <div className="min-h-screen bg-gray-100">
       <Navbar />
       
-      {/* Hero Section - Improved mobile readability */}
+      {/* Hero Section - Improved mobile readability & fixed contrast issues */}
       <header className="pt-16 pb-20 md:py-24 bg-gray-900 text-white">
         <div className="max-w-6xl mx-auto px-4 md:px-8 text-center">
           <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 md:mb-8 leading-tight text-white-enhanced">
@@ -39,7 +39,10 @@ const Index = () => {
               </Button>
             </Link>
             <Link to="/dashboard" className="w-full sm:w-auto">
-              <Button variant="outline" className="w-full sm:w-auto border-gray-400 border-2 text-white hover:bg-gray-800 px-6 py-2 md:px-8 md:py-6 text-base md:text-lg font-bold">
+              <Button 
+                variant="outline" 
+                className="w-full sm:w-auto border-gray-400 border-2 bg-transparent text-white hover:bg-gray-700 px-6 py-2 md:px-8 md:py-6 text-base md:text-lg font-bold"
+              >
                 Sell Your Domains
               </Button>
             </Link>
@@ -168,7 +171,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Call to Action */}
+      {/* Call to Action - Fixed the button contrast issue */}
       <section className="py-16 md:py-20 bg-gray-900 text-white">
         <div className="max-w-4xl mx-auto px-4 md:px-8 text-center">
           <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-white-enhanced">Ready to Buy or Sell Domains?</h2>
@@ -182,7 +185,10 @@ const Index = () => {
               </Button>
             </Link>
             <Link to="/dashboard" className="w-full sm:w-auto">
-              <Button variant="outline" className="w-full sm:w-auto border-gray-400 border-2 text-white hover:bg-gray-800 px-6 py-2 md:px-6 md:py-3 text-base font-bold">
+              <Button 
+                variant="outline" 
+                className="w-full sm:w-auto border-white border-2 bg-transparent text-white hover:bg-gray-700 px-6 py-2 md:px-6 md:py-3 text-base font-bold"
+              >
                 Sell Your Domains
               </Button>
             </Link>
