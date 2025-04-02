@@ -12,9 +12,20 @@ interface DomainCardProps {
   isSold?: boolean;
   domainId?: string;
   sellerId?: string;
+  category?: string;
+  description?: string;
 }
 
-export const DomainCard = ({ domain, price, highlight, isSold = false, domainId, sellerId }: DomainCardProps) => {
+export const DomainCard = ({ 
+  domain, 
+  price, 
+  highlight, 
+  isSold = false, 
+  domainId, 
+  sellerId,
+  category,
+  description 
+}: DomainCardProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -43,6 +54,18 @@ export const DomainCard = ({ domain, price, highlight, isSold = false, domainId,
         
         {price && (
           <span className="text-xl font-bold text-gray-900">${typeof price === 'number' ? price : price}</span>
+        )}
+        
+        {category && (
+          <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-sm">
+            {category}
+          </span>
+        )}
+        
+        {description && (
+          <p className="text-sm text-gray-600 text-center line-clamp-2">
+            {description}
+          </p>
         )}
         
         {isSold ? (
