@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { DomainOfferForm } from './domain/DomainOfferForm';
+import { Badge } from './ui/badge';
 
 interface DomainCardProps {
   domain: string;
@@ -46,14 +47,20 @@ export const DomainCard = ({
   };
 
   return (
-    <div className={`simple-card p-6 hover:shadow-md ${highlight ? 'border-black border-2' : ''}`}>
+    <div className={`relative border rounded-lg p-6 hover:shadow-md transition-shadow ${highlight ? 'border-black border-2' : 'border-gray-200'}`}>
+      {highlight && (
+        <div className="absolute -top-3 right-4">
+          <Badge className="bg-black text-white">Featured</Badge>
+        </div>
+      )}
+      
       <div className="flex flex-col items-center space-y-4">
-        <h3 className="text-2xl font-bold text-gray-900">
+        <h3 className="text-2xl font-bold text-gray-900 text-center">
           {domain}
         </h3>
         
-        {price && (
-          <span className="text-xl font-bold text-gray-900">${typeof price === 'number' ? price : price}</span>
+        {price !== undefined && (
+          <span className="text-xl font-bold text-gray-900">${typeof price === 'number' ? price.toLocaleString() : price}</span>
         )}
         
         {category && (
@@ -63,7 +70,7 @@ export const DomainCard = ({
         )}
         
         {description && (
-          <p className="text-sm text-gray-600 text-center line-clamp-2">
+          <p className="text-sm text-gray-600 text-center line-clamp-2 mt-2">
             {description}
           </p>
         )}

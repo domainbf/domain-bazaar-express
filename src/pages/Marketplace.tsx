@@ -7,6 +7,7 @@ import { MarketplaceHeader } from '@/components/marketplace/MarketplaceHeader';
 import { FilterSection } from '@/components/marketplace/FilterSection';
 import { DomainListings } from '@/components/marketplace/DomainListings';
 import { Domain } from '@/types/domain';
+import { availableDomains } from '@/data/availableDomains'; // Import sample data as fallback
 
 export const Marketplace = () => {
   const [domains, setDomains] = useState<Domain[]>([]);
@@ -42,10 +43,40 @@ export const Marketplace = () => {
       
       if (error) throw error;
       console.log('Fetched domains:', data);
-      setDomains(data || []);
+      
+      if (data && data.length > 0) {
+        setDomains(data);
+      } else {
+        // If no domains found in Supabase, use sample data as fallback
+        setDomains(availableDomains.map(domain => ({
+          id: domain.name,
+          name: domain.name,
+          price: typeof domain.price === 'string' ? parseFloat(domain.price) : domain.price,
+          category: domain.category,
+          highlight: domain.highlight,
+          description: domain.description || 'Premium domain name for your business.',
+          status: 'available',
+          is_verified: true,
+          verification_status: 'verified'
+        })));
+        console.log('Using sample domains as fallback');
+      }
     } catch (error: any) {
       console.error('Error loading domains:', error);
       toast.error(error.message || 'Failed to load domains');
+      
+      // Fallback to sample data if there's an error
+      setDomains(availableDomains.map(domain => ({
+        id: domain.name,
+        name: domain.name,
+        price: typeof domain.price === 'string' ? parseFloat(domain.price) : domain.price,
+        category: domain.category,
+        highlight: domain.highlight,
+        description: domain.description || 'Premium domain name for your business.',
+        status: 'available',
+        is_verified: true,
+        verification_status: 'verified'
+      })));
     } finally {
       setIsLoading(false);
     }
@@ -60,20 +91,20 @@ export const Marketplace = () => {
     
     if (searchQuery) {
       filteredDomains = filteredDomains.filter(domain => 
-        domain.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        domain.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
         (domain.description && domain.description.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
     
     if (priceRange.min) {
       filteredDomains = filteredDomains.filter(domain => 
-        domain.price >= parseFloat(priceRange.min)
+        domain.price && domain.price >= parseFloat(priceRange.min)
       );
     }
     
     if (priceRange.max) {
       filteredDomains = filteredDomains.filter(domain => 
-        domain.price <= parseFloat(priceRange.max)
+        domain.price && domain.price <= parseFloat(priceRange.max)
       );
     }
     
