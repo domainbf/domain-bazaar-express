@@ -33,10 +33,10 @@ export const Marketplace = () => {
       let query = supabase
         .from('domain_listings')
         .select('*')
-        .eq('status', 'available')
-
-      // Only show verified domains on the marketplace
-      query = query.eq('verification_status', 'verified');
+        .eq('status', 'available');
+      
+      // Commented out the verification filter to show all domains
+      // query = query.eq('verification_status', 'verified');
       
       const { data, error } = await query.order('created_at', { ascending: false });
       

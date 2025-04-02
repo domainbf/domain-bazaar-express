@@ -1,22 +1,34 @@
-
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { DomainCard } from '@/components/DomainCard';
 import { availableDomains } from '@/data/availableDomains';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/Navbar';
+import { useAuth } from '@/contexts/AuthContext';
+import { AuthModal } from '@/components/AuthModal';
 
 const Index = () => {
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const filteredDomains = availableDomains
     .filter(domain => filter === 'all' || domain.category === filter)
     .filter(domain => 
       searchQuery ? domain.name.toLowerCase().includes(searchQuery.toLowerCase()) : true
     );
+
+  const handleSellDomains = () => {
+    if (user) {
+      navigate('/dashboard');
+    } else {
+      setIsAuthModalOpen(true);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -38,14 +50,13 @@ const Index = () => {
                 Browse Marketplace
               </Button>
             </Link>
-            <Link to="/dashboard" className="w-full sm:w-auto">
-              <Button 
-                variant="outline" 
-                className="w-full sm:w-auto border-gray-400 border-2 bg-transparent text-white hover:bg-gray-700 px-6 py-2 md:px-8 md:py-6 text-base md:text-lg font-bold"
-              >
-                Sell Your Domains
-              </Button>
-            </Link>
+            <Button 
+              variant="outline" 
+              className="w-full sm:w-auto border-gray-400 border-2 bg-transparent text-white hover:bg-gray-700 px-6 py-2 md:px-8 md:py-6 text-base md:text-lg font-bold"
+              onClick={handleSellDomains}
+            >
+              Sell Your Domains
+            </Button>
           </div>
         </div>
       </header>
@@ -202,6 +213,8 @@ const Index = () => {
           <p className="text-sm md:text-base font-semibold">© 2024 DomainX Trading Platform. All rights reserved.</p>
         </div>
       </footer>
+
+      <AuthModal open={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </div>
   );
 };
