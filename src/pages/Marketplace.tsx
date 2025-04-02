@@ -17,20 +17,31 @@ export const Marketplace = () => {
   const [verifiedOnly, setVerifiedOnly] = useState(false);
 
   useEffect(() => {
+    // Extract search param from URL if present
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchParam = urlParams.get('search');
+    if (searchParam) {
+      setSearchQuery(searchParam);
+    }
+
     loadDomains();
   }, []);
 
   const loadDomains = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('domain_listings')
         .select('*')
         .eq('status', 'available')
-        .order('created_at', { ascending: false });
+
+      // Only show verified domains on the marketplace
+      query = query.eq('verification_status', 'verified');
+      
+      const { data, error } = await query.order('created_at', { ascending: false });
       
       if (error) throw error;
-      console.log('Fetched domains:', data); // Add this log to debug
+      console.log('Fetched domains:', data);
       setDomains(data || []);
     } catch (error: any) {
       console.error('Error loading domains:', error);

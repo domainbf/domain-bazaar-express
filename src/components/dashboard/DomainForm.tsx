@@ -6,6 +6,17 @@ import { Loader2 } from 'lucide-react';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { DomainListing } from "@/types/domain";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface DomainFormProps {
   isOpen: boolean;
@@ -21,6 +32,7 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
   const [domainCategory, setDomainCategory] = useState('standard');
   const [isHighlighted, setIsHighlighted] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
+  const [nameError, setNameError] = useState('');
 
   useEffect(() => {
     if (editingDomain) {
@@ -40,20 +52,44 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
     setDomainDescription('');
     setDomainCategory('standard');
     setIsHighlighted(false);
+    setNameError('');
+  };
+
+  const validateDomainName = (name: string) => {
+    // Basic domain name validation
+    const domainRegex = /^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
+    return domainRegex.test(name);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormLoading(true);
+    setNameError('');
 
     try {
       // Validate inputs
       if (!domainName) throw new Error('域名不能为空');
+      if (!validateDomainName(domainName)) {
+        setNameError('请输入有效的域名格式，例如：example.com');
+        throw new Error('请输入有效的域名格式');
+      }
       if (!domainPrice || isNaN(Number(domainPrice))) throw new Error('请输入有效的价格');
       
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) throw new Error('用户未登录');
+
+      // If we're adding a new domain, check if it already exists
+      if (!editingDomain) {
+        const { data: existingDomains } = await supabase
+          .from('domain_listings')
+          .select('*')
+          .eq('name', domainName);
+          
+        if (existingDomains && existingDomains.length > 0) {
+          throw new Error('该域名已存在，请选择其他域名');
+        }
+      }
 
       const domainData = {
         name: domainName,
@@ -61,7 +97,9 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
         description: domainDescription,
         category: domainCategory,
         highlight: isHighlighted,
-        owner_id: user.id
+        owner_id: user.id,
+        // Start as reserved (not available) until verified
+        status: editingDomain?.verification_status === 'verified' ? (editingDomain.status || 'reserved') : 'reserved'
       };
 
       if (editingDomain) {
@@ -98,18 +136,31 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
   return (
     <form onSubmit={handleSubmit} className="space-y-4 mt-4">
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">域名</label>
+        <Label htmlFor="domainName" className="text-sm font-medium text-gray-700">域名</Label>
         <Input
+          id="domainName"
           value={domainName}
-          onChange={(e) => setDomainName(e.target.value)}
+          onChange={(e) => {
+            setDomainName(e.target.value);
+            if (nameError) setNameError('');
+          }}
           required
-          className="bg-white border-gray-300"
+          className={`bg-white border-gray-300 ${nameError ? 'border-red-500' : ''}`}
           placeholder="example.com"
+          disabled={editingDomain !== null} // Cannot change domain name when editing
         />
+        {nameError && <p className="text-sm text-red-500 mt-1">{nameError}</p>}
+        <p className="text-xs text-gray-500">
+          {editingDomain 
+            ? '域名不可更改，如需变更请删除后重新添加' 
+            : '请输入您拥有的有效域名，添加后需要进行所有权验证'}
+        </p>
       </div>
+      
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">价格 (¥)</label>
+        <Label htmlFor="domainPrice" className="text-sm font-medium text-gray-700">价格 (¥)</Label>
         <Input
+          id="domainPrice"
           type="number"
           value={domainPrice}
           onChange={(e) => setDomainPrice(e.target.value)}
@@ -120,9 +171,33 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
           step="0.01"
         />
       </div>
+      
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">描述</label>
+        <Label htmlFor="domainCategory" className="text-sm font-medium text-gray-700">分类</Label>
+        <Select
+          value={domainCategory}
+          onValueChange={setDomainCategory}
+        >
+          <SelectTrigger className="w-full bg-white border-gray-300">
+            <SelectValue placeholder="选择分类" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>域名分类</SelectLabel>
+              <SelectItem value="standard">标准</SelectItem>
+              <SelectItem value="premium">高级</SelectItem>
+              <SelectItem value="short">短域名</SelectItem>
+              <SelectItem value="dev">开发</SelectItem>
+              <SelectItem value="brandable">品牌</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="domainDescription" className="text-sm font-medium text-gray-700">描述</Label>
         <textarea
+          id="domainDescription"
           value={domainDescription}
           onChange={(e) => setDomainDescription(e.target.value)}
           className="w-full bg-white border border-gray-300 rounded-md p-2 text-black"
@@ -130,32 +205,18 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
           rows={3}
         />
       </div>
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">分类</label>
-        <select
-          value={domainCategory}
-          onChange={(e) => setDomainCategory(e.target.value)}
-          className="w-full bg-white border border-gray-300 rounded-md p-2 text-black"
-        >
-          <option value="standard">标准</option>
-          <option value="premium">高级</option>
-          <option value="short">短域名</option>
-          <option value="dev">开发</option>
-          <option value="brandable">品牌</option>
-        </select>
-      </div>
+      
       <div className="flex items-center space-x-2">
-        <input
-          type="checkbox"
+        <Checkbox
           id="highlight"
           checked={isHighlighted}
-          onChange={(e) => setIsHighlighted(e.target.checked)}
-          className="rounded border-gray-300"
+          onCheckedChange={(checked) => setIsHighlighted(checked as boolean)}
         />
-        <label htmlFor="highlight" className="text-sm font-medium text-gray-700">
+        <Label htmlFor="highlight" className="text-sm font-medium text-gray-700">
           设为推荐域名（精选）
-        </label>
+        </Label>
       </div>
+      
       <Button 
         type="submit"
         disabled={formLoading}
@@ -170,6 +231,12 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
           editingDomain ? '更新域名' : '添加域名'
         )}
       </Button>
+      
+      {!editingDomain && (
+        <p className="text-xs text-gray-500 text-center">
+          添加域名后，需要进行所有权验证才能将其上架销售
+        </p>
+      )}
     </form>
   );
 };
