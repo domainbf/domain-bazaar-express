@@ -40,19 +40,19 @@ const Index = () => {
             </Link>
             <Link to="/dashboard" className="w-full sm:w-auto">
               <Button variant="outline" className="w-full sm:w-auto border-gray-400 border-2 text-white hover:bg-gray-800 px-6 py-2 md:px-8 md:py-6 text-base md:text-lg font-bold">
-                Sell Domains
+                Sell Your Domains
               </Button>
             </Link>
           </div>
         </div>
       </header>
 
-      {/* Filter Section - Better readable text */}
+      {/* Filter Section */}
       <section className="py-12 md:py-16 bg-white">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
           <h2 className="text-2xl md:text-3xl font-bold text-center text-dark-enhanced mb-8 md:mb-10">Featured Domains</h2>
           
-          {/* Filter buttons with better contrast */}
+          {/* Filter buttons */}
           <div className="overflow-x-auto pb-4 mb-8">
             <div className="flex gap-2 md:gap-3 md:flex-wrap md:justify-center min-w-max px-4">
               <Button
@@ -117,7 +117,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Features Section - Improved contrast */}
+      {/* Features Section */}
       <section className="py-16 md:py-20 bg-gray-900 text-white">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
           <h2 className="text-2xl md:text-3xl font-bold text-center mb-10 md:mb-16 text-white-enhanced">How It Works</h2>
@@ -143,7 +143,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Statistics Section - Better contrast */}
+      {/* Statistics Section */}
       <section className="py-16 md:py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
           <h2 className="text-2xl md:text-3xl font-bold text-center text-dark-enhanced mb-10 md:mb-16">Platform Statistics</h2>
@@ -168,7 +168,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Call to Action - Better contrast */}
+      {/* Call to Action */}
       <section className="py-16 md:py-20 bg-gray-900 text-white">
         <div className="max-w-4xl mx-auto px-4 md:px-8 text-center">
           <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-white-enhanced">Ready to Buy or Sell Domains?</h2>
@@ -183,7 +183,7 @@ const Index = () => {
             </Link>
             <Link to="/dashboard" className="w-full sm:w-auto">
               <Button variant="outline" className="w-full sm:w-auto border-gray-400 border-2 text-white hover:bg-gray-800 px-6 py-2 md:px-6 md:py-3 text-base font-bold">
-                Sell Domains
+                Sell Your Domains
               </Button>
             </Link>
           </div>
