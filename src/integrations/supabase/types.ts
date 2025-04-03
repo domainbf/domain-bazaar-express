@@ -484,6 +484,7 @@ export type Database = {
           contact_email: string | null
           contact_phone: string | null
           created_at: string
+          custom_url: string | null
           full_name: string | null
           id: string
           is_seller: boolean | null
@@ -504,6 +505,7 @@ export type Database = {
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
+          custom_url?: string | null
           full_name?: string | null
           id: string
           is_seller?: boolean | null
@@ -524,6 +526,7 @@ export type Database = {
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
+          custom_url?: string | null
           full_name?: string | null
           id?: string
           is_seller?: boolean | null

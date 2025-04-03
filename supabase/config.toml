@@ -78,34 +78,11 @@ gcp_project_id = ""
 gcp_project_number = ""
 gcp_jwt_path = "supabase/gcloud.json"
 
-# Configure one of the supported email providers: `smtp`, `postmark`, `mailgun`, or `resend`.
-[email.smtp]
-enabled = true
-host = "..."
-port = 25
-user = "..."
-password = "..."
-admin_email = "admin@nic.bn"
-
 # Use Resend as the email provider
 [email.resend]
 enabled = true
 api_key = "re_"
 from_address = "noreply@domain.bf"
-
-# Use postmark as the email provider
-[email.postmark]
-enabled = false
-api_key = "..."
-# postmark template mappings
-message_stream = "..."
-
-# Use mailgun as the email provider
-[email.mailgun]
-enabled = false
-api_key = "..."
-domain = "..."
-message_stream = "..."
 
 [functions]
 # Configuration for the Functions module.
