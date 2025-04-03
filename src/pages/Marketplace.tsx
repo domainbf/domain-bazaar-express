@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -51,7 +50,7 @@ export const Marketplace = () => {
         setDomains(availableDomains.map(domain => ({
           id: domain.name,
           name: domain.name,
-          price: typeof domain.price === 'string' ? parseFloat(domain.price) : domain.price,
+          price: typeof domain.price === 'string' ? parseFloat(domain.price.replace(/,/g, '')) : domain.price,
           category: domain.category,
           highlight: domain.highlight,
           description: domain.description || 'Premium domain name for your business.',
@@ -69,7 +68,7 @@ export const Marketplace = () => {
       setDomains(availableDomains.map(domain => ({
         id: domain.name,
         name: domain.name,
-        price: typeof domain.price === 'string' ? parseFloat(domain.price) : domain.price,
+        price: typeof domain.price === 'string' ? parseFloat(domain.price.replace(/,/g, '')) : domain.price,
         category: domain.category,
         highlight: domain.highlight,
         description: domain.description || 'Premium domain name for your business.',
