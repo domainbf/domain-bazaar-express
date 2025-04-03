@@ -1,7 +1,9 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { fetchUserProfile, sendVerificationEmail, handleAuthError } from '@/utils/authHelpers';
 
 interface AuthContextType {
   session: Session | null;
@@ -29,7 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        fetchAndSetProfile(session.user.id);
       } else {
         setIsLoading(false);
       }
@@ -42,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          fetchProfile(session.user.id);
+          fetchAndSetProfile(session.user.id);
           
           if (event === 'PASSWORD_RECOVERY') {
             toast.success('密码已成功更新！');
@@ -51,15 +53,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (event === 'SIGNED_UP' || event === 'SIGNED_IN') {
             try {
               console.log('Sending verification email for event:', event);
-              await supabase.functions.invoke('send-notification', {
-                body: {
-                  type: 'email_verification',
-                  recipient: session.user.email,
-                  data: {
-                    verificationUrl: `${window.location.origin}/auth/verify`
-                  }
-                }
-              });
+              await sendVerificationEmail(
+                session.user.email!, 
+                `${window.location.origin}/auth/verify`
+              );
               
               if (event === 'SIGNED_UP') {
                 toast.success('注册成功！请查看邮箱完成验证。');
@@ -82,28 +79,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-      
-      if (error) throw error;
-      setProfile(data);
-    } catch (error) {
-      console.error('获取用户资料时出错:', error);
-      // Don't show error toast here, as the profile might not exist yet
-    } finally {
-      setIsLoading(false);
-    }
+  const fetchAndSetProfile = async (userId: string) => {
+    const profileData = await fetchUserProfile(userId);
+    setProfile(profileData);
+    setIsLoading(false);
   };
 
   const refreshProfile = async () => {
     if (!user) return;
     setIsLoading(true);
-    await fetchProfile(user.id);
+    await fetchAndSetProfile(user.id);
   };
 
   const signIn = async (email: string, password: string) => {
@@ -115,8 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       toast.success('登录成功！');
     } catch (error: any) {
-      toast.error(error.message || '登录时出错');
-      throw error;
+      handleAuthError(error, '登录');
     }
   };
 
@@ -133,8 +117,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       toast.success('注册成功！请检查您的邮箱以完成验证。');
     } catch (error: any) {
-      toast.error(error.message || '注册时出错');
-      throw error;
+      handleAuthError(error, '注册');
     }
   };
 
@@ -144,7 +127,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       toast.success('已成功退出登录');
     } catch (error: any) {
-      toast.error(error.message || '退出登录时出错');
+      handleAuthError(error, '退出登录');
     }
   };
 
@@ -173,8 +156,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       toast.success('密码重置说明已发送到您的邮箱');
     } catch (error: any) {
-      toast.error(error.message || '发送密码重置邮件时出错');
-      throw error;
+      handleAuthError(error, '发送密码重置邮件');
     }
   };
 
