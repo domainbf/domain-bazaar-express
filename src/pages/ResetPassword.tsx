@@ -1,8 +1,11 @@
 
 import { Navbar } from '@/components/Navbar';
 import { ResetPasswordForm } from '@/components/auth/ResetPasswordForm';
+import { useTranslation } from 'react-i18next';
 
 export const ResetPassword = () => {
+  const { t } = useTranslation();
+  
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />

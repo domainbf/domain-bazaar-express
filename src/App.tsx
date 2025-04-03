@@ -1,6 +1,7 @@
 
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Toaster } from "sonner";
+import { useEffect } from 'react';
 import Index from './pages/Index';
 import { Marketplace } from './pages/Marketplace';
 import { Dashboard } from './pages/Dashboard';
@@ -10,8 +11,14 @@ import { Profile } from './pages/Profile';
 import { ResetPassword } from './pages/ResetPassword';
 import { UserCenter } from './pages/UserCenter';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { initializeAdminUser } from './utils/adminInitialization';
 
 function App() {
+  useEffect(() => {
+    // Initialize admin user on first load
+    initializeAdminUser().catch(console.error);
+  }, []);
+
   return (
     <>
       <Routes>

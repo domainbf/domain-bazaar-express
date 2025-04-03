@@ -20,7 +20,7 @@ export const ResetPasswordForm = () => {
     setIsLoading(true);
     
     try {
-      console.log('Attempting to reset password for email:', email);
+      console.log('尝试重置密码，邮箱:', email);
       await resetPassword(email);
       setIsSubmitted(true);
       toast.success('密码重置链接已发送到您的邮箱');

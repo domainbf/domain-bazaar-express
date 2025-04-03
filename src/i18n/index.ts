@@ -5,7 +5,7 @@ import { initReactI18next } from 'react-i18next';
 const resources = {
   en: {
     translation: {
-      title: 'Premium Domain Names',
+      title: 'NIC.BN - Premium Domain Names',
       subtitle: 'Selected rare short domains waiting for your offer',
       all: 'All',
       available: 'Available',
@@ -32,7 +32,7 @@ const resources = {
   },
   zh: {
     translation: {
-      title: '优质域名展示',
+      title: 'NIC.BN - 优质域名交易中心',
       subtitle: '精选稀有短域名，等待您的报价',
       all: '全部',
       available: '可售',

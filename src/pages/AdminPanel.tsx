@@ -9,7 +9,8 @@ import { PendingVerifications } from '@/components/admin/PendingVerifications';
 import { AllDomainListings } from '@/components/admin/AllDomainListings';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield } from 'lucide-react';
+import { Shield, Settings } from 'lucide-react';
+import { SiteSettings } from '@/components/admin/SiteSettings';
 
 export const AdminPanel = () => {
   const [stats, setStats] = useState<AdminStats>({
@@ -20,10 +21,22 @@ export const AdminPanel = () => {
     recent_transactions: 0
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
+    checkAdminStatus();
     loadAdminStats();
   }, []);
+
+  const checkAdminStatus = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.app_metadata?.role === 'admin') {
+      setIsAdmin(true);
+    } else {
+      toast.error('您没有管理员权限');
+      window.location.href = '/';
+    }
+  };
 
   const loadAdminStats = async () => {
     setIsLoading(true);
@@ -67,11 +80,22 @@ export const AdminPanel = () => {
       });
     } catch (error: any) {
       console.error('Error loading admin stats:', error);
-      toast.error(error.message || 'Failed to load admin statistics');
+      toast.error(error.message || '加载管理统计信息失败');
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (!isAdmin && !isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-2">访问被拒绝</h1>
+          <p className="text-gray-600">您没有权限访问此页面</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -80,15 +104,16 @@ export const AdminPanel = () => {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex items-center gap-3 mb-8">
           <Shield className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold text-gray-900">Admin Panel</h1>
+          <h1 className="text-3xl font-bold text-gray-900">管理员控制面板</h1>
         </div>
         
         <Tabs defaultValue="dashboard" className="w-full">
           <TabsList className="mb-8">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="verifications">Pending Verifications</TabsTrigger>
-            <TabsTrigger value="domains">All Domains</TabsTrigger>
-            <TabsTrigger value="users">User Management</TabsTrigger>
+            <TabsTrigger value="dashboard">仪表盘</TabsTrigger>
+            <TabsTrigger value="verifications">待验证域名</TabsTrigger>
+            <TabsTrigger value="domains">所有域名</TabsTrigger>
+            <TabsTrigger value="users">用户管理</TabsTrigger>
+            <TabsTrigger value="settings">网站设置</TabsTrigger>
           </TabsList>
           
           <TabsContent value="dashboard">
@@ -105,6 +130,10 @@ export const AdminPanel = () => {
           
           <TabsContent value="users">
             <UserManagement />
+          </TabsContent>
+          
+          <TabsContent value="settings">
+            <SiteSettings />
           </TabsContent>
         </Tabs>
       </div>
