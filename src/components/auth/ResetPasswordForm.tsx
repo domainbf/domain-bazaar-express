@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, ArrowLeft, Loader2 } from 'lucide-react';
+import { Mail, ArrowLeft, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -33,8 +33,8 @@ export const ResetPasswordForm = () => {
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
+    <Card className="w-full shadow-md border border-gray-200">
+      <CardHeader className={isSubmitted ? "pb-2" : "pb-6"}>
         <CardTitle className="text-2xl font-bold">重置密码</CardTitle>
         <CardDescription>
           {!isSubmitted 
@@ -62,15 +62,25 @@ export const ResetPasswordForm = () => {
             </div>
           </form>
         ) : (
-          <div className="py-4 text-center">
-            <div className="bg-green-50 text-green-700 p-4 rounded-md mb-4">
-              <p>密码重置指引已发送至:</p>
-              <p className="font-medium mt-2">{email}</p>
+          <div className="py-4">
+            <div className="bg-green-50 text-green-700 p-4 rounded-md mb-4 flex items-start">
+              <CheckCircle className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-medium">密码重置指引已发送至:</p>
+                <p className="mt-1">{email}</p>
+              </div>
             </div>
-            <p className="text-sm text-gray-600 mt-4">
-              请检查您的邮箱并按照指引重置密码。
-              如果没有看到邮件，请检查垃圾邮件文件夹。
-            </p>
+            <div className="bg-blue-50 text-blue-700 p-4 rounded-md mt-4 flex items-start">
+              <AlertCircle className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-medium">注意事项</p>
+                <ul className="mt-1 text-sm space-y-1 list-disc list-inside ml-1">
+                  <li>重置链接有效期为30分钟</li>
+                  <li>如果没有看到邮件，请检查垃圾邮件文件夹</li>
+                  <li>确保使用您注册时的邮箱地址</li>
+                </ul>
+              </div>
+            </div>
           </div>
         )}
       </CardContent>
@@ -106,6 +116,7 @@ export const ResetPasswordForm = () => {
             type="button" 
             variant="outline" 
             onClick={() => navigate('/auth')}
+            className="w-full"
           >
             <ArrowLeft className="w-4 h-4 mr-2" /> 返回登录
           </Button>

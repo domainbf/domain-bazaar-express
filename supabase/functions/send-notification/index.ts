@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 
@@ -245,6 +246,7 @@ serve(async (req: Request) => {
                 .content { padding: 20px; border: 1px solid #eaeaea; }
                 .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
                 .button { background-color: #000; color: white; display: inline-block; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-top: 15px; }
+                .logo { max-width: 120px; margin: 0 auto; display: block; }
               </style>
             </head>
             <body>
@@ -260,11 +262,14 @@ serve(async (req: Request) => {
                     <a href="${data.verificationUrl || `${siteUrl}/auth/verify`}" class="button" style="color: white;">验证邮箱地址</a>
                   </div>
                   
+                  <p style="font-size: 12px; color: #666;">如果按钮不起作用，您可以复制以下链接并粘贴到浏览器中：<br>
+                  <a href="${data.verificationUrl || `${siteUrl}/auth/verify`}">${data.verificationUrl || `${siteUrl}/auth/verify`}</a></p>
+                  
                   <p>如果您没有创建账户，可以安全地忽略此邮件。</p>
                   <p>祝好，<br>DomainX 团队</p>
                 </div>
                 <div class="footer">
-                  <p>© 2024 DomainX - domain.bf</p>
+                  <p>© 2024 DomainX - <a href="${siteUrl}" style="color: #666; text-decoration: none;">domain.bf</a></p>
                 </div>
               </div>
             </body>
@@ -288,6 +293,8 @@ serve(async (req: Request) => {
                 .content { padding: 20px; border: 1px solid #eaeaea; }
                 .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
                 .button { background-color: #000; color: white; display: inline-block; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-top: 15px; }
+                .info-box { background-color: #f0f7ff; border: 1px solid #cce0ff; border-radius: 4px; padding: 15px; margin: 20px 0; }
+                .logo { max-width: 120px; margin: 0 auto; display: block; }
               </style>
             </head>
             <body>
@@ -303,11 +310,22 @@ serve(async (req: Request) => {
                     <a href="${data.resetUrl || `${siteUrl}/reset-password`}" class="button" style="color: white;">重置密码</a>
                   </div>
                   
-                  <p>如果您没有请求重置密码，可以安全地忽略此邮件。</p>
+                  <div class="info-box">
+                    <p><strong>重要提示：</strong></p>
+                    <ul style="margin-top: 5px; padding-left: 20px;">
+                      <li>此链接在30分钟内有效</li>
+                      <li>如果您没有请求重置密码，请忽略此邮件</li>
+                      <li>为了安全起见，请创建一个强密码</li>
+                    </ul>
+                  </div>
+                  
+                  <p style="font-size: 12px; color: #666;">如果按钮不起作用，您可以复制以下链接并粘贴到浏览器中：<br>
+                  <a href="${data.resetUrl || `${siteUrl}/reset-password`}">${data.resetUrl || `${siteUrl}/reset-password`}</a></p>
+                  
                   <p>祝好，<br>DomainX 团队</p>
                 </div>
                 <div class="footer">
-                  <p>© 2024 DomainX - domain.bf</p>
+                  <p>© 2024 DomainX - <a href="${siteUrl}" style="color: #666; text-decoration: none;">domain.bf</a></p>
                 </div>
               </div>
             </body>
@@ -320,7 +338,7 @@ serve(async (req: Request) => {
     }
 
     const emailResponse = await resend.emails.send({
-      from: "DomainX <no-reply@domain.bf>",
+      from: "DomainX <noreply@domain.bf>",
       to: [recipient],
       subject: subject,
       html: html,
