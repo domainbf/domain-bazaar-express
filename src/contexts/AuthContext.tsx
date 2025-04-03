@@ -2,8 +2,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { fetchUserProfile, sendVerificationEmail, handleAuthError } from '@/utils/authHelpers';
+import { fetchUserProfile, sendVerificationEmail } from '@/utils/authHelpers';
+import { signInUser, signUpUser, signOutUser, resetUserPassword } from '@/utils/authUtils';
 
 interface AuthContextType {
   session: Session | null;
@@ -27,16 +27,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchAndSetProfile(session.user.id);
-      } else {
-        setIsLoading(false);
-      }
-    });
-
+    // Set up the auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: string, session) => {
         console.log('Auth state changed:', event);
@@ -74,6 +65,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchAndSetProfile(session.user.id);
+      } else {
+        setIsLoading(false);
+      }
+    });
+
     return () => {
       subscription.unsubscribe();
     };
@@ -92,72 +94,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) throw error;
-      toast.success('登录成功！');
-    } catch (error: any) {
-      handleAuthError(error, '登录');
-    }
+    await signInUser(email, password);
   };
 
   const signUp = async (email: string, password: string, userData?: any) => {
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: userData,
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-      if (error) throw error;
-      toast.success('注册成功！请检查您的邮箱以完成验证。');
-    } catch (error: any) {
-      handleAuthError(error, '注册');
-    }
+    await signUpUser(email, password, userData);
   };
 
   const handleSignOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      toast.success('已成功退出登录');
-    } catch (error: any) {
-      handleAuthError(error, '退出登录');
-    }
+    await signOutUser();
   };
 
   const resetPassword = async (email: string) => {
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      
-      if (error) throw error;
-      
-      try {
-        await supabase.functions.invoke('send-notification', {
-          body: {
-            type: 'password_reset',
-            recipient: email,
-            data: {
-              resetUrl: `${window.location.origin}/reset-password`
-            }
-          }
-        });
-      } catch (invokeError) {
-        console.error('发送自定义密码重置邮件时出错:', invokeError);
-        // Continue as Supabase will send its default email
-      }
-      
-      toast.success('密码重置说明已发送到您的邮箱');
-    } catch (error: any) {
-      handleAuthError(error, '发送密码重置邮件');
-    }
+    await resetUserPassword(email);
   };
 
   const value = {

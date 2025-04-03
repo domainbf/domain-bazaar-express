@@ -10,6 +10,7 @@ import { DomainVerification } from './pages/DomainVerification';
 import { Profile } from './pages/Profile';
 import { ResetPassword } from './pages/ResetPassword';
 import { UserCenter } from './pages/UserCenter';
+import { UserProfilePage } from './pages/UserProfile';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { initializeAdminUser } from './utils/adminInitialization';
 
@@ -57,6 +58,7 @@ function App() {
           } 
         />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/profile/:profileId" element={<UserProfilePage />} />
         <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
       <Toaster position="top-right" />
