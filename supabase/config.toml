@@ -107,11 +107,6 @@ api_key = "..."
 domain = "..."
 message_stream = "..."
 
-# Use resend as the email provider
-[email.resend]
-enabled = false
-api_key = "..."
-
 [functions]
 # Configuration for the Functions module.
 port = 54321
