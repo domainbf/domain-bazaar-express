@@ -81,11 +81,21 @@ export const DomainOfferForm = ({
       }
       
       // Get owner email for notification purposes
-      const { data: ownerData, error: ownerError } = await supabase
-        .from('profiles')
-        .select('contact_email, email')
-        .eq('id', domainInfo.sellerId)
-        .single();
+      let ownerEmail;
+      try {
+        const { data: ownerData } = await supabase
+          .from('profiles')
+          .select('contact_email')
+          .eq('id', domainInfo.sellerId)
+          .single();
+        
+        if (ownerData) {
+          ownerEmail = ownerData.contact_email;
+        }
+      } catch (error) {
+        console.error('Error fetching owner email:', error);
+        // Continue without owner email if there's an error
+      }
         
       // Send email notification regardless of authentication
       const { error: emailError } = await supabase.functions.invoke('send-offer', {
@@ -97,7 +107,7 @@ export const DomainOfferForm = ({
           buyerId: session?.user.id || null,
           domainOwnerId: domainInfo.sellerId,
           domainId: domainInfo.domainId,
-          ownerEmail: ownerData?.contact_email || ownerData?.email
+          ownerEmail: ownerEmail
         }
       });
 

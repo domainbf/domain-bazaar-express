@@ -242,12 +242,12 @@ serve(async (req: Request) => {
         // Fetch the domain owner's email from the profiles table
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('contact_email, email')
+          .select('contact_email')
           .eq('id', domainOwnerId)
           .single();
         
-        if (!profileError && profileData) {
-          adminEmail = profileData.contact_email || profileData.email || adminEmail;
+        if (!profileError && profileData && profileData.contact_email) {
+          adminEmail = profileData.contact_email;
         }
       } catch (error) {
         console.error("获取域名所有者邮箱时出错:", error);
