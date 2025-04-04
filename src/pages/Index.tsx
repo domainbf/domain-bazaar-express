@@ -258,7 +258,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="py-8 md:py-12 bg-black text-white">
         <div className="max-w-6xl mx-auto px-4 md:px-8 text-center">
-          <p className="text-sm md:text-base font-semibold">© 2024 DomainX Trading Platform. All rights reserved.</p>
+          <p className="text-sm md:text-base font-semibold">© 2025 NIC.BN Trading Platform. All rights reserved.</p>
         </div>
       </footer>
 
