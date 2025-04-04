@@ -21,7 +21,7 @@ export const signInUser = async (email: string, password: string) => {
 
 export const signUpUser = async (email: string, password: string, userData?: any) => {
   try {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -29,22 +29,32 @@ export const signUpUser = async (email: string, password: string, userData?: any
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
+    
     if (error) throw error;
     
-    // Send custom verification email
+    // Send custom verification email via Resend
     try {
-      await supabase.functions.invoke('send-notification', {
+      console.log('Sending verification email to:', email);
+      const { error: notifError } = await supabase.functions.invoke('send-notification', {
         body: {
           type: 'email_verification',
           recipient: email,
           data: {
-            verificationUrl: `${window.location.origin}/auth/verify`
+            verificationUrl: `${window.location.origin}/auth/verify?token=${data?.session?.access_token}`,
+            name: userData?.full_name || email.split('@')[0]
           }
         }
       });
+      
+      if (notifError) {
+        console.error('Error sending custom verification email:', notifError);
+        throw notifError;
+      }
+      
+      console.log('Verification email sent successfully');
     } catch (notifError) {
-      console.error('Error sending custom verification email:', notifError);
-      // Continue as Supabase will send its default email
+      console.error('Error sending verification email:', notifError);
+      // Continue as Supabase will send its default email as fallback
     }
     
     toast.success('注册成功！请检查您的邮箱以完成验证。');
@@ -77,18 +87,27 @@ export const resetUserPassword = async (email: string) => {
     
     // Send custom password reset email
     try {
-      await supabase.functions.invoke('send-notification', {
+      console.log('Sending password reset email to:', email);
+      const { error: invokeError } = await supabase.functions.invoke('send-notification', {
         body: {
           type: 'password_reset',
           recipient: email,
           data: {
-            resetUrl: `${window.location.origin}/reset-password`
+            resetUrl: `${window.location.origin}/reset-password`,
+            name: email.split('@')[0]
           }
         }
       });
+      
+      if (invokeError) {
+        console.error('发送自定义密码重置邮件时出错:', invokeError);
+        throw invokeError;
+      }
+      
+      console.log('Password reset email sent successfully');
     } catch (invokeError) {
-      console.error('发送自定义密码重置邮件时出错:', invokeError);
-      // Continue as Supabase will send its default email
+      console.error('发送密码重置邮件时出错:', invokeError);
+      // Continue as Supabase will send its default email as fallback
     }
     
     toast.success('密码重置说明已发送到您的邮箱');

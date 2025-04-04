@@ -34,6 +34,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { type, recipient, data }: NotificationPayload = await req.json();
     console.log(`Processing notification type: ${type} for ${recipient}`);
+    console.log("Notification data:", JSON.stringify(data));
 
     // Fetch the email template from Supabase (if available)
     const { data: template, error: templateError } = await supabase
@@ -50,6 +51,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Default values if template not found
     let subject = "DomainX - 通知";
     let htmlContent = "<p>您有一条新的通知</p>";
+    const userName = data.name || recipient.split('@')[0];
 
     // Process specific notification types with defaults if no template exists
     switch (type) {
@@ -82,7 +84,7 @@ const handler = async (req: Request): Promise<Response> => {
                 </div>
                 <div class="content">
                   <h2>验证您的邮箱地址</h2>
-                  <p>感谢您注册 DomainX！请验证您的邮箱地址以完成注册流程。</p>
+                  <p>您好 ${userName}！感谢您注册 DomainX！请验证您的邮箱地址以完成注册流程。</p>
                   
                   <div style="text-align: center;">
                     <a href="${data.verificationUrl || 'https://domain.bf/auth/verify'}" class="button">验证邮箱</a>
@@ -138,7 +140,7 @@ const handler = async (req: Request): Promise<Response> => {
                 </div>
                 <div class="content">
                   <h2>重置您的密码</h2>
-                  <p>我们收到了重置您 DomainX 账户密码的请求。请点击下方按钮重置密码：</p>
+                  <p>您好 ${userName}，我们收到了重置您 DomainX 账户密码的请求。请点击下方按钮重置密码：</p>
                   
                   <div style="text-align: center;">
                     <a href="${data.resetUrl || 'https://domain.bf/reset-password'}" class="button">重置密码</a>
@@ -450,7 +452,9 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Send email via Resend
+    console.log(`Sending email with subject: ${subject}`);
+    
+    // Send email via Resend with the verified domain.bf
     const emailResponse = await resend.emails.send({
       from: "DomainX <noreply@domain.bf>",
       to: [recipient],

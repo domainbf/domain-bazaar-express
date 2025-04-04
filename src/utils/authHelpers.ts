@@ -18,17 +18,26 @@ export const fetchUserProfile = async (userId: string) => {
   }
 };
 
-export const sendVerificationEmail = async (email: string, verificationUrl: string) => {
+export const sendVerificationEmail = async (email: string, verificationUrl: string, fullName?: string) => {
   try {
-    await supabase.functions.invoke('send-notification', {
+    console.log('Sending verification email via send-notification function');
+    const { data, error } = await supabase.functions.invoke('send-notification', {
       body: {
         type: 'email_verification',
         recipient: email,
         data: {
-          verificationUrl
+          verificationUrl,
+          name: fullName || email.split('@')[0]
         }
       }
     });
+    
+    if (error) {
+      console.error('Error invoking send-notification function:', error);
+      throw error;
+    }
+    
+    console.log('Verification email response:', data);
     return true;
   } catch (error) {
     console.error('Error sending verification email:', error);
@@ -38,6 +47,24 @@ export const sendVerificationEmail = async (email: string, verificationUrl: stri
 
 export const handleAuthError = (error: any, action: string) => {
   console.error(`Error during ${action}:`, error);
-  toast.error(error.message || `${action} failed`);
+  let errorMessage = error.message;
+  
+  // Friendlier error messages for common errors
+  if (errorMessage.includes('Email not confirmed')) {
+    errorMessage = '请先验证您的邮箱，然后再尝试登录';
+    // Try to resend verification email
+    if (error.email) {
+      sendVerificationEmail(error.email, `${window.location.origin}/auth/verify`)
+        .then(() => toast.info('验证邮件已重新发送，请检查您的邮箱'));
+    }
+  } else if (errorMessage.includes('Invalid login credentials')) {
+    errorMessage = '邮箱或密码错误，请重试';
+  } else if (errorMessage.includes('User already registered')) {
+    errorMessage = '该邮箱已被注册，请尝试登录或使用另一个邮箱';
+  } else if (errorMessage.includes('Password should be')) {
+    errorMessage = '密码应至少包含6个字符';
+  }
+  
+  toast.error(errorMessage || `${action}失败`);
   throw error;
 };
