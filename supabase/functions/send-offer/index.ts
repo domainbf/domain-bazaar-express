@@ -42,7 +42,7 @@ serve(async (req: Request) => {
       dashboardUrl = "https://domain.bf/user-center?tab=domains"
     }: OfferRequest = await req.json();
 
-    console.log("收到的报价请求数据:", { domain, offer, email, domainOwnerId });
+    console.log("收到的报价请求数据:", { domain, offer, email, domainOwnerId, ownerEmail });
     
     if (!domain) {
       throw new Error("域名是必填项");
@@ -246,7 +246,7 @@ serve(async (req: Request) => {
           .eq('id', domainOwnerId)
           .single();
         
-        if (!profileError && profileData && profileData.contact_email) {
+        if (!profileError && profileData?.contact_email) {
           adminEmail = profileData.contact_email;
         }
       } catch (error) {

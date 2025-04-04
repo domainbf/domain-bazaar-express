@@ -89,7 +89,7 @@ export const DomainOfferForm = ({
           .eq('id', domainInfo.sellerId)
           .single();
         
-        if (ownerData) {
+        if (ownerData && ownerData.contact_email) {
           ownerEmail = ownerData.contact_email;
         }
       } catch (error) {

@@ -11,9 +11,7 @@ export interface UserProfile {
   contact_email?: string;
   contact_phone?: string;
   created_at: string;
-  custom_url?: string;
   verification_status?: string;
-  is_admin?: boolean;
   account_level?: string;
   domains_count?: number;
   completed_transactions?: number;
@@ -25,6 +23,8 @@ export interface UserProfile {
   total_sales?: number;
   verification_documents?: any;
   updated_at?: string;
+  custom_url?: string;
+  is_admin?: boolean;
 }
 
 export interface ProfileDomain {
