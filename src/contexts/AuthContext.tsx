@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -41,8 +42,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       setProfile(data);
       
-      // Check if user has admin role (based on email for this demo)
-      setIsAdmin(user.email === '9208522@qq.com');
+      // Check if user is admin - both email-based and profile-based check
+      const isAdminUser = 
+        user.email === '9208522@qq.com' ||
+        data?.is_admin === true ||
+        user.app_metadata?.role === 'admin';
+      
+      setIsAdmin(isAdminUser);
+      
+      console.log('User profile loaded:', data);
+      console.log('Is admin:', isAdminUser);
     } catch (error: any) {
       console.error('Error fetching profile:', error);
       toast.error('Failed to load user profile');

@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { Resend } from "npm:resend@2.0.0";
@@ -49,14 +48,14 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Default values if template not found
-    let subject = "DomainX - 通知";
+    let subject = "NIC.BN - 通知";
     let htmlContent = "<p>您有一条新的通知</p>";
     const userName = data.name || recipient.split('@')[0];
 
     // Process specific notification types with defaults if no template exists
     switch (type) {
       case "email_verification":
-        subject = "DomainX - 请验证您的邮箱";
+        subject = "NIC.BN - 请验证您的邮箱";
         htmlContent = `
           <!DOCTYPE html>
           <html>
@@ -80,28 +79,28 @@ const handler = async (req: Request): Promise<Response> => {
             <body>
               <div class="container">
                 <div class="header">
-                  <h1>DomainX</h1>
+                  <h1>NIC.BN</h1>
                 </div>
                 <div class="content">
                   <h2>验证您的邮箱地址</h2>
-                  <p>您好 ${userName}！感谢您注册 DomainX！请验证您的邮箱地址以完成注册流程。</p>
+                  <p>您好 ${userName}！感谢您注册 NIC.BN！请点击下方按钮验证您的邮箱地址以完成注册流程。</p>
                   
                   <div style="text-align: center;">
-                    <a href="${data.verificationUrl || 'https://domain.bf/auth/verify'}" class="button">验证邮箱</a>
+                    <a href="${data.verificationUrl || window.location.origin + '/auth/callback'}" class="button">验证邮箱</a>
                   </div>
                   
                   <div class="highlight">
                     <p>或复制以下链接到您的浏览器：</p>
-                    <p style="word-break: break-all; font-size: 14px;"><a href="${data.verificationUrl || 'https://domain.bf/auth/verify'}">${data.verificationUrl || 'https://domain.bf/auth/verify'}</a></p>
+                    <p style="word-break: break-all; font-size: 14px;"><a href="${data.verificationUrl || window.location.origin + '/auth/callback'}">${data.verificationUrl || window.location.origin + '/auth/callback'}</a></p>
                   </div>
                   
-                  <p>如果您没有注册 DomainX 账户，请忽略此邮件。</p>
+                  <p>如果您没有注册 NIC.BN 账户，请忽略此邮件。</p>
                   <p>验证链接将在24小时后过期。</p>
                   
-                  <p>感谢使用我们的服务！<br>DomainX 团队</p>
+                  <p>感谢使用我们的服务！<br>NIC.BN 团队</p>
                 </div>
                 <div class="footer">
-                  <p>© ${new Date().getFullYear()} DomainX. 保留所有权利。</p>
+                  <p>© ${new Date().getFullYear()} NIC.BN. 保留所有权利。</p>
                   <p>此邮件由系统自动发送，请勿回复。</p>
                 </div>
               </div>
@@ -111,7 +110,7 @@ const handler = async (req: Request): Promise<Response> => {
         break;
 
       case "password_reset":
-        subject = "DomainX - 重置密码";
+        subject = "NIC.BN - 重置密码";
         htmlContent = `
           <!DOCTYPE html>
           <html>
@@ -136,19 +135,19 @@ const handler = async (req: Request): Promise<Response> => {
             <body>
               <div class="container">
                 <div class="header">
-                  <h1>DomainX</h1>
+                  <h1>NIC.BN</h1>
                 </div>
                 <div class="content">
                   <h2>重置您的密码</h2>
-                  <p>您好 ${userName}，我们收到了重置您 DomainX 账户密码的请求。请点击下方按钮重置密码：</p>
+                  <p>您好 ${userName}，我们收到了重置您 NIC.BN 账户密码的请求。请点击下方按钮重置密码：</p>
                   
                   <div style="text-align: center;">
-                    <a href="${data.resetUrl || 'https://domain.bf/reset-password'}" class="button">重置密码</a>
+                    <a href="${data.resetUrl || window.location.origin + '/reset-password'}" class="button">重置密码</a>
                   </div>
                   
                   <div class="highlight">
                     <p>或复制以下链接到您的浏览器：</p>
-                    <p style="word-break: break-all; font-size: 14px;"><a href="${data.resetUrl || 'https://domain.bf/reset-password'}">${data.resetUrl || 'https://domain.bf/reset-password'}</a></p>
+                    <p style="word-break: break-all; font-size: 14px;"><a href="${data.resetUrl || window.location.origin + '/reset-password'}">${data.resetUrl || window.location.origin + '/reset-password'}</a></p>
                   </div>
                   
                   <div class="note">
@@ -157,10 +156,10 @@ const handler = async (req: Request): Promise<Response> => {
                   </div>
                   
                   <p>如果您在重置密码过程中遇到任何问题，请联系我们的客户支持团队。</p>
-                  <p>祝您使用愉快！<br>DomainX 团队</p>
+                  <p>祝您使用愉快！<br>NIC.BN 团队</p>
                 </div>
                 <div class="footer">
-                  <p>© ${new Date().getFullYear()} DomainX. 保留所有权利。</p>
+                  <p>© ${new Date().getFullYear()} NIC.BN. 保留所有权利。</p>
                   <p>此邮件由系统自动发送，请勿回复。</p>
                 </div>
               </div>
@@ -170,7 +169,7 @@ const handler = async (req: Request): Promise<Response> => {
         break;
 
       case "admin_login":
-        subject = "DomainX - 管理员登录验证";
+        subject = "NIC.BN - 管理员登录验证";
         const oneTimePassword = data.oneTimePassword || Math.random().toString(36).substring(2, 10);
         htmlContent = `
           <!DOCTYPE html>
@@ -195,7 +194,7 @@ const handler = async (req: Request): Promise<Response> => {
             <body>
               <div class="container">
                 <div class="header">
-                  <h1>DomainX</h1>
+                  <h1>NIC.BN</h1>
                 </div>
                 <div class="content">
                   <h2>管理员登录验证</h2>
@@ -212,11 +211,11 @@ const handler = async (req: Request): Promise<Response> => {
                     </ul>
                   </div>
                   
-                  <p>感谢使用 DomainX 管理系统！</p>
-                  <p>DomainX 安全团队</p>
+                  <p>感谢使用 NIC.BN 管理系统！</p>
+                  <p>NIC.BN 安全团队</p>
                 </div>
                 <div class="footer">
-                  <p>© ${new Date().getFullYear()} DomainX. 保留所有权利。</p>
+                  <p>© ${new Date().getFullYear()} NIC.BN. 保留所有权利。</p>
                   <p>此邮件由系统自动发送，请勿回复。</p>
                 </div>
               </div>
@@ -226,7 +225,7 @@ const handler = async (req: Request): Promise<Response> => {
         break;
 
       case "verification_approved":
-        subject = "DomainX - 域名验证已通过";
+        subject = "NIC.BN - 域名验证已通过";
         htmlContent = `
           <!DOCTYPE html>
           <html>
@@ -251,14 +250,14 @@ const handler = async (req: Request): Promise<Response> => {
             <body>
               <div class="container">
                 <div class="header">
-                  <h1>DomainX</h1>
+                  <h1>NIC.BN</h1>
                 </div>
                 <div class="content">
                   <h2>🎉 域名验证已通过</h2>
                   <p>恭喜！您的域名已成功通过验证流程：</p>
                   
                   <div style="text-align: center;">
-                    <div class="domain">${data.domain || 'domain.bf'}</div>
+                    <div class="domain">${data.domain || 'example.bn'}</div>
                   </div>
                   
                   <div class="success">
@@ -273,14 +272,14 @@ const handler = async (req: Request): Promise<Response> => {
                   </ol>
                   
                   <div style="text-align: center;">
-                    <a href="https://domain.bf/dashboard" class="button">进入控制台</a>
+                    <a href="${window.location.origin}/dashboard" class="button">进入控制台</a>
                   </div>
                   
                   <p>如有任何问题，请随时与我们的支持团队联系。</p>
-                  <p>祝您销售顺利！<br>DomainX 团队</p>
+                  <p>祝您销售顺利！<br>NIC.BN 团队</p>
                 </div>
                 <div class="footer">
-                  <p>© ${new Date().getFullYear()} DomainX. 保留所有权利。</p>
+                  <p>© ${new Date().getFullYear()} NIC.BN. 保留所有权利。</p>
                 </div>
               </div>
             </body>
@@ -289,7 +288,7 @@ const handler = async (req: Request): Promise<Response> => {
         break;
 
       case "new_offer":
-        subject = "DomainX - 您的域名收到新报价";
+        subject = "NIC.BN - 您的域名收到新报价";
         htmlContent = `
           <!DOCTYPE html>
           <html>
@@ -318,7 +317,7 @@ const handler = async (req: Request): Promise<Response> => {
             <body>
               <div class="container">
                 <div class="header">
-                  <h1>DomainX</h1>
+                  <h1>NIC.BN</h1>
                 </div>
                 <div class="content">
                   <h2>💰 您收到了一个新报价！</h2>
@@ -353,15 +352,15 @@ const handler = async (req: Request): Promise<Response> => {
                   <p>请登录您的账户查看详情并回复此报价。您可以选择接受、拒绝或发起反议价。</p>
                   
                   <div style="text-align: center;">
-                    <a href="https://domain.bf/dashboard" class="button">查看并回应报价</a>
+                    <a href="${window.location.origin}/dashboard" class="button">查看并回应报价</a>
                   </div>
                   
                   <p>回应越快，成交几率越高！</p>
                   <p>如有任何疑问，请随时联系我们的客户支持团队。</p>
-                  <p>祝您业务兴隆！<br>DomainX 团队</p>
+                  <p>祝您业务兴隆！<br>NIC.BN 团队</p>
                 </div>
                 <div class="footer">
-                  <p>© ${new Date().getFullYear()} DomainX. 保留所有权利。</p>
+                  <p>© ${new Date().getFullYear()} NIC.BN. 保留所有权利。</p>
                 </div>
               </div>
             </body>
@@ -370,7 +369,7 @@ const handler = async (req: Request): Promise<Response> => {
         break;
 
       case "offer_accepted":
-        subject = "DomainX - 您的报价已被接受";
+        subject = "NIC.BN - 您的报价已被接受";
         htmlContent = `
           <!DOCTYPE html>
           <html>
@@ -398,7 +397,7 @@ const handler = async (req: Request): Promise<Response> => {
             <body>
               <div class="container">
                 <div class="header">
-                  <h1>DomainX</h1>
+                  <h1>NIC.BN</h1>
                 </div>
                 <div class="content">
                   <h2>🎉 恭喜！您的报价已被接受</h2>
@@ -412,7 +411,7 @@ const handler = async (req: Request): Promise<Response> => {
                   <div class="steps">
                     <h3>后续流程：</h3>
                     <ol>
-                      <li>登录您的 DomainX 账户</li>
+                      <li>登录您的 NIC.BN 账户</li>
                       <li>前往交易详情页面</li>
                       <li>选择支付方式完成付款</li>
                       <li>完成域名转移流程</li>
@@ -422,14 +421,14 @@ const handler = async (req: Request): Promise<Response> => {
                   <p>我们的系统将在您完成付款后，指导您完成域名转移流程。</p>
                   
                   <div style="text-align: center;">
-                    <a href="https://domain.bf/dashboard" class="button">完成交易</a>
+                    <a href="${window.location.origin}/dashboard" class="button">完成交易</a>
                   </div>
                   
                   <p>如果您在交易过程中遇到任何问题，请随时联系我们的客户支持团队获取帮助。</p>
-                  <p>感谢您使用 DomainX 平台！<br>DomainX 团队</p>
+                  <p>感谢您使用 NIC.BN 平台！<br>NIC.BN 团队</p>
                 </div>
                 <div class="footer">
-                  <p>© ${new Date().getFullYear()} DomainX. 保留所有权利。</p>
+                  <p>© ${new Date().getFullYear()} NIC.BN. 保留所有权利。</p>
                 </div>
               </div>
             </body>
@@ -456,7 +455,7 @@ const handler = async (req: Request): Promise<Response> => {
     
     // Send email via Resend with the verified domain.bf
     const emailResponse = await resend.emails.send({
-      from: "DomainX <noreply@domain.bf>",
+      from: "NIC.BN <noreply@domain.bf>",
       to: [recipient],
       subject: subject,
       html: htmlContent,

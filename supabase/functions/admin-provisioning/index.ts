@@ -21,145 +21,175 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY environment variable");
     }
 
-    // Initialize Supabase client with service role key for admin operations
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    
-    const { action, email, password } = await req.json();
-    console.log(`Processing admin provisioning action: ${action}`);
-
-    switch (action) {
-      case "create_admin":
-        // Check if admin already exists with this email
-        const { data: existingUsers, error: searchError } = await supabase.auth.admin.listUsers();
-        
-        if (searchError) {
-          throw new Error(`Error searching users: ${searchError.message}`);
+    const adminClient = createClient(
+      SUPABASE_URL,
+      SUPABASE_SERVICE_ROLE_KEY,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
         }
+      }
+    );
+
+    const { action, email } = await req.json();
+
+    if (action === 'create_admin') {
+      if (!email) {
+        throw new Error("Email is required for admin creation");
+      }
+
+      // First check if the user already exists
+      const { data: existingUsers, error: userCheckError } = await adminClient
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .single();
+
+      if (userCheckError && userCheckError.code !== 'PGRST116') {
+        throw userCheckError;
+      }
+
+      if (existingUsers) {
+        // Update existing user to admin
+        await adminClient
+          .from('profiles')
+          .update({ 
+            is_admin: true,
+            updated_at: new Date().toISOString()
+          })
+          .eq('email', email);
         
-        const adminExists = existingUsers.users.some(user => 
-          user.email === email && user.app_metadata?.role === 'admin'
-        );
-        
-        if (adminExists) {
-          return new Response(
-            JSON.stringify({ message: "Admin user already exists" }),
-            {
-              status: 400,
-              headers: {
-                "Content-Type": "application/json",
-                ...corsHeaders,
-              },
+        // Also update auth.users metadata if possible
+        try {
+          const { data: userData } = await adminClient
+            .auth
+            .admin
+            .listUsers({
+              filter: `email.eq.${email}`
+            });
+            
+          if (userData && userData.users && userData.users.length > 0) {
+            const userId = userData.users[0].id;
+            await adminClient.auth.admin.updateUserById(userId, {
+              app_metadata: { role: 'admin' }
+            });
+          }
+        } catch (authError) {
+          console.error("Error updating auth metadata:", authError);
+        }
+
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            message: "Admin user already exists and has been updated" 
+          }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+              ...corsHeaders
             }
-          );
-        }
-        
-        // Create admin user
-        const { data, error } = await supabase.auth.admin.createUser({
-          email: email,
-          password: password || undefined,
-          email_confirm: true,
-          app_metadata: { role: 'admin' },
-          user_metadata: { is_first_login: true },
-        });
-        
-        if (error) {
-          throw new Error(`Error creating admin user: ${error.message}`);
-        }
-        
-        // Generate one-time password if needed
-        let oneTimePassword = null;
-        if (!password) {
-          oneTimePassword = Math.random().toString(36).substring(2, 10);
-          
-          // Update user with hashed one-time password
-          const { error: updateError } = await supabase.auth.admin.updateUserById(
-            data.user.id,
-            { password: oneTimePassword }
-          );
-          
-          if (updateError) {
-            throw new Error(`Error setting one-time password: ${updateError.message}`);
           }
+        );
+      }
 
-          // Send one-time password via email
-          await fetch(`${SUPABASE_URL}/functions/v1/send-notification`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify({
-              type: "admin_login",
-              recipient: email,
-              data: { oneTimePassword }
-            }),
+      // Create new admin user if they don't exist
+      const oneTimePassword = generatePassword();
+      
+      // Create the auth user
+      const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
+        email: email,
+        password: oneTimePassword,
+        email_confirm: true,
+        app_metadata: { role: 'admin' },
+        user_metadata: { full_name: 'Admin User' }
+      });
+
+      if (authError) {
+        throw authError;
+      }
+
+      // Ensure profile record exists and is marked as admin
+      if (authData.user) {
+        const { error: profileError } = await adminClient
+          .from('profiles')
+          .upsert({
+            id: authData.user.id,
+            email: email,
+            is_admin: true,
+            full_name: 'Admin User',
+            updated_at: new Date().toISOString()
           });
+
+        if (profileError) {
+          throw profileError;
         }
-        
-        return new Response(
-          JSON.stringify({ 
-            message: "Admin user created successfully", 
-            user: data.user,
-            oneTimePassword: oneTimePassword 
-          }),
-          {
-            status: 200,
-            headers: {
-              "Content-Type": "application/json",
-              ...corsHeaders,
-            },
-          }
+      }
+
+      // Send admin login notification with one-time password
+      try {
+        const anonClient = createClient(
+          SUPABASE_URL,
+          Deno.env.get("SUPABASE_ANON_KEY") || ""
         );
         
-      case "verify_admin":
-        const { data: userData, error: userError } = await supabase.auth.getUser();
-        
-        if (userError) {
-          throw new Error(`Error getting user: ${userError.message}`);
+        await anonClient.functions.invoke('send-notification', {
+          body: {
+            type: 'admin_login',
+            recipient: email,
+            data: {
+              oneTimePassword
+            }
+          }
+        });
+      } catch (emailError) {
+        console.error("Error sending admin notification:", emailError);
+      }
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: "Admin user created successfully", 
+          oneTimePassword
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+            ...corsHeaders
+          }
         }
-        
-        const isAdmin = userData?.user?.app_metadata?.role === 'admin';
-        
-        return new Response(
-          JSON.stringify({ 
-            is_admin: isAdmin,
-            user: userData.user
-          }),
-          {
-            status: 200,
-            headers: {
-              "Content-Type": "application/json",
-              ...corsHeaders,
-            },
-          }
-        );
-        
-      default:
-        return new Response(
-          JSON.stringify({ error: "Invalid action" }),
-          {
-            status: 400,
-            headers: {
-              "Content-Type": "application/json",
-              ...corsHeaders,
-            },
-          }
-        );
+      );
+    } else {
+      throw new Error("Invalid action");
     }
   } catch (error) {
     console.error("Error in admin-provisioning function:", error);
     
     return new Response(
-      JSON.stringify({ error: error.message || "An error occurred" }),
+      JSON.stringify({
+        error: error.message || "Failed to process admin provisioning request"
+      }),
       {
-        status: 500,
+        status: 400,
         headers: {
           "Content-Type": "application/json",
-          ...corsHeaders,
-        },
+          ...corsHeaders
+        }
       }
     );
   }
 };
+
+function generatePassword(length = 12) {
+  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=";
+  let password = "";
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * charset.length);
+    password += charset[randomIndex];
+  }
+  return password;
+}
 
 serve(handler);

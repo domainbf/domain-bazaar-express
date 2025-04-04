@@ -35,23 +35,7 @@ export const signUpUser = async (email: string, password: string, userData?: any
     // Send custom verification email via Resend
     try {
       console.log('Sending verification email to:', email);
-      const { error: notifError } = await supabase.functions.invoke('send-notification', {
-        body: {
-          type: 'email_verification',
-          recipient: email,
-          data: {
-            verificationUrl: `${window.location.origin}/auth/verify?token=${data?.session?.access_token}`,
-            name: userData?.full_name || email.split('@')[0]
-          }
-        }
-      });
-      
-      if (notifError) {
-        console.error('Error sending custom verification email:', notifError);
-        throw notifError;
-      }
-      
-      console.log('Verification email sent successfully');
+      await sendVerificationEmail(email, userData?.full_name);
     } catch (notifError) {
       console.error('Error sending verification email:', notifError);
       // Continue as Supabase will send its default email as fallback

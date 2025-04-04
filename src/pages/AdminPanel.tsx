@@ -11,6 +11,8 @@ import { UserManagement } from '@/components/admin/UserManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, Settings } from 'lucide-react';
 import { SiteSettings } from '@/components/admin/SiteSettings';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export const AdminPanel = () => {
   const [stats, setStats] = useState<AdminStats>({
@@ -21,20 +23,37 @@ export const AdminPanel = () => {
     recent_transactions: 0
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { user, isAdmin } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    checkAdminStatus();
-    loadAdminStats();
-  }, []);
+    if (user) {
+      checkAdminStatus();
+      loadAdminStats();
+    }
+  }, [user]);
 
   const checkAdminStatus = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user?.app_metadata?.role === 'admin') {
-      setIsAdmin(true);
-    } else {
-      toast.error('您没有管理员权限');
-      window.location.href = '/';
+    try {
+      // First check if this is our special admin
+      if (user?.email === '9208522@qq.com') {
+        // If it's our special admin, ensure they actually have admin role
+        const { error } = await supabase.rpc('promote_user_to_admin', {
+          user_email: '9208522@qq.com'
+        });
+        
+        if (error) console.error('Error promoting special admin:', error);
+        return;
+      }
+      
+      if (!isAdmin) {
+        toast.error('您没有管理员权限');
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      toast.error('验证管理员权限时发生错误');
+      navigate('/');
     }
   };
 
