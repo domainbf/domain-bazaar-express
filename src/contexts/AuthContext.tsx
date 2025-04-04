@@ -4,13 +4,17 @@ import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { UserProfile } from '@/types/userProfile';
 import { toast } from 'sonner';
+import { signInUser, signUpUser, signOutUser, resetUserPassword } from '@/utils/authUtils';
 
 interface AuthContextType {
   user: User | null;
   profile: UserProfile | null;
   isAdmin: boolean;
   isLoading: boolean;
+  signIn: (email: string, password: string) => Promise<boolean>;
+  signUp: (email: string, password: string, userData?: any) => Promise<boolean>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<boolean>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -87,17 +91,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
   
+  const signIn = async (email: string, password: string) => {
+    return signInUser(email, password);
+  };
+  
+  const signUp = async (email: string, password: string, userData?: any) => {
+    return signUpUser(email, password, userData);
+  };
+  
   const signOut = async () => {
     try {
-      await supabase.auth.signOut();
+      await signOutUser();
       setUser(null);
       setProfile(null);
       setIsAdmin(false);
-      toast.success('Successfully signed out');
     } catch (error: any) {
       console.error('Error signing out:', error);
       toast.error('Failed to sign out');
     }
+  };
+  
+  const resetPassword = async (email: string) => {
+    return resetUserPassword(email);
   };
   
   return (
@@ -107,7 +122,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         profile, 
         isAdmin, 
         isLoading, 
+        signIn,
+        signUp,
         signOut,
+        resetPassword,
         refreshProfile
       }}
     >

@@ -12,6 +12,12 @@ export interface UserProfile {
   contact_phone?: string;
   created_at: string;
   custom_url?: string;
+  verification_status?: string;
+  is_admin?: boolean;
+  account_level?: string;
+  domains_count?: number;
+  completed_transactions?: number;
+  balance?: number;
 }
 
 export interface ProfileDomain {
