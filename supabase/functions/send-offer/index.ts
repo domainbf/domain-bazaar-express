@@ -65,42 +65,45 @@ serve(async (req: Request) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>您的域名报价已收到</title>
           <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f9f9f9; }
-            .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-            .header { background-color: #000; color: white; padding: 30px; text-align: center; }
-            .header h1 { margin: 0; font-size: 24px; }
-            .content { padding: 30px; }
-            .footer { text-align: center; margin-top: 20px; padding: 20px; font-size: 12px; color: #666; border-top: 1px solid #eaeaea; }
-            .details { background-color: #f9f9f9; padding: 20px; margin: 20px 0; border-radius: 6px; }
-            .button { display: inline-block; background-color: #000; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; margin-top: 15px; }
-            table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-            th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eaeaea; }
-            th { background-color: #f5f5f5; }
+            body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f9f9f9; margin: 0; padding: 0; }
+            .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+            .header { background-color: #000; padding: 30px 20px; text-align: center; }
+            .header h1 { color: white; margin: 10px 0 0; font-size: 24px; }
+            .content { padding: 30px 20px; }
+            .button { display: inline-block; background-color: #000; color: white; text-decoration: none; padding: 12px 30px; border-radius: 4px; font-weight: bold; margin: 25px 0; }
+            .footer { text-align: center; padding: 20px; font-size: 12px; color: #888; background-color: #f5f5f5; }
+            .offer-card { background-color: #f9f9f9; padding: 20px; border-radius: 5px; margin: 20px 0; }
+            .offer-details { margin-top: 15px; width: 100%; border-collapse: collapse; }
+            .offer-details td, .offer-details th { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+            .offer-details th { background-color: #f5f5f5; font-weight: normal; color: #666; width: 40%; }
+            .status-waiting { color: #f59e0b; font-weight: bold; }
+            .domain-name { font-weight: bold; }
+            p { margin: 16px 0; }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <h1>🎉 您的报价已提交成功</h1>
+              <h1>DomainX</h1>
             </div>
             <div class="content">
-              <p>尊敬的用户，</p>
-              <p>感谢您对 <strong>${domain}</strong> 的兴趣。我们已收到您 <strong>$${offer}</strong> 的报价，并已转发给域名所有者。</p>
+              <h2>🎉 您的报价已提交成功</h2>
+              <p>感谢您对 <span class="domain-name">${domain}</span> 的兴趣。我们已收到您 <strong>$${offer}</strong> 的报价，并已转发给域名所有者。</p>
               
-              <div class="details">
+              <div class="offer-card">
                 <h3>报价详情:</h3>
-                <table>
+                <table class="offer-details">
                   <tr>
                     <th>域名</th>
-                    <td>${domain}</td>
+                    <td><strong>${domain}</strong></td>
                   </tr>
                   <tr>
                     <th>报价金额</th>
-                    <td>$${offer}</td>
+                    <td><strong>$${offer}</strong></td>
                   </tr>
                   <tr>
                     <th>状态</th>
-                    <td><span style="color: #f59e0b; font-weight: bold;">等待回应</span></td>
+                    <td><span class="status-waiting">等待回应</span></td>
                   </tr>
                   ${message ? `<tr>
                     <th>您的留言</th>
@@ -112,7 +115,7 @@ serve(async (req: Request) => {
               <p>域名所有者将审核您的报价并尽快回复。当他们回应时，您将收到通知。</p>
               <p>如您创建了账户，您可以随时在用户中心查看所有报价记录。</p>
               
-              <div style="text-align: center; margin-top: 20px;">
+              <div style="text-align: center;">
                 <a href="${dashboardUrl}" class="button">查看用户中心</a>
               </div>
               
@@ -137,36 +140,38 @@ serve(async (req: Request) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>您收到了新域名报价</title>
           <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f9f9f9; }
-            .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-            .header { background-color: #000; color: white; padding: 30px; text-align: center; }
-            .header h1 { margin: 0; font-size: 24px; }
-            .content { padding: 30px; }
-            .footer { text-align: center; margin-top: 20px; padding: 20px; font-size: 12px; color: #666; border-top: 1px solid #eaeaea; }
-            .details { background-color: #f9f9f9; padding: 20px; margin: 20px 0; border-radius: 6px; }
-            .button { display: inline-block; background-color: #000; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; margin-top: 15px; }
-            .highlight { color: #000; font-weight: bold; font-size: 24px; }
-            table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-            th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eaeaea; }
-            th { background-color: #f5f5f5; }
+            body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f9f9f9; margin: 0; padding: 0; }
+            .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+            .header { background-color: #000; padding: 30px 20px; text-align: center; }
+            .header h1 { color: white; margin: 10px 0 0; font-size: 24px; }
+            .content { padding: 30px 20px; }
+            .button { display: inline-block; background-color: #000; color: white; text-decoration: none; padding: 12px 30px; border-radius: 4px; font-weight: bold; margin: 25px 0; }
+            .footer { text-align: center; padding: 20px; font-size: 12px; color: #888; background-color: #f5f5f5; }
+            .offer-card { background-color: #f9f9f9; padding: 20px; border-radius: 5px; margin: 20px 0; }
+            .offer-details { margin-top: 15px; width: 100%; border-collapse: collapse; }
+            .offer-details td, .offer-details th { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+            .offer-details th { background-color: #f5f5f5; font-weight: normal; color: #666; width: 40%; }
+            .highlight { color: #10b981; font-weight: bold; font-size: 24px; }
+            .domain-name { font-weight: bold; }
             .actions { text-align: center; margin: 30px 0; }
+            p { margin: 16px 0; }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <h1>💰 您收到了新域名报价</h1>
+              <h1>DomainX</h1>
             </div>
             <div class="content">
-              <p>尊敬的域名持有者，</p>
-              <p>您的域名 <strong>${domain}</strong> 收到了一个新的报价。</p>
+              <h2>💰 您收到了新域名报价</h2>
+              <p>您的域名 <span class="domain-name">${domain}</span> 收到了一个新的报价。</p>
               
-              <div class="details">
+              <div class="offer-card">
                 <h3>报价详情:</h3>
-                <table>
+                <table class="offer-details">
                   <tr>
                     <th>域名</th>
-                    <td>${domain}</td>
+                    <td><strong>${domain}</strong></td>
                   </tr>
                   <tr>
                     <th>报价金额</th>
@@ -191,7 +196,7 @@ serve(async (req: Request) => {
                 </table>
               </div>
               
-              <p>您可以通过登录控制面板来回应此报价。如果您选择接受此报价，请使用提供的电子邮件地址联系买家安排域名转移和付款。</p>
+              <p>您可以通过登录控制面板来回应此报价。我们建议您尽快回复以提高成交几率。</p>
               
               <div class="actions">
                 <a href="${dashboardUrl}" class="button">在控制面板查看</a>
@@ -211,7 +216,7 @@ serve(async (req: Request) => {
 
     // Send confirmation email to the user/buyer
     const userEmailResponse = await resend.emails.send({
-      from: "DomainX <no-reply@domain.bf>",
+      from: "DomainX <noreply@domain.bf>",
       to: [email],
       subject: `您对 ${domain} 的报价已收到`,
       html: userEmailHtml,
@@ -252,7 +257,7 @@ serve(async (req: Request) => {
 
     // Send notification email to the domain owner or admin
     const adminEmailResponse = await resend.emails.send({
-      from: "DomainX <no-reply@domain.bf>",
+      from: "DomainX <noreply@domain.bf>",
       to: [adminEmail],
       subject: `${domain} 的新报价: $${offer}`,
       html: adminEmailHtml,

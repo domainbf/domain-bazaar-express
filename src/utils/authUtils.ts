@@ -30,6 +30,23 @@ export const signUpUser = async (email: string, password: string, userData?: any
       },
     });
     if (error) throw error;
+    
+    // Send custom verification email
+    try {
+      await supabase.functions.invoke('send-notification', {
+        body: {
+          type: 'email_verification',
+          recipient: email,
+          data: {
+            verificationUrl: `${window.location.origin}/auth/verify`
+          }
+        }
+      });
+    } catch (notifError) {
+      console.error('Error sending custom verification email:', notifError);
+      // Continue as Supabase will send its default email
+    }
+    
     toast.success('注册成功！请检查您的邮箱以完成验证。');
     return true;
   } catch (error: any) {
@@ -58,6 +75,7 @@ export const resetUserPassword = async (email: string) => {
     
     if (error) throw error;
     
+    // Send custom password reset email
     try {
       await supabase.functions.invoke('send-notification', {
         body: {

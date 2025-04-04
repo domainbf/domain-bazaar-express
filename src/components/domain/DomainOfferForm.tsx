@@ -83,7 +83,7 @@ export const DomainOfferForm = ({
       // Get owner email for notification purposes
       const { data: ownerData, error: ownerError } = await supabase
         .from('profiles')
-        .select('contact_email')
+        .select('contact_email, email')
         .eq('id', domainInfo.sellerId)
         .single();
         
@@ -97,7 +97,7 @@ export const DomainOfferForm = ({
           buyerId: session?.user.id || null,
           domainOwnerId: domainInfo.sellerId,
           domainId: domainInfo.domainId,
-          ownerEmail: ownerData?.contact_email
+          ownerEmail: ownerData?.contact_email || ownerData?.email
         }
       });
 

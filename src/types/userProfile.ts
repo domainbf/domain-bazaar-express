@@ -25,6 +25,8 @@ export interface UserProfile {
   total_sales?: number;
   verification_documents?: any;
   updated_at?: string;
+  custom_url?: string;
+  is_admin?: boolean;
 }
 
 export interface ProfileDomain {

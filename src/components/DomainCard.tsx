@@ -36,30 +36,41 @@ export const DomainCard = ({
 
   // Check if user is authenticated when dialog opens
   const handleOpenDialog = async () => {
-    const { data } = await supabase.auth.getSession();
-    setIsAuthenticated(!!data.session);
-    
-    // If domain ID or seller ID is not provided, fetch it
-    if (!domainId || !sellerId) {
-      try {
-        const { data: domainData } = await supabase
+    try {
+      // Check authentication
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+      
+      // If domain ID or seller ID is not provided, fetch it
+      if (!domainId || !sellerId) {
+        console.log('Fetching domain info for:', domain);
+        const { data: domainData, error } = await supabase
           .from('domain_listings')
           .select('id, owner_id')
           .eq('name', domain)
           .single();
           
+        if (error) {
+          console.error('Error fetching domain info:', error);
+          throw error;
+        }
+          
         if (domainData) {
+          console.log('Domain data fetched:', domainData);
           setDomainInfo({
             id: domainData.id,
             ownerId: domainData.owner_id
           });
         }
-      } catch (error) {
-        console.error('Error fetching domain info:', error);
       }
+      
+      // Open dialog after setting data
+      setIsDialogOpen(true);
+    } catch (error) {
+      console.error('Error preparing offer dialog:', error);
+      // Still open dialog but might show error inside
+      setIsDialogOpen(true);
     }
-    
-    setIsDialogOpen(true);
   };
 
   return (
