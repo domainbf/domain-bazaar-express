@@ -18,6 +18,13 @@ export interface UserProfile {
   domains_count?: number;
   completed_transactions?: number;
   balance?: number;
+  email?: string;
+  payment_info?: any;
+  preferred_payment_methods?: string[];
+  seller_rating?: number;
+  total_sales?: number;
+  verification_documents?: any;
+  updated_at?: string;
 }
 
 export interface ProfileDomain {

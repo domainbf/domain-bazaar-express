@@ -29,17 +29,33 @@ export const DomainCard = ({
 }: DomainCardProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [domainInfo, setDomainInfo] = useState<{id?: string; ownerId?: string}>({
+    id: domainId,
+    ownerId: sellerId
+  });
 
   // Check if user is authenticated when dialog opens
   const handleOpenDialog = async () => {
     const { data } = await supabase.auth.getSession();
     setIsAuthenticated(!!data.session);
     
-    if (data.session) {
-      // Pre-fill email if user is authenticated
-      const userEmail = data.session.user.email;
-      if (userEmail) {
-        // The email field will be handled by the DomainOfferForm
+    // If domain ID or seller ID is not provided, fetch it
+    if (!domainId || !sellerId) {
+      try {
+        const { data: domainData } = await supabase
+          .from('domain_listings')
+          .select('id, owner_id')
+          .eq('name', domain)
+          .single();
+          
+        if (domainData) {
+          setDomainInfo({
+            id: domainData.id,
+            ownerId: domainData.owner_id
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching domain info:', error);
       }
     }
     
@@ -50,7 +66,7 @@ export const DomainCard = ({
     <div className={`relative border rounded-lg p-6 hover:shadow-md transition-shadow ${highlight ? 'border-black border-2' : 'border-gray-200'}`}>
       {highlight && (
         <div className="absolute -top-3 right-4">
-          <Badge className="bg-black text-white">Featured</Badge>
+          <Badge className="bg-black text-white">精选</Badge>
         </div>
       )}
       
@@ -77,7 +93,7 @@ export const DomainCard = ({
         
         {isSold ? (
           <span className="px-4 py-2 rounded-full bg-gray-200 text-gray-700 font-semibold">
-            Sold
+            已售出
           </span>
         ) : (
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -86,19 +102,19 @@ export const DomainCard = ({
                 className="w-full bg-black text-white hover:bg-gray-800 font-bold text-base shadow-md"
                 onClick={handleOpenDialog}
               >
-                Make Offer
+                我要报价
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-white border-gray-200 max-w-md">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-bold text-center text-gray-900">
-                  {domain} - Make an Offer
+                  {domain} - 提交报价
                 </DialogTitle>
               </DialogHeader>
               <DomainOfferForm 
                 domain={domain}
-                domainId={domainId}
-                sellerId={sellerId}
+                domainId={domainInfo.id}
+                sellerId={domainInfo.ownerId}
                 onClose={() => setIsDialogOpen(false)}
                 isAuthenticated={isAuthenticated}
               />

@@ -31,22 +31,43 @@ export const DomainOfferForm = ({
     setIsLoading(true);
 
     try {
+      // Get domain information if it's not provided
+      let domainInfo = {
+        domainId,
+        sellerId
+      };
+      
       if (!domainId || !sellerId) {
-        throw new Error('Domain information is missing');
+        // Fetch domain information based on domain name
+        const { data: domainData, error: domainError } = await supabase
+          .from('domain_listings')
+          .select('id, owner_id')
+          .eq('name', domain)
+          .single();
+          
+        if (domainError || !domainData) {
+          throw new Error('无法找到域名信息，请稍后重试');
+        }
+        
+        domainInfo = {
+          domainId: domainData.id,
+          sellerId: domainData.owner_id
+        };
+      }
+      
+      // Check if we have the domain information
+      if (!domainInfo.domainId || !domainInfo.sellerId) {
+        throw new Error('域名信息不完整，无法提交报价');
       }
 
       const { data: { session } } = await supabase.auth.getSession();
       
-      if (!session && isAuthenticated) {
-        throw new Error('You must be logged in to make an offer');
-      }
-
       const offerData = {
-        domain_id: domainId,
+        domain_id: domainInfo.domainId,
         amount: parseFloat(offer),
         message: message,
         contact_email: email,
-        seller_id: sellerId,
+        seller_id: domainInfo.sellerId,
         buyer_id: session?.user.id
       };
 
@@ -59,6 +80,13 @@ export const DomainOfferForm = ({
         if (error) throw error;
       }
       
+      // Get owner email for notification purposes
+      const { data: ownerData, error: ownerError } = await supabase
+        .from('profiles')
+        .select('contact_email')
+        .eq('id', domainInfo.sellerId)
+        .single();
+        
       // Send email notification regardless of authentication
       const { error: emailError } = await supabase.functions.invoke('send-offer', {
         body: {
@@ -66,7 +94,10 @@ export const DomainOfferForm = ({
           offer,
           email,
           message,
-          buyerId: session?.user.id || null
+          buyerId: session?.user.id || null,
+          domainOwnerId: domainInfo.sellerId,
+          domainId: domainInfo.domainId,
+          ownerEmail: ownerData?.contact_email
         }
       });
 
@@ -75,14 +106,14 @@ export const DomainOfferForm = ({
         // Continue execution even if email fails
       }
 
-      toast.success('Your offer has been submitted successfully!');
+      toast.success('您的报价已成功提交！');
       setOffer('');
       setEmail('');
       setMessage('');
       onClose();
     } catch (error: any) {
       console.error('Error submitting offer:', error);
-      toast.error(error.message || 'Failed to submit offer');
+      toast.error(error.message || '提交报价失败');
     } finally {
       setIsLoading(false);
     }
@@ -93,12 +124,12 @@ export const DomainOfferForm = ({
       {!isAuthenticated && (
         <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-md mb-4">
           <p className="text-yellow-800 text-sm">
-            You are not signed in. Your offer will still be sent to the seller, but creating an account lets you track your offers.
+            您尚未登录。您的报价仍会发送给卖家，但创建账户可以让您跟踪报价状态。
           </p>
         </div>
       )}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">Your Offer</label>
+        <label className="text-sm font-medium text-gray-700">您的报价</label>
         <div className="relative">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
           <Input
@@ -113,7 +144,7 @@ export const DomainOfferForm = ({
         </div>
       </div>
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">Contact Email</label>
+        <label className="text-sm font-medium text-gray-700">联系邮箱</label>
         <div className="relative">
           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
           <Input
@@ -127,9 +158,9 @@ export const DomainOfferForm = ({
         </div>
       </div>
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">Message (Optional)</label>
+        <label className="text-sm font-medium text-gray-700">留言（可选）</label>
         <textarea
-          placeholder="Add any details about your offer..."
+          placeholder="添加关于您报价的任何详细信息..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           className="w-full bg-white border border-gray-300 rounded-md p-2 text-black"
@@ -144,12 +175,12 @@ export const DomainOfferForm = ({
         {isLoading ? (
           <span className="flex items-center gap-2">
             <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" />
-            Submitting...
+            提交中...
           </span>
         ) : (
           <span className="flex items-center gap-2">
             <Send className="w-4 h-4" />
-            Submit Offer
+            提交报价
           </span>
         )}
       </Button>
