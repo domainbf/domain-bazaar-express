@@ -7,7 +7,7 @@ export const initializeAdminUser = async () => {
     try {
       const { data, error } = await supabase.rpc('promote_user_to_admin', {
         user_email: '9208522@qq.com'
-      });
+      } as { user_email: string });
       
       if (!error) {
         console.info('Admin promotion completed successfully.');

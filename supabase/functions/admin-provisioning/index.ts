@@ -43,7 +43,7 @@ const handler = async (req: Request): Promise<Response> => {
       const { data: existingUsers, error: userCheckError } = await adminClient
         .from('profiles')
         .select('id')
-        .eq('email', email)
+        .eq('contact_email', email)
         .single();
 
       if (userCheckError && userCheckError.code !== 'PGRST116') {
@@ -58,7 +58,7 @@ const handler = async (req: Request): Promise<Response> => {
             is_admin: true,
             updated_at: new Date().toISOString()
           })
-          .eq('email', email);
+          .eq('contact_email', email);
         
         // Also update auth.users metadata if possible
         try {
@@ -116,7 +116,7 @@ const handler = async (req: Request): Promise<Response> => {
           .from('profiles')
           .upsert({
             id: authData.user.id,
-            email: email,
+            contact_email: email,
             is_admin: true,
             full_name: 'Admin User',
             updated_at: new Date().toISOString()

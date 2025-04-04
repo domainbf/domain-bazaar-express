@@ -40,7 +40,7 @@ export const AdminPanel = () => {
         // If it's our special admin, ensure they actually have admin role
         const { error } = await supabase.rpc('promote_user_to_admin', {
           user_email: '9208522@qq.com'
-        });
+        } as { user_email: string });
         
         if (error) console.error('Error promoting special admin:', error);
         return;
