@@ -10,11 +10,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Link, ExternalLink } from 'lucide-react';
 import { CopyButton } from '@/components/common/CopyButton';
 
-type CheckUrlResult = {
-  isAvailable: boolean;
-  error: string;
-};
-
 export const CustomUrlSettings = () => {
   const { user, profile, refreshProfile } = useAuth();
   const [customUrl, setCustomUrl] = useState('');
