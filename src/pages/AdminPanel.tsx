@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
@@ -13,23 +12,32 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
 import { AdminStats } from '@/types/domain';
 
+interface AdminStats {
+  total_domains: number;
+  verified_domains: number;
+  pending_verifications: number;
+  total_users: number;
+  users_count?: number;
+  total_transactions?: number;
+  total_revenue?: number;
+}
+
 export const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState<AdminStats>({
     total_domains: 0,
+    verified_domains: 0,
     pending_verifications: 0,
-    active_listings: 0,
-    total_offers: 0,
-    recent_transactions: 0,
+    total_users: 0,
     users_count: 0,
-    verified_users: 0
+    total_transactions: 0,
+    total_revenue: 0
   });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is admin, if not redirect
     const checkAdminStatus = async () => {
       if (!user) {
         navigate('/');
@@ -39,7 +47,6 @@ export const AdminPanel = () => {
       
       if (!isAdmin) {
         try {
-          // Try to fetch admin status from database
           const { data, error } = await supabase
             .from('profiles')
             .select('is_admin')
@@ -60,7 +67,6 @@ export const AdminPanel = () => {
     checkAdminStatus();
     fetchAdminStats();
     
-    // Promote user to admin if needed
     const promoteToAdmin = async () => {
       try {
         const { data, error } = await supabase.rpc('promote_user_to_admin', {
@@ -81,15 +87,14 @@ export const AdminPanel = () => {
   const fetchAdminStats = async () => {
     setIsLoading(true);
     try {
-      // These are mock stats - in a real app you would fetch these from the backend
       const mockStats: AdminStats = {
         total_domains: 152,
+        verified_domains: 100,
         pending_verifications: 12,
-        active_listings: 98,
-        total_offers: 47,
-        recent_transactions: 23,
-        users_count: 210,
-        verified_users: 78
+        total_users: 210,
+        users_count: 200,
+        total_transactions: 23,
+        total_revenue: 1000
       };
       
       setStats(mockStats);
@@ -159,3 +164,5 @@ export const AdminPanel = () => {
     </div>
   );
 };
+
+export default AdminPanel;
