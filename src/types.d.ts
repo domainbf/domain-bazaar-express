@@ -1,4 +1,3 @@
-
 // Declare modules for packages
 declare module 'react';
 declare module 'react-dom/client';
