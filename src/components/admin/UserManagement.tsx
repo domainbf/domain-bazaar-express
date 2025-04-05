@@ -11,7 +11,7 @@ export const UserManagement = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const { verifyUser, toggleSellerStatus } = useUserActions();
+  const { verifyUser, toggleSellerStatus, toggleAdminStatus, deleteUser } = useUserActions();
 
   useEffect(() => {
     loadUsers();
@@ -22,15 +22,36 @@ export const UserManagement = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, email, full_name, username, is_seller, seller_verified, created_at, avatar_url, total_sales, is_admin')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       
-      setUsers(data || []);
+      // Get emails for each user
+      const userIds = data?.map(profile => profile.id) || [];
+      if (userIds.length > 0) {
+        const { data: userData, error: userError } = await supabase.functions.invoke('admin-user-management', {
+          body: { action: 'get_user_emails', user_ids: userIds }
+        });
+        
+        if (userError) throw userError;
+        
+        // Merge emails with profiles
+        const usersWithEmails = data?.map(profile => {
+          const userInfo = userData?.users?.find((u: any) => u.id === profile.id);
+          return {
+            ...profile,
+            email: userInfo?.email || null
+          };
+        });
+        
+        setUsers(usersWithEmails || []);
+      } else {
+        setUsers(data || []);
+      }
     } catch (error: any) {
-      console.error('Error loading users:', error);
-      toast.error(error.message || 'Failed to load users');
+      console.error('加载用户时出错:', error);
+      toast.error(error.message || '加载用户失败');
     } finally {
       setIsLoading(false);
     }
@@ -55,6 +76,24 @@ export const UserManagement = () => {
       ));
     }
   };
+  
+  const handleToggleAdminStatus = async (userId: string, currentStatus: boolean) => {
+    const success = await toggleAdminStatus(userId, currentStatus);
+    if (success) {
+      // Update local state
+      setUsers(users.map(user => 
+        user.id === userId ? { ...user, is_admin: !currentStatus } : user
+      ));
+    }
+  };
+  
+  const handleDeleteUser = async (userId: string) => {
+    const success = await deleteUser(userId);
+    if (success) {
+      // Update local state
+      setUsers(users.filter(user => user.id !== userId));
+    }
+  };
 
   if (isLoading) {
     return (
@@ -76,6 +115,9 @@ export const UserManagement = () => {
         searchQuery={searchQuery}
         onVerifyUser={handleVerifyUser}
         onToggleSellerStatus={handleToggleSellerStatus}
+        onToggleAdminStatus={handleToggleAdminStatus}
+        onDeleteUser={handleDeleteUser}
+        onRefresh={loadUsers}
       />
     </div>
   );

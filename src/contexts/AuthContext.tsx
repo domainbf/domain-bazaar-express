@@ -50,6 +50,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setProfile(data);
       
       // Check if user is admin - both email-based and profile-based check
+      // Added the new admin credentials
       const isAdminUser = 
         user.email === '9208522@qq.com' ||
         data?.is_admin === true ||
@@ -108,6 +109,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   
   const signIn = async (email: string, password: string) => {
     try {
+      // Special case for admin login with the predefined password
+      if (email === '9208522@qq.com' && password === 'lijiawei123AINI@') {
+        console.log('Admin user attempting to log in with predefined password');
+      }
+      
       const success = await signInUser(email, password);
       if (success) {
         // Check if this is the admin account

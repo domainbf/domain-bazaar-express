@@ -168,3 +168,8 @@ interface AdminStats {
   recent_transactions?: number;
 }
 
+// Add Admin user credentials
+interface AdminCredentials {
+  username: string;
+  password: string;
+}
