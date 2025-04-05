@@ -123,10 +123,8 @@ type ClassValue = string | number | boolean | undefined | null | ClassValue[] | 
 
 // Define use embla carousel type
 interface UseEmblaCarouselType {
-  type: [
-    (ref: HTMLElement | null) => void, 
-    any
-  ]
+  0: (ref: HTMLElement | null) => void;
+  1: any;
 }
 
 // Dialog props interface
@@ -153,8 +151,20 @@ interface LegendProps {
   [key: string]: any;
 }
 
-// Fix the export for AdminPanel.tsx
-declare module "./pages/AdminPanel" {
-  const AdminPanel: React.FC;
-  export default AdminPanel;
+// Badge Props
+interface BadgeProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof badgeVariants> {
+  variant?: "default" | "secondary" | "destructive" | "outline" | "premium" | "verified" | "featured";
 }
+
+// Add AdminStats interface
+interface AdminStats {
+  users_count: number;
+  total_domains: number;
+  active_listings: number;
+  sold_domains: number;
+  verification_pending: number;
+  monthly_revenue: number;
+  total_offers?: number;
+  recent_transactions?: number;
+}
+

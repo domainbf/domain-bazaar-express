@@ -1,10 +1,17 @@
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import type { User } from '@supabase/supabase-js';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { UserProfile } from '@/types/userProfile';
 import { toast } from 'sonner';
 import { signInUser, signUpUser, signOutUser, resetUserPassword } from '@/utils/authUtils';
+
+interface User {
+  id: string;
+  email?: string;
+  app_metadata?: {
+    role?: string;
+  };
+}
 
 interface AuthContextType {
   user: User | null;
@@ -20,7 +27,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
