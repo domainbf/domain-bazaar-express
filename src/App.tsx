@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import Index from './pages/Index';
 import { Marketplace } from './pages/Marketplace';
 import { Dashboard } from './pages/Dashboard';
-import { AdminPanel } from './pages/AdminPanel';
+import AdminPanel from './pages/AdminPanel';
 import { DomainVerification } from './pages/DomainVerification';
 import { Profile } from './pages/Profile';
 import { ResetPassword } from './pages/ResetPassword';

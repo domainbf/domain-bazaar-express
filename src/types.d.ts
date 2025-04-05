@@ -56,102 +56,91 @@ interface Function {
   <T extends any[]>(...args: any[]): any;
 }
 
-// React namespace types that are used throughout the application
-declare namespace React {
-  type FC<P = {}> = FunctionComponent<P>;
-  
-  interface FunctionComponent<P = {}> {
-    (props: P & { children?: ReactNode }, context?: any): ReactElement<any, any> | null;
+// Extend global React namespace for our type needs
+declare global {
+  namespace React {
+    type FC<P = {}> = FunctionComponent<P>;
+    
+    interface FunctionComponent<P = {}> {
+      (props: P & { children?: ReactNode }, context?: any): ReactElement<any, any> | null;
+    }
+    
+    type ReactNode = ReactElement | string | number | ReactFragment | ReactPortal | boolean | null | undefined;
+    type ReactElement<P = any, T extends string | JSXElementConstructor<any> = string | JSXElementConstructor<any>> = {
+      type: T;
+      props: P;
+      key: Key | null;
+    };
+    
+    type JSXElementConstructor<P> = (props: P) => ReactElement<any, any> | null;
+    type Key = string | number;
+    type ReactFragment = Iterable<ReactNode>;
+    
+    interface ReactPortal extends ReactElement {
+      key: Key | null;
+      children: ReactNode;
+    }
+    
+    type CSSProperties = Record<string, any>;
+    type ComponentType<P = {}> = FunctionComponent<P>;
+    type ComponentProps<T extends keyof JSX.IntrinsicElements | React.ComponentType<any>> = 
+      T extends React.ComponentType<infer P> 
+        ? P 
+        : T extends keyof JSX.IntrinsicElements 
+          ? JSX.IntrinsicElements[T] 
+          : {};
+    type ElementRef<T> = T extends React.ElementType ? React.ElementType : T;
+    type ComponentPropsWithoutRef<T> = any;
+    type RefAttributes<T> = { ref?: React.Ref<T> };
+    type ElementType = keyof JSX.IntrinsicElements | React.ComponentType<any>;
+    type Ref<T> = React.RefObject<T> | ((instance: T | null) => void) | null;
+    type RefObject<T> = { readonly current: T | null };
+    type KeyboardEvent<T = Element> = any;
+    type HTMLAttributes<T> = any & { className?: string };
+    type ButtonHTMLAttributes<T> = HTMLAttributes<T>;
+    type TextareaHTMLAttributes<T> = HTMLAttributes<T>;
+    type ThHTMLAttributes<T> = HTMLAttributes<T>;
+    type TdHTMLAttributes<T> = HTMLAttributes<T>;
+  }
+
+  namespace VariantProps {
+    type Prop<T> = any;
   }
   
-  type ReactNode = ReactElement | string | number | ReactFragment | ReactPortal | boolean | null | undefined;
-  type ReactElement<P = any, T extends string | JSXElementConstructor<any> = string | JSXElementConstructor<any>> = {
-    type: T;
-    props: P;
-    key: Key | null;
-  };
-  
-  type JSXElementConstructor<P> = (props: P) => ReactElement<any, any> | null;
-  type Key = string | number;
-  type ReactFragment = Iterable<ReactNode>;
-  
-  interface ReactPortal extends ReactElement {
-    key: Key | null;
-    children: ReactNode;
+  namespace ClassValue {
+    type Value = any;
   }
   
-  type CSSProperties = Record<string, any>;
-  type ComponentType<P = {}> = FunctionComponent<P>;
-  type ComponentProps<T extends keyof JSX.IntrinsicElements | React.ComponentType<any>> = 
-    T extends React.ComponentType<infer P> 
-      ? P 
-      : T extends keyof JSX.IntrinsicElements 
-        ? JSX.IntrinsicElements[T] 
-        : {};
-  type ElementRef<T> = T;
-  type ComponentPropsWithoutRef<T> = any;
-  type RefAttributes<T> = { ref?: React.Ref<T> };
-  type ElementType = keyof JSX.IntrinsicElements | React.ComponentType<any>;
-  type Ref<T> = React.RefObject<T> | ((instance: T | null) => void) | null;
-  type RefObject<T> = { readonly current: T | null };
-  type KeyboardEvent<T = Element> = any;
-  type HTMLAttributes<T> = any & { className?: string };
-  type ButtonHTMLAttributes<T> = HTMLAttributes<T>;
-  type TextareaHTMLAttributes<T> = HTMLAttributes<T>;
-  type ThHTMLAttributes<T> = HTMLAttributes<T>;
-  type TdHTMLAttributes<T> = HTMLAttributes<T>;
-  type ReactElement<P = any, T = any> = any;
-}
-
-// Type definitions for class-variance-authority
-declare namespace VariantProps {
-  type Prop<T> = any;
-}
-
-// Type definitions for clsx
-declare namespace ClassValue {
-  type Value = any;
-}
-
-// Type definitions for @supabase/supabase-js
-declare namespace User {
-  type Info = any;
-}
-
-// Type definitions for embla-carousel-react
-declare namespace UseEmblaCarouselType {
-  type Type = any;
-}
-
-// Type definitions for @radix-ui/react-dialog
-declare namespace DialogProps {
-  interface Props {
-    children?: React.ReactNode;
-    className?: string;
+  namespace User {
+    type Info = any;
   }
-}
 
-// Type definitions for react-hook-form
-declare namespace FieldValues {
-  type Type = any;
-}
-
-declare namespace FieldPath {
-  type Path = any;
-}
-
-declare namespace ControllerProps {
-  type Props = any;
-}
-
-// Type definition for recharts
-declare namespace LegendProps {
-  type Type = any;
-}
-
-// Type definition for React.ReactNode
-declare namespace ReactNode {
-  type Node = any;
+  namespace UseEmblaCarouselType {
+    type Type = any;
+  }
+  
+  namespace DialogProps {
+    interface Props {
+      children?: React.ReactNode;
+      className?: string;
+    }
+  }
+  
+  namespace FieldValues {
+    type Type = any;
+  }
+  
+  namespace FieldPath {
+    type Path = any;
+  }
+  
+  namespace ControllerProps {
+    type Props = any;
+  }
+  
+  namespace LegendProps {
+    type Type = any;
+  }
 }
 
 // Profile Domain interface
@@ -174,4 +163,16 @@ interface AdminStats {
   sold_domains: number;
   verification_pending: number;
   monthly_revenue: number;
+}
+
+// Badge props interface
+interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: "default" | "secondary" | "destructive" | "outline" | "premium" | "verified" | "featured";
+  children?: React.ReactNode;
+  className?: string;
+}
+
+// CommandDialog Props interface
+interface CommandDialogProps extends DialogProps.Props {
+  children?: React.ReactNode;
 }
