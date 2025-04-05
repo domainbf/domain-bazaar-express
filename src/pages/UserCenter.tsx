@@ -9,12 +9,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 
 export const UserCenter = () => {
-  const [activeTab, setActiveTab] = useState("profile");
-  const { user, profile, isLoading } = useAuth();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const tabFromQuery = queryParams.get('tab');
+  
+  const [activeTab, setActiveTab] = useState(tabFromQuery || "profile");
+  const { user, profile, isLoading, refreshProfile } = useAuth();
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -22,8 +26,17 @@ export const UserCenter = () => {
     if (!isLoading && !user) {
       navigate('/');
       toast.error('您需要登录才能访问用户中心');
+    } else if (user && profile) {
+      // If user is logged in, refresh profile data to get latest stats
+      refreshProfile();
     }
-  }, [user, isLoading, navigate]);
+  }, [user, isLoading, navigate, refreshProfile]);
+  
+  // Update URL when tab changes
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    navigate(`/user-center?tab=${value}`, { replace: true });
+  };
   
   if (isLoading) {
     return (
@@ -100,7 +113,7 @@ export const UserCenter = () => {
           </div>
         )}
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <TabsTrigger value="profile">个人资料</TabsTrigger>
             <TabsTrigger value="domains">我的域名</TabsTrigger>

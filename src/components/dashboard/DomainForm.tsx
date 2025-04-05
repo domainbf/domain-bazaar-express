@@ -118,7 +118,27 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
           .insert([domainData]);
         
         if (error) throw error;
-        toast.success('域名已成功添加');
+        toast.success('域名已成功添加', {
+          description: "请完成域名所有权验证后再上架",
+          action: {
+            label: '立即验证',
+            onClick: async () => {
+              // Get the newly created domain ID
+              const { data } = await supabase
+                .from('domain_listings')
+                .select('id')
+                .eq('name', domainName)
+                .eq('owner_id', user.id)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single();
+              
+              if (data?.id) {
+                window.location.href = `/domain-verification/${data.id}`;
+              }
+            }
+          }
+        });
       }
 
       // Reset form and close dialog
@@ -210,7 +230,7 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
         <Checkbox
           id="highlight"
           checked={isHighlighted}
-          onCheckedChange={(checked) => setIsHighlighted(checked as boolean)}
+          onCheckedChange={(checked) => setIsHighlighted(!!checked)}
         />
         <Label htmlFor="highlight" className="text-sm font-medium text-gray-700">
           设为推荐域名（精选）

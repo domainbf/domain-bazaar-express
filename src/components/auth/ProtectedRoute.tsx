@@ -2,8 +2,8 @@
 import { ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { LoadingSpinner } from '../common/LoadingSpinner';
 import { toast } from 'sonner';
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -11,25 +11,20 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRouteProps) => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!isLoading && !user) {
-      toast.error('Please sign in to access this page');
+      toast.error('您需要登录才能访问此页面');
       navigate('/');
-      return;
     }
-
-    if (!isLoading && user && adminOnly) {
-      // Check if user has admin role
-      const isAdmin = user.app_metadata?.role === 'admin';
-      if (!isAdmin) {
-        toast.error('You do not have permission to access this page');
-        navigate('/dashboard');
-      }
+    
+    if (!isLoading && adminOnly && !isAdmin) {
+      toast.error('您没有权限访问此页面');
+      navigate('/user-center');
     }
-  }, [user, isLoading, navigate, adminOnly]);
+  }, [user, isLoading, isAdmin, adminOnly, navigate]);
 
   if (isLoading) {
     return (
@@ -39,10 +34,13 @@ export const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRoutePr
     );
   }
 
-  if (!user) return null;
+  if (!user) {
+    return null;
+  }
   
-  // Admin check for sensitive routes
-  if (adminOnly && user.app_metadata?.role !== 'admin') return null;
+  if (adminOnly && !isAdmin) {
+    return null;
+  }
 
   return <>{children}</>;
 };

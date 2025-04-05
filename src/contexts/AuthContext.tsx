@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { UserProfile } from '@/types/userProfile';
@@ -20,7 +20,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -100,7 +100,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
   
   const signIn = async (email: string, password: string) => {
-    return signInUser(email, password);
+    try {
+      const success = await signInUser(email, password);
+      if (success) {
+        // Check if this is the admin account
+        const { data } = await supabase.auth.getUser();
+        if (data.user?.email === '9208522@qq.com') {
+          console.log('Admin user logged in');
+          toast.success('管理员登录成功');
+        } else {
+          toast.success('登录成功');
+        }
+      }
+      return success;
+    } catch (error) {
+      return false;
+    }
   };
   
   const signUp = async (email: string, password: string, userData?: any) => {
@@ -113,9 +128,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       setProfile(null);
       setIsAdmin(false);
+      toast.success('已成功退出登录');
     } catch (error: any) {
       console.error('Error signing out:', error);
-      toast.error('Failed to sign out');
+      toast.error('退出登录失败');
     }
   };
   

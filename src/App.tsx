@@ -1,5 +1,5 @@
 
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { Toaster } from "sonner";
 import { useEffect } from 'react';
 import Index from './pages/Index';
