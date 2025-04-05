@@ -1,100 +1,48 @@
 
 import { ProfileDomain } from "@/types/userProfile";
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Grid, List, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DomainGrid } from "./DomainGrid";
 import { DomainTable } from "./DomainTable";
+import { Grid2X2, List } from "lucide-react";
 
 interface UserDomainListProps {
   domains: ProfileDomain[];
+  isLoading?: boolean;
+  emptyMessage?: string;
+  showViewToggle?: boolean;
 }
 
-export const UserDomainList = ({ domains }: UserDomainListProps) => {
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  
-  const filteredDomains = domains.filter(domain => {
-    // Filter by search query
-    const matchesSearch = domain.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (domain.description || '').toLowerCase().includes(searchQuery.toLowerCase());
-    
-    // Filter by category
-    const matchesCategory = categoryFilter === 'all' || domain.category === categoryFilter;
-    
-    return matchesSearch && matchesCategory;
-  });
-  
+export const UserDomainList = ({
+  domains,
+  isLoading = false,
+  emptyMessage = "用户没有任何域名",
+  showViewToggle = true
+}: UserDomainListProps) => {
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+
+  if (domains.length === 0 && !isLoading) {
+    return <div className="text-center py-8 text-gray-500">{emptyMessage}</div>;
+  }
+
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <CardTitle>域名列表</CardTitle>
-          
-          <div className="flex items-center gap-2">
-            <Button 
-              variant={viewMode === 'grid' ? 'default' : 'outline'}
-              size="sm" 
-              onClick={() => setViewMode('grid')}
-              className="h-8 w-8 p-0"
-            >
-              <Grid className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant={viewMode === 'list' ? 'default' : 'outline'}
-              size="sm" 
-              onClick={() => setViewMode('list')}
-              className="h-8 w-8 p-0"
-            >
-              <List className="h-4 w-4" />
-            </Button>
-          </div>
+    <div>
+      {showViewToggle && domains.length > 0 && (
+        <div className="flex justify-end mb-4">
+          <Tabs value={viewMode} onValueChange={(val: string) => setViewMode(val as "grid" | "list")}>
+            <TabsList className="grid w-[120px] grid-cols-2">
+              <TabsTrigger value="grid"><Grid2X2 className="h-4 w-4" /></TabsTrigger>
+              <TabsTrigger value="list"><List className="h-4 w-4" /></TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
-            <Input 
-              placeholder="搜索域名..." 
-              className="pl-8"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          
-          <Select 
-            value={categoryFilter} 
-            onValueChange={setCategoryFilter}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="分类" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">全部分类</SelectItem>
-              <SelectItem value="standard">标准</SelectItem>
-              <SelectItem value="premium">高级</SelectItem>
-              <SelectItem value="short">短域名</SelectItem>
-              <SelectItem value="dev">开发</SelectItem>
-              <SelectItem value="brandable">品牌</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        {filteredDomains.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            <p>没有找到符合条件的域名</p>
-          </div>
-        ) : viewMode === 'grid' ? (
-          <DomainGrid domains={filteredDomains} />
-        ) : (
-          <DomainTable domains={filteredDomains} />
-        )}
-      </CardContent>
-    </Card>
+      )}
+
+      {viewMode === "grid" ? (
+        <DomainGrid domains={domains} isLoading={isLoading} emptyMessage={emptyMessage} />
+      ) : (
+        <DomainTable domains={domains} isLoading={isLoading} emptyMessage={emptyMessage} />
+      )}
+    </div>
   );
 };

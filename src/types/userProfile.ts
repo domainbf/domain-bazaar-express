@@ -25,3 +25,17 @@ export interface UserProfile {
   completed_transactions?: number;
   balance?: number;
 }
+
+// Add ProfileDomain interface for profile-related components
+export interface ProfileDomain {
+  id: string;
+  name: string;
+  category?: string;
+  price?: number;
+  status: string;
+  created_at: string;
+  is_verified?: boolean;
+  verification_status?: string;
+  description?: string;
+  highlight?: boolean;
+}

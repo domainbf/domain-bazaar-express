@@ -11,11 +11,22 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
+import { AdminStats } from '@/types/domain';
 
 export const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const [stats, setStats] = useState<AdminStats>({
+    total_domains: 0,
+    pending_verifications: 0,
+    active_listings: 0,
+    total_offers: 0,
+    recent_transactions: 0,
+    users_count: 0,
+    verified_users: 0
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Check if user is admin, if not redirect
@@ -47,6 +58,7 @@ export const AdminPanel = () => {
     };
     
     checkAdminStatus();
+    fetchAdminStats();
     
     // Promote user to admin if needed
     const promoteToAdmin = async () => {
@@ -65,6 +77,33 @@ export const AdminPanel = () => {
     
     promoteToAdmin();
   }, [user, isAdmin, navigate]);
+
+  const fetchAdminStats = async () => {
+    setIsLoading(true);
+    try {
+      // These are mock stats - in a real app you would fetch these from the backend
+      const mockStats: AdminStats = {
+        total_domains: 152,
+        pending_verifications: 12,
+        active_listings: 98,
+        total_offers: 47,
+        recent_transactions: 23,
+        users_count: 210,
+        verified_users: 78
+      };
+      
+      setStats(mockStats);
+    } catch (error) {
+      console.error("Error fetching admin stats:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const refreshStats = async () => {
+    await fetchAdminStats();
+    toast.success("统计数据已更新");
+  };
 
   if (!user || !isAdmin) {
     return (
@@ -97,7 +136,7 @@ export const AdminPanel = () => {
           </TabsList>
           
           <TabsContent value="dashboard" className="mt-6">
-            <AdminDashboard />
+            <AdminDashboard stats={stats} isLoading={isLoading} onRefresh={refreshStats} />
           </TabsContent>
           
           <TabsContent value="users" className="mt-6">
