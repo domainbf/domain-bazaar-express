@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Plus, Loader2, RefreshCw } from 'lucide-react';
+import { Plus, Loader2, RefreshCw, Filter, Download, Upload } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DomainForm } from '@/components/dashboard/DomainForm';
 import { DomainListing } from '@/types/domain';
@@ -18,6 +18,15 @@ import {
 } from "@/components/ui/card";
 import { DomainListManager } from './DomainListManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 export const DomainManagement = () => {
   const [domains, setDomains] = useState<DomainListing[]>([]);
@@ -26,6 +35,7 @@ export const DomainManagement = () => {
   const [editingDomain, setEditingDomain] = useState<DomainListing | null>(null);
   const [domainStats, setDomainStats] = useState({ total: 0, verified: 0, pending: 0, listed: 0 });
   const [activeTab, setActiveTab] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -112,15 +122,54 @@ export const DomainManagement = () => {
     }
   };
 
-  const filteredDomains = activeTab === "all" 
-    ? domains 
-    : activeTab === "verified" 
-      ? domains.filter(d => d.verification_status === 'verified')
-      : activeTab === "pending" 
-        ? domains.filter(d => d.verification_status === 'pending') 
-        : activeTab === "listed"
-          ? domains.filter(d => d.status === 'available')
-          : domains;
+  const handleBatchAction = (action: string) => {
+    toast.info(`批量${action}功能即将上线，敬请期待`);
+  };
+
+  const exportDomainsToCSV = () => {
+    try {
+      // Convert domains to CSV format
+      const headers = ['域名', '价格', '分类', '状态', '验证状态', '创建日期'];
+      const csvContent = [
+        headers.join(','),
+        ...domains.map(domain => [
+          domain.name || '',
+          domain.price || '0',
+          domain.category || '标准',
+          domain.status === 'available' ? '在售中' : domain.status === 'sold' ? '已售出' : '未上架',
+          domain.verification_status === 'verified' ? '已验证' : '待验证',
+          new Date(domain.created_at || '').toLocaleDateString()
+        ].join(','))
+      ].join('\n');
+      
+      // Create a download link
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = '我的域名列表.csv';
+      link.click();
+    } catch (error) {
+      console.error('导出域名数据失败:', error);
+      toast.error('导出域名数据失败');
+    }
+  };
+
+  const filteredDomains = domains.filter(domain => {
+    // Filter by tab
+    if (activeTab !== "all") {
+      if (activeTab === "verified" && domain.verification_status !== 'verified') return false;
+      if (activeTab === "pending" && domain.verification_status !== 'pending') return false;
+      if (activeTab === "listed" && domain.status !== 'available') return false;
+    }
+    
+    // Filter by search query
+    if (searchQuery && !domain.name?.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false;
+    }
+    
+    return true;
+  });
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -163,6 +212,36 @@ export const DomainManagement = () => {
         </div>
         
         <div className="flex space-x-2">
+          <div className="relative">
+            <Input
+              placeholder="搜索域名..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="max-w-[200px]"
+            />
+          </div>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Filter className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>批量操作</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => exportDomainsToCSV()}>
+                <Download className="w-4 h-4 mr-2" />导出CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleBatchAction("上架")}>
+                <Upload className="w-4 h-4 mr-2" />批量上架
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleBatchAction("下架")}>
+                <Download className="w-4 h-4 mr-2" />批量下架
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
           <Button 
             variant="outline" 
             size="sm"

@@ -11,11 +11,17 @@ import {
   CardDescription 
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash, CheckCircle2, Eye, Globe, ShieldCheck } from 'lucide-react';
+import { Edit, Trash, CheckCircle2, Eye, Globe, ShieldCheck, AlertTriangle, ArrowUpRight, Clock } from 'lucide-react';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { DomainListing } from '@/types/domain';
 import { useNavigate } from 'react-router-dom';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface DomainListManagerProps {
   domains: DomainListing[];
@@ -65,6 +71,20 @@ export const DomainListManager = ({ domains, onEdit, onDelete, onRefresh }: Doma
     }
   };
 
+  const getDomainAgeLabel = (createdDate: string | undefined) => {
+    if (!createdDate) return '';
+    
+    const created = new Date(createdDate);
+    const now = new Date();
+    const diffInDays = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffInDays < 1) return '今天上传';
+    if (diffInDays < 7) return `${diffInDays}天前上传`;
+    if (diffInDays < 30) return `${Math.floor(diffInDays / 7)}周前上传`;
+    if (diffInDays < 365) return `${Math.floor(diffInDays / 30)}个月前上传`;
+    return `${Math.floor(diffInDays / 365)}年前上传`;
+  };
+
   if (domains.length === 0) {
     return (
       <Card className="border border-dashed border-gray-300 bg-gray-50">
@@ -92,10 +112,15 @@ export const DomainListManager = ({ domains, onEdit, onDelete, onRefresh }: Doma
                       <ShieldCheck className="h-3 w-3" /> 已验证
                     </Badge>
                   )}
+                  {domain.verification_status === 'pending' && (
+                    <Badge variant="outline" className="flex items-center gap-1 text-yellow-600 border-yellow-300">
+                      <AlertTriangle className="h-3 w-3" /> 待验证
+                    </Badge>
+                  )}
                   {domain.highlight && (
                     <Badge variant="featured">精选</Badge>
                   )}
-                  <Badge variant={domain.status === 'available' ? 'default' : 'secondary'}>
+                  <Badge variant={domain.status === 'available' ? 'default' : domain.status === 'sold' ? 'destructive' : 'secondary'}>
                     {domain.status === 'available' ? '在售中' : domain.status === 'sold' ? '已售' : '未上架'}
                   </Badge>
                 </div>
@@ -104,7 +129,7 @@ export const DomainListManager = ({ domains, onEdit, onDelete, onRefresh }: Doma
                   ¥{domain.price?.toLocaleString()}
                 </div>
                 
-                <div className="mt-1 text-sm text-gray-500 flex items-center gap-1">
+                <div className="mt-1 text-sm text-gray-500 flex items-center flex-wrap gap-2">
                   <Badge variant="secondary" className="font-normal">
                     {domain.category === 'standard' && '标准'}
                     {domain.category === 'premium' && '高级'}
@@ -112,6 +137,11 @@ export const DomainListManager = ({ domains, onEdit, onDelete, onRefresh }: Doma
                     {domain.category === 'dev' && '开发'}
                     {domain.category === 'brandable' && '品牌'}
                   </Badge>
+                  
+                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                    <Clock className="h-3 w-3" />
+                    {getDomainAgeLabel(domain.created_at)}
+                  </div>
                   
                   {domain.description && (
                     <span className="ml-2 line-clamp-1">{domain.description}</span>
@@ -121,15 +151,28 @@ export const DomainListManager = ({ domains, onEdit, onDelete, onRefresh }: Doma
               
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between md:justify-end gap-3">
-                  <Switch
-                    id={`status-switch-${domain.id}`}
-                    checked={domain.status === 'available'}
-                    onCheckedChange={() => handleToggleStatus(domain)}
-                    disabled={processingDomain === domain.id || domain.verification_status !== 'verified'}
-                  />
-                  <Label htmlFor={`status-switch-${domain.id}`} className="text-sm whitespace-nowrap">
-                    {domain.status === 'available' ? '已上架' : '未上架'}
-                  </Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            id={`status-switch-${domain.id}`}
+                            checked={domain.status === 'available'}
+                            onCheckedChange={() => handleToggleStatus(domain)}
+                            disabled={processingDomain === domain.id || domain.verification_status !== 'verified'}
+                          />
+                          <Label htmlFor={`status-switch-${domain.id}`} className="text-sm whitespace-nowrap">
+                            {domain.status === 'available' ? '已上架' : '未上架'}
+                          </Label>
+                        </div>
+                      </TooltipTrigger>
+                      {domain.verification_status !== 'verified' && (
+                        <TooltipContent>
+                          <p>域名需要验证所有权后才能上架</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
                 
                 <div className="flex gap-2 mt-2">
@@ -160,7 +203,7 @@ export const DomainListManager = ({ domains, onEdit, onDelete, onRefresh }: Doma
                       onClick={() => handleViewInMarketplace(domain)}
                       className="border-gray-300 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
                     >
-                      <Globe className="w-4 h-4 mr-1" /> 查看
+                      <ArrowUpRight className="w-4 h-4 mr-1" /> 查看
                     </Button>
                   )}
                   

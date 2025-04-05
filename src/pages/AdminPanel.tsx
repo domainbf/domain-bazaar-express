@@ -86,9 +86,9 @@ const AdminPanel = () => {
         <div className="flex flex-col space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Admin Panel</h1>
+              <h1 className="text-3xl font-bold tracking-tight">后台管理系统</h1>
               <p className="text-muted-foreground">
-                Manage domains, users, and site settings
+                管理域名、用户和网站设置
               </p>
             </div>
           </div>
@@ -100,23 +100,23 @@ const AdminPanel = () => {
             <TabsList className="grid grid-cols-5">
               <TabsTrigger value="dashboard" className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
-                <span>Dashboard</span>
+                <span>数据概览</span>
               </TabsTrigger>
               <TabsTrigger value="domains" className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
-                <span>Domains</span>
+                <span>域名管理</span>
               </TabsTrigger>
               <TabsTrigger value="users" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                <span>Users</span>
+                <span>用户管理</span>
               </TabsTrigger>
               <TabsTrigger value="verifications" className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4" />
-                <span>Verifications</span>
+                <span>验证管理</span>
               </TabsTrigger>
               <TabsTrigger value="settings" className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
-                <span>Settings</span>
+                <span>系统设置</span>
               </TabsTrigger>
             </TabsList>
             <TabsContent value="dashboard">
