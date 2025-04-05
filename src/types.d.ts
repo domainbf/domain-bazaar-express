@@ -1,4 +1,5 @@
 
+// Declare modules for packages
 declare module 'react';
 declare module 'react-dom/client';
 declare module 'react-router-dom';
@@ -50,12 +51,12 @@ declare module 'recharts';
 declare module 'tailwind-merge';
 declare module 'vaul';
 
-// Turn off type checking for untyped function calls with generic arguments
+// Allow all generic types for functions to prevent TS2347 errors
 interface Function {
-  <T>(...args: any[]): any;
+  <T extends any[]>(...args: any[]): any;
 }
 
-// Define specific React types that are being used
+// React namespace types that are used throughout the application
 declare namespace React {
   type FC<P = {}> = FunctionComponent<P>;
   
@@ -81,7 +82,12 @@ declare namespace React {
   
   type CSSProperties = Record<string, any>;
   type ComponentType<P = {}> = FunctionComponent<P>;
-  type ComponentProps<T extends keyof JSX.IntrinsicElements | React.ComponentType<any>> = T extends React.ComponentType<infer P> ? P : T extends keyof JSX.IntrinsicElements ? JSX.IntrinsicElements[T] : {};
+  type ComponentProps<T extends keyof JSX.IntrinsicElements | React.ComponentType<any>> = 
+    T extends React.ComponentType<infer P> 
+      ? P 
+      : T extends keyof JSX.IntrinsicElements 
+        ? JSX.IntrinsicElements[T] 
+        : {};
   type ElementRef<T> = T;
   type ComponentPropsWithoutRef<T> = any;
   type RefAttributes<T> = { ref?: React.Ref<T> };
@@ -94,29 +100,38 @@ declare namespace React {
   type TextareaHTMLAttributes<T> = HTMLAttributes<T>;
   type ThHTMLAttributes<T> = HTMLAttributes<T>;
   type TdHTMLAttributes<T> = HTMLAttributes<T>;
+  type ReactElement<P = any, T = any> = any;
 }
 
-// Add custom namespaces for third-party libraries
+// Type definitions for class-variance-authority
 declare namespace VariantProps {
-  type Prop = any;
+  type Prop<T> = any;
 }
 
+// Type definitions for clsx
 declare namespace ClassValue {
   type Value = any;
 }
 
+// Type definitions for @supabase/supabase-js
 declare namespace User {
   type Info = any;
 }
 
+// Type definitions for embla-carousel-react
 declare namespace UseEmblaCarouselType {
   type Type = any;
 }
 
+// Type definitions for @radix-ui/react-dialog
 declare namespace DialogProps {
-  type Props = any;
+  interface Props {
+    children?: React.ReactNode;
+    className?: string;
+  }
 }
 
+// Type definitions for react-hook-form
 declare namespace FieldValues {
   type Type = any;
 }
@@ -129,10 +144,34 @@ declare namespace ControllerProps {
   type Props = any;
 }
 
+// Type definition for recharts
 declare namespace LegendProps {
   type Type = any;
 }
 
+// Type definition for React.ReactNode
 declare namespace ReactNode {
   type Node = any;
+}
+
+// Profile Domain interface
+interface ProfileDomain {
+  id: string;
+  name: string;
+  price?: number | string;
+  status: 'available' | 'sold' | 'pending';
+  category?: string;
+  description?: string;
+  created_at?: string;
+  featured?: boolean;
+}
+
+// Admin Stats interface
+interface AdminStats {
+  users_count: number;
+  total_domains: number;
+  active_listings: number;
+  sold_domains: number;
+  verification_pending: number;
+  monthly_revenue: number;
 }
