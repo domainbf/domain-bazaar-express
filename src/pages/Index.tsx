@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { DomainCard } from '@/components/DomainCard';
@@ -30,7 +31,7 @@ const Index = () => {
         .from('domain_listings')
         .select('*')
         .eq('status', 'available')
-        .eq('highlight', true)
+        .order('highlight', { ascending: false })
         .order('created_at', { ascending: false })
         .limit(6);
       
@@ -243,14 +244,13 @@ const Index = () => {
                 Browse Domains
               </Button>
             </Link>
-            <Link to="/dashboard" className="w-full sm:w-auto">
-              <Button 
-                variant="outline" 
-                className="w-full sm:w-auto border-white border-2 bg-transparent text-white hover:bg-gray-700 px-6 py-2 md:px-6 md:py-3 text-base font-bold"
-              >
-                Sell Your Domains
-              </Button>
-            </Link>
+            <Button 
+              variant="outline" 
+              className="w-full sm:w-auto border-white border-2 bg-transparent text-white hover:bg-gray-700 px-6 py-2 md:px-6 md:py-3 text-base font-bold"
+              onClick={handleSellDomains}
+            >
+              Sell Your Domains
+            </Button>
           </div>
         </div>
       </section>

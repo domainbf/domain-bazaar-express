@@ -1,157 +1,118 @@
 
 import { useState, useEffect } from 'react';
-import { Navbar } from '@/components/Navbar';
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { AdminStats } from '@/types/domain';
-import { AdminDashboard } from '@/components/admin/AdminDashboard';
-import { PendingVerifications } from '@/components/admin/PendingVerifications';
-import { AllDomainListings } from '@/components/admin/AllDomainListings';
-import { UserManagement } from '@/components/admin/UserManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Settings } from 'lucide-react';
+import { AdminDashboard } from '@/components/admin/AdminDashboard';
+import { UserManagement } from '@/components/admin/UserManagement';
+import { PendingVerifications } from '@/components/admin/PendingVerifications';
 import { SiteSettings } from '@/components/admin/SiteSettings';
+import { AllDomainListings } from '@/components/admin/AllDomainListings';
+import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from "sonner";
 
 export const AdminPanel = () => {
-  const [stats, setStats] = useState<AdminStats>({
-    total_domains: 0,
-    pending_verifications: 0,
-    active_listings: 0,
-    total_offers: 0,
-    recent_transactions: 0
-  });
-  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("dashboard");
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) {
-      checkAdminStatus();
-      loadAdminStats();
-    }
-  }, [user]);
-
-  const checkAdminStatus = async () => {
-    try {
-      // First check if this is our special admin
-      if (user?.email === '9208522@qq.com') {
-        // If it's our special admin, ensure they actually have admin role
-        const { error } = await supabase.rpc('promote_user_to_admin', {
-          user_email: '9208522@qq.com'
-        } as { user_email: string });
-        
-        if (error) console.error('Error promoting special admin:', error);
+    // Check if user is admin, if not redirect
+    const checkAdminStatus = async () => {
+      if (!user) {
+        navigate('/');
+        toast.error('您需要登录才能访问管理面板');
         return;
       }
       
       if (!isAdmin) {
-        toast.error('您没有管理员权限');
-        navigate('/');
+        try {
+          // Try to fetch admin status from database
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', user.id)
+            .single();
+            
+          if (error || !data?.is_admin) {
+            navigate('/');
+            toast.error('您没有权限访问管理面板');
+          }
+        } catch (error) {
+          console.error('Error checking admin status:', error);
+          navigate('/');
+        }
       }
-    } catch (error) {
-      console.error('Error checking admin status:', error);
-      toast.error('验证管理员权限时发生错误');
-      navigate('/');
-    }
-  };
+    };
+    
+    checkAdminStatus();
+    
+    // Promote user to admin if needed
+    const promoteToAdmin = async () => {
+      try {
+        const { data, error } = await supabase.rpc('promote_user_to_admin', {
+          user_email: '9208522@qq.com'
+        } as any);
+        
+        if (!error) {
+          console.log('Admin promotion successful');
+        }
+      } catch (error) {
+        console.error('Error promoting to admin:', error);
+      }
+    };
+    
+    promoteToAdmin();
+  }, [user, isAdmin, navigate]);
 
-  const loadAdminStats = async () => {
-    setIsLoading(true);
-    try {
-      // Get total domains
-      const { data: domains, error: domainsError } = await supabase
-        .from('domain_listings')
-        .select('id', { count: 'exact' });
-      
-      if (domainsError) throw domainsError;
-      
-      // Get pending verifications
-      const { data: verifications, error: verificationsError } = await supabase
-        .from('domain_verifications')
-        .select('id', { count: 'exact' })
-        .eq('status', 'pending');
-      
-      if (verificationsError) throw verificationsError;
-      
-      // Get active listings
-      const { data: activeListings, error: activeListingsError } = await supabase
-        .from('domain_listings')
-        .select('id', { count: 'exact' })
-        .eq('status', 'available');
-      
-      if (activeListingsError) throw activeListingsError;
-      
-      // Get total offers
-      const { data: offers, error: offersError } = await supabase
-        .from('domain_offers')
-        .select('id', { count: 'exact' });
-      
-      if (offersError) throw offersError;
-      
-      setStats({
-        total_domains: domains?.length || 0,
-        pending_verifications: verifications?.length || 0,
-        active_listings: activeListings?.length || 0,
-        total_offers: offers?.length || 0,
-        recent_transactions: 0, // This would require more complex query
-      });
-    } catch (error: any) {
-      console.error('Error loading admin stats:', error);
-      toast.error(error.message || '加载管理统计信息失败');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (!isAdmin && !isLoading) {
+  if (!user || !isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-2">访问被拒绝</h1>
-          <p className="text-gray-600">您没有权限访问此页面</p>
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <p className="mt-2 text-3xl font-extrabold text-gray-900 sm:text-4xl">
+              正在验证管理员权限...
+            </p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex items-center gap-3 mb-8">
-          <Shield className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold text-gray-900">管理员控制面板</h1>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">管理员控制面板</h1>
         
-        <Tabs defaultValue="dashboard" className="w-full">
-          <TabsList className="mb-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid grid-cols-2 md:grid-cols-5 gap-2">
             <TabsTrigger value="dashboard">仪表盘</TabsTrigger>
-            <TabsTrigger value="verifications">待验证域名</TabsTrigger>
-            <TabsTrigger value="domains">所有域名</TabsTrigger>
             <TabsTrigger value="users">用户管理</TabsTrigger>
-            <TabsTrigger value="settings">网站设置</TabsTrigger>
+            <TabsTrigger value="domains">域名管理</TabsTrigger>
+            <TabsTrigger value="verifications">待验证</TabsTrigger>
+            <TabsTrigger value="settings">系统设置</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="dashboard">
-            <AdminDashboard stats={stats} isLoading={isLoading} onRefresh={loadAdminStats} />
+          <TabsContent value="dashboard" className="mt-6">
+            <AdminDashboard />
           </TabsContent>
           
-          <TabsContent value="verifications">
-            <PendingVerifications />
-          </TabsContent>
-          
-          <TabsContent value="domains">
-            <AllDomainListings />
-          </TabsContent>
-          
-          <TabsContent value="users">
+          <TabsContent value="users" className="mt-6">
             <UserManagement />
           </TabsContent>
           
-          <TabsContent value="settings">
+          <TabsContent value="domains" className="mt-6">
+            <AllDomainListings />
+          </TabsContent>
+          
+          <TabsContent value="verifications" className="mt-6">
+            <PendingVerifications />
+          </TabsContent>
+          
+          <TabsContent value="settings" className="mt-6">
             <SiteSettings />
           </TabsContent>
         </Tabs>

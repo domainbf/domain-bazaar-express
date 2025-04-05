@@ -31,21 +31,25 @@ export const TrendingDomains = () => {
       
       if (error) throw error;
       
-      // Transform the data to include display metrics
-      const trendingData = (domainsData || []).map(domain => ({
-        domain: domain.name,
-        price: domain.price,
-        // Generate view numbers for display purposes based on price and highlight
-        views: domain.highlight 
-          ? `${Math.floor(Math.random() * 10) + 10}.${Math.floor(Math.random() * 9)}K`
-          : `${Math.floor(Math.random() * 5) + 5}.${Math.floor(Math.random() * 9)}K`,
-        // Generate growth rate based on highlight status
-        growth: domain.highlight 
-          ? `+${Math.floor(Math.random() * 30) + 20}%` 
-          : `+${Math.floor(Math.random() * 15) + 5}%`
-      }));
-      
-      setTrendingDomains(trendingData);
+      if (domainsData && domainsData.length > 0) {
+        // Transform the data to include display metrics
+        const trendingData = domainsData.map(domain => ({
+          domain: domain.name,
+          price: domain.price,
+          // Generate view numbers for display purposes based on price and highlight
+          views: domain.highlight 
+            ? `${Math.floor(Math.random() * 10) + 10}.${Math.floor(Math.random() * 9)}K`
+            : `${Math.floor(Math.random() * 5) + 5}.${Math.floor(Math.random() * 9)}K`,
+          // Generate growth rate based on highlight status
+          growth: domain.highlight 
+            ? `+${Math.floor(Math.random() * 30) + 20}%` 
+            : `+${Math.floor(Math.random() * 15) + 5}%`
+        }));
+        
+        setTrendingDomains(trendingData);
+      } else {
+        setTrendingDomains([]);
+      }
     } catch (error) {
       console.error('Error loading trending domains:', error);
       setTrendingDomains([]);

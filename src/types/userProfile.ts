@@ -1,33 +1,27 @@
 
 export interface UserProfile {
   id: string;
-  full_name: string | null;
-  avatar_url: string | null;
-  bio: string | null;
-  username: string | null;
+  avatar_url?: string;
+  bio?: string;
+  company_name?: string;
+  contact_email?: string;
+  contact_phone?: string;
   created_at: string;
-  updated_at: string;
-  custom_url: string | null;
-  contact_email: string | null;
-  contact_phone: string | null;
-  company_name: string | null;
-  verification_status: string;
+  custom_url?: string;
+  full_name?: string;
   is_seller: boolean;
+  payment_info?: any;
+  preferred_payment_methods?: string[];
+  seller_rating?: number;
   seller_verified: boolean;
   total_sales: number;
-  seller_rating: number | null;
-  payment_info: any;
-  verification_documents: any;
-  preferred_payment_methods: string[];
-  is_admin?: boolean; // Add this property to fix the TypeScript error
-}
-
-export interface ProfileDomain {
-  id: string;
-  name: string;
-  price: number;
-  category?: string;
-  description?: string;
-  status?: string;
-  highlight?: boolean;
+  updated_at: string;
+  username?: string;
+  verification_documents?: any;
+  verification_status: string;
+  is_admin?: boolean;
+  account_level?: string;
+  domains_count?: number;
+  completed_transactions?: number;
+  balance?: number;
 }
