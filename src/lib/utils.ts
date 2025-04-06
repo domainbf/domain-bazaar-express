@@ -1,5 +1,4 @@
 
-// Import React type definitions from our custom declarations
 import * as React from 'react';
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -8,10 +7,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// Add this utility function to help with type checking
+// Modified forwardRef helper function that doesn't rely on the problematic types
 export function forwardRef<T, P = {}>(
   render: (props: P, ref: React.Ref<T>) => React.ReactElement | null
-): React.ForwardRefExoticComponent<React.PropsWithoutRef<P> & React.RefAttributes<T>> {
+) {
   return React.forwardRef(render);
 }
 

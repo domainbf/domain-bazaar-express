@@ -1,5 +1,6 @@
 
 /// <reference types="vite/client" />
+/// <reference path="./types/react-augmentation.d.ts" />
 
 interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL: string

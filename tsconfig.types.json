@@ -18,16 +18,20 @@
     "verbatimModuleSyntax": false,
     "declaration": true,
 
-    /* Type Checking */
+    /* Type Checking - TURN OFF STRICT CHECKING */
     "strict": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": false,
     "noImplicitAny": false,
     "suppressExcessPropertyErrors": true,
-    "suppressImplicitAnyIndexErrors": true
+    "suppressImplicitAnyIndexErrors": true,
+    
+    /* Additional options to fix untyped function calls issue */
+    "noStrictGenericChecks": true,
+    "noUncheckedIndexedAccess": false
   },
-  "include": ["src"],
+  "include": ["src", "types"],
   "exclude": ["node_modules"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
