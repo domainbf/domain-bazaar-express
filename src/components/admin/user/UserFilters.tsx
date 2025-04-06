@@ -20,8 +20,8 @@ export const UserFilters = ({
   searchQuery, 
   onSearchChange 
 }: UserFiltersProps) => {
-  const [role, setRole] = useState<string>("all");
-  const [status, setStatus] = useState<string>("all");
+  const [role, setRole] = useState("all");
+  const [status, setStatus] = useState("all");
   
   useEffect(() => {
     // Here we would apply the filters
