@@ -63,6 +63,8 @@ export const handleAuthError = (error: any, action: string) => {
     errorMessage = '该邮箱已被注册，请尝试登录或使用另一个邮箱';
   } else if (errorMessage.includes('Password should be')) {
     errorMessage = '密码应至少包含6个字符';
+  } else if (errorMessage.includes('rate limited')) {
+    errorMessage = '操作过于频繁，请稍后再试';
   }
   
   toast.error(errorMessage || `${action}失败`);

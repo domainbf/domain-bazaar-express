@@ -40,17 +40,17 @@ export const AuthModal = ({
 
   const handlePasswordResetSuccess = () => {
     setShowResetPassword(false);
-    toast.success('Password reset instructions sent to your email');
+    toast.success('密码重置说明已发送至您的邮箱');
   };
 
   // Determine the title based on current state
   const getTitle = () => {
-    if (showResetPassword) return 'Reset Password';
-    return activeMode === 'signin' ? 'Sign In' : 'Create an Account';
+    if (showResetPassword) return '重置密码';
+    return activeMode === 'signin' ? '用户登录' : '创建新账户';
   };
 
   return (
-    <Dialog open={isModalOpen} onOpenChange={onClose}>
+    <Dialog open={isModalOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="bg-white border-gray-200 max-w-md">
         <AuthModalHeader title={getTitle()} />
         

@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,6 +11,7 @@ interface AuthContextType {
   profile: UserProfile | null;
   isAdmin: boolean;
   isLoading: boolean;
+  isAuthenticating: boolean;  // New state for tracking authentication attempts
   signIn: (email: string, password: string) => Promise<boolean>;
   signUp: (email: string, password: string, userData?: any) => Promise<boolean>;
   signOut: () => Promise<void>;
@@ -24,6 +26,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   const refreshProfile = async () => {
     if (!user) return;
@@ -91,11 +94,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
   
   const signIn = async (email: string, password: string) => {
-    return signInUser(email, password);
+    setIsAuthenticating(true);
+    try {
+      const result = await signInUser(email, password);
+      return result;
+    } finally {
+      setIsAuthenticating(false);
+    }
   };
   
   const signUp = async (email: string, password: string, userData?: any) => {
-    return signUpUser(email, password, userData);
+    setIsAuthenticating(true);
+    try {
+      const result = await signUpUser(email, password, userData);
+      return result;
+    } finally {
+      setIsAuthenticating(false);
+    }
   };
   
   const signOut = async () => {
@@ -111,7 +126,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const resetPassword = async (email: string) => {
-    return resetUserPassword(email);
+    setIsAuthenticating(true);
+    try {
+      return await resetUserPassword(email);
+    } finally {
+      setIsAuthenticating(false);
+    }
   };
   
   return (
@@ -120,7 +140,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user, 
         profile, 
         isAdmin, 
-        isLoading, 
+        isLoading,
+        isAuthenticating, 
         signIn,
         signUp,
         signOut,
