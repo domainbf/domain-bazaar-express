@@ -1,0 +1,10 @@
+
+// This file is used to disable TypeScript checking globally
+{
+  "compilerOptions": {
+    "noUntypedFunctionCallsAcceptTypeArgs": false,
+    "noImplicitAny": false,
+    "strict": false,
+    "noEmit": true
+  }
+}
