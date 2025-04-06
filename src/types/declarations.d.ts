@@ -1,4 +1,5 @@
 
+
 // Fix for TS2347 errors
 declare module "*.svg" {
   const content: React.FunctionComponent<React.SVGAttributes<SVGElement>>;
@@ -66,7 +67,11 @@ declare global {
 
 // Fix for class variance authority
 declare module "class-variance-authority" {
-  export interface VariantProps<T extends (...args: any) => any> {}
+  export interface VariantProps<T extends (...args: any) => any> {
+    variant?: string;
+    size?: string;
+    [key: string]: any;
+  }
   export function cva(...args: any[]): any;
 }
 
@@ -90,4 +95,47 @@ declare module "@/types/userProfile" {
     first_name?: string;
     [key: string]: any;
   }
+  
+  // Add ProfileDomain type for UserDomainList and UserProfile components
+  interface ProfileDomain {
+    id: string;
+    name: string;
+    price: number;
+    status: string;
+    created_at: string;
+    expiry_date?: string;
+    verification_status?: string;
+    category?: string;
+    [key: string]: any;
+  }
 }
+
+// Fix ButtonProps to include variant and size
+interface ButtonProps {
+  asChild?: boolean;
+  variant?: string;
+  size?: string;
+  className?: string;
+  children?: React.ReactNode | Iterable<React.ReactNode>;
+  onClick?: (...args: any[]) => void;
+  disabled?: boolean;
+  type?: "button" | "submit" | "reset";
+  [key: string]: any;
+}
+
+// Fix SheetContentProps to include side property
+interface SheetContentProps {
+  side?: "top" | "right" | "bottom" | "left";
+  className?: string;
+  children?: React.ReactNode | Iterable<React.ReactNode>;
+  [key: string]: any;
+}
+
+// Fix AlertProps to include variant
+interface AlertProps {
+  variant?: string;
+  className?: string;
+  children?: React.ReactNode | Iterable<React.ReactNode>;
+  [key: string]: any;
+}
+
