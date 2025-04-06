@@ -1,61 +1,56 @@
 
-import { ProfileDomain } from "@/types/userProfile";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import React from 'react';
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
-import { Link } from "react-router-dom";
 
-interface DomainGridProps {
-  domains: ProfileDomain[];
+interface Domain {
+  id: string;
+  name: string;
+  price: number;
+  status: string;
+  category?: string;
+  highlight?: boolean;
 }
 
-export const DomainGrid = ({ domains }: DomainGridProps) => {
-  const getCategoryLabel = (category?: string) => {
-    switch(category) {
-      case 'standard': return '标准';
-      case 'premium': return '高级';
-      case 'short': return '短域名';
-      case 'dev': return '开发';
-      case 'brandable': return '品牌';
-      default: return category;
-    }
-  };
-  
+interface DomainGridProps {
+  domains: Domain[];
+  onSelect?: (domain: Domain) => void;
+}
+
+export const DomainGrid = ({ domains, onSelect }: DomainGridProps) => {
+  if (!domains || domains.length === 0) {
+    return (
+      <div className="text-center py-10">
+        <p className="text-gray-500">暂无域名</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {domains.map(domain => (
-        <Card key={domain.id} className="h-full flex flex-col">
-          <CardHeader className="pb-2">
-            <div className="flex justify-between items-start">
-              <CardTitle className="font-mono text-lg">{domain.name}</CardTitle>
-              {domain.highlight && (
-                <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
-                  精选
-                </Badge>
-              )}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {domains.map((domain) => (
+        <div 
+          key={domain.id}
+          className="border rounded-lg p-4 cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => onSelect && onSelect(domain)}
+        >
+          <div className="flex justify-between items-start mb-2">
+            <h3 className="text-lg font-bold text-gray-800">{domain.name}</h3>
+            {domain.highlight && <Badge className="bg-yellow-500 text-white">{React.createElement('span', {}, '精选')}</Badge>}
+          </div>
+          
+          <div className="flex justify-between items-end">
+            <span className="text-lg font-bold text-gray-900">${domain.price?.toLocaleString()}</span>
+            <Badge className={domain.status === 'available' ? 'bg-green-500' : domain.status === 'sold' ? 'bg-red-500' : 'bg-yellow-400'}>
+              {React.createElement('span', {}, domain.status === 'available' ? '可售' : domain.status === 'sold' ? '已售' : '预留')}
+            </Badge>
+          </div>
+          
+          {domain.category && (
+            <div className="mt-2">
+              <span className="text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-600">{domain.category}</span>
             </div>
-            {domain.category && (
-              <Badge variant="outline" className="mt-1">
-                {getCategoryLabel(domain.category)}
-              </Badge>
-            )}
-          </CardHeader>
-          <CardContent className="flex-1">
-            <p className="text-gray-600 text-sm h-16 overflow-hidden">
-              {domain.description || '没有描述'}
-            </p>
-          </CardContent>
-          <CardFooter className="flex justify-between items-center pt-2 border-t">
-            <div className="font-bold">¥{domain.price.toLocaleString()}</div>
-            <Link to={`/marketplace?domain=${domain.name}`}>
-              <Button variant="outline" size="sm" className="flex items-center gap-1">
-                <ExternalLink className="h-3 w-3" />
-                查看详情
-              </Button>
-            </Link>
-          </CardFooter>
-        </Card>
+          )}
+        </div>
       ))}
     </div>
   );

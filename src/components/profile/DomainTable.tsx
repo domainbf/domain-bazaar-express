@@ -1,81 +1,95 @@
 
-import { ProfileDomain } from "@/types/userProfile";
+import React from 'react';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Eye, Edit, Trash2 } from "lucide-react";
 
-interface DomainTableProps {
-  domains: ProfileDomain[];
+interface Domain {
+  id: string;
+  name: string;
+  price: number;
+  status: string;
+  created_at: string;
+  expiry_date?: string;
+  verification_status?: string;
+  category?: string;
 }
 
-export const DomainTable = ({ domains }: DomainTableProps) => {
-  const getCategoryLabel = (category?: string) => {
-    switch(category) {
-      case 'standard': return '标准';
-      case 'premium': return '高级';
-      case 'short': return '短域名';
-      case 'dev': return '开发';
-      case 'brandable': return '品牌';
-      default: return category;
-    }
-  };
-  
+interface DomainTableProps {
+  domains: Domain[];
+  onView?: (domain: Domain) => void;
+  onEdit?: (domain: Domain) => void;
+  onDelete?: (domain: Domain) => void;
+}
+
+export const DomainTable = ({ domains, onView, onEdit, onDelete }: DomainTableProps) => {
+  if (!domains || domains.length === 0) {
+    return (
+      <div className="text-center py-10">
+        <p className="text-gray-500">暂无域名</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead>
-          <tr className="border-b">
-            <th className="text-left py-3 px-4">域名</th>
-            <th className="text-left py-3 px-4">分类</th>
-            <th className="text-left py-3 px-4">状态</th>
-            <th className="text-right py-3 px-4">价格</th>
-            <th className="text-right py-3 px-4"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {domains.map(domain => (
-            <tr key={domain.id} className="border-b hover:bg-gray-50">
-              <td className="py-3 px-4">
-                <div className="flex items-center">
-                  <span className="font-mono">{domain.name}</span>
-                  {domain.highlight && (
-                    <Badge variant="secondary" className="ml-2 bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
-                      精选
-                    </Badge>
-                  )}
-                </div>
-              </td>
-              <td className="py-3 px-4">
-                {domain.category && (
-                  <Badge variant="outline">
-                    {getCategoryLabel(domain.category)}
-                  </Badge>
-                )}
-              </td>
-              <td className="py-3 px-4">
-                <Badge 
-                  variant={domain.status === 'available' ? 'default' : 'secondary'}
-                  className={domain.status === 'available' ? 'bg-green-100 text-green-800 hover:bg-green-200' : ''}
-                >
-                  {domain.status === 'available' ? '在售' : '已售出'}
+    <div className="rounded-md border overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>域名</TableHead>
+            <TableHead>价格</TableHead>
+            <TableHead>状态</TableHead>
+            <TableHead>验证</TableHead>
+            <TableHead>分类</TableHead>
+            <TableHead>创建日期</TableHead>
+            <TableHead className="text-right">操作</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {domains.map((domain) => (
+            <TableRow key={domain.id}>
+              <TableCell className="font-medium">{domain.name}</TableCell>
+              <TableCell>${domain.price?.toLocaleString()}</TableCell>
+              <TableCell>
+                <Badge className={domain.status === 'available' ? 'bg-green-500 text-white' : domain.status === 'sold' ? 'bg-red-500 text-white' : 'bg-yellow-400 text-white'}>
+                  {React.createElement('span', {}, domain.status === 'available' ? '可售' : domain.status === 'sold' ? '已售' : '预留')}
                 </Badge>
-              </td>
-              <td className="py-3 px-4 text-right font-bold">
-                ¥{domain.price.toLocaleString()}
-              </td>
-              <td className="py-3 px-4 text-right">
-                <Link to={`/marketplace?domain=${domain.name}`}>
-                  <Button variant="outline" size="sm" className="flex items-center gap-1">
-                    <ExternalLink className="h-3 w-3" />
-                    查看详情
+              </TableCell>
+              <TableCell>
+                <Badge className={domain.verification_status === 'verified' ? 'bg-green-500 text-white' : domain.verification_status === 'pending' ? 'bg-yellow-400 text-white' : 'bg-gray-400 text-white'}>
+                  {React.createElement('span', {}, domain.verification_status === 'verified' ? '已验证' : domain.verification_status === 'pending' ? '待验证' : '未验证')}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                {domain.category ? (
+                  React.createElement('span', {}, domain.category) 
+                ) : (
+                  <span className="text-gray-400">未分类</span>
+                )}
+              </TableCell>
+              <TableCell>{new Date(domain.created_at).toLocaleDateString()}</TableCell>
+              <TableCell className="text-right space-x-2">
+                {onView && (
+                  <Button variant="ghost" size="sm" onClick={() => onView(domain)}>
+                    <Eye className="h-4 w-4" />
                   </Button>
-                </Link>
-              </td>
-            </tr>
+                )}
+                {onEdit && (
+                  <Button variant="ghost" size="sm" onClick={() => onEdit(domain)}>
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                )}
+                {onDelete && (
+                  <Button variant="ghost" size="sm" onClick={() => onDelete(domain)}>
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                )}
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 };

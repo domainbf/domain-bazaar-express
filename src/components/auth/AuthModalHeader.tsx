@@ -1,5 +1,5 @@
 
-import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import React from 'react';
 
 interface AuthModalHeaderProps {
   title: string;
@@ -7,10 +7,11 @@ interface AuthModalHeaderProps {
 
 export const AuthModalHeader = ({ title }: AuthModalHeaderProps) => {
   return (
-    <DialogHeader>
-      <DialogTitle className="text-2xl font-bold text-center text-black">
-        {title}
-      </DialogTitle>
-    </DialogHeader>
+    <div className="text-center mb-6">
+      <h2 className="text-2xl font-bold text-gray-900">
+        {React.createElement('span', {}, title)}
+      </h2>
+      <p className="text-gray-500 mt-2">欢迎使用 NIC.BN</p>
+    </div>
   );
 };

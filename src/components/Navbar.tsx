@@ -27,6 +27,7 @@ export const Navbar = () => {
 
   // Get user display name
   const getUserDisplayName = () => {
+    // Using optional chaining to safely access properties
     if (profile?.first_name) return profile.first_name;
     if (user?.user_metadata?.full_name) return user.user_metadata.full_name;
     if (user?.email) return user.email.split('@')[0];

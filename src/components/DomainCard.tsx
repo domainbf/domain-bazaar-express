@@ -77,7 +77,9 @@ export const DomainCard = ({
     <div className={`relative border rounded-lg p-6 hover:shadow-md transition-shadow ${highlight ? 'border-black border-2' : 'border-gray-200'}`}>
       {highlight && (
         <div className="absolute -top-3 right-4">
-          <Badge className="bg-black text-white">精选</Badge>
+          <Badge className="bg-black text-white">
+            {'精选' /* Using JSX expression to fix type error */}
+          </Badge>
         </div>
       )}
       
@@ -107,7 +109,7 @@ export const DomainCard = ({
             已售出
           </span>
         ) : (
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => !open && setIsDialogOpen(false)}>
             <DialogTrigger asChild>
               <Button 
                 className="w-full bg-black text-white hover:bg-gray-800 font-bold text-base shadow-md"
