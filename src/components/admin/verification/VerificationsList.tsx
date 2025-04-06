@@ -1,6 +1,6 @@
 
-import { DomainVerification } from "@/types/domain";
-import { VerificationCard } from "./VerificationCard";
+import { DomainVerification } from '@/types/domain';
+import { VerificationCard } from './VerificationCard';
 
 interface VerificationsListProps {
   verifications: DomainVerification[];
@@ -8,27 +8,30 @@ interface VerificationsListProps {
   onReject: (id: string) => void;
 }
 
-export const VerificationsList = ({
-  verifications,
-  onApprove,
-  onReject
-}: VerificationsListProps) => {
+export const VerificationsList = ({ verifications, onApprove, onReject }: VerificationsListProps) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {verifications.length === 0 ? (
-        <div className="col-span-full text-center py-10">
-          <p className="text-gray-500">No pending verifications</p>
-        </div>
-      ) : (
-        verifications.map((verification) => (
-          <VerificationCard
-            key={verification.id}
-            verification={verification}
-            onApprove={onApprove}
-            onReject={onReject}
-          />
-        ))
-      )}
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="bg-gray-50">
+            <th className="text-left p-4 border-b">Domain</th>
+            <th className="text-left p-4 border-b">Type</th>
+            <th className="text-left p-4 border-b">Submitted</th>
+            <th className="text-left p-4 border-b">Verification Data</th>
+            <th className="text-left p-4 border-b">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {verifications.map((verification) => (
+            <VerificationCard 
+              key={verification.id}
+              verification={verification}
+              onApprove={onApprove}
+              onReject={onReject}
+            />
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };

@@ -1,11 +1,11 @@
 
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Toaster } from "sonner";
 import { useEffect } from 'react';
 import Index from './pages/Index';
 import { Marketplace } from './pages/Marketplace';
 import { Dashboard } from './pages/Dashboard';
-import AdminPanel from './pages/AdminPanel';
+import { AdminPanel } from './pages/AdminPanel';
 import { DomainVerification } from './pages/DomainVerification';
 import { Profile } from './pages/Profile';
 import { ResetPassword } from './pages/ResetPassword';

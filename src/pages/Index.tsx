@@ -1,54 +1,25 @@
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { DomainCard } from '@/components/DomainCard';
+import { availableDomains } from '@/data/availableDomains';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthModal } from '@/components/AuthModal';
-import { supabase } from '@/integrations/supabase/client';
-import { Domain } from '@/types/domain';
 
 const Index = () => {
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [featuredDomains, setFeaturedDomains] = useState<Domain[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    loadFeaturedDomains();
-  }, []);
-
-  const loadFeaturedDomains = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('domain_listings')
-        .select('*')
-        .eq('status', 'available')
-        .order('highlight', { ascending: false })
-        .order('created_at', { ascending: false })
-        .limit(6);
-      
-      if (error) throw error;
-      setFeaturedDomains(data || []);
-    } catch (error: any) {
-      console.error('Error loading featured domains:', error);
-      setFeaturedDomains([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const filteredDomains = featuredDomains
+  const filteredDomains = availableDomains
     .filter(domain => filter === 'all' || domain.category === filter)
     .filter(domain => 
-      searchQuery ? domain.name?.toLowerCase().includes(searchQuery.toLowerCase()) : true
+      searchQuery ? domain.name.toLowerCase().includes(searchQuery.toLowerCase()) : true
     );
 
   const handleSellDomains = () => {
@@ -148,34 +119,14 @@ const Index = () => {
 
           {/* Domain Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-12 md:mb-20 px-2 md:px-0">
-            {isLoading ? (
-              <div className="col-span-3 flex justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-              </div>
-            ) : filteredDomains.length > 0 ? (
-              filteredDomains.map((domain) => (
-                <DomainCard 
-                  key={domain.id} 
-                  domain={domain.name || ''} 
-                  price={domain.price}
-                  highlight={domain.highlight}
-                  domainId={domain.id}
-                  sellerId={domain.owner_id}
-                  category={domain.category}
-                  description={domain.description}
-                />
-              ))
-            ) : (
-              <div className="col-span-3 text-center py-8">
-                <p className="text-gray-600">No domains found. Be the first to list your premium domain!</p>
-                <Button 
-                  onClick={handleSellDomains}
-                  className="mt-4 bg-black text-white hover:bg-gray-800"
-                >
-                  Add Your Domain
-                </Button>
-              </div>
-            )}
+            {filteredDomains.map((domain) => (
+              <DomainCard 
+                key={domain.name} 
+                domain={domain.name} 
+                price={domain.price}
+                highlight={domain.highlight}
+              />
+            ))}
           </div>
         </div>
       </section>
@@ -183,7 +134,7 @@ const Index = () => {
       {/* Features Section */}
       <section className="py-16 md:py-20 bg-gray-900 text-white">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-white-enhanced">How It Works</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-10 md:mb-16 text-white-enhanced">How It Works</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
             <div className="bg-gray-800 rounded-xl p-6 md:p-8 text-center">
               <div className="bg-white text-gray-900 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">1</div>
@@ -231,7 +182,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Call to Action */}
+      {/* Call to Action - Fixed the button contrast issue */}
       <section className="py-16 md:py-20 bg-gray-900 text-white">
         <div className="max-w-4xl mx-auto px-4 md:px-8 text-center">
           <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-white-enhanced">Ready to Buy or Sell Domains?</h2>
@@ -244,13 +195,14 @@ const Index = () => {
                 Browse Domains
               </Button>
             </Link>
-            <Button 
-              variant="outline" 
-              className="w-full sm:w-auto border-white border-2 bg-transparent text-white hover:bg-gray-700 px-6 py-2 md:px-6 md:py-3 text-base font-bold"
-              onClick={handleSellDomains}
-            >
-              Sell Your Domains
-            </Button>
+            <Link to="/dashboard" className="w-full sm:w-auto">
+              <Button 
+                variant="outline" 
+                className="w-full sm:w-auto border-white border-2 bg-transparent text-white hover:bg-gray-700 px-6 py-2 md:px-6 md:py-3 text-base font-bold"
+              >
+                Sell Your Domains
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -258,7 +210,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="py-8 md:py-12 bg-black text-white">
         <div className="max-w-6xl mx-auto px-4 md:px-8 text-center">
-          <p className="text-sm md:text-base font-semibold">© 2025 NIC.BN Trading Platform. All rights reserved.</p>
+          <p className="text-sm md:text-base font-semibold">© 2024 DomainX Trading Platform. All rights reserved.</p>
         </div>
       </footer>
 

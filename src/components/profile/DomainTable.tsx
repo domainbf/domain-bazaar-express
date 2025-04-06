@@ -1,96 +1,81 @@
 
 import { ProfileDomain } from "@/types/userProfile";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Eye, ShieldCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Button } from "../ui/button";
 
 interface DomainTableProps {
   domains: ProfileDomain[];
-  isLoading?: boolean;
-  emptyMessage?: string;
 }
 
-export const DomainTable = ({ 
-  domains, 
-  isLoading = false, 
-  emptyMessage = "没有域名"
-}: DomainTableProps) => {
-  if (isLoading) {
-    return <div className="text-center py-8">加载中...</div>;
-  }
-  
-  if (domains.length === 0) {
-    return <div className="text-center py-8 text-gray-500">{emptyMessage}</div>;
-  }
+export const DomainTable = ({ domains }: DomainTableProps) => {
+  const getCategoryLabel = (category?: string) => {
+    switch(category) {
+      case 'standard': return '标准';
+      case 'premium': return '高级';
+      case 'short': return '短域名';
+      case 'dev': return '开发';
+      case 'brandable': return '品牌';
+      default: return category;
+    }
+  };
   
   return (
     <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>域名</TableHead>
-            <TableHead>类别</TableHead>
-            <TableHead>价格</TableHead>
-            <TableHead>状态</TableHead>
-            <TableHead>操作</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {domains.map((domain) => (
-            <TableRow key={domain.id}>
-              <TableCell className="font-medium">{domain.name}</TableCell>
-              <TableCell>
-                {domain.category ? (
-                  <Badge variant="secondary" className="text-xs">
-                    {domain.category}
-                  </Badge>
-                ) : (
-                  <span className="text-gray-400">-</span>
-                )}
-              </TableCell>
-              <TableCell>
-                {domain.price !== undefined ? `¥${domain.price.toLocaleString()}` : "-"}
-              </TableCell>
-              <TableCell>
-                {domain.status === "available" ? (
-                  <Badge variant="default">
-                    在售
-                  </Badge>
-                ) : domain.status === "sold" ? (
-                  <Badge variant="secondary" className="bg-gray-200 text-gray-800">
-                    已售
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
-                    {domain.status}
-                  </Badge>
-                )}
-                {domain.is_verified && (
-                  <Badge variant="verified" className="ml-2">
-                    <ShieldCheck className="h-3 w-3 mr-1" /> 已验证
-                  </Badge>
-                )}
-              </TableCell>
-              <TableCell>
-                <div className="flex space-x-2">
-                  <Link to={`/domain/${domain.id}`}>
-                    <Button variant="outline" size="sm" className="h-8">
-                      <Eye className="h-3.5 w-3.5 mr-1" /> 查看
-                    </Button>
-                  </Link>
-                  <a href={`http://${domain.name}`} target="_blank" rel="noopener noreferrer">
-                    <Button variant="ghost" size="sm" className="h-8">
-                      <ExternalLink className="h-3.5 w-3.5 mr-1" /> 访问
-                    </Button>
-                  </a>
+      <table className="w-full">
+        <thead>
+          <tr className="border-b">
+            <th className="text-left py-3 px-4">域名</th>
+            <th className="text-left py-3 px-4">分类</th>
+            <th className="text-left py-3 px-4">状态</th>
+            <th className="text-right py-3 px-4">价格</th>
+            <th className="text-right py-3 px-4"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {domains.map(domain => (
+            <tr key={domain.id} className="border-b hover:bg-gray-50">
+              <td className="py-3 px-4">
+                <div className="flex items-center">
+                  <span className="font-mono">{domain.name}</span>
+                  {domain.highlight && (
+                    <Badge variant="secondary" className="ml-2 bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
+                      精选
+                    </Badge>
+                  )}
                 </div>
-              </TableCell>
-            </TableRow>
+              </td>
+              <td className="py-3 px-4">
+                {domain.category && (
+                  <Badge variant="outline">
+                    {getCategoryLabel(domain.category)}
+                  </Badge>
+                )}
+              </td>
+              <td className="py-3 px-4">
+                <Badge 
+                  variant={domain.status === 'available' ? 'default' : 'secondary'}
+                  className={domain.status === 'available' ? 'bg-green-100 text-green-800 hover:bg-green-200' : ''}
+                >
+                  {domain.status === 'available' ? '在售' : '已售出'}
+                </Badge>
+              </td>
+              <td className="py-3 px-4 text-right font-bold">
+                ¥{domain.price.toLocaleString()}
+              </td>
+              <td className="py-3 px-4 text-right">
+                <Link to={`/marketplace?domain=${domain.name}`}>
+                  <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <ExternalLink className="h-3 w-3" />
+                    查看详情
+                  </Button>
+                </Link>
+              </td>
+            </tr>
           ))}
-        </TableBody>
-      </Table>
+        </tbody>
+      </table>
     </div>
   );
 };

@@ -1,144 +1,142 @@
 
 import { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertTriangle, ArrowUpRight, BarChart3, CheckCircle, FileText, Settings, Shield, Users } from "lucide-react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Navbar } from '@/components/Navbar';
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { AdminStats } from '@/types/domain';
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { PendingVerifications } from '@/components/admin/PendingVerifications';
 import { AllDomainListings } from '@/components/admin/AllDomainListings';
 import { UserManagement } from '@/components/admin/UserManagement';
-import { PendingVerifications } from '@/components/admin/PendingVerifications';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Shield, Settings } from 'lucide-react';
 import { SiteSettings } from '@/components/admin/SiteSettings';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
-// Use the predefined AdminStats interface instead of redefining it
-type AdminDashboardProps = {
-  stats: AdminStats;
-  isLoading: boolean;
-  onRefresh: () => void;
-};
-
-const AdminPanel = () => {
-  const [activeTab, setActiveTab] = useState<string>('dashboard');
+export const AdminPanel = () => {
   const [stats, setStats] = useState<AdminStats>({
-    users_count: 0,
     total_domains: 0,
+    pending_verifications: 0,
     active_listings: 0,
-    sold_domains: 0,
-    verification_pending: 0,
-    monthly_revenue: 0
+    total_offers: 0,
+    recent_transactions: 0
   });
   const [isLoading, setIsLoading] = useState(true);
-  
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // Set active tab based on URL hash if present
-    const hash = location.hash.replace('#', '');
-    if (hash) {
-      setActiveTab(hash);
-    }
-    
-    fetchStats();
-  }, [location]);
+    checkAdminStatus();
+    loadAdminStats();
+  }, []);
 
-  const fetchStats = async () => {
+  const checkAdminStatus = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.app_metadata?.role === 'admin') {
+      setIsAdmin(true);
+    } else {
+      toast.error('您没有管理员权限');
+      window.location.href = '/';
+    }
+  };
+
+  const loadAdminStats = async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      // In a real application, we would fetch these from an API
-      const { data: usersCount, error: usersError } = await supabase
-        .from('users_view')
-        .select('count')
-        .single();
-        
-      const { data: domainStats, error: domainError } = await supabase
-        .from('domain_stats')
-        .select('*')
-        .single();
-        
-      if (usersError || domainError) {
-        throw new Error('Failed to fetch admin stats');
-      }
+      // Get total domains
+      const { data: domains, error: domainsError } = await supabase
+        .from('domain_listings')
+        .select('id', { count: 'exact' });
+      
+      if (domainsError) throw domainsError;
+      
+      // Get pending verifications
+      const { data: verifications, error: verificationsError } = await supabase
+        .from('domain_verifications')
+        .select('id', { count: 'exact' })
+        .eq('status', 'pending');
+      
+      if (verificationsError) throw verificationsError;
+      
+      // Get active listings
+      const { data: activeListings, error: activeListingsError } = await supabase
+        .from('domain_listings')
+        .select('id', { count: 'exact' })
+        .eq('status', 'available');
+      
+      if (activeListingsError) throw activeListingsError;
+      
+      // Get total offers
+      const { data: offers, error: offersError } = await supabase
+        .from('domain_offers')
+        .select('id', { count: 'exact' });
+      
+      if (offersError) throw offersError;
       
       setStats({
-        users_count: usersCount?.count || 0,
-        total_domains: domainStats?.total || 0,
-        active_listings: domainStats?.active || 0,
-        sold_domains: domainStats?.sold || 0,
-        verification_pending: domainStats?.pending_verification || 0,
-        monthly_revenue: domainStats?.monthly_revenue || 0
+        total_domains: domains?.length || 0,
+        pending_verifications: verifications?.length || 0,
+        active_listings: activeListings?.length || 0,
+        total_offers: offers?.length || 0,
+        recent_transactions: 0, // This would require more complex query
       });
-    } catch (error) {
-      console.error('Error fetching admin stats:', error);
-      toast.error('Failed to load admin statistics');
+    } catch (error: any) {
+      console.error('Error loading admin stats:', error);
+      toast.error(error.message || '加载管理统计信息失败');
     } finally {
       setIsLoading(false);
     }
   };
 
-  return (
-    <ProtectedRoute adminOnly>
-      <div className="container py-10">
-        <div className="flex flex-col space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">后台管理系统</h1>
-              <p className="text-muted-foreground">
-                管理域名、用户和网站设置
-              </p>
-            </div>
-          </div>
-          
-          <Tabs value={activeTab} onValueChange={(value) => {
-            setActiveTab(value);
-            navigate(`#${value}`);
-          }}>
-            <TabsList className="grid grid-cols-5">
-              <TabsTrigger value="dashboard" className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
-                <span>数据概览</span>
-              </TabsTrigger>
-              <TabsTrigger value="domains" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                <span>域名管理</span>
-              </TabsTrigger>
-              <TabsTrigger value="users" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                <span>用户管理</span>
-              </TabsTrigger>
-              <TabsTrigger value="verifications" className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4" />
-                <span>验证管理</span>
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                <span>系统设置</span>
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="dashboard">
-              <AdminDashboard stats={stats} isLoading={isLoading} onRefresh={fetchStats} />
-            </TabsContent>
-            <TabsContent value="domains">
-              <AllDomainListings />
-            </TabsContent>
-            <TabsContent value="users">
-              <UserManagement />
-            </TabsContent>
-            <TabsContent value="verifications">
-              <PendingVerifications />
-            </TabsContent>
-            <TabsContent value="settings">
-              <SiteSettings />
-            </TabsContent>
-          </Tabs>
+  if (!isAdmin && !isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-2">访问被拒绝</h1>
+          <p className="text-gray-600">您没有权限访问此页面</p>
         </div>
       </div>
-    </ProtectedRoute>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-white">
+      <Navbar />
+      
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex items-center gap-3 mb-8">
+          <Shield className="h-8 w-8 text-primary" />
+          <h1 className="text-3xl font-bold text-gray-900">管理员控制面板</h1>
+        </div>
+        
+        <Tabs defaultValue="dashboard" className="w-full">
+          <TabsList className="mb-8">
+            <TabsTrigger value="dashboard">仪表盘</TabsTrigger>
+            <TabsTrigger value="verifications">待验证域名</TabsTrigger>
+            <TabsTrigger value="domains">所有域名</TabsTrigger>
+            <TabsTrigger value="users">用户管理</TabsTrigger>
+            <TabsTrigger value="settings">网站设置</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="dashboard">
+            <AdminDashboard stats={stats} isLoading={isLoading} onRefresh={loadAdminStats} />
+          </TabsContent>
+          
+          <TabsContent value="verifications">
+            <PendingVerifications />
+          </TabsContent>
+          
+          <TabsContent value="domains">
+            <AllDomainListings />
+          </TabsContent>
+          
+          <TabsContent value="users">
+            <UserManagement />
+          </TabsContent>
+          
+          <TabsContent value="settings">
+            <SiteSettings />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
   );
 };
-
-export default AdminPanel;

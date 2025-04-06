@@ -18,11 +18,9 @@ export const fetchUserProfile = async (userId: string) => {
   }
 };
 
-export const sendVerificationEmail = async (email: string, fullName?: string) => {
+export const sendVerificationEmail = async (email: string, verificationUrl: string, fullName?: string) => {
   try {
     console.log('Sending verification email via send-notification function');
-    const verificationUrl = `${window.location.origin}/auth/callback`;
-    
     const { data, error } = await supabase.functions.invoke('send-notification', {
       body: {
         type: 'email_verification',
@@ -56,7 +54,7 @@ export const handleAuthError = (error: any, action: string) => {
     errorMessage = '请先验证您的邮箱，然后再尝试登录';
     // Try to resend verification email
     if (error.email) {
-      sendVerificationEmail(error.email)
+      sendVerificationEmail(error.email, `${window.location.origin}/auth/verify`)
         .then(() => toast.info('验证邮件已重新发送，请检查您的邮箱'));
     }
   } else if (errorMessage.includes('Invalid login credentials')) {

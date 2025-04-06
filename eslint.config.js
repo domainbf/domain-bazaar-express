@@ -1,4 +1,3 @@
-
 import js from "@eslint/js";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
@@ -13,10 +12,6 @@ export default tseslint.config(
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
-      parserOptions: {
-        project: "./tsconfig.ts-ignore.json", // Use our custom config
-        tsconfigRootDir: ".",
-      },
     },
     plugins: {
       "react-hooks": reactHooks,
@@ -29,22 +24,6 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
       "@typescript-eslint/no-unused-vars": "off",
-      "@typescript-eslint/no-untyped-type-arguments": "off",
-      // Completely disable the TS2347 error:
-      "@typescript-eslint/no-untyped-function-calls": "off",
-      // Disable related errors:
-      "@typescript-eslint/ban-ts-comment": "off",
-      "@typescript-eslint/no-explicit-any": "off",
-      // Disable strict type checking:
-      "@typescript-eslint/no-unsafe-assignment": "off",
-      "@typescript-eslint/no-unsafe-member-access": "off",
-      "@typescript-eslint/no-unsafe-call": "off",
-      "@typescript-eslint/no-unsafe-return": "off",
-      "@typescript-eslint/no-unsafe-argument": "off",
-      // Disable missing type definitions errors:
-      "@typescript-eslint/no-non-null-assertion": "off",
-      "@typescript-eslint/no-namespace": "off",
-      "@typescript-eslint/no-empty-interface": "off"
     },
   }
 );

@@ -1,17 +1,9 @@
-
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { UserProfile } from '@/types/userProfile';
 import { toast } from 'sonner';
 import { signInUser, signUpUser, signOutUser, resetUserPassword } from '@/utils/authUtils';
-
-interface User {
-  id: string;
-  email?: string;
-  app_metadata?: {
-    role?: string;
-  };
-}
 
 interface AuthContextType {
   user: User | null;
@@ -27,7 +19,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -49,17 +41,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       setProfile(data);
       
-      // Check if user is admin - both email-based and profile-based check
-      // Added the new admin credentials
-      const isAdminUser = 
-        user.email === '9208522@qq.com' ||
-        data?.is_admin === true ||
-        user.app_metadata?.role === 'admin';
-      
-      setIsAdmin(isAdminUser);
-      
-      console.log('User profile loaded:', data);
-      console.log('Is admin:', isAdminUser);
+      // Check if user has admin role (based on email for this demo)
+      setIsAdmin(user.email === '9208522@qq.com');
     } catch (error: any) {
       console.error('Error fetching profile:', error);
       toast.error('Failed to load user profile');
@@ -108,27 +91,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
   
   const signIn = async (email: string, password: string) => {
-    try {
-      // Special case for admin login with the predefined password
-      if (email === '9208522@qq.com' && password === 'lijiawei123AINI@') {
-        console.log('Admin user attempting to log in with predefined password');
-      }
-      
-      const success = await signInUser(email, password);
-      if (success) {
-        // Check if this is the admin account
-        const { data } = await supabase.auth.getUser();
-        if (data.user?.email === '9208522@qq.com') {
-          console.log('Admin user logged in');
-          toast.success('管理员登录成功');
-        } else {
-          toast.success('登录成功');
-        }
-      }
-      return success;
-    } catch (error) {
-      return false;
-    }
+    return signInUser(email, password);
   };
   
   const signUp = async (email: string, password: string, userData?: any) => {
@@ -141,10 +104,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(null);
       setProfile(null);
       setIsAdmin(false);
-      toast.success('已成功退出登录');
     } catch (error: any) {
       console.error('Error signing out:', error);
-      toast.error('退出登录失败');
+      toast.error('Failed to sign out');
     }
   };
   

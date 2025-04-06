@@ -1,5 +1,0 @@
-
-// Important: Add this import at the top of your main.tsx file:
-import "./ts-errors-fix";
-
-// This will apply the global TypeScript fixes

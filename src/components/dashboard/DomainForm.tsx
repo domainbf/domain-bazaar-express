@@ -2,13 +2,12 @@
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { DomainListing } from "@/types/domain";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { useAuth } from '@/contexts/AuthContext';
 import {
   Select,
   SelectContent,
@@ -18,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface DomainFormProps {
   isOpen: boolean;
@@ -28,7 +26,6 @@ interface DomainFormProps {
 }
 
 export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: DomainFormProps) => {
-  const { user } = useAuth();
   const [domainName, setDomainName] = useState('');
   const [domainPrice, setDomainPrice] = useState('');
   const [domainDescription, setDomainDescription] = useState('');
@@ -36,8 +33,6 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
   const [isHighlighted, setIsHighlighted] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [nameError, setNameError] = useState('');
-  const [isDomainChecking, setIsDomainChecking] = useState(false);
-  const [isDomainAvailable, setIsDomainAvailable] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (editingDomain) {
@@ -58,7 +53,6 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
     setDomainCategory('standard');
     setIsHighlighted(false);
     setNameError('');
-    setIsDomainAvailable(null);
   };
 
   const validateDomainName = (name: string) => {
@@ -66,44 +60,6 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
     const domainRegex = /^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
     return domainRegex.test(name);
   };
-
-  const checkDomainAvailability = async (name: string) => {
-    if (!name || !validateDomainName(name) || !user) return;
-    
-    try {
-      setIsDomainChecking(true);
-      setIsDomainAvailable(null);
-      
-      // Check if domain exists in our database
-      const { data: existingDomains, error } = await supabase
-        .from('domain_listings')
-        .select('id')
-        .eq('name', name)
-        .neq('owner_id', user.id) // Exclude domains owned by current user
-        .limit(1);
-      
-      if (error) throw error;
-      
-      // If domain exists in our database and is not owned by current user, it's not available
-      setIsDomainAvailable(existingDomains.length === 0);
-      
-    } catch (error) {
-      console.error('检查域名可用性时出错:', error);
-      setIsDomainAvailable(null);
-    } finally {
-      setIsDomainChecking(false);
-    }
-  };
-
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      if (domainName && !editingDomain && validateDomainName(domainName)) {
-        checkDomainAvailability(domainName);
-      }
-    }, 500);
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [domainName]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,6 +74,8 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
         throw new Error('请输入有效的域名格式');
       }
       if (!domainPrice || isNaN(Number(domainPrice))) throw new Error('请输入有效的价格');
+      
+      const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) throw new Error('用户未登录');
 
@@ -160,27 +118,7 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
           .insert([domainData]);
         
         if (error) throw error;
-        toast.success('域名已成功添加', {
-          description: "请完成域名所有权验证后再上架",
-          action: {
-            label: '立即验证',
-            onClick: async () => {
-              // Get the newly created domain ID
-              const { data } = await supabase
-                .from('domain_listings')
-                .select('id')
-                .eq('name', domainName)
-                .eq('owner_id', user.id)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .single();
-              
-              if (data?.id) {
-                window.location.href = `/domain-verification/${data.id}`;
-              }
-            }
-          }
-        });
+        toast.success('域名已成功添加');
       }
 
       // Reset form and close dialog
@@ -206,39 +144,12 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
             setDomainName(e.target.value);
             if (nameError) setNameError('');
           }}
-          onBlur={() => {
-            if (domainName && !editingDomain && validateDomainName(domainName)) {
-              checkDomainAvailability(domainName);
-            }
-          }}
           required
           className={`bg-white border-gray-300 ${nameError ? 'border-red-500' : ''}`}
           placeholder="example.com"
           disabled={editingDomain !== null} // Cannot change domain name when editing
         />
         {nameError && <p className="text-sm text-red-500 mt-1">{nameError}</p>}
-        
-        {isDomainChecking && (
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <Loader2 className="h-3 w-3 animate-spin" />
-            检查域名中...
-          </div>
-        )}
-        
-        {isDomainAvailable === false && !editingDomain && (
-          <Alert variant="destructive" className="py-2">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>此域名已被其他用户添加</AlertDescription>
-          </Alert>
-        )}
-        
-        {isDomainAvailable === true && !editingDomain && (
-          <Alert className="py-2 bg-green-50 text-green-800 border-green-300">
-            <CheckCircle className="h-4 w-4" />
-            <AlertDescription>域名可以添加</AlertDescription>
-          </Alert>
-        )}
-        
         <p className="text-xs text-gray-500">
           {editingDomain 
             ? '域名不可更改，如需变更请删除后重新添加' 
@@ -299,7 +210,7 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
         <Checkbox
           id="highlight"
           checked={isHighlighted}
-          onCheckedChange={(checked) => setIsHighlighted(!!checked)}
+          onCheckedChange={(checked) => setIsHighlighted(checked as boolean)}
         />
         <Label htmlFor="highlight" className="text-sm font-medium text-gray-700">
           设为推荐域名（精选）
@@ -308,7 +219,7 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
       
       <Button 
         type="submit"
-        disabled={formLoading || (isDomainAvailable === false && !editingDomain)}
+        disabled={formLoading}
         className="w-full bg-black text-white hover:bg-gray-800"
       >
         {formLoading ? (
