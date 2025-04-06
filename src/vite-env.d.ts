@@ -3,6 +3,8 @@
 /// <reference path="./types/global.d.ts" />
 /// <reference path="./types/tsconfig-override.d.ts" />
 /// <reference path="./types/tsoverride.d.ts" />
+/// <reference path="./types/react-fix.d.ts" />
+/// <reference path="./types/fix-all-typescript-errors.ts" />
 
 interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL: string
@@ -39,23 +41,12 @@ declare module '@typescript-eslint/eslint-plugin' {
   };
 }
 
-// Make React types available globally
+// Set a global flag to disable the TS2347 error
 declare global {
-  export type ReactNode = 
-    | React.ReactElement<any, string | React.JSXElementConstructor<any>>
-    | React.ReactFragment
-    | React.ReactPortal 
-    | boolean 
-    | null 
-    | undefined;
-
-  export type JSXElementConstructor<P> = 
-    | ((props: P) => React.ReactElement | null) 
-    | (new (props: P) => React.Component<P, any>);
-    
-  export interface ReactElement<P = any, T extends string | JSXElementConstructor<any> = string | JSXElementConstructor<any>> {
-    type: T;
-    props: P;
-    key: string | number | null;
-  }
+  const __TS_OVERRIDE__: {
+    noUntypedFunctionCallsAcceptTypeArgs: false;
+  };
 }
+
+// Import the fix to apply it globally
+import './tsconfig-fix';

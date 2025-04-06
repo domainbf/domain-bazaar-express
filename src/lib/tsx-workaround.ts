@@ -10,7 +10,7 @@ import * as React from 'react';
  * Type-safe forwardRef implementation that allows generic type parameters
  */
 export function safeForwardRef<T, P = {}>(
-  render: (props: P, ref: React.ForwardedRef<T>) => React.ReactElement | null
+  render: (props: P, ref: React.Ref<T>) => React.ReactElement | null
 ): React.ForwardRefExoticComponent<React.PropsWithoutRef<P> & React.RefAttributes<T>> {
   // @ts-ignore - Using forwardRef with generics is fine, even if TypeScript complains
   return React.forwardRef(render);
@@ -29,7 +29,7 @@ export function safeUseRef<T>(initialValue: T | null = null): React.RefObject<T>
   return React.useRef(initialValue);
 }
 
-export function safeUseEffect(effect: React.EffectCallback, deps?: React.DependencyList): void {
+export function safeUseEffect(effect: () => void | (() => void), deps?: React.DependencyList): void {
   // @ts-ignore - Using useEffect is fine
   return React.useEffect(effect, deps);
 }

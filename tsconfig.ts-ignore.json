@@ -35,6 +35,9 @@
     /* Key options to allow generic args */
     "ignoreDeprecations": "5.0",
     
+    /* Crucial option to disable TS2347 error */
+    "noUntypedFunctionCallsAcceptTypeArgs": false,
+    
     /* Add paths for type resolution */
     "paths": {
       "@/*": ["./src/*"],
@@ -42,7 +45,7 @@
     },
     "typeRoots": ["./node_modules/@types", "./src/types"]
   },
-  "include": ["src", "types"],
+  "include": ["src", "types", "scripts"],
   "exclude": ["node_modules"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

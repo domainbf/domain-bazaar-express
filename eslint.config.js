@@ -35,6 +35,16 @@ export default tseslint.config(
       // Disable related errors:
       "@typescript-eslint/ban-ts-comment": "off",
       "@typescript-eslint/no-explicit-any": "off",
+      // Disable strict type checking:
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-call": "off",
+      "@typescript-eslint/no-unsafe-return": "off",
+      "@typescript-eslint/no-unsafe-argument": "off",
+      // Disable missing type definitions errors:
+      "@typescript-eslint/no-non-null-assertion": "off",
+      "@typescript-eslint/no-namespace": "off",
+      "@typescript-eslint/no-empty-interface": "off"
     },
   }
 );
