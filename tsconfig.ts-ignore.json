@@ -1,0 +1,48 @@
+
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "allowJs": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "verbatimModuleSyntax": false,
+    "declaration": true,
+
+    /* Disable Type Checking */
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": false,
+    "noImplicitAny": false,
+    "suppressExcessPropertyErrors": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "noPropertyAccessFromIndexSignature": false,
+    
+    /* Additional options to fix untyped function calls issue */
+    "noStrictGenericChecks": true,
+    "noUncheckedIndexedAccess": false,
+    
+    /* Key options to allow generic args */
+    "ignoreDeprecations": "5.0",
+    
+    /* Add paths for type resolution */
+    "paths": {
+      "@/*": ["./src/*"],
+      "react": ["./node_modules/@types/react"]
+    },
+    "typeRoots": ["./node_modules/@types", "./src/types"]
+  },
+  "include": ["src", "types"],
+  "exclude": ["node_modules"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}

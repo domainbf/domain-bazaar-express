@@ -19,6 +19,22 @@ declare namespace TypeScript {
   }
 }
 
+// Define missing JSXElementConstructor and ReactNode
+declare global {
+  type JSXElementConstructor<P> = ((props: P) => React.ReactElement<any, any> | null) | 
+    (new (props: P) => React.Component<P, any>);
+
+  type ReactNode = 
+    | React.ReactElement<any, string | JSXElementConstructor<any>>
+    | React.ReactFragment 
+    | React.ReactPortal 
+    | boolean 
+    | null 
+    | undefined 
+    | string
+    | number;
+}
+
 // Fix for the "Property 'children' is missing in type ReactElement but required in ReactPortal" error
 declare namespace React {
   // Override ReactNode and ReactElement to fix compatibility issues

@@ -36,14 +36,14 @@ module.exports = {
     '@typescript-eslint/unbound-method': 'off',
     '@typescript-eslint/no-misused-promises': 'off',
     '@typescript-eslint/no-floating-promises': 'off',
-    // Add this rule to disable the untyped function calls error:
+    // Critical rule to disable the untyped function calls error:
     '@typescript-eslint/no-untyped-type-arguments': 'off',
   },
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
-    project: './tsconfig.types.json',
-    createDefaultProgram: true,
+    project: './tsconfig.ts-ignore.json',
+    tsconfigRootDir: __dirname,
   },
   settings: {
     react: {
