@@ -87,8 +87,11 @@ export const signOutUser = async () => {
 
 export const resetUserPassword = async (email: string) => {
   try {
+    // Get the current domain from the window location for production or development
+    const domain = window.location.origin;
+    
     // Update redirect URL to point directly to the reset password page
-    const redirectTo = `${window.location.origin}/reset-password`;
+    const redirectTo = `${domain}/reset-password`;
     
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo,
