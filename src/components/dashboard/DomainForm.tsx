@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,13 +18,22 @@ import {
 } from "@/components/ui/select";
 
 interface DomainFormProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSuccess: () => Promise<void>;
-  editingDomain: DomainListing | null;
+  isOpen?: boolean;
+  onClose?: () => void;
+  onSuccess?: () => Promise<void>;
+  editingDomain?: DomainListing | null;
+  initialData?: DomainListing | null;
+  onSubmit?: (formData: any) => Promise<void>;
 }
 
-export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: DomainFormProps) => {
+export const DomainForm = ({ 
+  isOpen, 
+  onClose, 
+  onSuccess, 
+  editingDomain, 
+  initialData, 
+  onSubmit 
+}: DomainFormProps) => {
   const [domainName, setDomainName] = useState('');
   const [domainPrice, setDomainPrice] = useState('');
   const [domainDescription, setDomainDescription] = useState('');
@@ -35,16 +43,18 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
   const [nameError, setNameError] = useState('');
 
   useEffect(() => {
-    if (editingDomain) {
-      setDomainName(editingDomain.name || '');
-      setDomainPrice(editingDomain.price?.toString() || '');
-      setDomainDescription(editingDomain.description || '');
-      setDomainCategory(editingDomain.category || 'standard');
-      setIsHighlighted(editingDomain.highlight || false);
+    const domainData = editingDomain || initialData;
+    
+    if (domainData) {
+      setDomainName(domainData.name || '');
+      setDomainPrice(domainData.price?.toString() || '');
+      setDomainDescription(domainData.description || '');
+      setDomainCategory(domainData.category || 'standard');
+      setIsHighlighted(domainData.highlight || false);
     } else {
       resetForm();
     }
-  }, [editingDomain, isOpen]);
+  }, [editingDomain, initialData, isOpen]);
 
   const resetForm = () => {
     setDomainName('');
@@ -56,7 +66,6 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
   };
 
   const validateDomainName = (name: string) => {
-    // Basic domain name validation
     const domainRegex = /^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
     return domainRegex.test(name);
   };
@@ -67,7 +76,6 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
     setNameError('');
 
     try {
-      // Validate inputs
       if (!domainName) throw new Error('域名不能为空');
       if (!validateDomainName(domainName)) {
         setNameError('请输入有效的域名格式，例如：example.com');
@@ -79,16 +87,18 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
       
       if (!user) throw new Error('用户未登录');
 
-      // If we're adding a new domain, check if it already exists
-      if (!editingDomain) {
-        const { data: existingDomains } = await supabase
-          .from('domain_listings')
-          .select('*')
-          .eq('name', domainName);
-          
-        if (existingDomains && existingDomains.length > 0) {
-          throw new Error('该域名已存在，请选择其他域名');
-        }
+      if (onSubmit) {
+        const formData = {
+          name: domainName,
+          price: parseFloat(domainPrice),
+          description: domainDescription,
+          category: domainCategory,
+          highlight: isHighlighted
+        };
+        
+        await onSubmit(formData);
+        resetForm();
+        return;
       }
 
       const domainData = {
@@ -98,12 +108,10 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
         category: domainCategory,
         highlight: isHighlighted,
         owner_id: user.id,
-        // Start as reserved (not available) until verified
         status: editingDomain?.verification_status === 'verified' ? (editingDomain.status || 'reserved') : 'reserved'
       };
 
       if (editingDomain) {
-        // Update existing domain
         const { error } = await supabase
           .from('domain_listings')
           .update(domainData)
@@ -112,7 +120,6 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
         if (error) throw error;
         toast.success('域名已成功更新');
       } else {
-        // Add new domain
         const { error } = await supabase
           .from('domain_listings')
           .insert([domainData]);
@@ -121,10 +128,9 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
         toast.success('域名已成功添加');
       }
 
-      // Reset form and close dialog
       resetForm();
-      onClose();
-      onSuccess();
+      if (onClose) onClose();
+      if (onSuccess) await onSuccess();
     } catch (error: any) {
       console.error('保存域名时出错:', error);
       toast.error(error.message || '保存域名失败');
@@ -147,7 +153,7 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain }: Domain
           required
           className={`bg-white border-gray-300 ${nameError ? 'border-red-500' : ''}`}
           placeholder="example.com"
-          disabled={editingDomain !== null} // Cannot change domain name when editing
+          disabled={editingDomain !== null}
         />
         {nameError && <p className="text-sm text-red-500 mt-1">{nameError}</p>}
         <p className="text-xs text-gray-500">

@@ -1,5 +1,4 @@
 
-
 // Fix for TS2347 errors
 declare module "*.svg" {
   const content: React.FunctionComponent<React.SVGAttributes<SVGElement>>;
@@ -139,3 +138,12 @@ interface AlertProps {
   [key: string]: any;
 }
 
+// Define DomainFormProps interface for DomainForm component
+interface DomainFormProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+  onSuccess?: () => Promise<void>;
+  editingDomain?: any;
+  initialData?: any;
+  onSubmit?: (formData: any) => Promise<void>;
+}
