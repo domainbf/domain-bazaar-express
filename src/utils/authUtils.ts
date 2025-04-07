@@ -79,8 +79,11 @@ export const signOutUser = async () => {
 
 export const resetUserPassword = async (email: string) => {
   try {
+    // Update redirect URL to point directly to the reset password page
+    const redirectTo = `${window.location.origin}/reset-password`;
+    
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo,
     });
     
     if (error) throw error;
@@ -93,7 +96,7 @@ export const resetUserPassword = async (email: string) => {
           type: 'password_reset',
           recipient: email,
           data: {
-            resetUrl: `${window.location.origin}/reset-password`,
+            resetUrl: redirectTo,
             name: email.split('@')[0]
           }
         }

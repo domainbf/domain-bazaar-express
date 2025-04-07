@@ -140,7 +140,7 @@ const handler = async (req: Request): Promise<Response> => {
                 </div>
                 <div class="content">
                   <h2>重置您的密码</h2>
-                  <p>您好 ${userName}，我们收到了重置您 DomainX 账户密码的请求。请点击下方按钮重置密码：</p>
+                  <p>您好 ${userName}，我们收到了重置您 DomainX 账户密码的请求。请点击下方按钮直接进入密码重置页面：</p>
                   
                   <div style="text-align: center;">
                     <a href="${data.resetUrl || 'https://domain.bf/reset-password'}" class="button">重置密码</a>
