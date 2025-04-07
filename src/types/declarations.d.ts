@@ -55,6 +55,7 @@ declare namespace React {
   type ThHTMLAttributes<T = any> = any;
   type TdHTMLAttributes<T = any> = any;
   type ReactElement<T = any, U = any> = any;
+  type ForwardedRef<T> = any;
 }
 
 // Fix for the untyped functions
@@ -146,4 +147,25 @@ interface DomainFormProps {
   editingDomain?: any;
   initialData?: any;
   onSubmit?: (formData: any) => Promise<void>;
+}
+
+// Add ToggleGroup specific types
+interface ToggleGroupSingleProps {
+  type: "single";
+  value?: string;
+  defaultValue?: string;
+  onValueChange?: (value: string) => void;
+}
+
+interface ToggleGroupMultipleProps {
+  type: "multiple";
+  value?: string[];
+  defaultValue?: string[];
+  onValueChange?: (value: string[]) => void;
+}
+
+interface ToggleGroupItemImplProps {
+  value: string;
+  disabled?: boolean;
+  pressed?: boolean;
 }

@@ -21,8 +21,9 @@ const ToggleGroup = React.forwardRef<
   <ToggleGroupPrimitive.Root
     ref={ref}
     className={cn("flex items-center justify-center gap-1", className)}
-    // Forward the type prop from props to avoid TS errors
     {...props}
+    // Ensure 'type' is provided either from props or defaulted
+    type={props.type || "single"}
   >
     <ToggleGroupContext.Provider value={{ variant, size }}>
       {children}
@@ -49,7 +50,8 @@ const ToggleGroupItem = React.forwardRef<
         }),
         className
       )}
-      // Make sure all required props are passed through
+      // Ensure 'value' is provided or defaulted
+      value={props.value || ""}
       {...props}
     >
       {children}
