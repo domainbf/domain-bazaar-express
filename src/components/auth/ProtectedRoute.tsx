@@ -1,5 +1,5 @@
 
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -11,27 +11,37 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRouteProps) => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, checkAdminStatus } = useAuth();
+  const [isCheckingAdmin, setIsCheckingAdmin] = useState(adminOnly);
+  const [hasAdminAccess, setHasAdminAccess] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      toast.error('Please sign in to access this page');
-      navigate('/');
-      return;
-    }
-
-    if (!isLoading && user && adminOnly) {
-      // Check if user has admin role
-      const isAdmin = user.app_metadata?.role === 'admin';
-      if (!isAdmin) {
-        toast.error('You do not have permission to access this page');
-        navigate('/dashboard');
+    const verifyAccess = async () => {
+      if (!isLoading && !user) {
+        toast.error('请先登录以访问此页面');
+        navigate('/');
+        return;
       }
-    }
-  }, [user, isLoading, navigate, adminOnly]);
 
-  if (isLoading) {
+      if (!isLoading && user && adminOnly) {
+        setIsCheckingAdmin(true);
+        // Verify admin status through the context
+        const isAdmin = await checkAdminStatus();
+        setHasAdminAccess(isAdmin);
+        setIsCheckingAdmin(false);
+        
+        if (!isAdmin) {
+          toast.error('您没有访问此页面的权限');
+          navigate('/dashboard');
+        }
+      }
+    };
+
+    verifyAccess();
+  }, [user, isLoading, navigate, adminOnly, checkAdminStatus]);
+
+  if (isLoading || isCheckingAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner size="lg" />
@@ -41,8 +51,8 @@ export const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRoutePr
 
   if (!user) return null;
   
-  // Admin check for sensitive routes
-  if (adminOnly && user.app_metadata?.role !== 'admin') return null;
+  // For admin routes, ensure admin status is verified
+  if (adminOnly && !hasAdminAccess) return null;
 
   return <>{children}</>;
 };

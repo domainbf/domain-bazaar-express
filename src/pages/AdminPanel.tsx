@@ -9,10 +9,15 @@ import { PendingVerifications } from '@/components/admin/PendingVerifications';
 import { AllDomainListings } from '@/components/admin/AllDomainListings';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Settings } from 'lucide-react';
+import { Shield, Settings, Loader2 } from 'lucide-react';
 import { SiteSettings } from '@/components/admin/SiteSettings';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export const AdminPanel = () => {
+  const { user, isAdmin, checkAdminStatus } = useAuth();
+  const navigate = useNavigate();
+  
   const [stats, setStats] = useState<AdminStats>({
     total_domains: 0,
     pending_verifications: 0,
@@ -21,22 +26,26 @@ export const AdminPanel = () => {
     recent_transactions: 0
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isVerifyingAdminStatus, setIsVerifyingAdminStatus] = useState(true);
 
   useEffect(() => {
-    checkAdminStatus();
-    loadAdminStats();
+    const verifyAndLoad = async () => {
+      setIsVerifyingAdminStatus(true);
+      // Re-check admin status when the page loads
+      const adminStatus = await checkAdminStatus();
+      
+      if (!adminStatus) {
+        toast.error('您没有管理员权限');
+        navigate('/');
+        return;
+      }
+      
+      setIsVerifyingAdminStatus(false);
+      loadAdminStats();
+    };
+    
+    verifyAndLoad();
   }, []);
-
-  const checkAdminStatus = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user?.app_metadata?.role === 'admin') {
-      setIsAdmin(true);
-    } else {
-      toast.error('您没有管理员权限');
-      window.location.href = '/';
-    }
-  };
 
   const loadAdminStats = async () => {
     setIsLoading(true);
@@ -86,7 +95,18 @@ export const AdminPanel = () => {
     }
   };
 
-  if (!isAdmin && !isLoading) {
+  if (isVerifyingAdminStatus) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center flex flex-col items-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+          <p className="text-gray-600">验证管理员权限...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">

@@ -6,11 +6,19 @@ import { fetchUserProfile, sendVerificationEmail, handleAuthError } from '@/util
 
 export const signInUser = async (email: string, password: string) => {
   try {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+    
     if (error) throw error;
+    
+    // Check if user has admin role in metadata
+    const isAdmin = data?.user?.app_metadata?.role === 'admin';
+    if (isAdmin) {
+      console.log('Admin user logged in successfully');
+    }
+    
     toast.success('登录成功！');
     return true;
   } catch (error: any) {
@@ -117,6 +125,37 @@ export const resetUserPassword = async (email: string) => {
     return true;
   } catch (error: any) {
     handleAuthError(error, '发送密码重置邮件');
+    return false;
+  }
+};
+
+export const verifyAdminRole = async () => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+    
+    // Check for admin role in app_metadata
+    const isAdmin = user.app_metadata?.role === 'admin';
+    
+    if (!isAdmin) {
+      // Double-check with admin-provisioning function
+      const { data, error } = await supabase.functions.invoke('admin-provisioning', {
+        body: {
+          action: 'verify_admin',
+        }
+      });
+      
+      if (error) {
+        console.error('Error verifying admin status:', error);
+        return false;
+      }
+      
+      return data?.is_admin || false;
+    }
+    
+    return isAdmin;
+  } catch (error) {
+    console.error('Error verifying admin status:', error);
     return false;
   }
 };

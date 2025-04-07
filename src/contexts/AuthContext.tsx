@@ -4,7 +4,7 @@ import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { UserProfile } from '@/types/userProfile';
 import { toast } from 'sonner';
-import { signInUser, signUpUser, signOutUser, resetUserPassword } from '@/utils/authUtils';
+import { signInUser, signUpUser, signOutUser, resetUserPassword, verifyAdminRole } from '@/utils/authUtils';
 
 interface AuthContextType {
   user: User | null;
@@ -17,6 +17,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<boolean>;
   refreshProfile: () => Promise<void>;
+  checkAdminStatus: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -44,12 +45,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       setProfile(data);
       
-      // Check if user has admin role (based on email for this demo)
-      setIsAdmin(user.email === '9208522@qq.com');
+      // Check admin status
+      checkAdminStatus();
     } catch (error: any) {
       console.error('Error fetching profile:', error);
       toast.error('Failed to load user profile');
     }
+  };
+  
+  const checkAdminStatus = async () => {
+    if (!user) {
+      setIsAdmin(false);
+      return false;
+    }
+    
+    const adminStatus = await verifyAdminRole();
+    setIsAdmin(adminStatus);
+    return adminStatus;
   };
 
   useEffect(() => {
@@ -97,6 +109,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsAuthenticating(true);
     try {
       const result = await signInUser(email, password);
+      if (result && user) {
+        await checkAdminStatus();
+      }
       return result;
     } finally {
       setIsAuthenticating(false);
@@ -146,7 +161,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         signUp,
         signOut,
         resetPassword,
-        refreshProfile
+        refreshProfile,
+        checkAdminStatus
       }}
     >
       {children}
