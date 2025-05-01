@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { Resend } from "npm:resend@2.0.0";
@@ -42,7 +41,7 @@ const handler = async (req: Request): Promise<Response> => {
       .select("*")
       .eq("name", type)
       .eq("is_active", true)
-      .single();
+      .maybeSingle();
 
     if (templateError && templateError.code !== "PGRST116") {
       console.error("Error fetching email template:", templateError);
@@ -273,7 +272,7 @@ const handler = async (req: Request): Promise<Response> => {
                   </ol>
                   
                   <div style="text-align: center;">
-                    <a href="https://domain.bf/dashboard" class="button">进入控制台</a>
+                    <a href="https://nic.bn/dashboard" class="button">进入控制台</a>
                   </div>
                   
                   <p>如有任何问题，请随时与我们的支持团队联系。</p>
@@ -353,7 +352,7 @@ const handler = async (req: Request): Promise<Response> => {
                   <p>请登录您的账户查看详情并回复此报价。您可以选择接受、拒绝或发起反议价。</p>
                   
                   <div style="text-align: center;">
-                    <a href="https://domain.bf/dashboard" class="button">查看并回应报价</a>
+                    <a href="https://nic.bn/dashboard" class="button">查看并回应报价</a>
                   </div>
                   
                   <p>回应越快，成交几率越高！</p>
@@ -422,7 +421,7 @@ const handler = async (req: Request): Promise<Response> => {
                   <p>我们的系统将在您完成付款后，指导您完成域名转移流程。</p>
                   
                   <div style="text-align: center;">
-                    <a href="https://domain.bf/dashboard" class="button">完成交易</a>
+                    <a href="https://nic.bn/dashboard" class="button">完成交易</a>
                   </div>
                   
                   <p>如果您在交易过程中遇到任何问题，请随时联系我们的客户支持团队获取帮助。</p>
@@ -454,9 +453,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Sending email with subject: ${subject}`);
     
-    // Send email via Resend with the verified domain.bf
+    // Send email via Resend with the verified domain
     const emailResponse = await resend.emails.send({
-      from: "DomainX <noreply@domain.bf>",
+      from: "DomainX <noreply@domain.bf>",  // Changed from "DomainX <noreply@domain.bf>"
       to: [recipient],
       subject: subject,
       html: htmlContent,

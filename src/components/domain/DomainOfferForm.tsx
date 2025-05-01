@@ -38,21 +38,30 @@ export const DomainOfferForm = ({
       };
       
       if (!domainId || !sellerId) {
+        console.log("Fetching domain information for:", domain);
         // Fetch domain information based on domain name
         const { data: domainData, error: domainError } = await supabase
           .from('domain_listings')
           .select('id, owner_id')
           .eq('name', domain)
-          .single();
+          .maybeSingle();
           
-        if (domainError || !domainData) {
-          throw new Error('无法找到域名信息，请稍后重试');
+        if (domainError) {
+          console.error("Error fetching domain info:", domainError);
+          throw new Error('查询域名信息时出错，请稍后重试');
+        }
+        
+        if (!domainData) {
+          console.error("Domain not found:", domain);
+          throw new Error('未找到该域名信息，请确认域名是否正确');
         }
         
         domainInfo = {
           domainId: domainData.id,
           sellerId: domainData.owner_id
         };
+        
+        console.log("Found domain info:", domainInfo);
       }
       
       // Check if we have the domain information
@@ -87,7 +96,7 @@ export const DomainOfferForm = ({
           .from('profiles')
           .select('contact_email')
           .eq('id', domainInfo.sellerId)
-          .single();
+          .maybeSingle();
         
         if (ownerData && ownerData.contact_email) {
           ownerEmail = ownerData.contact_email;
@@ -97,17 +106,18 @@ export const DomainOfferForm = ({
         // Continue without owner email if there's an error
       }
         
-      // Send email notification regardless of authentication
-      const { error: emailError } = await supabase.functions.invoke('send-offer', {
+      // Send email notification
+      const { error: emailError } = await supabase.functions.invoke('send-notification', {
         body: {
-          domain,
-          offer,
-          email,
-          message,
-          buyerId: session?.user.id || null,
-          domainOwnerId: domainInfo.sellerId,
-          domainId: domainInfo.domainId,
-          ownerEmail: ownerEmail
+          type: 'new_offer',
+          recipient: ownerEmail || email, // Send to owner if available, otherwise to buyer
+          data: {
+            domain,
+            amount: offer,
+            buyer_email: email,
+            message,
+            buyer_id: session?.user.id || null
+          }
         }
       });
 
