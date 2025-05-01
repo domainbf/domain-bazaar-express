@@ -106,7 +106,7 @@ export const DomainOfferForm = ({
         // Continue without owner email if there's an error
       }
         
-      // Send email notification
+      // Send email notification - modified to only send to one address
       const { error: emailError } = await supabase.functions.invoke('send-notification', {
         body: {
           type: 'new_offer',

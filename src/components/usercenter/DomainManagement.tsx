@@ -1,214 +1,196 @@
 
-import React, { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/contexts/AuthContext';
-import { DomainTable } from "../profile/DomainTable";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DomainForm } from "../dashboard/DomainForm";
 import { toast } from "sonner";
-import { useNavigate } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { DomainActions } from './DomainActions';
+import { Eye, ExternalLink, Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+
+interface Domain {
+  id: string;
+  name: string;
+  price: number;
+  category?: string;
+  description?: string;
+  status?: string;
+  is_verified?: boolean;
+  created_at?: string;
+}
 
 export const DomainManagement = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  
-  const [domains, setDomains] = useState<any[]>([]);
+  const [domains, setDomains] = useState<Domain[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [currentDomain, setCurrentDomain] = useState<any>(null);
-  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('all');
+
   useEffect(() => {
     if (user) {
       loadDomains();
     }
   }, [user]);
-  
+
   const loadDomains = async () => {
-    if (!user) return;
-    
     setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('domain_listings')
         .select('*')
-        .eq('owner_id', user.id)
-        .order('created_at', { ascending: false });
+        .eq('owner_id', user?.id);
       
       if (error) throw error;
       
       setDomains(data || []);
     } catch (error: any) {
       console.error('Error loading domains:', error);
-      toast.error('加载域名失败');
+      toast.error(error.message || '加载域名失败');
     } finally {
       setIsLoading(false);
     }
   };
-  
-  const handleAddDomain = async (formData: any) => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('domain_listings')
-        .insert({
-          ...formData,
-          owner_id: user.id,
-          status: 'available',
-        })
-        .select();
-      
-      if (error) throw error;
-      
-      toast.success('域名添加成功');
-      setIsAddModalOpen(false);
-      loadDomains();
-    } catch (error: any) {
-      console.error('Error adding domain:', error);
-      toast.error('添加域名失败');
+
+  const filteredDomains = domains
+    .filter(domain => 
+      domain.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (domain.description && domain.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    )
+    .filter(domain => {
+      if (activeTab === 'all') return true;
+      if (activeTab === 'available') return domain.status === 'available';
+      if (activeTab === 'pending') return domain.status === 'pending';
+      if (activeTab === 'sold') return domain.status === 'sold';
+      return true;
+    });
+
+  const renderDomainStatus = (status?: string) => {
+    switch (status) {
+      case 'available':
+        return <Badge className="bg-green-500">可售</Badge>;
+      case 'pending':
+        return <Badge className="bg-yellow-500">审核中</Badge>;
+      case 'sold':
+        return <Badge className="bg-blue-500">已售</Badge>;
+      default:
+        return <Badge className="bg-gray-500">未知</Badge>;
     }
-  };
-  
-  const handleUpdateDomain = async (formData: any) => {
-    if (!currentDomain) return;
-    
-    try {
-      const { error } = await supabase
-        .from('domain_listings')
-        .update(formData)
-        .eq('id', currentDomain.id);
-      
-      if (error) throw error;
-      
-      toast.success('域名更新成功');
-      setIsEditModalOpen(false);
-      setCurrentDomain(null);
-      loadDomains();
-    } catch (error: any) {
-      console.error('Error updating domain:', error);
-      toast.error('更新域名失败');
-    }
-  };
-  
-  const handleDeleteDomain = async (domain: any) => {
-    if (!confirm('确定要删除此域名吗?')) return;
-    
-    try {
-      const { error } = await supabase
-        .from('domain_listings')
-        .delete()
-        .eq('id', domain.id);
-      
-      if (error) throw error;
-      
-      toast.success('域名删除成功');
-      loadDomains();
-    } catch (error: any) {
-      console.error('Error deleting domain:', error);
-      toast.error('删除域名失败');
-    }
-  };
-  
-  const handleViewDomain = (domain: any) => {
-    navigate(`/domain-verification/${domain.id}`);
-  };
-  
-  const handleEditDomain = (domain: any) => {
-    setCurrentDomain(domain);
-    setIsEditModalOpen(true);
   };
 
   if (isLoading) {
     return (
-      <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      <div className="flex justify-center py-10">
+        <LoadingSpinner />
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">域名管理</h2>
-        <Button onClick={() => setIsAddModalOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          添加域名
-        </Button>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <h2 className="text-2xl font-bold">我的域名</h2>
+        <DomainActions mode="add" onSuccess={loadDomains} />
       </div>
       
-      <Tabs defaultValue="all">
-        <TabsList>
-          <TabsTrigger value="all">全部域名</TabsTrigger>
-          <TabsTrigger value="available">可售域名</TabsTrigger>
-          <TabsTrigger value="sold">已售域名</TabsTrigger>
-          <TabsTrigger value="reserved">预留域名</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="all" className="mt-4">
-          <DomainTable 
-            domains={domains} 
-            onView={handleViewDomain} 
-            onEdit={handleEditDomain} 
-            onDelete={handleDeleteDomain}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="relative w-full md:w-64">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
+          <Input 
+            placeholder="搜索域名..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
           />
-        </TabsContent>
+        </div>
         
-        <TabsContent value="available" className="mt-4">
-          <DomainTable 
-            domains={domains.filter(d => d.status === 'available')} 
-            onView={handleViewDomain} 
-            onEdit={handleEditDomain} 
-            onDelete={handleDeleteDomain}
-          />
-        </TabsContent>
-        
-        <TabsContent value="sold" className="mt-4">
-          <DomainTable 
-            domains={domains.filter(d => d.status === 'sold')} 
-            onView={handleViewDomain} 
-            onEdit={handleEditDomain} 
-            onDelete={handleDeleteDomain}
-          />
-        </TabsContent>
-        
-        <TabsContent value="reserved" className="mt-4">
-          <DomainTable 
-            domains={domains.filter(d => d.status === 'reserved')} 
-            onView={handleViewDomain} 
-            onEdit={handleEditDomain} 
-            onDelete={handleDeleteDomain}
-          />
-        </TabsContent>
-      </Tabs>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
+          <TabsList className="grid grid-cols-4 w-full md:w-auto">
+            <TabsTrigger value="all">全部</TabsTrigger>
+            <TabsTrigger value="available">可售</TabsTrigger>
+            <TabsTrigger value="pending">审核中</TabsTrigger>
+            <TabsTrigger value="sold">已售</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
       
-      {/* Add Domain Modal */}
-      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>添加新域名</DialogTitle>
-          </DialogHeader>
-          <DomainForm onSubmit={handleAddDomain} />
-        </DialogContent>
-      </Dialog>
-      
-      {/* Edit Domain Modal */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>编辑域名</DialogTitle>
-          </DialogHeader>
-          {currentDomain && (
-            <DomainForm 
-              initialData={currentDomain} 
-              onSubmit={handleUpdateDomain} 
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      {domains.length === 0 ? (
+        <Card>
+          <CardContent className="py-10 text-center">
+            <p className="text-gray-500 mb-4">您还没有添加任何域名</p>
+            <DomainActions mode="add" onSuccess={loadDomains} />
+          </CardContent>
+        </Card>
+      ) : filteredDomains.length === 0 ? (
+        <Card>
+          <CardContent className="py-10 text-center">
+            <p className="text-gray-500">没有找到符合条件的域名</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-3 px-4">域名</th>
+                <th className="text-left py-3 px-4">价格</th>
+                <th className="text-left py-3 px-4">分类</th>
+                <th className="text-left py-3 px-4">状态</th>
+                <th className="text-left py-3 px-4">统计</th>
+                <th className="text-left py-3 px-4">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredDomains.map((domain) => (
+                <tr key={domain.id} className="border-b hover:bg-gray-50">
+                  <td className="py-3 px-4">
+                    <div className="flex items-center">
+                      <span className="font-medium">{domain.name}</span>
+                      {domain.is_verified && (
+                        <Badge variant="outline" className="ml-2 border-green-500 text-green-500">
+                          已验证
+                        </Badge>
+                      )}
+                    </div>
+                  </td>
+                  <td className="py-3 px-4">${domain.price.toLocaleString()}</td>
+                  <td className="py-3 px-4 capitalize">{domain.category || 'standard'}</td>
+                  <td className="py-3 px-4">{renderDomainStatus(domain.status)}</td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center">
+                      <Eye className="w-4 h-4 mr-1 text-gray-500" />
+                      <span>-</span>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center gap-2">
+                      <Link to={`/domain/${domain.name}`} target="_blank">
+                        <Button variant="ghost" size="sm">
+                          <ExternalLink className="w-4 h-4" />
+                        </Button>
+                      </Link>
+                      <DomainActions 
+                        domain={domain} 
+                        mode="edit" 
+                        onSuccess={loadDomains} 
+                      />
+                      <DomainActions 
+                        domain={domain} 
+                        mode="delete" 
+                        onSuccess={loadDomains} 
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
