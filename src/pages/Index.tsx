@@ -51,7 +51,7 @@ const Index = () => {
         return {
           ...domain,
           views: Number(viewsValue), // Cast to number to fix type error
-          domain_analytics: undefined
+          domain_analytics: undefined // Remove the nested object
         };
       }) || [];
       
