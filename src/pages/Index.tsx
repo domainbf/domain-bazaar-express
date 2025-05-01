@@ -1,30 +1,81 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { DomainCard } from '@/components/DomainCard';
-import { availableDomains } from '@/data/availableDomains';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthModal } from '@/components/AuthModal';
+import { supabase } from '@/integrations/supabase/client';
+import { Domain } from '@/types/domain';
+import { toast } from 'sonner';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 const Index = () => {
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [domains, setDomains] = useState<Domain[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const filteredDomains = availableDomains
+  useEffect(() => {
+    // Load real domains from the database instead of using static data
+    loadDomains();
+  }, []);
+
+  const loadDomains = async () => {
+    setIsLoading(true);
+    try {
+      // Join domain_listings with domain_analytics to get view counts
+      const { data, error } = await supabase
+        .from('domain_listings')
+        .select(`
+          *,
+          domain_analytics(views)
+        `)
+        .eq('status', 'available')
+        .limit(9); // Limit to 9 domains for the homepage
+      
+      if (error) throw error;
+      
+      // Transform the data to include view count for sorting
+      const domainsWithAnalytics = data?.map(domain => {
+        const views = domain.domain_analytics?.length > 0 
+          ? domain.domain_analytics[0]?.views || 0
+          : 0;
+        
+        return {
+          ...domain,
+          views: views as number,
+          domain_analytics: undefined
+        };
+      }) || [];
+      
+      // Sort by view count (high to low)
+      domainsWithAnalytics.sort((a, b) => (b.views || 0) - (a.views || 0));
+      
+      console.log('Fetched domains for homepage:', domainsWithAnalytics);
+      setDomains(domainsWithAnalytics);
+    } catch (error: any) {
+      console.error('Error loading domains:', error);
+      toast.error(error.message || 'Failed to load domains');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filteredDomains = domains
     .filter(domain => filter === 'all' || domain.category === filter)
     .filter(domain => 
-      searchQuery ? domain.name.toLowerCase().includes(searchQuery.toLowerCase()) : true
+      searchQuery ? domain.name?.toLowerCase().includes(searchQuery.toLowerCase()) : true
     );
 
   const handleSellDomains = () => {
     if (user) {
-      navigate('/dashboard');
+      navigate('/user-center?tab=domains');
     } else {
       setIsAuthModalOpen(true);
     }
@@ -118,16 +169,34 @@ const Index = () => {
           </div>
 
           {/* Domain Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-12 md:mb-20 px-2 md:px-0">
-            {filteredDomains.map((domain) => (
-              <DomainCard 
-                key={domain.name} 
-                domain={domain.name} 
-                price={domain.price}
-                highlight={domain.highlight}
-              />
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center py-12">
+              <LoadingSpinner />
+            </div>
+          ) : filteredDomains.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-12 md:mb-20 px-2 md:px-0">
+              {filteredDomains.map((domain) => (
+                <DomainCard 
+                  key={domain.id} 
+                  domain={domain.name || ''} 
+                  price={domain.price || 0}
+                  highlight={domain.highlight || false}
+                  description={domain.description || ''}
+                  category={domain.category || ''}
+                  domainId={domain.id || ''}
+                  sellerId={domain.owner_id || ''}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16 bg-gray-50 rounded-lg border border-gray-200 mb-12">
+              <h3 className="text-2xl font-medium text-gray-600 mb-4">No domains found</h3>
+              <p className="text-gray-500 mb-4">Try adjusting your filters or add your own domains</p>
+              <Button onClick={handleSellDomains} className="bg-gray-900">
+                Add Your Domain
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 

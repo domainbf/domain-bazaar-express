@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -50,7 +49,7 @@ export const Marketplace = () => {
         
         return {
           ...domain,
-          views: views,
+          views: views as number, // Cast to number to fix type error
           domain_analytics: undefined // Remove the nested object
         };
       }) || [];

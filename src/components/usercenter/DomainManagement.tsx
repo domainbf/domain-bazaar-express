@@ -22,6 +22,7 @@ interface Domain {
   status?: string;
   is_verified?: boolean;
   created_at?: string;
+  views?: number;
 }
 
 export const DomainManagement = () => {
@@ -42,12 +43,36 @@ export const DomainManagement = () => {
     try {
       const { data, error } = await supabase
         .from('domain_listings')
-        .select('*')
+        .select(`
+          *,
+          domain_analytics(views)
+        `)
         .eq('owner_id', user?.id);
       
       if (error) throw error;
       
-      setDomains(data || []);
+      // Transform the data to include view count
+      const domainsWithAnalytics = data?.map(domain => {
+        const views = domain.domain_analytics?.length > 0 
+          ? domain.domain_analytics[0]?.views || 0
+          : 0;
+        
+        return {
+          ...domain,
+          views: views as number,
+          domain_analytics: undefined // Remove the nested object
+        };
+      }) || [];
+      
+      console.log('Fetched user domains:', domainsWithAnalytics);
+      setDomains(domainsWithAnalytics);
+
+      // Create domain_analytics entries for domains that don't have them
+      for (const domain of data || []) {
+        if (!domain.domain_analytics || domain.domain_analytics.length === 0) {
+          await createAnalyticsRecord(domain.id);
+        }
+      }
     } catch (error: any) {
       console.error('Error loading domains:', error);
       toast.error(error.message || '加载域名失败');
@@ -56,9 +81,24 @@ export const DomainManagement = () => {
     }
   };
 
+  // Create an analytics record for a new domain
+  const createAnalyticsRecord = async (domainId: string) => {
+    try {
+      await supabase.from('domain_analytics').insert({
+        domain_id: domainId,
+        views: 0,
+        favorites: 0,
+        offers: 0
+      });
+    } catch (error) {
+      console.error('Error creating analytics record:', error);
+      // We don't show this error to the user as it's not critical
+    }
+  };
+
   const filteredDomains = domains
     .filter(domain => 
-      domain.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      domain.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (domain.description && domain.description.toLowerCase().includes(searchQuery.toLowerCase()))
     )
     .filter(domain => {
@@ -163,7 +203,7 @@ export const DomainManagement = () => {
                   <td className="py-3 px-4">
                     <div className="flex items-center">
                       <Eye className="w-4 h-4 mr-1 text-gray-500" />
-                      <span>-</span>
+                      <span>{domain.views || 0}</span>
                     </div>
                   </td>
                   <td className="py-3 px-4">

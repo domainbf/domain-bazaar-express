@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
@@ -52,6 +51,13 @@ export const DomainActions = ({ domain, onSuccess, mode }: DomainActionsProps) =
     
     setIsLoading(true);
     try {
+      // First delete any associated analytics records
+      await supabase
+        .from('domain_analytics')
+        .delete()
+        .eq('domain_id', domain.id);
+      
+      // Then delete the domain listing
       const { error } = await supabase
         .from('domain_listings')
         .delete()
@@ -86,9 +92,21 @@ export const DomainActions = ({ domain, onSuccess, mode }: DomainActionsProps) =
       };
       
       let result;
+      let newDomainId;
       
       if (mode === 'add') {
-        result = await supabase.from('domain_listings').insert([domainData]);
+        result = await supabase.from('domain_listings').insert([domainData]).select();
+        newDomainId = result.data?.[0]?.id;
+        
+        // Create analytics record for the new domain
+        if (newDomainId) {
+          await supabase.from('domain_analytics').insert({
+            domain_id: newDomainId,
+            views: 0,
+            favorites: 0,
+            offers: 0
+          });
+        }
       } else if (mode === 'edit' && domain?.id) {
         result = await supabase.from('domain_listings').update(domainData).eq('id', domain.id);
       }
