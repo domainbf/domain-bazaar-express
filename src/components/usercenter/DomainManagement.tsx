@@ -54,12 +54,12 @@ export const DomainManagement = () => {
       // Transform the data to include view count
       const domainsWithAnalytics = data?.map(domain => {
         const viewsValue = domain.domain_analytics?.length > 0 
-          ? domain.domain_analytics[0]?.views || 0
+          ? Number(domain.domain_analytics[0]?.views || 0)
           : 0;
         
         return {
           ...domain,
-          views: Number(viewsValue), // Cast to number to fix type error
+          views: viewsValue, // Cast to number to fix type error
           domain_analytics: undefined // Remove the nested object
         };
       }) || [];

@@ -45,13 +45,13 @@ export const TrendingDomains = () => {
       // Transform data for display
       const transformedData = (data || []).map(domain => {
         const viewsValue = domain.domain_analytics?.length > 0 
-          ? domain.domain_analytics[0]?.views || 0
+          ? Number(domain.domain_analytics[0]?.views || 0)
           : 0;
           
         // Format views for display
         let viewsDisplay = '';
         if (viewsValue >= 1000) {
-          viewsDisplay = `${(Number(viewsValue) / 1000).toFixed(1)}K`;
+          viewsDisplay = `${(viewsValue / 1000).toFixed(1)}K`;
         } else {
           viewsDisplay = String(viewsValue);
         }
