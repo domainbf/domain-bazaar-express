@@ -23,6 +23,7 @@ interface Domain {
   is_verified?: boolean;
   created_at?: string;
   views?: number;
+  domain_analytics?: {views?: number}[];
 }
 
 export const DomainManagement = () => {
@@ -53,8 +54,11 @@ export const DomainManagement = () => {
       
       // Transform the data to include view count
       const domainsWithAnalytics = data?.map(domain => {
-        const viewsValue = domain.domain_analytics?.length > 0 
-          ? Number(domain.domain_analytics[0]?.views || 0)
+        // First check if domain_analytics exists and has items
+        const analyticsData = domain.domain_analytics || [];
+        // Then safely extract views and convert to number
+        const viewsValue = analyticsData.length > 0 
+          ? Number(analyticsData[0]?.views || 0)
           : 0;
         
         return {

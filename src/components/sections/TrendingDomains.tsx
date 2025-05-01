@@ -44,8 +44,11 @@ export const TrendingDomains = () => {
       
       // Transform data for display
       const transformedData = (data || []).map(domain => {
-        const viewsValue = domain.domain_analytics?.length > 0 
-          ? Number(domain.domain_analytics[0]?.views || 0)
+        // First check if domain_analytics exists and has items
+        const analyticsData = domain.domain_analytics || [];
+        // Then safely extract views and convert to number
+        const viewsValue = analyticsData.length > 0 
+          ? Number(analyticsData[0]?.views || 0)
           : 0;
           
         // Format views for display

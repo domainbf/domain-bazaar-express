@@ -1,5 +1,6 @@
 
 
+
 export interface Domain {
   id?: string;
   name?: string;
@@ -13,6 +14,7 @@ export interface Domain {
   is_verified?: boolean;
   verification_status?: string;
   views?: number;
+  domain_analytics?: {views?: number}[];
 }
 
 export interface DomainListing extends Domain {
