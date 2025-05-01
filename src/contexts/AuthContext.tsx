@@ -5,7 +5,7 @@ import { Session, User } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 import { UserProfile } from '@/types/userProfile';
 import { toast } from 'sonner';
-import { signInWithEmailPassword, signUpWithEmailPassword, signOut, resetUserPassword } from '@/utils/authUtils';
+import { signInWithEmailPassword, signUpWithEmailPassword, signOut as authSignOut, resetUserPassword } from '@/utils/authUtils';
 
 interface AuthContextType {
   user: User | null;
@@ -15,9 +15,13 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<boolean>;
   signUp: (email: string, password: string, metadata?: { [key: string]: any }) => Promise<boolean>;
   logOut: () => Promise<void>;
+  signOut: () => Promise<void>; // Added missing property
   updateProfile: (data: Partial<UserProfile>) => Promise<boolean>;
   isAdmin: boolean;
+  checkAdminStatus: () => Promise<boolean>; // Added missing property
+  refreshProfile: () => Promise<void>; // Added missing property
   resetPassword: (email: string) => Promise<boolean>;
+  isAuthenticating?: boolean; // Added missing property
 }
 
 interface AuthProviderProps {
@@ -32,6 +36,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -73,8 +78,44 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
   }, []);
 
+  const refreshProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+        
+      setProfile(data);
+    } catch (error) {
+      console.error('Error refreshing profile:', error);
+    }
+  };
+
+  const checkAdminStatus = async (): Promise<boolean> => {
+    if (!user) return false;
+    
+    try {
+      // Check if user has admin role in app_metadata
+      const isAdminUser = user.app_metadata?.is_admin || false;
+      
+      // Double-check with a direct session fetch to ensure we have latest metadata
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentIsAdmin = session?.user?.app_metadata?.is_admin || false;
+      
+      setIsAdmin(currentIsAdmin);
+      return currentIsAdmin;
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      return false;
+    }
+  };
+
   const signIn = async (email: string, password: string) => {
     try {
+      setIsAuthenticating(true);
       const { success, data } = await signInWithEmailPassword(email, password);
       if (success && data.user) {
         // Fetch profile after login
@@ -97,11 +138,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch (error: any) {
       toast.error(error.message || '登录失败');
       return false;
+    } finally {
+      setIsAuthenticating(false);
     }
   };
 
   const signUp = async (email: string, password: string, metadata?: { [key: string]: any }) => {
     try {
+      setIsAuthenticating(true);
       const { success } = await signUpWithEmailPassword(email, password, { 
         metadata,
         redirectTo: `${window.location.origin}/login` 
@@ -115,12 +159,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch (error: any) {
       toast.error(error.message || '注册失败');
       return false;
+    } finally {
+      setIsAuthenticating(false);
     }
   };
 
   const logOut = async () => {
     try {
-      const { success } = await signOut();
+      const { success } = await authSignOut();
       if (success) {
         setUser(null);
         setSession(null);
@@ -133,19 +179,35 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  // Add signOut as an alias to logOut for consistency
+  const signOut = logOut;
+
   const updateProfile = async (data: Partial<UserProfile>) => {
     if (!user) return false;
     
     try {
+      // Create a new object with only the properties that exist in the profiles table
+      const profileData: Record<string, any> = {};
+      
+      // Copy only valid properties from data to profileData
+      if ('full_name' in data) profileData.full_name = data.full_name;
+      if ('username' in data) profileData.username = data.username;
+      if ('bio' in data) profileData.bio = data.bio;
+      if ('contact_email' in data) profileData.contact_email = data.contact_email;
+      if ('contact_phone' in data) profileData.contact_phone = data.contact_phone;
+      if ('company_name' in data) profileData.company_name = data.company_name;
+      if ('custom_url' in data) profileData.custom_url = data.custom_url;
+      if ('avatar_url' in data) profileData.avatar_url = data.avatar_url;
+      
       const { error } = await supabase
         .from('profiles')
-        .update(data)
+        .update(profileData)
         .eq('id', user.id);
       
       if (error) throw error;
       
       // Update local profile state
-      setProfile((prev) => prev ? { ...prev, ...data } : null);
+      setProfile((prev) => prev ? { ...prev, ...profileData } : null);
       
       toast.success('个人资料更新成功');
       return true;
@@ -157,6 +219,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const resetPassword = async (email: string) => {
     try {
+      setIsAuthenticating(true);
       const { success } = await resetUserPassword(email);
       if (success) {
         toast.success('重置密码链接已发送到您的邮箱');
@@ -166,6 +229,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch (error: any) {
       toast.error(error.message || '发送重置密码邮件失败');
       return false;
+    } finally {
+      setIsAuthenticating(false);
     }
   };
 
@@ -177,9 +242,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     signIn,
     signUp,
     logOut,
+    signOut,  // Added alias
     updateProfile,
     isAdmin,
-    resetPassword
+    resetPassword,
+    checkAdminStatus, // Added missing function
+    refreshProfile,   // Added missing function
+    isAuthenticating  // Added missing property
   };
 
   return (

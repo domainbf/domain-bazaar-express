@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { DomainCard } from '@/components/DomainCard';
@@ -43,13 +44,13 @@ const Index = () => {
       
       // Transform the data to include view count for sorting
       const domainsWithAnalytics = data?.map(domain => {
-        const views = domain.domain_analytics?.length > 0 
+        const viewsValue = domain.domain_analytics?.length > 0 
           ? domain.domain_analytics[0]?.views || 0
           : 0;
         
         return {
           ...domain,
-          views: views as number,
+          views: Number(viewsValue), // Cast to number to fix type error
           domain_analytics: undefined
         };
       }) || [];

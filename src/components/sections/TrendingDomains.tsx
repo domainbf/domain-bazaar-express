@@ -44,16 +44,16 @@ export const TrendingDomains = () => {
       
       // Transform data for display
       const transformedData = (data || []).map(domain => {
-        const views = domain.domain_analytics?.length > 0 
+        const viewsValue = domain.domain_analytics?.length > 0 
           ? domain.domain_analytics[0]?.views || 0
           : 0;
           
         // Format views for display
         let viewsDisplay = '';
-        if (views >= 1000) {
-          viewsDisplay = `${(views / 1000).toFixed(1)}K`;
+        if (viewsValue >= 1000) {
+          viewsDisplay = `${(Number(viewsValue) / 1000).toFixed(1)}K`;
         } else {
-          viewsDisplay = String(views);
+          viewsDisplay = String(viewsValue);
         }
         
         // Generate random growth percentage based on highlight status

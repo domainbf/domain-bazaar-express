@@ -1,3 +1,4 @@
+
 export interface Domain {
   id?: string;
   name?: string;
@@ -10,6 +11,7 @@ export interface Domain {
   created_at?: string;
   is_verified?: boolean;
   verification_status?: string;
+  views?: number; // Added views property
 }
 
 export interface DomainListing extends Domain {
