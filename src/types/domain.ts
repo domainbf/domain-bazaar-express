@@ -44,6 +44,10 @@ export interface DomainVerification {
   updated_at?: string;
   verification_data: any;
   domain_listings?: Domain;
+  last_checked?: string;
+  verification_attempts?: number;
+  verification_method?: 'dns' | 'file' | 'html';
+  expiry_date?: string;
 }
 
 export interface AdminStats {
@@ -52,4 +56,11 @@ export interface AdminStats {
   active_listings: number;
   total_offers: number;
   recent_transactions: number;
+}
+
+export interface VerificationResult {
+  success: boolean;
+  message: string;
+  timestamp: string;
+  status: 'verified' | 'pending' | 'failed';
 }

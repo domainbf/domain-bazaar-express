@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -6,6 +7,7 @@ import { MarketplaceHeader } from '@/components/marketplace/MarketplaceHeader';
 import { FilterSection } from '@/components/marketplace/FilterSection';
 import { DomainListings } from '@/components/marketplace/DomainListings';
 import { Domain } from '@/types/domain';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export const Marketplace = () => {
   const [domains, setDomains] = useState<Domain[]>([]);
@@ -14,6 +16,7 @@ export const Marketplace = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [priceRange, setPriceRange] = useState<{min: string, max: string}>({min: '', max: ''});
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const isMobile = useIsMobile();
 
   // 使用useCallback优化加载函数避免多次重新创建
   const loadDomains = useCallback(async () => {
@@ -30,6 +33,7 @@ export const Marketplace = () => {
       
       if (!listingsData || listingsData.length === 0) {
         setDomains([]);
+        setIsLoading(false);
         return;
       }
       
@@ -126,6 +130,7 @@ export const Marketplace = () => {
       <MarketplaceHeader 
         searchQuery={searchQuery} 
         setSearchQuery={setSearchQuery} 
+        isMobile={isMobile}
       />
 
       <FilterSection 
@@ -135,13 +140,15 @@ export const Marketplace = () => {
         setPriceRange={setPriceRange}
         verifiedOnly={verifiedOnly}
         setVerifiedOnly={setVerifiedOnly}
+        isMobile={isMobile}
       />
 
-      <section className="py-12">
-        <div className="max-w-6xl mx-auto px-4">
+      <section className={`py-6 ${isMobile ? 'px-2' : 'py-12'}`}>
+        <div className={`${isMobile ? 'px-2' : 'max-w-6xl mx-auto px-4'}`}>
           <DomainListings 
             isLoading={isLoading} 
-            domains={filteredDomains} 
+            domains={filteredDomains}
+            isMobile={isMobile}
           />
         </div>
       </section>
