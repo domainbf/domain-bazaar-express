@@ -95,20 +95,36 @@ export const DomainActions = ({ domain, onSuccess, mode }: DomainActionsProps) =
       let newDomainId;
       
       if (mode === 'add') {
-        result = await supabase.from('domain_listings').insert([domainData]).select();
+        // 先添加域名记录
+        result = await supabase
+          .from('domain_listings')
+          .insert([domainData])
+          .select();
+
+        if (result.error) throw result.error;
         newDomainId = result.data?.[0]?.id;
         
-        // Create analytics record for the new domain
+        // 创建analytics记录
         if (newDomainId) {
-          await supabase.from('domain_analytics').insert({
-            domain_id: newDomainId,
-            views: 0,
-            favorites: 0,
-            offers: 0
-          });
+          const { error: analyticsError } = await supabase
+            .from('domain_analytics')
+            .insert({
+              domain_id: newDomainId,
+              views: 0,
+              favorites: 0,
+              offers: 0
+            });
+          
+          if (analyticsError) {
+            console.error('Error creating analytics record:', analyticsError);
+            // 不向用户显示此错误，因为它不影响主要功能
+          }
         }
       } else if (mode === 'edit' && domain?.id) {
-        result = await supabase.from('domain_listings').update(domainData).eq('id', domain.id);
+        result = await supabase
+          .from('domain_listings')
+          .update(domainData)
+          .eq('id', domain.id);
       }
       
       const { error } = result || {};

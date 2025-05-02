@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
@@ -33,67 +33,92 @@ export const DomainManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
 
-  useEffect(() => {
-    if (user) {
-      loadDomains();
+  const loadDomains = useCallback(async () => {
+    if (!user) {
+      setIsLoading(false);
+      return;
     }
-  }, [user]);
-
-  const loadDomains = async () => {
+    
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      // 优化查询，分别获取domains和analytics
+      const { data: domainsData, error: domainsError } = await supabase
         .from('domain_listings')
-        .select(`
-          *,
-          domain_analytics(views)
-        `)
-        .eq('owner_id', user?.id);
+        .select('*')
+        .eq('owner_id', user.id);
       
-      if (error) throw error;
+      if (domainsError) throw domainsError;
       
-      // Transform the data to include view count
-      const domainsWithAnalytics = data?.map(domain => {
-        // First check if domain_analytics exists and has items
-        const analyticsData = domain.domain_analytics || [];
-        // Then safely extract views and convert to number
-        const viewsValue = analyticsData.length > 0 
-          ? Number(analyticsData[0]?.views || 0)
-          : 0;
+      if (!domainsData || domainsData.length === 0) {
+        setDomains([]);
+        setIsLoading(false);
+        return;
+      }
+      
+      // 获取这些域名的analytics数据
+      const domainIds = domainsData.map(domain => domain.id);
+      const { data: analyticsData, error: analyticsError } = await supabase
+        .from('domain_analytics')
+        .select('*')
+        .in('domain_id', domainIds);
+      
+      if (analyticsError) {
+        console.error('Error fetching analytics:', analyticsError);
+        // 继续处理，即使analytics获取失败
+      }
+      
+      // 合并数据
+      const domainsWithAnalytics = domainsData.map(domain => {
+        const analytics = analyticsData?.filter(a => a.domain_id === domain.id) || [];
+        const viewsValue = analytics.length > 0 ? Number(analytics[0].views || 0) : 0;
         
         return {
           ...domain,
-          views: viewsValue, // Cast to number to fix type error
-          domain_analytics: undefined // Remove the nested object
+          views: viewsValue,
+          domain_analytics: analytics.map(a => ({
+            views: Number(a.views || 0),
+            id: a.id
+          }))
         };
-      }) || [];
+      });
       
       console.log('Fetched user domains:', domainsWithAnalytics);
       setDomains(domainsWithAnalytics);
 
-      // Create domain_analytics entries for domains that don't have them
-      for (const domain of data || []) {
-        if (!domain.domain_analytics || domain.domain_analytics.length === 0) {
+      // 为没有analytics记录的域名创建记录
+      for (const domain of domainsData) {
+        if (!analyticsData || !analyticsData.some(a => a.domain_id === domain.id)) {
           await createAnalyticsRecord(domain.id);
         }
       }
     } catch (error: any) {
       console.error('Error loading domains:', error);
       toast.error(error.message || '加载域名失败');
+      setDomains([]);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadDomains();
+    }
+  }, [user, loadDomains]);
 
   // Create an analytics record for a new domain
   const createAnalyticsRecord = async (domainId: string) => {
     try {
-      await supabase.from('domain_analytics').insert({
+      const { error } = await supabase.from('domain_analytics').insert({
         domain_id: domainId,
         views: 0,
         favorites: 0,
         offers: 0
       });
+      
+      if (error) {
+        console.error('Error creating analytics record:', error);
+      }
     } catch (error) {
       console.error('Error creating analytics record:', error);
       // We don't show this error to the user as it's not critical

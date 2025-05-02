@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { TrendingUp, ChevronRight } from 'lucide-react';
@@ -20,37 +20,41 @@ export const TrendingDomains = () => {
   const [trendingData, setTrendingData] = useState<TrendingDomain[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  useEffect(() => {
-    loadTrendingDomains();
-  }, []);
-  
-  const loadTrendingDomains = async () => {
+  const loadTrendingDomains = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Get domains with analytics data, sorted by views
-      const { data, error } = await supabase
+      // 优化查询，分开获取域名和分析数据
+      const { data: domainsData, error: domainsError } = await supabase
         .from('domain_listings')
-        .select(`
-          id,
-          name,
-          price,
-          highlight,
-          domain_analytics(views)
-        `)
+        .select('id, name, price, highlight')
         .eq('status', 'available')
         .limit(4);
       
-      if (error) throw error;
+      if (domainsError) throw domainsError;
       
-      // Transform data for display
-      const transformedData = (data || []).map(domain => {
-        // First check if domain_analytics exists and has items
-        const analyticsData = domain.domain_analytics || [];
-        // Then safely extract views and convert to number
-        const viewsValue = analyticsData.length > 0 
-          ? Number(analyticsData[0]?.views || 0)
-          : 0;
-          
+      if (!domainsData || domainsData.length === 0) {
+        setTrendingData([]);
+        setIsLoading(false);
+        return;
+      }
+      
+      // 获取这些域名的analytics数据
+      const domainIds = domainsData.map(domain => domain.id);
+      const { data: analyticsData, error: analyticsError } = await supabase
+        .from('domain_analytics')
+        .select('domain_id, views')
+        .in('domain_id', domainIds);
+      
+      if (analyticsError) {
+        console.error('Error fetching analytics:', analyticsError);
+      }
+      
+      // 合并数据并转换为显示格式
+      const transformedData = domainsData.map(domain => {
+        // 查找对应的analytics记录
+        const analytics = analyticsData?.find(a => a.domain_id === domain.id);
+        const viewsValue = Number(analytics?.views || 0);
+        
         // Format views for display
         let viewsDisplay = '';
         if (viewsValue >= 1000) {
@@ -75,10 +79,15 @@ export const TrendingDomains = () => {
       setTrendingData(transformedData);
     } catch (error) {
       console.error('Error loading trending domains:', error);
+      setTrendingData([]);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+  
+  useEffect(() => {
+    loadTrendingDomains();
+  }, [loadTrendingDomains]);
 
   if (isLoading) {
     return (

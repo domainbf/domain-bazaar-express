@@ -1,6 +1,4 @@
 
-
-
 export interface Domain {
   id?: string;
   name?: string;
@@ -14,7 +12,7 @@ export interface Domain {
   is_verified?: boolean;
   verification_status?: string;
   views?: number;
-  domain_analytics?: {views?: number}[];
+  domain_analytics?: {views?: number; id?: string}[];
 }
 
 export interface DomainListing extends Domain {
@@ -55,4 +53,3 @@ export interface AdminStats {
   total_offers: number;
   recent_transactions: number;
 }
-

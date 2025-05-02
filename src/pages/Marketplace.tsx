@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Navbar } from '@/components/Navbar';
@@ -16,6 +15,64 @@ export const Marketplace = () => {
   const [priceRange, setPriceRange] = useState<{min: string, max: string}>({min: '', max: ''});
   const [verifiedOnly, setVerifiedOnly] = useState(false);
 
+  // 使用useCallback优化加载函数避免多次重新创建
+  const loadDomains = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      // 使用更轻量级的查询，避免大量连接
+      const { data: listingsData, error: listingsError } = await supabase
+        .from('domain_listings')
+        .select('*')
+        .eq('status', 'available')
+        .order('created_at', { ascending: false });
+      
+      if (listingsError) throw listingsError;
+      
+      if (!listingsData || listingsData.length === 0) {
+        setDomains([]);
+        return;
+      }
+      
+      // 单独获取domain_analytics数据
+      const domainIds = listingsData.map(domain => domain.id);
+      
+      const { data: analyticsData, error: analyticsError } = await supabase
+        .from('domain_analytics')
+        .select('*')
+        .in('domain_id', domainIds);
+      
+      if (analyticsError) {
+        console.error('Error fetching analytics:', analyticsError);
+        // 即使获取分析数据失败也继续处理域名列表
+      }
+      
+      // 将analytics数据映射到domains
+      const domainsWithAnalytics = listingsData.map(domain => {
+        const domainAnalytics = analyticsData?.filter(a => a.domain_id === domain.id) || [];
+        
+        return {
+          ...domain,
+          views: domainAnalytics.length > 0 ? Number(domainAnalytics[0].views || 0) : 0,
+          domain_analytics: domainAnalytics.map(a => ({
+            views: Number(a.views || 0),
+            id: a.id
+          }))
+        };
+      });
+      
+      // 按查看次数排序（高到低）
+      domainsWithAnalytics.sort((a, b) => (b.views || 0) - (a.views || 0));
+      
+      setDomains(domainsWithAnalytics);
+    } catch (error: any) {
+      console.error('Error loading domains:', error);
+      toast.error(error.message || '加载域名失败');
+      setDomains([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     // Extract search param from URL if present
     const urlParams = new URLSearchParams(window.location.search);
@@ -25,51 +82,7 @@ export const Marketplace = () => {
     }
 
     loadDomains();
-  }, []);
-
-  const loadDomains = async () => {
-    setIsLoading(true);
-    try {
-      // Join domain_listings with domain_analytics to get view counts
-      const { data, error } = await supabase
-        .from('domain_listings')
-        .select(`
-          *,
-          domain_analytics(views)
-        `)
-        .eq('status', 'available')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      
-      // Transform the data to include view count for sorting
-      const domainsWithAnalytics = data?.map(domain => {
-        // First check if domain_analytics exists and has items
-        const analyticsData = domain.domain_analytics || [];
-        // Then safely extract views and convert to number
-        const viewsValue = analyticsData.length > 0 
-          ? Number(analyticsData[0]?.views || 0)
-          : 0;
-        
-        return {
-          ...domain,
-          views: viewsValue, // Cast to number to fix type error
-          domain_analytics: undefined // Remove the nested object
-        };
-      }) || [];
-      
-      // Sort by view count (high to low)
-      domainsWithAnalytics.sort((a, b) => (b.views || 0) - (a.views || 0));
-      
-      console.log('Fetched domains:', domainsWithAnalytics);
-      setDomains(domainsWithAnalytics);
-    } catch (error: any) {
-      console.error('Error loading domains:', error);
-      toast.error(error.message || 'Failed to load domains');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [loadDomains]);
 
   const applyFilters = () => {
     let filteredDomains = domains;
