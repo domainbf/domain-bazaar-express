@@ -8,8 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DomainManagement } from '@/components/usercenter/DomainManagement';
 import { ProfileSettings } from '@/components/usercenter/ProfileSettings';
 import { TransactionHistory } from '@/components/usercenter/TransactionHistory';
+import { NotificationsPanel } from '@/components/usercenter/NotificationsPanel';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { User, Settings, ClipboardList, Home, Award, HelpCircle } from 'lucide-react';
+import { User, Settings, ClipboardList, Home, Award, HelpCircle, Bell } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
@@ -41,7 +42,7 @@ export const UserCenter = () => {
     // Read initial tab from URL query param
     const params = new URLSearchParams(window.location.search);
     const tabParam = params.get('tab');
-    if (tabParam && ['domains', 'transactions', 'profile'].includes(tabParam)) {
+    if (tabParam && ['domains', 'transactions', 'profile', 'notifications'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, []);
@@ -115,7 +116,7 @@ export const UserCenter = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                 <div className="bg-white p-3 rounded border border-blue-100">
                   <h3 className="font-bold text-blue-800 mb-1 flex items-center gap-1">
                     <ClipboardList className="h-4 w-4" />
@@ -129,6 +130,13 @@ export const UserCenter = () => {
                     交易记录
                   </h3>
                   <p className="text-gray-600">查看您的所有域名买卖交易记录</p>
+                </div>
+                <div className="bg-white p-3 rounded border border-blue-100">
+                  <h3 className="font-bold text-blue-800 mb-1 flex items-center gap-1">
+                    <Bell className="h-4 w-4" />
+                    通知中心
+                  </h3>
+                  <p className="text-gray-600">查看系统发送给您的所有通知和消息</p>
                 </div>
                 <div className="bg-white p-3 rounded border border-blue-100">
                   <h3 className="font-bold text-blue-800 mb-1 flex items-center gap-1">
@@ -207,6 +215,10 @@ export const UserCenter = () => {
               <ClipboardList className="w-4 h-4" />
               交易记录
             </TabsTrigger>
+            <TabsTrigger value="notifications" className="flex items-center gap-1 data-[state=active]:bg-black data-[state=active]:text-white">
+              <Bell className="w-4 h-4" />
+              通知中心
+            </TabsTrigger>
             <TabsTrigger value="profile" className="flex items-center gap-1 data-[state=active]:bg-black data-[state=active]:text-white">
               <User className="w-4 h-4" />
               个人资料设置
@@ -220,6 +232,10 @@ export const UserCenter = () => {
 
             <TabsContent value="transactions">
               <TransactionHistory />
+            </TabsContent>
+
+            <TabsContent value="notifications">
+              <NotificationsPanel />
             </TabsContent>
 
             <TabsContent value="profile">

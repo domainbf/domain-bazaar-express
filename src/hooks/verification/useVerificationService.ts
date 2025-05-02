@@ -49,13 +49,14 @@ export const useVerificationService = () => {
           verification_data: verificationData,
           user_id: user?.id,
           verification_attempts: 0,
-          expiry_date: expiryDate.toISOString()
+          expiry_date: expiryDate.toISOString(),
+          last_checked: new Date().toISOString()
         })
         .select();
       
       if (error) throw error;
       
-      return data[0] as DomainVerification;
+      return data[0] as unknown as DomainVerification;
     } catch (error: any) {
       console.error('Error starting verification:', error);
       toast.error(error.message || '启动域名验证流程失败');
@@ -65,10 +66,10 @@ export const useVerificationService = () => {
 
   const checkVerification = async (verificationId: string, domainId: string): Promise<boolean> => {
     try {
-      // Update attempt counter
+      // Get current verification record
       const { data: verificationData, error: getError } = await supabase
         .from('domain_verifications')
-        .select('verification_type, verification_data, verification_attempts, domain_id')
+        .select('*')
         .eq('id', verificationId)
         .single();
       
@@ -105,8 +106,6 @@ export const useVerificationService = () => {
         return false;
       }
       
-      let verificationResult: VerificationResult;
-      
       // In a real system, this would perform actual DNS checks or file/html checks
       // For this implementation, we'll simulate the verification process
       
@@ -137,21 +136,17 @@ export const useVerificationService = () => {
         
         if (domainUpdateError) throw domainUpdateError;
         
-        verificationResult = {
-          success: true,
-          message: '域名验证成功！',
-          timestamp: new Date().toISOString(),
-          status: 'verified'
-        };
-        
         // Send verification success email if user is available
         if (user?.email) {
           try {
             await supabase.functions.invoke('send-notification', {
               body: {
-                type: 'verification_approved',
+                type: 'verification_complete',
                 recipient: user.email,
-                data: { domain: domainName }
+                data: { 
+                  domain: domainName,
+                  status: '已验证'
+                }
               }
             });
           } catch (emailError) {
@@ -160,16 +155,8 @@ export const useVerificationService = () => {
           }
         }
         
-        toast.success('域名验证成功！');
         return true;
       } else {
-        verificationResult = {
-          success: false,
-          message: '验证失败，请确认您已正确设置验证信息',
-          timestamp: new Date().toISOString(),
-          status: 'pending'
-        };
-        
         toast.error('验证失败，请确认您已正确设置验证信息');
         return false;
       }

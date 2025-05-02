@@ -122,20 +122,90 @@ serve(async (req) => {
         `;
         break;
 
+      case "domain_value_estimate":
+        emailSubject = "域名价值评估结果";
+        emailBody = `
+          <div style="font-family: sans-serif; color: #333;">
+            <h1>域名价值评估结果</h1>
+            <p>域名：<strong>${data.domain}</strong></p>
+            <p>估值范围：<strong>$${data.min_price} - $${data.max_price}</strong></p>
+            <p>置信度：<strong>${data.confidence_score}%</strong></p>
+            <p>您可以登录系统查看完整评估详情。</p>
+            <p><a href="${baseUrl}/domain-evaluation?domain=${data.domain}" style="background: #000; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 4px;">查看详情</a></p>
+          </div>
+        `;
+        break;
+
+      case "analytics_report":
+        emailSubject = "域名数据分析报告";
+        emailBody = `
+          <div style="font-family: sans-serif; color: #333;">
+            <h1>域名数据分析报告</h1>
+            <p>您的域名 <strong>${data.domain}</strong> 的周分析报告已生成。</p>
+            <p>本周浏览量：<strong>${data.views}</strong></p>
+            <p>收藏数：<strong>${data.favorites}</strong></p>
+            <p>报价数：<strong>${data.offers}</strong></p>
+            <p>您可以登录系统查看完整分析报告。</p>
+            <p><a href="${baseUrl}/user-center?tab=domains" style="background: #000; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 4px;">查看详情</a></p>
+          </div>
+        `;
+        break;
+
       default:
         throw new Error("Unknown notification type");
     }
 
-    // Send the email through Resend
-    const { error } = await resend.emails.send({
-      from: fromEmail,
-      to: [recipient],
-      subject: emailSubject,
-      html: emailBody,
-    });
+    // Create notification in database if recipient is a UUID (user ID)
+    if (recipient.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+      try {
+        // Determine notification type and title
+        let notificationType = 'system';
+        let notificationTitle = '系统通知';
+        let actionUrl = '/user-center?tab=notifications';
+        
+        if (type.includes('offer')) {
+          notificationType = 'offer';
+          notificationTitle = '新的域名报价';
+          actionUrl = '/user-center?tab=transactions';
+        } else if (type.includes('verification')) {
+          notificationType = 'verification';
+          notificationTitle = '域名验证更新';
+          actionUrl = '/user-center?tab=domains';
+        } else if (type.includes('domain_')) {
+          notificationType = 'transaction';
+          notificationTitle = '域名交易更新';
+          actionUrl = '/user-center?tab=transactions';
+        }
+        
+        // Create notification in database
+        await supabaseAdmin.from('notifications').insert({
+          user_id: recipient,
+          title: data.title || notificationTitle,
+          message: data.message || emailSubject,
+          type: notificationType,
+          is_read: false,
+          created_at: new Date().toISOString(),
+          related_id: data.related_id,
+          action_url: data.action_url || actionUrl
+        });
+      } catch (notifError) {
+        console.error("Error creating notification:", notifError);
+        // Continue with email even if notification fails
+      }
+    }
 
-    if (error) {
-      throw new Error(`Failed to send email: ${error.message}`);
+    // Send the email through Resend if recipient is an email
+    if (recipient.includes('@')) {
+      const { error } = await resend.emails.send({
+        from: fromEmail,
+        to: [recipient],
+        subject: emailSubject,
+        html: emailBody,
+      });
+
+      if (error) {
+        throw new Error(`Failed to send email: ${error.message}`);
+      }
     }
 
     console.log(`Successfully sent ${type} notification to ${recipient}`);

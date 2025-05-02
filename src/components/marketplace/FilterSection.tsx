@@ -1,17 +1,17 @@
 
-import { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Filter } from 'lucide-react';
 import { CategoryFilters } from './CategoryFilters';
 import { PriceRangeFilter } from './PriceRangeFilter';
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
-interface FilterSectionProps {
+export interface FilterSectionProps {
   filter: string;
   setFilter: (filter: string) => void;
-  priceRange: { min: string; max: string };
-  setPriceRange: (range: { min: string; max: string }) => void;
-  verifiedOnly?: boolean;
-  setVerifiedOnly?: (verified: boolean) => void;
+  priceRange: { min: string, max: string };
+  setPriceRange: (range: { min: string, max: string }) => void;
+  verifiedOnly: boolean;
+  setVerifiedOnly: (verified: boolean) => void;
+  isMobile?: boolean;
 }
 
 export const FilterSection = ({ 
@@ -19,58 +19,39 @@ export const FilterSection = ({
   setFilter, 
   priceRange, 
   setPriceRange,
-  verifiedOnly = false,
-  setVerifiedOnly
+  verifiedOnly,
+  setVerifiedOnly,
+  isMobile
 }: FilterSectionProps) => {
-  const [showFilters, setShowFilters] = useState(false);
-  
-  const categoryFilters = [
-    { id: 'all', label: 'All' },
-    { id: 'premium', label: 'Premium' },
-    { id: 'short', label: 'Short' },
-    { id: 'dev', label: 'Development' },
-    { id: 'brandable', label: 'Brandable' }
-  ];
-
   return (
-    <section className="py-8 border-b">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="flex justify-between items-center mb-4">
+    <section className={`bg-gray-50 border-b ${isMobile ? 'py-2 px-2' : 'py-4'}`}>
+      <div className={`${isMobile ? '' : 'max-w-6xl mx-auto px-4'}`}>
+        <div className={`flex ${isMobile ? 'flex-col gap-2' : 'flex-row items-center justify-between'}`}>
           <CategoryFilters 
             filter={filter} 
-            setFilter={setFilter} 
-            categoryFilters={categoryFilters} 
+            setFilter={setFilter}
+            isMobile={isMobile}
           />
           
-          <Button
-            variant="outline"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="w-4 h-4 mr-2" />
-            Filters
-          </Button>
-        </div>
-        
-        {showFilters && (
-          <div className="space-y-4">
-            <PriceRangeFilter priceRange={priceRange} setPriceRange={setPriceRange} />
+          <div className={`flex ${isMobile ? 'flex-col gap-2' : 'flex-row items-center gap-6'}`}>
+            <PriceRangeFilter 
+              priceRange={priceRange} 
+              setPriceRange={setPriceRange} 
+              isMobile={isMobile}
+            />
             
-            {setVerifiedOnly && (
-              <div className="flex items-center space-x-2 pt-2">
-                <input
-                  type="checkbox"
-                  id="verifiedOnly"
-                  checked={verifiedOnly}
-                  onChange={(e) => setVerifiedOnly(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                />
-                <label htmlFor="verifiedOnly" className="text-sm font-medium text-gray-700">
-                  Verified domains only
-                </label>
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              <Switch 
+                id="verified-filter"
+                checked={verifiedOnly}
+                onCheckedChange={setVerifiedOnly}
+              />
+              <Label htmlFor="verified-filter" className={`${isMobile ? 'text-sm' : ''}`}>
+                仅显示已验证域名
+              </Label>
+            </div>
           </div>
-        )}
+        </div>
       </div>
     </section>
   );

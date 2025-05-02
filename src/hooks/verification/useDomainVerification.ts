@@ -31,7 +31,7 @@ export const useDomainVerification = (domainId?: string) => {
       // Get verification details if any
       const { data: verificationData, error: verificationError } = await supabase
         .from('domain_verifications')
-        .select('id, domain_id, verification_type, status, verification_data, created_at, updated_at, verification_method, last_checked, verification_attempts, expiry_date')
+        .select('*')
         .eq('domain_id', domainId)
         .order('created_at', { ascending: false })
         .limit(1);
@@ -39,7 +39,8 @@ export const useDomainVerification = (domainId?: string) => {
       if (verificationError) throw verificationError;
       
       if (verificationData && verificationData.length > 0) {
-        setVerification(verificationData[0] as DomainVerification);
+        // Cast to ensure type safety
+        setVerification(verificationData[0] as unknown as DomainVerification);
       } else {
         setVerification(null);
       }

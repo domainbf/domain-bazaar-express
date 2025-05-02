@@ -48,6 +48,7 @@ export interface DomainVerification {
   verification_attempts?: number;
   verification_method?: 'dns' | 'file' | 'html';
   expiry_date?: string;
+  user_id?: string;
 }
 
 export interface AdminStats {
@@ -63,4 +64,41 @@ export interface VerificationResult {
   message: string;
   timestamp: string;
   status: 'verified' | 'pending' | 'failed';
+}
+
+export interface DomainAnalytics {
+  id: string;
+  domain_id: string;
+  views: number;
+  favorites?: number;
+  offers?: number;
+  last_updated?: string;
+}
+
+export interface DomainValueEstimate {
+  min_price: number;
+  max_price: number;
+  factors: {
+    name: string;
+    impact: number;
+    description: string;
+  }[];
+  similar_domains?: {
+    name: string;
+    price: number;
+    sold_date?: string;
+  }[];
+  confidence_score: number;
+}
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  title: string;
+  message: string;
+  type: 'offer' | 'verification' | 'system' | 'transaction';
+  is_read: boolean;
+  created_at: string;
+  related_id?: string;
+  action_url?: string;
 }
