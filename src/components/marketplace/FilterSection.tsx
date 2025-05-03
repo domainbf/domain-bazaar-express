@@ -21,7 +21,7 @@ export const FilterSection = ({
   setPriceRange,
   verifiedOnly,
   setVerifiedOnly,
-  isMobile
+  isMobile = false
 }: FilterSectionProps) => {
   return (
     <section className={`bg-gray-50 border-b ${isMobile ? 'py-2 px-2' : 'py-4'}`}>
@@ -30,14 +30,12 @@ export const FilterSection = ({
           <CategoryFilters 
             filter={filter} 
             setFilter={setFilter}
-            isMobile={isMobile}
           />
           
           <div className={`flex ${isMobile ? 'flex-col gap-2' : 'flex-row items-center gap-6'}`}>
             <PriceRangeFilter 
               priceRange={priceRange} 
               setPriceRange={setPriceRange} 
-              isMobile={isMobile}
             />
             
             <div className="flex items-center gap-2">

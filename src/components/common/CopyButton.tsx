@@ -8,16 +8,18 @@ export interface CopyButtonProps {
   value?: string;
   className?: string;
   children?: React.ReactNode;
+  text?: string; // 添加一个 text 属性，兼容现有代码
 }
 
-export const CopyButton = ({ value, className, children }: CopyButtonProps) => {
+export const CopyButton = ({ value, className, children, text }: CopyButtonProps) => {
   const [copied, setCopied] = useState(false);
+  const contentToCopy = value || text || '';
 
   const handleCopy = async () => {
-    if (!value) return;
+    if (!contentToCopy) return;
     
     try {
-      await navigator.clipboard.writeText(value);
+      await navigator.clipboard.writeText(contentToCopy);
       setCopied(true);
       toast.success("已复制到剪贴板");
       

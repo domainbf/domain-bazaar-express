@@ -7,7 +7,7 @@ interface MarketplaceHeaderProps {
   isMobile?: boolean;
 }
 
-export const MarketplaceHeader = ({ searchQuery, setSearchQuery, isMobile }: MarketplaceHeaderProps) => {
+export const MarketplaceHeader = ({ searchQuery, setSearchQuery, isMobile = false }: MarketplaceHeaderProps) => {
   return (
     <section className={`bg-gradient-to-r from-gray-900 to-black text-white ${isMobile ? 'py-6 px-4' : 'py-12'}`}>
       <div className={`${isMobile ? '' : 'max-w-6xl mx-auto px-4'}`}>
@@ -19,7 +19,6 @@ export const MarketplaceHeader = ({ searchQuery, setSearchQuery, isMobile }: Mar
           <SearchBar 
             searchQuery={searchQuery} 
             setSearchQuery={setSearchQuery}
-            isMobile={isMobile}
           />
         </div>
       </div>

@@ -265,31 +265,43 @@ export type Database = {
         Row: {
           created_at: string | null
           domain_id: string | null
+          expiry_date: string | null
           id: string
+          last_checked: string | null
           status: string | null
           updated_at: string | null
           user_id: string | null
+          verification_attempts: number | null
           verification_data: Json | null
+          verification_method: string | null
           verification_type: string
         }
         Insert: {
           created_at?: string | null
           domain_id?: string | null
+          expiry_date?: string | null
           id?: string
+          last_checked?: string | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+          verification_attempts?: number | null
           verification_data?: Json | null
+          verification_method?: string | null
           verification_type: string
         }
         Update: {
           created_at?: string | null
           domain_id?: string | null
+          expiry_date?: string | null
           id?: string
+          last_checked?: string | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+          verification_attempts?: number | null
           verification_data?: Json | null
+          verification_method?: string | null
           verification_type?: string
         }
         Relationships: [
@@ -446,6 +458,45 @@ export type Database = {
           id?: string
           is_default?: boolean | null
           name?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          related_id: string | null
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          related_id?: string | null
+          title: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          related_id?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
