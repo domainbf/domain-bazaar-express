@@ -8,19 +8,19 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // 处理CORS预检请求
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // 创建supabase客户端
+    // Create supabase client
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
-    // 验证JWT保证用户已登录
+    // Verify JWT to ensure user is logged in
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
@@ -29,7 +29,7 @@ serve(async (req) => {
       );
     }
 
-    // 获取用户ID
+    // Get user ID
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
     
@@ -40,10 +40,10 @@ serve(async (req) => {
       );
     }
 
-    // 从请求体获取参数
+    // Get parameters from request body
     const { limit = 50, offset = 0 } = await req.json();
 
-    // 查询用户的通知
+    // Query user's notifications
     const { data, error } = await supabaseClient
       .from('notifications')
       .select('*')
@@ -53,7 +53,7 @@ serve(async (req) => {
 
     if (error) throw error;
 
-    // 返回通知数据
+    // Return notifications data
     return new Response(
       JSON.stringify({ notifications: data }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

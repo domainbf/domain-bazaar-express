@@ -97,3 +97,6 @@ path = "supabase/functions/send-notification"
 
 [[functions.paths]]
 path = "supabase/functions/admin-provisioning"
+
+[[functions.paths]]
+path = "supabase/functions/get-notifications"

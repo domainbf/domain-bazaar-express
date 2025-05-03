@@ -12,7 +12,7 @@ export const DomainManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   
-  // 筛选域名
+  // Filter domains
   const filteredDomains = domains
     .filter(domain => 
       domain.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -48,13 +48,19 @@ export const DomainManagement = () => {
         setActiveTab={setActiveTab}
       />
 
-      <EmptyDomainState 
-        onDomainAdded={loadDomains} 
-        isEmpty={domains.length === 0}
-        isFiltered={domains.length > 0 && filteredDomains.length === 0}
-      />
-      
-      {domains.length > 0 && filteredDomains.length > 0 && (
+      {domains.length === 0 ? (
+        <EmptyDomainState 
+          onDomainAdded={loadDomains} 
+          isEmpty={true}
+          isFiltered={false}
+        />
+      ) : filteredDomains.length === 0 ? (
+        <EmptyDomainState 
+          onDomainAdded={loadDomains} 
+          isEmpty={false}
+          isFiltered={true}
+        />
+      ) : (
         <DomainTable 
           domains={filteredDomains} 
           onDomainUpdate={loadDomains} 

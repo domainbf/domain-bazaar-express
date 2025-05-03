@@ -36,17 +36,15 @@ export const DomainActions = ({ domain, onSuccess, mode }: DomainActionsProps) =
     onSuccess();
   };
 
-  const renderTriggerButton = () => {
-    switch (mode) {
-      case 'add':
-        return (
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        {mode === 'add' ? (
           <Button className="flex items-center gap-2" onClick={() => setIsOpen(true)}>
             <Plus className="w-4 h-4" />
             添加域名
           </Button>
-        );
-      case 'edit':
-        return (
+        ) : mode === 'edit' ? (
           <Button 
             variant="outline" 
             size="sm" 
@@ -56,9 +54,7 @@ export const DomainActions = ({ domain, onSuccess, mode }: DomainActionsProps) =
             <Edit className="w-4 h-4" />
             编辑
           </Button>
-        );
-      case 'delete':
-        return (
+        ) : (
           <Button 
             variant="outline" 
             size="sm" 
@@ -68,39 +64,7 @@ export const DomainActions = ({ domain, onSuccess, mode }: DomainActionsProps) =
             <Trash2 className="w-4 h-4" />
             删除
           </Button>
-        );
-    }
-  };
-
-  const renderDialogContent = () => {
-    if (mode === 'delete' && domain) {
-      return (
-        <DeleteDomainConfirm 
-          domain={domain} 
-          onSuccess={handleSuccess}
-          onCancel={handleDialogClose}
-          isLoading={isLoading}
-          setIsLoading={setIsLoading}
-        />
-      );
-    }
-    
-    return (
-      <DomainForm 
-        domain={domain} 
-        mode={mode === 'add' ? 'add' : 'edit'}
-        onSuccess={handleSuccess}
-        onCancel={handleDialogClose}
-        isLoading={isLoading}
-        setIsLoading={setIsLoading}
-      />
-    );
-  };
-  
-  return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {renderTriggerButton()}
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -108,7 +72,24 @@ export const DomainActions = ({ domain, onSuccess, mode }: DomainActionsProps) =
             {mode === 'add' ? '添加新域名' : mode === 'edit' ? '编辑域名' : '删除域名'}
           </DialogTitle>
         </DialogHeader>
-        {renderDialogContent()}
+        {mode === 'delete' && domain ? (
+          <DeleteDomainConfirm 
+            domain={domain} 
+            onSuccess={handleSuccess}
+            onCancel={handleDialogClose}
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+          />
+        ) : (
+          <DomainForm 
+            domain={domain} 
+            mode={mode === 'add' ? 'add' : 'edit'}
+            onSuccess={handleSuccess}
+            onCancel={handleDialogClose}
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -21,28 +21,24 @@ export const useNotifications = () => {
 
     setIsLoading(true);
     try {
-      // 执行原始SQL查询来获取通知
-      // 由于notifications表不在Supabase类型定义中，使用原始SQL查询
+      // Using RPC function to get user notifications
       const { data, error } = await supabase
-        .rpc('get_user_notifications', { user_id_param: user.id })
-        .select()
-        .order('created_at', { ascending: false })
-        .limit(50);
+        .rpc('get_user_notifications', { user_id_param: user.id });
 
       if (error) throw error;
 
-      // 转换为通知类型并设置状态
+      // Convert to notification type and set state
       const typedNotifications = data as unknown as Notification[];
       setNotifications(typedNotifications);
       
-      // 计算未读数量
+      // Calculate unread count
       const unread = typedNotifications.filter(n => !n.is_read).length;
       setUnreadCount(unread);
     } catch (error: any) {
       console.error('Error loading notifications:', error);
       toast.error('加载通知失败');
       
-      // 错误回退：使用自定义查询
+      // Fallback: use direct table query
       try {
         const { data } = await supabase
           .from('notifications')
@@ -68,7 +64,7 @@ export const useNotifications = () => {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      // 使用原始SQL更新
+      // Use RPC function to mark as read
       const { error } = await supabase
         .rpc('mark_notification_as_read', { 
           notification_id_param: notificationId 
@@ -76,20 +72,20 @@ export const useNotifications = () => {
 
       if (error) throw error;
 
-      // 更新本地状态
+      // Update local state
       setNotifications(prev => 
         prev.map(n => 
           n.id === notificationId ? { ...n, is_read: true } : n
         )
       );
       
-      // 重新计算未读数量
+      // Recalculate unread count
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error: any) {
       console.error('Error marking notification as read:', error);
       toast.error('更新通知状态失败');
       
-      // 回退：直接更新通知表
+      // Fallback: direct update
       try {
         const { error: fallbackError } = await supabase
           .from('notifications')
@@ -114,7 +110,7 @@ export const useNotifications = () => {
     if (!user || notifications.length === 0) return;
 
     try {
-      // 使用原始SQL标记所有为已读
+      // Use RPC function to mark all as read
       const { error } = await supabase
         .rpc('mark_all_notifications_as_read', { 
           user_id_param: user.id 
@@ -122,19 +118,19 @@ export const useNotifications = () => {
 
       if (error) throw error;
 
-      // 更新本地状态
+      // Update local state
       setNotifications(prev => 
         prev.map(n => ({ ...n, is_read: true }))
       );
       
-      // 重置未读计数
+      // Reset unread count
       setUnreadCount(0);
       toast.success('已将所有通知标记为已读');
     } catch (error: any) {
       console.error('Error marking all notifications as read:', error);
       toast.error('更新通知状态失败');
       
-      // 回退：直接更新通知表
+      // Fallback: direct update
       try {
         const { error: fallbackError } = await supabase
           .from('notifications')
@@ -155,7 +151,7 @@ export const useNotifications = () => {
     }
   };
 
-  // 当用户变化时加载通知
+  // Load notifications when user changes
   useEffect(() => {
     loadNotifications();
   }, [user, loadNotifications]);

@@ -30,6 +30,13 @@ export const FilterSection = ({
           <CategoryFilters 
             filter={filter} 
             setFilter={setFilter}
+            categoryFilters={[
+              { id: 'all', label: '全部' },
+              { id: 'premium', label: '高级域名' },
+              { id: 'short', label: '短域名' },
+              { id: 'business', label: '企业域名' },
+              { id: 'brandable', label: '品牌域名' }
+            ]}
           />
           
           <div className={`flex ${isMobile ? 'flex-col gap-2' : 'flex-row items-center gap-6'}`}>

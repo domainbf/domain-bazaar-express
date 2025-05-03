@@ -46,7 +46,7 @@ export interface DomainVerification {
   domain_listings?: Domain;
   last_checked?: string;
   verification_attempts?: number;
-  verification_method?: 'dns' | 'file' | 'html';
+  verification_method?: string; // Changed from specific union type to string to match DB
   expiry_date?: string;
   user_id?: string;
 }

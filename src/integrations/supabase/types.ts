@@ -805,7 +805,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_notifications: {
+        Args: { user_id_param: string }
+        Returns: {
+          action_url: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          related_id: string | null
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
+      mark_all_notifications_as_read: {
+        Args: { user_id_param: string }
+        Returns: undefined
+      }
+      mark_notification_as_read: {
+        Args: { notification_id_param: string }
+        Returns: undefined
+      }
     }
     Enums: {
       dns_record_status: "active" | "pending" | "disabled"
