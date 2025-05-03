@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Edit, Trash, CheckCircle, ExternalLink, Eye } from 'lucide-react';
+import { Edit, Trash, CheckCircle, ExternalLink, Eye, ShieldCheck } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { DomainListing } from "@/types/domain";
 import { useNavigate } from 'react-router-dom';
@@ -70,6 +70,14 @@ export const DomainListingsTable = ({
     }
   };
 
+  const handleVerifyDomain = (domainId: string) => {
+    if (onVerify) {
+      onVerify(domainId);
+    } else {
+      navigate(`/domain-verification/${domainId}`);
+    }
+  };
+
   if (domains.length === 0) {
     return (
       <div className="text-center py-12 bg-gray-50 rounded-lg">
@@ -122,6 +130,7 @@ export const DomainListingsTable = ({
                   }`}>
                     {domain.verification_status === 'verified' && '已验证'}
                     {domain.verification_status === 'pending' && '待验证'} 
+                    {(!domain.verification_status || domain.verification_status === 'none') && '未验证'}
                   </span>
                   <span className={`px-2 py-1 rounded text-xs ${
                     domain.status === 'available' 
@@ -149,15 +158,15 @@ export const DomainListingsTable = ({
                       <Edit className="w-4 h-4" />
                     </Button>
                     
-                    {onVerify && domain.verification_status !== 'verified' && (
+                    {domain.verification_status !== 'verified' && (
                       <Button 
                         size="sm" 
                         variant="outline" 
-                        onClick={() => onVerify(domain.id as string)}
-                        className="border-gray-300 text-green-600 hover:bg-green-50 hover:border-green-300"
+                        onClick={() => handleVerifyDomain(domain.id)}
+                        className="border-green-300 text-green-600 hover:bg-green-50 hover:border-green-300"
                         title="验证域名"
                       >
-                        <Eye className="w-4 h-4" />
+                        <ShieldCheck className="w-4 h-4" />
                       </Button>
                     )}
                     

@@ -2,9 +2,10 @@
 import { DomainVerification } from '@/types/domain';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Copy, RefreshCw } from 'lucide-react';
+import { ExternalLink, Copy, RefreshCw, Database } from 'lucide-react';
 import { useIsMobile } from "@/hooks/use-mobile";
 import { CopyButton } from "@/components/common/CopyButton";
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface VerificationInstructionsProps {
   verification: DomainVerification;
@@ -21,6 +22,42 @@ export const VerificationInstructions = ({
 }: VerificationInstructionsProps) => {
   const isMobile = useIsMobile();
   
+  const renderExpiryInfo = () => {
+    if (!verification.expiry_date) return null;
+    
+    const expiryDate = new Date(verification.expiry_date);
+    const now = new Date();
+    const daysLeft = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysLeft <= 0) {
+      return (
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription>
+            此验证已过期。请重新开始验证流程。
+          </AlertDescription>
+        </Alert>
+      );
+    }
+    
+    if (daysLeft <= 2) {
+      return (
+        <Alert variant="warning" className="mb-4">
+          <AlertDescription>
+            此验证将在 {daysLeft} 天后过期。请尽快完成验证。
+          </AlertDescription>
+        </Alert>
+      );
+    }
+    
+    return (
+      <Alert className="mb-4">
+        <AlertDescription>
+          此验证将在 {daysLeft} 天后过期。
+        </AlertDescription>
+      </Alert>
+    );
+  };
+  
   return (
     <Card className="mb-8">
       <CardHeader>
@@ -30,6 +67,8 @@ export const VerificationInstructions = ({
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {renderExpiryInfo()}
+        
         {verification.verification_type === 'dns' ? (
           <div className="space-y-4">
             <p>添加以下TXT记录到您域名的DNS设置：</p>
@@ -99,6 +138,37 @@ export const VerificationInstructions = ({
                     <ExternalLink className="h-4 w-4" />
                   </a>
                 </div>
+              </div>
+            </div>
+          </div>
+        ) : verification.verification_type === 'whois' ? (
+          <div className="space-y-4">
+            <p>在您的域名WHOIS信息中添加以下验证码：</p>
+            <div className={`${isMobile ? 'overflow-x-auto' : ''} bg-gray-50 p-4 rounded-md space-y-3`}>
+              <div>
+                <p className="text-sm font-medium">验证码:</p>
+                <div className="flex items-center mt-1">
+                  <p className="text-sm font-mono bg-gray-100 p-1 rounded flex-1 overflow-x-auto">
+                    {verification.verification_data.tokenValue}
+                  </p>
+                  <CopyButton value={verification.verification_data.tokenValue} />
+                </div>
+              </div>
+              <div className="mt-3">
+                <p className="text-sm font-medium">操作步骤:</p>
+                <ol className="mt-2 space-y-2 text-sm text-gray-600 list-decimal pl-5">
+                  <li>登录到您的域名注册商账户</li>
+                  <li>找到域名 {domainName} 的WHOIS信息或联系信息设置</li>
+                  <li>将上述验证码添加到备注字段或描述字段中</li>
+                  <li>保存更改</li>
+                  <li>等待WHOIS信息更新后点击"检查验证"按钮</li>
+                </ol>
+              </div>
+              <div className="flex items-center mt-3 p-2 bg-yellow-50 rounded border border-yellow-200">
+                <Database className="h-4 w-4 text-yellow-600 mr-2 flex-shrink-0" />
+                <p className="text-xs text-yellow-700">
+                  WHOIS信息更新可能需要24-48小时才能生效，请耐心等待。
+                </p>
               </div>
             </div>
           </div>

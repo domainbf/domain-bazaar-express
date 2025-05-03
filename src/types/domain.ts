@@ -1,8 +1,8 @@
 
 export interface Domain {
-  id?: string;
-  name?: string;
-  price?: number;
+  id: string;
+  name: string;
+  price: number;
   category?: string;
   description?: string;
   status?: string;

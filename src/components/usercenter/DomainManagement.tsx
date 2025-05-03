@@ -6,6 +6,7 @@ import { DomainFilters } from './domain/DomainFilters';
 import { DomainTable } from './domain/DomainTable';
 import { EmptyDomainState } from './domain/EmptyDomainState';
 import { useDomainsData } from './domain/useDomainsData';
+import { Domain } from '@/types/domain'; // 确保导入Domain类型
 
 export const DomainManagement = () => {
   const { domains, isLoading, loadDomains } = useDomainsData();
