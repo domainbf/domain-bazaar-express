@@ -22,7 +22,7 @@ export const Marketplace = () => {
   const loadDomains = useCallback(async () => {
     setIsLoading(true);
     try {
-      // 使用更轻量级的查询，避免大量连接
+      // 1. 获取域名列表
       const { data: listingsData, error: listingsError } = await supabase
         .from('domain_listings')
         .select('*')
@@ -37,7 +37,7 @@ export const Marketplace = () => {
         return;
       }
       
-      // 单独获取domain_analytics数据
+      // 2. 单独获取所有域名分析数据
       const domainIds = listingsData.map(domain => domain.id);
       
       const { data: analyticsData, error: analyticsError } = await supabase
@@ -47,16 +47,18 @@ export const Marketplace = () => {
       
       if (analyticsError) {
         console.error('Error fetching analytics:', analyticsError);
-        // 即使获取分析数据失败也继续处理域名列表
+        // 即使分析数据获取失败，仍然处理域名列表
       }
       
-      // 将analytics数据映射到domains
+      // 3. 手动将analytics数据合并到domains
       const domainsWithAnalytics = listingsData.map(domain => {
+        // 查找这个域名的所有分析数据
         const domainAnalytics = analyticsData?.filter(a => a.domain_id === domain.id) || [];
+        const analyticEntry = domainAnalytics.length > 0 ? domainAnalytics[0] : null;
         
         return {
           ...domain,
-          views: domainAnalytics.length > 0 ? Number(domainAnalytics[0].views || 0) : 0,
+          views: analyticEntry ? Number(analyticEntry.views || 0) : 0,
           domain_analytics: domainAnalytics.map(a => ({
             views: Number(a.views || 0),
             id: a.id

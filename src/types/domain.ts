@@ -12,12 +12,11 @@ export interface Domain {
   is_verified?: boolean;
   verification_status?: string;
   views?: number;
-  domain_analytics?: {views?: number; id?: string}[];
+  domain_analytics?: DomainAnalytics[];
 }
 
 export interface DomainListing extends Domain {
-  // Add any additional fields specific to listings
-  // but inherit all fields from Domain
+  // 继承Domain的所有字段，并添加特定于列表的额外字段
 }
 
 export interface DomainOffer {
@@ -46,7 +45,7 @@ export interface DomainVerification {
   domain_listings?: Domain;
   last_checked?: string;
   verification_attempts?: number;
-  verification_method?: string; // Changed from specific union type to string to match DB
+  verification_method?: string;
   expiry_date?: string;
   user_id?: string;
 }
@@ -67,9 +66,9 @@ export interface VerificationResult {
 }
 
 export interface DomainAnalytics {
-  id: string;
-  domain_id: string;
-  views: number;
+  id?: string;
+  domain_id?: string;
+  views?: number;
   favorites?: number;
   offers?: number;
   last_updated?: string;

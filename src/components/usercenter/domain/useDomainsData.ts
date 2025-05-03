@@ -3,19 +3,7 @@ import { useCallback, useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
-
-interface Domain {
-  id: string;
-  name: string;
-  price: number;
-  category?: string;
-  description?: string;
-  status?: string;
-  is_verified?: boolean;
-  created_at?: string;
-  views?: number;
-  domain_analytics?: {views?: number, id?: string}[];
-}
+import { Domain } from '@/types/domain';
 
 export const useDomainsData = () => {
   const { user } = useAuth();
@@ -47,7 +35,7 @@ export const useDomainsData = () => {
     
     setIsLoading(true);
     try {
-      // 优化查询，分别获取domains和analytics
+      // 1. 获取用户的域名列表
       const { data: domainsData, error: domainsError } = await supabase
         .from('domain_listings')
         .select('*')
@@ -61,7 +49,7 @@ export const useDomainsData = () => {
         return;
       }
       
-      // 获取这些域名的analytics数据
+      // 2. 单独获取分析数据
       const domainIds = domainsData.map(domain => domain.id);
       const { data: analyticsData, error: analyticsError } = await supabase
         .from('domain_analytics')
@@ -72,7 +60,7 @@ export const useDomainsData = () => {
         console.error('Error fetching analytics:', analyticsError);
       }
       
-      // 合并数据
+      // 3. 手动合并数据
       const domainsWithAnalytics = domainsData.map(domain => {
         const analytics = analyticsData?.filter(a => a.domain_id === domain.id) || [];
         const viewsValue = analytics.length > 0 ? Number(analytics[0].views || 0) : 0;

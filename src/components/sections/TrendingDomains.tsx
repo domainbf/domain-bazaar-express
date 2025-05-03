@@ -23,7 +23,7 @@ export const TrendingDomains = () => {
   const loadTrendingDomains = useCallback(async () => {
     setIsLoading(true);
     try {
-      // 优化查询，分开获取域名和分析数据
+      // 1. 获取推荐域名
       const { data: domainsData, error: domainsError } = await supabase
         .from('domain_listings')
         .select('id, name, price, highlight')
@@ -38,7 +38,7 @@ export const TrendingDomains = () => {
         return;
       }
       
-      // 获取这些域名的analytics数据
+      // 2. 单独获取分析数据
       const domainIds = domainsData.map(domain => domain.id);
       const { data: analyticsData, error: analyticsError } = await supabase
         .from('domain_analytics')
@@ -49,7 +49,7 @@ export const TrendingDomains = () => {
         console.error('Error fetching analytics:', analyticsError);
       }
       
-      // 合并数据并转换为显示格式
+      // 3. 手动合并数据并转换为显示格式
       const transformedData = domainsData.map(domain => {
         // 查找对应的analytics记录
         const analytics = analyticsData?.find(a => a.domain_id === domain.id);
@@ -121,28 +121,38 @@ export const TrendingDomains = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {trendingData.map((item, index) => (
-            <motion.div
-              key={item.domain}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className="glass-card p-6 rounded-xl hover:shadow-lg transition-all duration-300"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <TrendingUp className="w-5 h-5 text-emerald-400" />
-                <span className="text-emerald-400 font-semibold">{item.growth}</span>
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">{item.domain}</h3>
-              <div className="flex justify-between items-center">
-                <div className="text-gray-400">{item.views} 浏览量</div>
-                <div className="text-violet-400 font-medium">¥{item.price}</div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center py-20">
+            <LoadingSpinner />
+          </div>
+        ) : trendingData.length === 0 ? (
+          <div className="text-center py-10">
+            <p className="text-gray-500">暂无热门域名数据</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {trendingData.map((item, index) => (
+              <motion.div
+                key={item.domain}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                className="glass-card p-6 rounded-xl hover:shadow-lg transition-all duration-300"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <TrendingUp className="w-5 h-5 text-emerald-400" />
+                  <span className="text-emerald-400 font-semibold">{item.growth}</span>
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">{item.domain}</h3>
+                <div className="flex justify-between items-center">
+                  <div className="text-gray-400">{item.views} 浏览量</div>
+                  <div className="text-violet-400 font-medium">¥{item.price}</div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
