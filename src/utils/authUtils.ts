@@ -1,90 +1,73 @@
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
-export const signInWithEmailPassword = async (email: string, password: string) => {
+export const fetchUserProfile = async (userId: string) => {
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    return null;
+  }
+};
+
+export const sendVerificationEmail = async (email: string, verificationUrl: string, fullName?: string) => {
+  try {
+    console.log('Sending verification email via send-notification function');
+    const { data, error } = await supabase.functions.invoke('send-notification', {
+      body: {
+        type: 'email_verification',
+        recipient: email,
+        data: {
+          verificationUrl,
+          name: fullName || email.split('@')[0]
+        }
+      }
     });
     
     if (error) {
-      // If the error is about email not being confirmed, enhance the error
-      if (error.message.includes('Email not confirmed')) {
-        const enhancedError = new Error('Email not confirmed');
-        (enhancedError as any).email = email;
-        throw enhancedError;
-      }
+      console.error('Error invoking send-notification function:', error);
       throw error;
     }
     
-    return { success: true, data };
-  } catch (error: any) {
-    console.error('Login error:', error);
-    throw error;
+    console.log('Verification email response:', data);
+    return true;
+  } catch (error) {
+    console.error('Error sending verification email:', error);
+    return false;
   }
 };
 
-export const signUpWithEmailPassword = async (
-  email: string, 
-  password: string, 
-  options?: {
-    metadata?: { [key: string]: any };
-    redirectTo?: string;
-  }
-) => {
-  try {
-    // Set the redirect URL to include the verification success page
-    const redirectTo = options?.redirectTo || `${window.location.origin}/login`;
-    
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: options?.metadata,
-        emailRedirectTo: redirectTo,
-      }
-    });
-    
-    if (error) throw error;
-    
-    // Check if user is new or already exists with unconfirmed email
-    if (data?.user && !data.user.confirmed_at) {
-      // Attempt to send a custom welcome email with verification link
-      try {
-        await supabase.functions.invoke('send-notification', {
-          body: {
-            type: 'email_verification',
-            recipient: email,
-            data: {
-              verificationUrl: `${window.location.origin}/auth/verify`,
-              name: options?.metadata?.full_name || email.split('@')[0]
-            }
-          }
-        });
-      } catch (emailError) {
-        console.error('Error sending custom verification email:', emailError);
-        // Continue even if custom email fails, Supabase will still send its default
-      }
+export const handleAuthError = (error: any, action: string) => {
+  console.error(`Error during ${action}:`, error);
+  let errorMessage = error.message;
+  
+  // Friendlier error messages for common errors
+  if (errorMessage.includes('Email not confirmed')) {
+    errorMessage = '请先验证您的邮箱，然后再尝试登录';
+    // Try to resend verification email
+    if (error.email) {
+      sendVerificationEmail(error.email, `${window.location.origin}/auth/verify`)
+        .then(() => toast.info('验证邮件已重新发送，请检查您的邮箱'));
     }
-    
-    return { success: true, data };
-  } catch (error: any) {
-    console.error('Signup error:', error);
-    throw error;
+  } else if (errorMessage.includes('Invalid login credentials')) {
+    errorMessage = '邮箱或密码错误，请重试';
+  } else if (errorMessage.includes('User already registered')) {
+    errorMessage = '该邮箱已被注册，请尝试登录或使用另一个邮箱';
+  } else if (errorMessage.includes('Password should be')) {
+    errorMessage = '密码应至少包含6个字符';
+  } else if (errorMessage.includes('rate limited')) {
+    errorMessage = '操作过于频繁，请稍后再试';
   }
-};
-
-export const signOut = async () => {
-  try {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    return { success: true };
-  } catch (error: any) {
-    console.error('Logout error:', error);
-    toast.error(error.message || 'Failed to log out');
-    return { success: false, error };
-  }
+  
+  toast.error(errorMessage || `${action}失败`);
+  throw error;
 };
 
 export const resetUserPassword = async (email: string) => {

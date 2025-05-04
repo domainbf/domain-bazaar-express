@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.48.1";
 import { Resend } from "https://esm.sh/resend@4.1.2";
@@ -30,7 +29,7 @@ serve(async (req) => {
     let emailSubject = "";
     let emailBody = "";
 
-    const baseUrl = Deno.env.get("SITE_URL") || "https://nic.bn"; // Use environment variable or default
+    const baseUrl = Deno.env.get("SITE_URL") || "https://sale.nic.bn"; // Use environment variable or default
     
     // Only send from sale.nic.bn address
     const fromEmail = "noreply@sale.nic.bn";
