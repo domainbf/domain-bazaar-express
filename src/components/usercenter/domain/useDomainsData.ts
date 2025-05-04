@@ -62,16 +62,13 @@ export const useDomainsData = () => {
       
       // 3. 手动合并数据
       const domainsWithAnalytics = domainsData.map(domain => {
-        const analytics = analyticsData?.filter(a => a.domain_id === domain.id) || [];
-        const viewsValue = analytics.length > 0 ? Number(analytics[0].views || 0) : 0;
+        // Find analytics data for this domain
+        const analyticEntry = analyticsData?.find(a => a.domain_id === domain.id);
+        const viewsValue = analyticEntry ? Number(analyticEntry.views || 0) : 0;
         
         return {
           ...domain,
           views: viewsValue,
-          domain_analytics: analytics.map(a => ({
-            views: Number(a.views || 0),
-            id: a.id
-          }))
         };
       });
       

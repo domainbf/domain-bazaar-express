@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { DomainCard } from '@/components/DomainCard';
@@ -30,33 +29,42 @@ const Index = () => {
   const loadDomains = async () => {
     setIsLoading(true);
     try {
-      // Join domain_listings with domain_analytics to get view counts
-      const { data, error } = await supabase
+      // First fetch domain listings
+      const { data: listingsData, error: listingsError } = await supabase
         .from('domain_listings')
-        .select(`
-          *,
-          domain_analytics(views)
-        `)
+        .select('*')
         .eq('status', 'available')
         .limit(9); // Limit to 9 domains for the homepage
       
-      if (error) throw error;
+      if (listingsError) throw listingsError;
+
+      if (!listingsData || listingsData.length === 0) {
+        setDomains([]);
+        setIsLoading(false);
+        return;
+      }
       
-      // Transform the data to include view count for sorting
-      const domainsWithAnalytics = data?.map(domain => {
-        // First check if domain_analytics exists and has items
-        const analyticsData = domain.domain_analytics || [];
-        // Then safely extract views and convert to number
-        const viewsValue = analyticsData.length > 0 
-          ? Number(analyticsData[0]?.views || 0)
-          : 0;
+      // Then separately fetch analytics data
+      const domainIds = listingsData.map(domain => domain.id);
+      const { data: analyticsData, error: analyticsError } = await supabase
+        .from('domain_analytics')
+        .select('*')
+        .in('domain_id', domainIds);
+      
+      if (analyticsError) {
+        console.error('Error fetching analytics:', analyticsError);
+      }
+      
+      // Combine the data manually
+      const domainsWithAnalytics = listingsData.map(domain => {
+        const analyticEntry = analyticsData?.find(a => a.domain_id === domain.id);
+        const viewsValue = analyticEntry ? Number(analyticEntry.views || 0) : 0;
         
         return {
           ...domain,
-          views: viewsValue, // Cast to number to fix type error
-          domain_analytics: undefined // Remove the nested object
+          views: viewsValue,
         };
-      }) || [];
+      });
       
       // Sort by view count (high to low)
       domainsWithAnalytics.sort((a, b) => (b.views || 0) - (a.views || 0));

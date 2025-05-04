@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -50,7 +49,7 @@ export const signUpWithEmailPassword = async (
     if (error) throw error;
     
     // Check if user is new or already exists with unconfirmed email
-    if (data?.user && !data.user.email_confirmed_at) {
+    if (data?.user && !data.user.confirmed_at) {
       // Attempt to send a custom welcome email with verification link
       try {
         await supabase.functions.invoke('send-notification', {
@@ -58,7 +57,7 @@ export const signUpWithEmailPassword = async (
             type: 'email_verification',
             recipient: email,
             data: {
-              verificationUrl: `${window.location.origin}/auth/verify?token=${data.user.confirmation_token}`,
+              verificationUrl: `${window.location.origin}/auth/verify`,
               name: options?.metadata?.full_name || email.split('@')[0]
             }
           }

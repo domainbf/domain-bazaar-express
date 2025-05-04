@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
@@ -42,7 +41,7 @@ export const TrendingDomains = () => {
       const domainIds = domainsData.map(domain => domain.id);
       const { data: analyticsData, error: analyticsError } = await supabase
         .from('domain_analytics')
-        .select('domain_id, views')
+        .select('*')
         .in('domain_id', domainIds);
       
       if (analyticsError) {
@@ -52,8 +51,8 @@ export const TrendingDomains = () => {
       // 3. 手动合并数据并转换为显示格式
       const transformedData = domainsData.map(domain => {
         // 查找对应的analytics记录
-        const analytics = analyticsData?.find(a => a.domain_id === domain.id);
-        const viewsValue = Number(analytics?.views || 0);
+        const analyticEntry = analyticsData?.find(a => a.domain_id === domain.id);
+        const viewsValue = Number(analyticEntry?.views || 0);
         
         // Format views for display
         let viewsDisplay = '';
@@ -111,7 +110,7 @@ export const TrendingDomains = () => {
             <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-cyan-400">
               热门域名
             </h2>
-            <p className="text-gray-400 mt-2">实时跟踪最受关注的域名</p>
+            <p className="text-gray-400 mt-2">实时跟踪���受关注的域名</p>
           </div>
           <Link to="/marketplace">
             <Button variant="outline" className="group">

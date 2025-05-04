@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -40,6 +39,7 @@ export const Marketplace = () => {
       // 2. 单独获取所有域名分析数据
       const domainIds = listingsData.map(domain => domain.id);
       
+      // Make a separate query for analytics data instead of using a join
       const { data: analyticsData, error: analyticsError } = await supabase
         .from('domain_analytics')
         .select('*')
@@ -53,16 +53,11 @@ export const Marketplace = () => {
       // 3. 手动将analytics数据合并到domains
       const domainsWithAnalytics = listingsData.map(domain => {
         // 查找这个域名的所有分析数据
-        const domainAnalytics = analyticsData?.filter(a => a.domain_id === domain.id) || [];
-        const analyticEntry = domainAnalytics.length > 0 ? domainAnalytics[0] : null;
+        const analyticEntry = analyticsData?.find(a => a.domain_id === domain.id) || null;
         
         return {
           ...domain,
           views: analyticEntry ? Number(analyticEntry.views || 0) : 0,
-          domain_analytics: domainAnalytics.map(a => ({
-            views: Number(a.views || 0),
-            id: a.id
-          }))
         };
       });
       
