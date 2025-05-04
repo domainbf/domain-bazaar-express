@@ -1,5 +1,53 @@
+
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+
+export const signInWithEmailPassword = async (email: string, password: string) => {
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+    
+    if (error) throw error;
+    
+    return { success: true, data };
+  } catch (error: any) {
+    console.error('Login error:', error);
+    return { success: false, error };
+  }
+};
+
+export const signUpWithEmailPassword = async (email: string, password: string, options?: { metadata?: { [key: string]: any }, redirectTo?: string }) => {
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: options?.metadata || {},
+        emailRedirectTo: options?.redirectTo || `${window.location.origin}/auth/callback`
+      }
+    });
+    
+    if (error) throw error;
+    
+    return { success: true, data };
+  } catch (error: any) {
+    console.error('Signup error:', error);
+    return { success: false, error };
+  }
+};
+
+export const signOut = async () => {
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    return { success: true };
+  } catch (error: any) {
+    console.error('Sign out error:', error);
+    return { success: false, error };
+  }
+};
 
 export const fetchUserProfile = async (userId: string) => {
   try {

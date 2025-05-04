@@ -6,7 +6,16 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
 import { useState } from 'react';
 import { AuthModal } from './AuthModal';
-import { Loader2, User } from 'lucide-react';
+import { Loader2, User, Settings } from 'lucide-react';
+import { 
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger
+} from "@/components/ui/navigation-menu";
+import { cn } from "@/lib/utils";
 
 export const Navbar = () => {
   const { user, profile, signOut, isLoading } = useAuth();
@@ -64,24 +73,62 @@ export const Navbar = () => {
               <span className="text-sm text-gray-500">加载中...</span>
             </div>
           ) : user ? (
-            <>
-              <div className="flex items-center space-x-2">
-                <User className="h-4 w-4 text-gray-700" />
-                <span className="text-gray-700">您好, {getUserDisplayName()}</span>
-              </div>
-              <Button 
-                variant="outline" 
-                onClick={handleLogout}
-                disabled={isSigningOut}
-              >
-                {isSigningOut ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 className="animate-spin w-4 h-4" />
-                    登出中...
-                  </span>
-                ) : '登出'}
-              </Button>
-            </>
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="flex items-center gap-2 px-3 py-2 rounded-md">
+                    <User className="h-4 w-4 text-gray-700" />
+                    <span className="text-gray-700">您好, {getUserDisplayName()}</span>
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[200px] gap-2 p-2 md:w-[240px]">
+                      <li className="row-span-1">
+                        <NavigationMenuLink asChild>
+                          <Link to="/user-center" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                            <div className="text-sm font-medium leading-none">用户中心</div>
+                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">管理个人资料和域名</p>
+                          </Link>
+                        </NavigationMenuLink>
+                      </li>
+                      <li className="row-span-1">
+                        <NavigationMenuLink asChild>
+                          <Link to="/dashboard" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                            <div className="text-sm font-medium leading-none">我的控制台</div>
+                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">查看报表和域名数据</p>
+                          </Link>
+                        </NavigationMenuLink>
+                      </li>
+                      {user.app_metadata?.role === 'admin' && (
+                        <li className="row-span-1">
+                          <NavigationMenuLink asChild>
+                            <Link to="/admin" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                              <div className="text-sm font-medium leading-none">管理员</div>
+                              <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">管理系统和用户</p>
+                            </Link>
+                          </NavigationMenuLink>
+                        </li>
+                      )}
+                      <li className="row-span-1">
+                        <button 
+                          onClick={handleLogout}
+                          disabled={isSigningOut}
+                          className="block w-full select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none text-left transition-colors hover:bg-red-50 hover:text-red-600 focus:bg-accent focus:text-accent-foreground"
+                        >
+                          {isSigningOut ? (
+                            <div className="flex items-center gap-2">
+                              <Loader2 className="animate-spin w-4 h-4" />
+                              <span>登出中...</span>
+                            </div>
+                          ) : (
+                            <div className="text-sm font-medium leading-none">登出账号</div>
+                          )}
+                        </button>
+                      </li>
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
           ) : (
             <Button onClick={() => setIsAuthModalOpen(true)}>登录 / 注册</Button>
           )}

@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { DomainCard } from '@/components/DomainCard';
-import { Search } from 'lucide-react';
+import { Search, User, ClipboardList, ArrowRight, Bell, Award } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/Navbar';
@@ -11,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Domain } from '@/types/domain';
 import { toast } from 'sonner';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Index = () => {
   const [filter, setFilter] = useState('all');
@@ -18,7 +20,7 @@ const Index = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [domains, setDomains] = useState<Domain[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -97,7 +99,7 @@ const Index = () => {
     <div className="min-h-screen bg-gray-100">
       <Navbar />
       
-      {/* Hero Section - Improved mobile readability & fixed contrast issues */}
+      {/* Hero Section */}
       <header className="pt-16 pb-20 md:py-24 bg-gray-900 text-white">
         <div className="max-w-6xl mx-auto px-4 md:px-8 text-center">
           <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 md:mb-8 leading-tight text-white-enhanced">
@@ -123,6 +125,85 @@ const Index = () => {
           </div>
         </div>
       </header>
+
+      {/* User Dashboard Section - Show when logged in */}
+      {user && (
+        <section className="py-12 bg-white">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900">您的域名控制台</h2>
+              <Link to="/user-center" className="text-blue-600 hover:text-blue-800 flex items-center">
+                查看全部 <ArrowRight className="ml-1 h-4 w-4" />
+              </Link>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <ClipboardList className="h-5 w-5 text-gray-600" />
+                    我的域名
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold">{profile?.domains_count || 0}</p>
+                  <p className="text-sm text-gray-500">在售域名</p>
+                </CardContent>
+                <CardFooter>
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => navigate('/user-center?tab=domains')}>
+                    管理域名
+                  </Button>
+                </CardFooter>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Bell className="h-5 w-5 text-gray-600" />
+                    通知
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold">0</p>
+                  <p className="text-sm text-gray-500">未读消息</p>
+                </CardContent>
+                <CardFooter>
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => navigate('/user-center?tab=notifications')}>
+                    查看通知
+                  </Button>
+                </CardFooter>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <User className="h-5 w-5 text-gray-600" />
+                    个人资料
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-lg font-medium truncate">{profile?.full_name || user?.email?.split('@')[0] || '用户'}</p>
+                  <p className="text-sm text-gray-500">{profile?.account_level || "基础用户"}</p>
+                </CardContent>
+                <CardFooter>
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => navigate('/user-center?tab=profile')}>
+                    设置资料
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+            
+            <div className="text-center">
+              <Button 
+                onClick={() => navigate('/dashboard')}
+                className="bg-black hover:bg-gray-800 text-white"
+              >
+                进入完整控制台
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Filter Section */}
       <section className="py-12 md:py-16 bg-white">
@@ -263,7 +344,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Call to Action - Fixed the button contrast issue */}
+      {/* Call to Action */}
       <section className="py-16 md:py-20 bg-gray-900 text-white">
         <div className="max-w-4xl mx-auto px-4 md:px-8 text-center">
           <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-white-enhanced">Ready to Buy or Sell Domains?</h2>
@@ -276,12 +357,12 @@ const Index = () => {
                 Browse Domains
               </Button>
             </Link>
-            <Link to="/dashboard" className="w-full sm:w-auto">
+            <Link to={user ? "/user-center" : "#"} onClick={user ? undefined : () => setIsAuthModalOpen(true)} className="w-full sm:w-auto">
               <Button 
                 variant="outline" 
                 className="w-full sm:w-auto border-white border-2 bg-transparent text-white hover:bg-gray-700 px-6 py-2 md:px-6 md:py-3 text-base font-bold"
               >
-                Sell Your Domains
+                {user ? "访问用户中心" : "注册登录"}
               </Button>
             </Link>
           </div>
