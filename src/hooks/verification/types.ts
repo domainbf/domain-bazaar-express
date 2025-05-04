@@ -14,3 +14,9 @@ export interface VerificationServiceHook {
   checkVerification: (verificationId: string, domainId: string) => Promise<boolean>;
   getVerificationMethods: () => VerificationMethod[];
 }
+
+export interface VerificationCheckResult {
+  success: boolean;
+  message: string;
+  details?: any;
+}

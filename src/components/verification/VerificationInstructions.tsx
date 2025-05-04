@@ -2,10 +2,11 @@
 import { DomainVerification } from '@/types/domain';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Copy, RefreshCw, Database } from 'lucide-react';
+import { ExternalLink, Copy, RefreshCw, Database, Mail, AlertTriangle } from 'lucide-react';
 import { useIsMobile } from "@/hooks/use-mobile";
 import { CopyButton } from "@/components/common/CopyButton";
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useVerificationProcess } from '@/hooks/verification/useVerificationProcess';
 
 interface VerificationInstructionsProps {
   verification: DomainVerification;
@@ -21,6 +22,7 @@ export const VerificationInstructions = ({
   onCheck 
 }: VerificationInstructionsProps) => {
   const isMobile = useIsMobile();
+  const { resendVerificationEmail } = useVerificationProcess();
   
   const renderExpiryInfo = () => {
     if (!verification.expiry_date) return null;
@@ -56,6 +58,12 @@ export const VerificationInstructions = ({
         </AlertDescription>
       </Alert>
     );
+  };
+
+  const handleResendEmail = async () => {
+    if (verification.verification_type === 'email') {
+      await resendVerificationEmail(verification.id);
+    }
   };
   
   return (
@@ -172,6 +180,40 @@ export const VerificationInstructions = ({
               </div>
             </div>
           </div>
+        ) : verification.verification_type === 'email' ? (
+          <div className="space-y-4">
+            <p>通过邮箱验证域名所有权：</p>
+            <div className={`${isMobile ? 'overflow-x-auto' : ''} bg-gray-50 p-4 rounded-md space-y-3`}>
+              <div>
+                <p className="text-sm font-medium">验证邮件已发送至:</p>
+                <div className="flex items-center mt-1">
+                  <p className="text-sm font-mono bg-gray-100 p-1 rounded flex-1">
+                    {verification.verification_data.adminEmail}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-3">
+                <p className="text-sm font-medium">操作步骤:</p>
+                <ol className="mt-2 space-y-2 text-sm text-gray-600 list-decimal pl-5">
+                  <li>检查您的邮箱 {verification.verification_data.adminEmail}</li>
+                  <li>在邮件中找到验证链接并点击</li>
+                  <li>验证完成后，返回此页面点击"检查验证"按钮</li>
+                </ol>
+              </div>
+              <div className="flex items-center mt-3 p-2 bg-yellow-50 rounded border border-yellow-200">
+                <Mail className="h-4 w-4 text-yellow-600 mr-2 flex-shrink-0" />
+                <p className="text-xs text-yellow-700">
+                  如果您没有收到验证邮件，可以点击下方"重新发送验证邮件"按钮。
+                </p>
+              </div>
+              <div className="flex items-center mt-3 p-2 bg-blue-50 rounded border border-blue-200">
+                <AlertTriangle className="h-4 w-4 text-blue-600 mr-2 flex-shrink-0" />
+                <p className="text-xs text-blue-700">
+                  请确保 {verification.verification_data.adminEmail} 是您能够访问的邮箱地址。
+                </p>
+              </div>
+            </div>
+          </div>
         ) : (
           <div className="space-y-4">
             <p>在您的网站HTML页面中添加Meta标签：</p>
@@ -195,7 +237,7 @@ export const VerificationInstructions = ({
           </div>
         )}
       </CardContent>
-      <CardFooter className={`${isMobile ? 'flex-col space-y-2' : 'flex justify-between'}`}>
+      <CardFooter className={`${isMobile ? 'flex-col space-y-2' : verification.verification_type === 'email' ? 'grid grid-cols-3 gap-2' : 'flex justify-between'}`}>
         <Button 
           variant="outline" 
           onClick={onRefresh}
@@ -203,6 +245,17 @@ export const VerificationInstructions = ({
         >
           <RefreshCw className="w-4 h-4 mr-2" /> 刷新状态
         </Button>
+        
+        {verification.verification_type === 'email' && (
+          <Button 
+            variant="outline" 
+            onClick={handleResendEmail}
+            className={isMobile ? "w-full" : ""}
+          >
+            <Mail className="w-4 h-4 mr-2" /> 重新发送验证邮件
+          </Button>
+        )}
+        
         <Button 
           onClick={onCheck}
           className={isMobile ? "w-full" : ""}

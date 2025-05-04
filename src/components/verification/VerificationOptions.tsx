@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, File, Code, Database } from 'lucide-react';
+import { Shield, File, Code, Database, Mail } from 'lucide-react';
 import { useVerificationService } from '@/hooks/verification/useVerificationService';
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -24,6 +24,7 @@ export const VerificationOptions = ({ onStartVerification }: VerificationOptions
       case 'file': return <File className="w-5 h-5 text-primary" />;
       case 'html': return <Code className="w-5 h-5 text-primary" />;
       case 'whois': return <Database className="w-5 h-5 text-primary" />;
+      case 'email': return <Mail className="w-5 h-5 text-primary" />;
       default: return <Shield className="w-5 h-5 text-primary" />;
     }
   };
@@ -104,6 +105,18 @@ export const VerificationOptions = ({ onStartVerification }: VerificationOptions
                 <p className="text-sm text-gray-600">1. 登录您的域名注册商账户</p>
                 <p className="text-sm text-gray-600">2. 在域名WHOIS信息的备注或描述字段中添加我们提供的验证码</p>
                 <p className="text-sm text-gray-600">3. 保存更改并等待WHOIS信息更新（可能需要24小时）</p>
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="email" className="space-y-4">
+            <div className="space-y-4">
+              <p>通过域名管理员邮箱验证所有权。</p>
+              <div className={`${isMobile ? 'overflow-x-auto' : ''} bg-gray-50 p-4 rounded-md`}>
+                <p className="text-sm font-medium mb-1">一旦您开始验证，您需要：</p>
+                <p className="text-sm text-gray-600">1. 我们将向与域名相关联的管理员邮箱发送验证邮件</p>
+                <p className="text-sm text-gray-600">2. 点击验证邮件中的链接确认所有权</p>
+                <p className="text-sm text-gray-600">3. 验证将在您点击邮件中的链接后立即完成</p>
               </div>
             </div>
           </TabsContent>

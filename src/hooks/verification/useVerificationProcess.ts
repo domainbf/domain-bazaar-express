@@ -3,7 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { DomainVerification, VerificationResult } from "@/types/domain";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { generateVerificationToken } from './utils';
+import { 
+  generateVerificationToken, 
+  checkDNSPropagation,
+  checkFileAccessibility,
+  checkMetaTag,
+  checkWhoisInfo,
+  sendVerificationEmail,
+  formatDomainName
+} from './utils';
 
 /**
  * 处理域名验证流程的钩子
@@ -17,13 +25,14 @@ export const useVerificationProcess = () => {
   const startVerification = async (domainId: string, domainName: string, verificationMethod: string) => {
     try {
       const verificationToken = generateVerificationToken();
+      const formattedDomain = formatDomainName(domainName);
       
       let verificationData;
       
       if (verificationMethod === 'dns') { 
         verificationData = { 
           recordType: 'TXT', 
-          recordName: `_domainverify.${domainName}`,
+          recordName: `_domainverify.${formattedDomain}`,
           recordValue: `verify-domain=${verificationToken}`
         };
       } else if (verificationMethod === 'file') {
@@ -33,15 +42,40 @@ export const useVerificationProcess = () => {
         };
       } else if (verificationMethod === 'html') {
         verificationData = {
-          metaTagContent: `<meta name="domain-verification" content="${verificationToken}">`,
           metaTagName: "domain-verification",
-          metaTagValue: verificationToken
+          metaTagValue: verificationToken,
+          metaTagContent: `<meta name="domain-verification" content="${verificationToken}">`
         };
       } else if (verificationMethod === 'whois') {
         verificationData = {
           tokenValue: verificationToken,
           instructionText: '请将此验证码添加到域名WHOIS信息的备注中'
         };
+      } else if (verificationMethod === 'email') {
+        // 获取当前域名关联的邮箱地址
+        const { data: domainData, error: domainError } = await supabase
+          .from('domain_listings')
+          .select('admin_email, name')
+          .eq('id', domainId)
+          .single();
+        
+        if (domainError) throw domainError;
+        
+        const adminEmail = domainData?.admin_email || `admin@${formattedDomain}`;
+        
+        verificationData = {
+          adminEmail: adminEmail,
+          tokenValue: verificationToken,
+          emailSent: false
+        };
+        
+        // 发送验证邮件
+        const emailSent = await sendVerificationEmail(adminEmail, formattedDomain, verificationToken);
+        verificationData.emailSent = emailSent;
+        
+        if (!emailSent) {
+          toast.error(`无法发送验证邮件到 ${adminEmail}`);
+        }
       } else {
         throw new Error('无效的验证方式');
       }
@@ -101,7 +135,7 @@ export const useVerificationProcess = () => {
             .insert({
               user_id: user.id,
               title: '域名验证已开始',
-              message: `您的域名 ${domainName} 验证流程已启动，请按照提示完成验证。`,
+              message: `您的域名 ${formattedDomain} 验证流程已启动，请按照提示完成验证。`,
               type: 'verification',
               related_id: domainId,
               action_url: `/domain-verification/${domainId}`
@@ -125,11 +159,17 @@ export const useVerificationProcess = () => {
    */
   const performDNSVerification = async (domainName: string, verificationData: any): Promise<VerificationResult> => {
     try {
-      // 在实际系统中，这里会有DNS查询逻辑
-      // 模拟查询DNS记录
-      const simulateSuccess = Math.random() > 0.3; // 70%的成功率，仅用于演示
+      console.log('Performing DNS verification for:', domainName);
       
-      if (simulateSuccess) {
+      // 在实际应用中，这里需要用真实的DNS查询
+      // 调用DNS API或使用DNS库来查询特定的TXT记录
+      const isDnsPropagated = await checkDNSPropagation(
+        domainName,
+        'TXT',
+        verificationData.recordValue
+      );
+      
+      if (isDnsPropagated) {
         return {
           success: true,
           message: 'DNS记录验证成功',
@@ -159,11 +199,14 @@ export const useVerificationProcess = () => {
    */
   const performFileVerification = async (domainName: string, verificationData: any): Promise<VerificationResult> => {
     try {
-      // 在实际系统中，这里会尝试访问和读取验证文件
-      // 模拟文件访问
-      const simulateSuccess = Math.random() > 0.3; // 70%的成功率，仅用于演示
+      console.log('Performing file verification for:', domainName);
+      // 构建要检查的URL
+      const fileUrl = `https://${domainName}${verificationData.fileLocation}`;
       
-      if (simulateSuccess) {
+      // 在实际应用中，这里需要尝试访问该文件并检查内容
+      const isFileAccessible = await checkFileAccessibility(fileUrl);
+      
+      if (isFileAccessible) {
         return {
           success: true,
           message: '文件验证成功',
@@ -193,11 +236,18 @@ export const useVerificationProcess = () => {
    */
   const performHTMLVerification = async (domainName: string, verificationData: any): Promise<VerificationResult> => {
     try {
-      // 在实际系统中，这里会尝试访问网页并检查META标签
-      // 模拟网页访问和解析
-      const simulateSuccess = Math.random() > 0.3; // 70%的成功率，仅用于演示
+      console.log('Performing HTML verification for:', domainName);
+      // 构建要检查的URL
+      const url = `https://${domainName}`;
       
-      if (simulateSuccess) {
+      // 在实际应用中，这里需要尝试访问网页并检查META标签
+      const isMetaTagPresent = await checkMetaTag(
+        url,
+        verificationData.metaTagName,
+        verificationData.metaTagValue
+      );
+      
+      if (isMetaTagPresent) {
         return {
           success: true,
           message: 'META标签验证成功',
@@ -227,11 +277,15 @@ export const useVerificationProcess = () => {
    */
   const performWHOISVerification = async (domainName: string, verificationData: any): Promise<VerificationResult> => {
     try {
-      // 在实际系统中，这里会查询WHOIS信息
-      // 模拟WHOIS查询
-      const simulateSuccess = Math.random() > 0.3; // 70%的成功率，仅用于演示
+      console.log('Performing WHOIS verification for:', domainName);
       
-      if (simulateSuccess) {
+      // 在实际应用中，这里需要查询WHOIS信息
+      const isTokenInWhois = await checkWhoisInfo(
+        domainName,
+        verificationData.tokenValue
+      );
+      
+      if (isTokenInWhois) {
         return {
           success: true,
           message: 'WHOIS信息验证成功',
@@ -250,6 +304,50 @@ export const useVerificationProcess = () => {
       return {
         success: false,
         message: error.message || 'WHOIS验证过程中出现错误',
+        timestamp: new Date().toISOString(),
+        status: 'failed'
+      };
+    }
+  };
+  
+  /**
+   * 执行邮箱验证检查
+   */
+  const performEmailVerification = async (domainName: string, verificationData: any): Promise<VerificationResult> => {
+    try {
+      console.log('Performing email verification for:', domainName);
+      
+      // 在实际应用中，这需要检查用户是否已点击验证邮件中的链接
+      // 这里我们假设验证码已被确认
+      
+      // 检查是否有对应的验证记录被标记为已确认
+      const { data: emailVerification, error } = await supabase
+        .from('email_verifications')
+        .select('*')
+        .eq('token', verificationData.tokenValue)
+        .eq('is_verified', true)
+        .single();
+      
+      if (error) {
+        // 如果没找到记录，则认为未验证
+        return {
+          success: false,
+          message: '邮箱验证尚未完成，请检查您的邮箱并点击验证链接',
+          timestamp: new Date().toISOString(),
+          status: 'failed'
+        };
+      }
+      
+      return {
+        success: true,
+        message: '邮箱验证成功',
+        timestamp: new Date().toISOString(),
+        status: 'verified'
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || '邮箱验证过程中出现错误',
         timestamp: new Date().toISOString(),
         status: 'failed'
       };
@@ -317,6 +415,9 @@ export const useVerificationProcess = () => {
         case 'whois':
           result = await performWHOISVerification(domainName, verificationData.verification_data);
           break;
+        case 'email':
+          result = await performEmailVerification(domainName, verificationData.verification_data);
+          break;
         default:
           result = {
             success: false,
@@ -381,8 +482,69 @@ export const useVerificationProcess = () => {
     }
   };
 
+  /**
+   * 重新发送验证邮件
+   */
+  const resendVerificationEmail = async (verificationId: string): Promise<boolean> => {
+    try {
+      const { data: verification, error } = await supabase
+        .from('domain_verifications')
+        .select('verification_data, domain_id')
+        .eq('id', verificationId)
+        .single();
+      
+      if (error) throw error;
+      
+      if (verification.verification_type !== 'email') {
+        throw new Error('此验证不是邮箱验证类型');
+      }
+      
+      const { data: domain, error: domainError } = await supabase
+        .from('domain_listings')
+        .select('name')
+        .eq('id', verification.domain_id)
+        .single();
+      
+      if (domainError) throw domainError;
+      
+      // 重新发送验证邮件
+      const emailSent = await sendVerificationEmail(
+        verification.verification_data.adminEmail,
+        domain.name,
+        verification.verification_data.tokenValue
+      );
+      
+      if (emailSent) {
+        toast.success('验证邮件已重新发送');
+        
+        // 更新验证数据
+        await supabase
+          .from('domain_verifications')
+          .update({
+            verification_data: {
+              ...verification.verification_data,
+              emailSent: true,
+              lastSent: new Date().toISOString()
+            },
+            last_checked: new Date().toISOString()
+          })
+          .eq('id', verificationId);
+          
+        return true;
+      } else {
+        toast.error('发送验证邮件失败');
+        return false;
+      }
+    } catch (error: any) {
+      console.error('Error resending verification email:', error);
+      toast.error(error.message || '重新发送验证邮件失败');
+      return false;
+    }
+  };
+
   return {
     startVerification,
-    checkVerification
+    checkVerification,
+    resendVerificationEmail
   };
 };
