@@ -15,13 +15,13 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<boolean>;
   signUp: (email: string, password: string, metadata?: { [key: string]: any }) => Promise<boolean>;
   logOut: () => Promise<void>;
-  signOut: () => Promise<void>; // Added missing property
+  signOut: () => Promise<void>; 
   updateProfile: (data: Partial<UserProfile>) => Promise<boolean>;
   isAdmin: boolean;
-  checkAdminStatus: () => Promise<boolean>; // Added missing property
-  refreshProfile: () => Promise<void>; // Added missing property
+  checkAdminStatus: () => Promise<boolean>;
+  refreshProfile: () => Promise<void>;
   resetPassword: (email: string) => Promise<boolean>;
-  isAuthenticating?: boolean; // Added missing property
+  isAuthenticating?: boolean;
 }
 
 interface AuthProviderProps {
@@ -31,13 +31,15 @@ interface AuthProviderProps {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
+  // Initialize navigate inside the component function
+  const navigate = useNavigate();
+  
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const setData = async (session: Session | null) => {
@@ -59,6 +61,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     };
 
+    // First set up the auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setIsLoading(true);
@@ -67,7 +70,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     );
 
-    // Initial session check
+    // Then check for existing session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       await setData(session);
       setIsLoading(false);
@@ -242,13 +245,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     signIn,
     signUp,
     logOut,
-    signOut,  // Added alias
+    signOut,
     updateProfile,
     isAdmin,
     resetPassword,
-    checkAdminStatus, // Added missing function
-    refreshProfile,   // Added missing function
-    isAuthenticating  // Added missing property
+    checkAdminStatus,
+    refreshProfile,
+    isAuthenticating
   };
 
   return (
