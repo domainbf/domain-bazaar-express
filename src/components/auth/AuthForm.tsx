@@ -24,11 +24,13 @@ export const AuthForm = ({
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const { signIn, signUp, isAuthenticating } = useAuth();
 
   // Clear error message when switching modes
   useEffect(() => {
     setErrorMessage('');
+    setShowVerificationMessage(false);
   }, [mode]);
 
   const validateForm = () => {
@@ -71,6 +73,7 @@ export const AuthForm = ({
         });
         
         if (success) {
+          setShowVerificationMessage(true);
           toast.success('注册成功！请查看您的邮箱以完成验证。');
           // Don't close modal on signup to show confirmation message
         }
@@ -85,7 +88,11 @@ export const AuthForm = ({
       }
     } catch (error: any) {
       console.error('Authentication error:', error);
-      setErrorMessage(error.message || '认证过程中发生错误');
+      if (error.message && error.message.includes('Email not confirmed')) {
+        setShowVerificationMessage(true);
+      } else {
+        setErrorMessage(error.message || '认证过程中发生错误');
+      }
     }
   };
 
@@ -94,6 +101,25 @@ export const AuthForm = ({
       {errorMessage && (
         <div className="bg-red-50 text-red-700 px-4 py-3 rounded-md text-sm mb-4">
           {errorMessage}
+        </div>
+      )}
+      
+      {showVerificationMessage && (
+        <div className="bg-blue-50 text-blue-700 px-4 py-3 rounded-md text-sm mb-4">
+          验证邮件已发送到 {email}，请查收并点击验证链接以完成注册。
+          <br />
+          <button 
+            type="button" 
+            onClick={() => {
+              // Attempt to resend verification email
+              signUp(email, password, { full_name: fullName })
+                .then(() => toast.success('验证邮件已重新发送，请查收'))
+                .catch(err => toast.error('发送验证邮件失败，请稍后再试'));
+            }}
+            className="text-blue-600 hover:underline mt-2"
+          >
+            没有收到验证邮件？点击重新发送
+          </button>
         </div>
       )}
       

@@ -9,12 +9,20 @@ export const signInWithEmailPassword = async (email: string, password: string) =
       password,
     });
     
-    if (error) throw error;
+    if (error) {
+      // If the error is about email not being confirmed, enhance the error
+      if (error.message.includes('Email not confirmed')) {
+        const enhancedError = new Error('Email not confirmed');
+        (enhancedError as any).email = email;
+        throw enhancedError;
+      }
+      throw error;
+    }
     
     return { success: true, data };
   } catch (error: any) {
     console.error('Login error:', error);
-    throw new Error(error.message || 'Failed to log in');
+    throw error;
   }
 };
 
@@ -27,21 +35,44 @@ export const signUpWithEmailPassword = async (
   }
 ) => {
   try {
+    // Set the redirect URL to include the verification success page
+    const redirectTo = options?.redirectTo || `${window.location.origin}/login`;
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: options?.metadata,
-        emailRedirectTo: options?.redirectTo,
+        emailRedirectTo: redirectTo,
       }
     });
     
     if (error) throw error;
     
+    // Check if user is new or already exists with unconfirmed email
+    if (data?.user && !data.user.email_confirmed_at) {
+      // Attempt to send a custom welcome email with verification link
+      try {
+        await supabase.functions.invoke('send-notification', {
+          body: {
+            type: 'email_verification',
+            recipient: email,
+            data: {
+              verificationUrl: `${window.location.origin}/auth/verify?token=${data.user.confirmation_token}`,
+              name: options?.metadata?.full_name || email.split('@')[0]
+            }
+          }
+        });
+      } catch (emailError) {
+        console.error('Error sending custom verification email:', emailError);
+        // Continue even if custom email fails, Supabase will still send its default
+      }
+    }
+    
     return { success: true, data };
   } catch (error: any) {
     console.error('Signup error:', error);
-    throw new Error(error.message || 'Failed to sign up');
+    throw error;
   }
 };
 

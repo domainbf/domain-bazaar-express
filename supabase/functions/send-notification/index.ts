@@ -32,11 +32,25 @@ serve(async (req) => {
 
     const baseUrl = Deno.env.get("SITE_URL") || "https://nic.bn"; // Use environment variable or default
     
-    // Only send from noreply@domain.bf address
-    const fromEmail = "noreply@domain.bf";
+    // Only send from sale.nic.bn address
+    const fromEmail = "noreply@sale.nic.bn";
 
     // Process based on notification type
     switch (type) {
+      case "email_verification":
+        emailSubject = "请验证您的邮箱地址 - 域名交易平台";
+        emailBody = `
+          <div style="font-family: sans-serif; color: #333;">
+            <h1>域名交易平台 - 邮箱验证</h1>
+            <p>您好 ${data.name}，</p>
+            <p>感谢您注册我们的域名交易平台。请点击下方按钮验证您的邮箱地址：</p>
+            <p><a href="${data.verificationUrl}" style="background: #000; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 4px;">验证邮箱</a></p>
+            <p>如果您没有注册账户，请忽略此邮件。</p>
+            <p>此链接有效期为24小时。</p>
+          </div>
+        `;
+        break;
+
       case "password_reset":
         emailSubject = "重置密码";
         emailBody = `

@@ -34,6 +34,13 @@ export const useVerificationMethods = () => {
         description: '通过修改WHOIS信息验证域名所有权',
         icon: 'database',
         recommended: false
+      },
+      {
+        id: 'email',
+        name: '邮箱验证',
+        description: '通过域名管理员邮箱验证域名所有权',
+        icon: 'mail',
+        recommended: false
       }
     ];
   };
