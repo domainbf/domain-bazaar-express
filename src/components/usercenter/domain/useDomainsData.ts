@@ -66,11 +66,12 @@ export const useDomainsData = () => {
         let viewsValue = 0;
         if (analyticsData) {
           // 确保views是数字类型
-          viewsValue = typeof analyticsData.views === 'number' 
-            ? analyticsData.views 
-            : analyticsData.views 
-              ? parseInt(String(analyticsData.views), 10) 
-              : 0;
+          const viewsData = analyticsData.views;
+          if (typeof viewsData === 'number') {
+            viewsValue = viewsData;
+          } else if (viewsData !== null && viewsData !== undefined) {
+            viewsValue = parseInt(String(viewsData), 10) || 0;
+          }
         }
         
         // 移除嵌套对象，保持数据结构扁平化

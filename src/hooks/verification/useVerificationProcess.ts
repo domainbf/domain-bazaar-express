@@ -45,15 +45,18 @@ export const useVerificationProcess = () => {
     setIsLoading(true);
     try {
       // 首先更新验证记录的尝试次数
+      const { data: verificationData } = await supabase
+        .from('domain_verifications')
+        .select('verification_attempts')
+        .eq('id', verificationId)
+        .single();
+      
+      const currentAttempts = verificationData?.verification_attempts || 0;
+      
       await supabase
         .from('domain_verifications')
         .update({
-          verification_attempts: supabase.from('domain_verifications')
-            .select('verification_attempts')
-            .eq('id', verificationId)
-            .single()
-            .then(result => (result.data?.verification_attempts || 0) + 1)
-            .catch(() => 1),
+          verification_attempts: currentAttempts + 1,
           last_checked: new Date().toISOString()
         })
         .eq('id', verificationId);
