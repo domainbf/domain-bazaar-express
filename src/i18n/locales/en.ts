@@ -66,8 +66,6 @@ export default {
   // Domain Card
   "make_offer": "Make Offer",
   "view_domain": "View Domain",
-  "domain_price": "Price",
-  "domain_category": "Category",
   
   // Offer Form
   "your_offer": "Your Offer (USD)",

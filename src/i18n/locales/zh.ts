@@ -66,8 +66,6 @@ export default {
   // 域名卡片
   "make_offer": "提交报价",
   "view_domain": "查看域名",
-  "domain_price": "价格",
-  "domain_category": "分类",
   
   // 报价表单
   "your_offer": "您的报价（美元）",

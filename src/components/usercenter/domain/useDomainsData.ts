@@ -66,7 +66,8 @@ export const useDomainsData = () => {
         let viewsValue = 0;
         if (analyticsData && analyticsData.views !== undefined) {
           // 确保views是数字类型
-          viewsValue = Number(analyticsData.views);
+          viewsValue = typeof analyticsData.views === 'string' ? 
+            parseInt(analyticsData.views, 10) : Number(analyticsData.views);
         }
         
         // 移除嵌套对象，保持数据结构扁平化

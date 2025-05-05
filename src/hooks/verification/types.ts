@@ -1,5 +1,5 @@
 
-import { DomainVerification, VerificationCheckResult } from "@/types/domain";
+import { DomainVerification } from "@/types/domain";
 
 export interface VerificationMethod {
   id: string;
@@ -14,12 +14,6 @@ export interface VerificationServiceHook {
   checkVerification: (verificationId: string, domainId: string) => Promise<boolean>;
   getVerificationMethods: () => VerificationMethod[];
   resendVerificationEmail: (verificationId: string) => Promise<boolean>;
-  getVerificationStatus: (verificationId: string) => Promise<VerificationCheckResult | null>;
+  getVerificationStatus: (verificationId: string) => Promise<import('@/types/domain').VerificationCheckResult | null>;
   getMethodIcon: (methodId: string) => any;
-}
-
-export interface VerificationCheckResult {
-  success: boolean;
-  message: string;
-  details?: any;
 }
