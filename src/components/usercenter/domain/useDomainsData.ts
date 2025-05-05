@@ -70,7 +70,7 @@ export const useDomainsData = () => {
           if (typeof viewsData === 'number') {
             viewsValue = viewsData;
           } else if (viewsData !== null && viewsData !== undefined) {
-            viewsValue = parseInt(String(viewsData), 10) || 0;
+            viewsValue = parseInt(viewsData.toString(), 10) || 0;
           }
         }
         
