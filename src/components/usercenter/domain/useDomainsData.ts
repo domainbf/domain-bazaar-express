@@ -64,10 +64,13 @@ export const useDomainsData = () => {
         
         // 确保我们正确处理数据类型，首先检查analyticsData是否存在
         let viewsValue = 0;
-        if (analyticsData && analyticsData.views !== undefined) {
+        if (analyticsData) {
           // 确保views是数字类型
-          viewsValue = typeof analyticsData.views === 'string' ? 
-            parseInt(analyticsData.views, 10) : Number(analyticsData.views);
+          viewsValue = typeof analyticsData.views === 'number' 
+            ? analyticsData.views 
+            : analyticsData.views 
+              ? parseInt(String(analyticsData.views), 10) 
+              : 0;
         }
         
         // 移除嵌套对象，保持数据结构扁平化

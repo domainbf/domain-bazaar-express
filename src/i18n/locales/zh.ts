@@ -95,7 +95,6 @@ export default {
   "domain_description": "描述",
   "available": "可售",
   "pending": "待处理",
-  "sold": "已售",
   "refresh": "刷新",
   "refreshing": "刷新中...",
   "no_domains": "您还没有添加任何域名。",

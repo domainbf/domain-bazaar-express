@@ -95,7 +95,6 @@ export default {
   "domain_description": "Description",
   "available": "Available",
   "pending": "Pending",
-  "sold": "Sold",
   "refresh": "Refresh",
   "refreshing": "Refreshing...",
   "no_domains": "You don't have any domains yet.",
