@@ -55,13 +55,14 @@ export const useVerificationProcess = () => {
         // 获取当前域名关联的邮箱地址
         const { data: domainData, error: domainError } = await supabase
           .from('domain_listings')
-          .select('admin_email, name')
+          .select('name')
           .eq('id', domainId)
           .single();
         
         if (domainError) throw domainError;
         
-        const adminEmail = domainData?.admin_email || `admin@${formattedDomain}`;
+        // For email verification, use admin@domain.com pattern
+        const adminEmail = `admin@${formattedDomain}`;
         
         verificationData = {
           adminEmail: adminEmail,
@@ -318,17 +319,18 @@ export const useVerificationProcess = () => {
       console.log('Performing email verification for:', domainName);
       
       // 在实际应用中，这需要检查用户是否已点击验证邮件中的链接
-      // 这里我们假设验证码已被确认
+      // 这里我们可以通过一个自定义表来检查验证状态
       
       // 检查是否有对应的验证记录被标记为已确认
-      const { data: emailVerification, error } = await supabase
-        .from('email_verifications')
-        .select('*')
-        .eq('token', verificationData.tokenValue)
-        .eq('is_verified', true)
-        .single();
-      
-      if (error) {
+      // 注意：这假设在点击验证链接时，系统会在某处记录此令牌已验证的状态
+      const { data, error } = await supabase
+        .from('domain_listings')
+        .select('is_verified')
+        .eq('name', domainName)
+        .eq('verification_status', 'verified')
+        .maybeSingle();
+        
+      if (error || !data || !data.is_verified) {
         // 如果没找到记录，则认为未验证
         return {
           success: false,
@@ -489,7 +491,7 @@ export const useVerificationProcess = () => {
     try {
       const { data: verification, error } = await supabase
         .from('domain_verifications')
-        .select('verification_data, domain_id')
+        .select('verification_data, domain_id, verification_type')
         .eq('id', verificationId)
         .single();
       
@@ -507,11 +509,14 @@ export const useVerificationProcess = () => {
       
       if (domainError) throw domainError;
       
+      // 确保verification_data是对象类型
+      const verificationData = verification.verification_data as Record<string, any>;
+      
       // 重新发送验证邮件
       const emailSent = await sendVerificationEmail(
-        verification.verification_data.adminEmail,
+        verificationData.adminEmail,
         domain.name,
-        verification.verification_data.tokenValue
+        verificationData.tokenValue
       );
       
       if (emailSent) {
@@ -522,7 +527,7 @@ export const useVerificationProcess = () => {
           .from('domain_verifications')
           .update({
             verification_data: {
-              ...verification.verification_data,
+              ...verificationData,
               emailSent: true,
               lastSent: new Date().toISOString()
             },
