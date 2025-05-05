@@ -14,6 +14,7 @@ export interface VerificationServiceHook {
   checkVerification: (verificationId: string, domainId: string) => Promise<boolean>;
   getVerificationMethods: () => VerificationMethod[];
   resendVerificationEmail: (verificationId: string) => Promise<boolean>;
+  getVerificationStatus: (verificationId: string) => Promise<VerificationCheckResult | null>;
   getMethodIcon: (methodId: string) => any;
 }
 

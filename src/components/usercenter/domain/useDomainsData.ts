@@ -62,7 +62,7 @@ export const useDomainsData = () => {
         // 从嵌套对象中提取分析数据
         const analyticsData = domain.domain_analytics?.[0];
         // 确保我们正确处理数据类型，使用Number()函数将可能的字符串转换为数字
-        const viewsValue = analyticsData ? Number(analyticsData.views || 0) : 0;
+        const viewsValue = analyticsData ? Number(analyticsData?.views || 0) : 0;
         
         // 移除嵌套对象，保持数据结构扁平化
         const { domain_analytics, ...domainWithoutAnalytics } = domain;

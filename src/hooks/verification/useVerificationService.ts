@@ -8,13 +8,19 @@ import { VerificationServiceHook } from './types';
  */
 export const useVerificationService = (): VerificationServiceHook => {
   const { getVerificationMethods, getMethodIcon } = useVerificationMethods();
-  const { startVerification, checkVerification, resendVerificationEmail } = useVerificationProcess();
+  const { 
+    startVerification, 
+    checkVerification, 
+    resendVerificationEmail,
+    getVerificationStatus 
+  } = useVerificationProcess();
   
   return {
     startVerification,
     checkVerification,
     getVerificationMethods,
     resendVerificationEmail,
+    getVerificationStatus,
     getMethodIcon
   };
 };
