@@ -1,139 +1,213 @@
 
-import { Link } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
-import { toast } from "sonner";
-import { useState } from 'react';
+import { X, Menu, User, LogIn, ShoppingCart, Home, Settings } from 'lucide-react';
 import { AuthModal } from './AuthModal';
-import { Loader2, User, Settings } from 'lucide-react';
-import { 
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger
-} from "@/components/ui/navigation-menu";
-import { cn } from "@/lib/utils";
+import { useAuth } from '@/contexts/AuthContext';
+import { NotificationsMenu } from './notifications/NotificationsMenu';
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
-export const Navbar = () => {
-  const { user, profile, signOut, isLoading } = useAuth();
+interface NavbarProps {
+  transparent?: boolean;
+}
+
+export const Navbar = ({ transparent = false }: NavbarProps) => {
+  const [isOpen, setIsOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [isSigningOut, setIsSigningOut] = useState(false);
-  const navigate = useNavigate();
+  const [scrolled, setScrolled] = useState(false);
+  const { user, profile, logout } = useAuth();
+  const location = useLocation();
+  const { t } = useTranslation();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location]);
 
   const handleLogout = async () => {
-    try {
-      setIsSigningOut(true);
-      await signOut();
-      toast.success('登出成功');
-      navigate('/');
-    } finally {
-      setIsSigningOut(false);
+    await logout();
+    if (location.pathname !== '/') {
+      window.location.href = '/';
     }
   };
 
-  // Get user display name
-  const getUserDisplayName = () => {
-    // Using optional chaining to safely access properties
-    if (profile?.first_name) return profile.first_name;
-    if (user?.user_metadata?.full_name) return user.user_metadata.full_name;
-    if (user?.email) return user.email.split('@')[0];
-    return '用户';
-  };
+  const navbarClass = transparent
+    ? `fixed w-full z-50 transition-all duration-300 ${
+        scrolled ? 'bg-white shadow-md py-2' : 'bg-transparent py-4'
+      }`
+    : 'bg-white shadow-sm';
+
+  const textColor = transparent && !scrolled ? 'text-white' : 'text-gray-900';
 
   return (
-    <nav className="border-b border-gray-200 py-4 px-6 bg-white">
-      <div className="max-w-7xl mx-auto flex justify-between items-center">
-        <div className="flex items-center space-x-8">
-          <Link to="/" className="text-2xl font-bold text-gray-900">NIC.BN</Link>
+    <nav className={navbarClass}>
+      <div className="container mx-auto px-4 flex justify-between items-center">
+        {/* Logo */}
+        <Link to="/" className="text-xl md:text-2xl font-bold flex items-center">
+          <span className={`${textColor}`}>NIC.BN</span>
+        </Link>
+
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center space-x-6">
+          <Link to="/" className={`font-medium ${textColor} hover:text-gray-600`}>
+            {t('home')}
+          </Link>
+          <Link to="/marketplace" className={`font-medium ${textColor} hover:text-gray-600`}>
+            {t('marketplace')}
+          </Link>
+          {user && (
+            <>
+              <Link to="/dashboard" className={`font-medium ${textColor} hover:text-gray-600`}>
+                {t('dashboard')}
+              </Link>
+              <Link to="/user-center" className={`font-medium ${textColor} hover:text-gray-600`}>
+                {t('user_center')}
+              </Link>
+              {profile?.is_admin && (
+                <Link to="/admin" className={`font-medium ${textColor} hover:text-gray-600`}>
+                  {t('admin')}
+                </Link>
+              )}
+            </>
+          )}
           
-          <div className="hidden md:flex space-x-6">
-            <Link to="/marketplace" className="text-gray-700 hover:text-gray-900">域名市场</Link>
-            
-            {user && (
-              <>
-                <Link to="/dashboard" className="text-gray-700 hover:text-gray-900">我的控制台</Link>
-                <Link to="/user-center" className="text-gray-700 hover:text-gray-900">用户中心</Link>
-              </>
+          <LanguageSwitcher className={textColor} />
+          
+          {user ? (
+            <div className="flex items-center gap-2">
+              <NotificationsMenu />
+              <div className="flex items-center">
+                <Button
+                  variant="ghost"
+                  className="p-2 group relative flex hover:bg-gray-100 rounded-full"
+                  asChild
+                >
+                  <Link to="/profile">
+                    {profile?.avatar_url ? (
+                      <img
+                        src={profile.avatar_url}
+                        alt={profile?.full_name || 'User profile'}
+                        className="w-8 h-8 rounded-full"
+                      />
+                    ) : (
+                      <User className={`${textColor} h-5 w-5`} />
+                    )}
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" className={textColor} onClick={handleLogout}>
+                  {t('logout')}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button onClick={() => setIsAuthModalOpen(true)} variant="default">
+              {t('login')}
+            </Button>
+          )}
+        </div>
+
+        {/* Mobile menu button */}
+        <div className="flex items-center gap-2 md:hidden">
+          <LanguageSwitcher className={textColor} />
+          
+          {user && <NotificationsMenu />}
+          
+          <Button
+            variant="ghost"
+            className="p-2"
+            size="icon"
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            {isOpen ? (
+              <X className={`h-6 w-6 ${textColor}`} />
+            ) : (
+              <Menu className={`h-6 w-6 ${textColor}`} />
             )}
-            
-            {/* Add admin link for users with admin role */}
-            {user && user.app_metadata?.role === 'admin' && (
-              <Link to="/admin" className="text-gray-700 hover:text-gray-900">管理员</Link>
+          </Button>
+        </div>
+      </div>
+
+      {/* Mobile Navigation */}
+      {isOpen && (
+        <div className="md:hidden bg-white border-t shadow-lg">
+          <div className="container mx-auto px-4 py-2 space-y-2">
+            <Link
+              to="/"
+              className="block py-2 px-4 hover:bg-gray-100 rounded font-medium flex items-center gap-2"
+            >
+              <Home className="h-5 w-5" /> {t('home')}
+            </Link>
+            <Link
+              to="/marketplace"
+              className="block py-2 px-4 hover:bg-gray-100 rounded font-medium flex items-center gap-2"
+            >
+              <ShoppingCart className="h-5 w-5" /> {t('marketplace')}
+            </Link>
+
+            {user ? (
+              <>
+                <Link
+                  to="/dashboard"
+                  className="block py-2 px-4 hover:bg-gray-100 rounded font-medium flex items-center gap-2"
+                >
+                  <Settings className="h-5 w-5" /> {t('dashboard')}
+                </Link>
+                <Link
+                  to="/user-center"
+                  className="block py-2 px-4 hover:bg-gray-100 rounded font-medium flex items-center gap-2"
+                >
+                  <User className="h-5 w-5" /> {t('user_center')}
+                </Link>
+                {profile?.is_admin && (
+                  <Link
+                    to="/admin"
+                    className="block py-2 px-4 hover:bg-gray-100 rounded font-medium flex items-center gap-2"
+                  >
+                    <Settings className="h-5 w-5" /> {t('admin')}
+                  </Link>
+                )}
+                <Link
+                  to="/profile"
+                  className="block py-2 px-4 hover:bg-gray-100 rounded font-medium flex items-center gap-2"
+                >
+                  <User className="h-5 w-5" /> {t('profile')}
+                </Link>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start py-2 px-4 hover:bg-gray-100 rounded font-medium flex items-center gap-2"
+                  onClick={handleLogout}
+                >
+                  <LogIn className="h-5 w-5" /> {t('logout')}
+                </Button>
+              </>
+            ) : (
+              <Button
+                className="w-full"
+                onClick={() => {
+                  setIsOpen(false);
+                  setIsAuthModalOpen(true);
+                }}
+              >
+                {t('login')}
+              </Button>
             )}
           </div>
         </div>
-        
-        <div className="flex items-center space-x-4">
-          {isLoading ? (
-            <div className="flex items-center space-x-2">
-              <Loader2 className="animate-spin h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-500">加载中...</span>
-            </div>
-          ) : user ? (
-            <NavigationMenu>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="flex items-center gap-2 px-3 py-2 rounded-md">
-                    <User className="h-4 w-4 text-gray-700" />
-                    <span className="text-gray-700">您好, {getUserDisplayName()}</span>
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="grid w-[200px] gap-2 p-2 md:w-[240px]">
-                      <li className="row-span-1">
-                        <NavigationMenuLink asChild>
-                          <Link to="/user-center" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                            <div className="text-sm font-medium leading-none">用户中心</div>
-                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">管理个人资料和域名</p>
-                          </Link>
-                        </NavigationMenuLink>
-                      </li>
-                      <li className="row-span-1">
-                        <NavigationMenuLink asChild>
-                          <Link to="/dashboard" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                            <div className="text-sm font-medium leading-none">我的控制台</div>
-                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">查看报表和域名数据</p>
-                          </Link>
-                        </NavigationMenuLink>
-                      </li>
-                      {user.app_metadata?.role === 'admin' && (
-                        <li className="row-span-1">
-                          <NavigationMenuLink asChild>
-                            <Link to="/admin" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                              <div className="text-sm font-medium leading-none">管理员</div>
-                              <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">管理系统和用户</p>
-                            </Link>
-                          </NavigationMenuLink>
-                        </li>
-                      )}
-                      <li className="row-span-1">
-                        <button 
-                          onClick={handleLogout}
-                          disabled={isSigningOut}
-                          className="block w-full select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none text-left transition-colors hover:bg-red-50 hover:text-red-600 focus:bg-accent focus:text-accent-foreground"
-                        >
-                          {isSigningOut ? (
-                            <div className="flex items-center gap-2">
-                              <Loader2 className="animate-spin w-4 h-4" />
-                              <span>登出中...</span>
-                            </div>
-                          ) : (
-                            <div className="text-sm font-medium leading-none">登出账号</div>
-                          )}
-                        </button>
-                      </li>
-                    </ul>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
-          ) : (
-            <Button onClick={() => setIsAuthModalOpen(true)}>登录 / 注册</Button>
-          )}
-        </div>
-      </div>
+      )}
 
       <AuthModal open={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </nav>
