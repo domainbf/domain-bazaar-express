@@ -64,7 +64,7 @@ export const useDomainsData = () => {
         
         // 确保我们正确处理数据类型，首先检查analyticsData是否存在
         let viewsValue = 0;
-        if (analyticsData && typeof analyticsData.views !== 'undefined') {
+        if (analyticsData && analyticsData.views !== undefined) {
           // 确保views是数字类型
           viewsValue = Number(analyticsData.views);
         }

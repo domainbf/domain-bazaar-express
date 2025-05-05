@@ -17,7 +17,7 @@ export const Navbar = ({ transparent = false }: NavbarProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { user, profile, logout } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const location = useLocation();
   const { t } = useTranslation();
 
@@ -39,7 +39,7 @@ export const Navbar = ({ transparent = false }: NavbarProps) => {
   }, [location]);
 
   const handleLogout = async () => {
-    await logout();
+    await signOut();
     if (location.pathname !== '/') {
       window.location.href = '/';
     }

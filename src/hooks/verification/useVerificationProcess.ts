@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { DomainVerification, VerificationCheckResult } from '@/types/domain';
@@ -48,7 +47,7 @@ export const useVerificationProcess = () => {
       await supabase
         .from('domain_verifications')
         .update({
-          verification_attempts: supabase.rpc('increment_attempts', { row_id: verificationId }),
+          verification_attempts: supabase.rpc('increment', { row_id: verificationId }),
           last_checked: new Date().toISOString()
         })
         .eq('id', verificationId);

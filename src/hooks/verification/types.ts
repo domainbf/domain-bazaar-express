@@ -1,5 +1,5 @@
 
-import { DomainVerification } from "@/types/domain";
+import { DomainVerification, VerificationCheckResult } from "@/types/domain";
 
 export interface VerificationMethod {
   id: string;

@@ -65,6 +65,12 @@ export interface VerificationResult {
   status: 'verified' | 'pending' | 'failed';
 }
 
+export interface VerificationCheckResult {
+  success: boolean;
+  message: string;
+  details?: any;
+}
+
 export interface DomainAnalytics {
   id?: string;
   domain_id?: string;

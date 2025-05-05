@@ -94,8 +94,6 @@ export default {
   "delete_domain": "删除域名",
   "domain_name": "域名",
   "domain_status": "状态",
-  "domain_price": "价格",
-  "domain_category": "分类",
   "domain_description": "描述",
   "available": "可售",
   "pending": "待处理",
@@ -145,8 +143,8 @@ export default {
   "personal_info": "个人信息",
   "full_name": "全名",
   "username": "用户名",
-  "contact_info": "联系信息",
-  "contact_email": "联系邮箱",
+  "contact_info_title": "联系信息",
+  "contact_email_address": "联系邮箱",
   "contact_phone": "联系电话",
   "company_name": "公司名称",
   "bio": "个人简介",
@@ -165,7 +163,7 @@ export default {
   // 管理员
   "admin_dashboard": "管理员控制台",
   "manage_users": "用户管理",
-  "manage_domains": "域名管理",
+  "manage_domains_admin": "域名管理",
   "pending_verifications": "待处理验证",
   "site_settings": "站点设置"
 };

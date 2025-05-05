@@ -94,8 +94,6 @@ export default {
   "delete_domain": "Delete Domain",
   "domain_name": "Domain Name",
   "domain_status": "Status",
-  "domain_price": "Price",
-  "domain_category": "Category",
   "domain_description": "Description",
   "available": "Available",
   "pending": "Pending",
@@ -145,8 +143,8 @@ export default {
   "personal_info": "Personal Information",
   "full_name": "Full Name",
   "username": "Username",
-  "contact_info": "Contact Information",
-  "contact_email": "Contact Email",
+  "contact_info_title": "Contact Information",
+  "contact_email_address": "Contact Email",
   "contact_phone": "Contact Phone",
   "company_name": "Company Name",
   "bio": "Bio",
@@ -165,7 +163,7 @@ export default {
   // Admin
   "admin_dashboard": "Admin Dashboard",
   "manage_users": "Manage Users",
-  "manage_domains": "Manage Domains",
+  "manage_domains_admin": "Manage Domains",
   "pending_verifications": "Pending Verifications",
   "site_settings": "Site Settings"
 };
