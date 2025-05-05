@@ -13,6 +13,7 @@ export interface VerificationServiceHook {
   startVerification: (domainId: string, domainName: string, verificationMethod: string) => Promise<DomainVerification | null>;
   checkVerification: (verificationId: string, domainId: string) => Promise<boolean>;
   getVerificationMethods: () => VerificationMethod[];
+  resendVerificationEmail: (verificationId: string) => Promise<boolean>;
 }
 
 export interface VerificationCheckResult {

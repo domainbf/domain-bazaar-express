@@ -1,10 +1,11 @@
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Mail, Send, Loader2 } from 'lucide-react';
+import { Mail, Send, Loader2, ShieldCheck } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
+import HCaptcha from '@hcaptcha/react-hcaptcha';
 
 interface DomainOfferFormProps {
   domain: string;
@@ -25,9 +26,18 @@ export const DomainOfferForm = ({
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaRef = useRef<HCaptcha>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate captcha
+    if (!captchaToken) {
+      toast.error('请完成人机验证');
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
@@ -106,30 +116,34 @@ export const DomainOfferForm = ({
         // Continue without owner email if there's an error
       }
         
-      // Send email notification - modified to only send to one address
-      const { error: emailError } = await supabase.functions.invoke('send-notification', {
+      // Send offer via the separate edge function
+      const { error: offerError } = await supabase.functions.invoke('send-offer', {
         body: {
-          type: 'new_offer',
-          recipient: ownerEmail || email, // Send to owner if available, otherwise to buyer
-          data: {
-            domain,
-            amount: offer,
-            buyer_email: email,
-            message,
-            buyer_id: session?.user.id || null
-          }
+          domain: domain,
+          offer: offer,
+          email: email,
+          message: message,
+          buyerId: session?.user.id,
+          domainId: domainInfo.domainId,
+          domainOwnerId: domainInfo.sellerId,
+          ownerEmail: ownerEmail,
+          captchaToken: captchaToken
         }
       });
 
-      if (emailError) {
-        console.error('Error sending email:', emailError);
-        // Continue execution even if email fails
+      if (offerError) {
+        console.error('Error submitting offer:', offerError);
+        throw new Error('提交报价失败，请稍后重试');
       }
 
       toast.success('您的报价已成功提交！');
       setOffer('');
       setEmail('');
       setMessage('');
+      setCaptchaToken(null);
+      if (captchaRef.current) {
+        captchaRef.current.resetCaptcha();
+      }
       onClose();
     } catch (error: any) {
       console.error('Error submitting offer:', error);
@@ -137,6 +151,10 @@ export const DomainOfferForm = ({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCaptchaVerify = (token: string) => {
+    setCaptchaToken(token);
   };
 
   return (
@@ -187,9 +205,19 @@ export const DomainOfferForm = ({
           rows={3}
         />
       </div>
+      
+      <div className="my-4 flex justify-center">
+        <HCaptcha
+          sitekey="10000000-ffff-ffff-ffff-000000000001" // Replace with your actual hCaptcha site key in production
+          onVerify={handleCaptchaVerify}
+          ref={captchaRef}
+          size="normal"
+        />
+      </div>
+      
       <Button 
         type="submit"
-        disabled={isLoading}
+        disabled={isLoading || !captchaToken}
         className="w-full bg-black text-white hover:bg-gray-800 transition-colors"
       >
         {isLoading ? (
@@ -199,8 +227,17 @@ export const DomainOfferForm = ({
           </span>
         ) : (
           <span className="flex items-center gap-2">
-            <Send className="w-4 h-4" />
-            提交报价
+            {captchaToken ? (
+              <>
+                <Send className="w-4 h-4" />
+                提交报价
+              </>
+            ) : (
+              <>
+                <ShieldCheck className="w-4 h-4" />
+                请完成人机验证
+              </>
+            )}
           </span>
         )}
       </Button>

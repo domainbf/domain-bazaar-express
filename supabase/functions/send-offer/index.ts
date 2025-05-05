@@ -17,10 +17,39 @@ interface OfferRequest {
   email: string;
   message?: string;
   buyerId?: string | null;
-  domainOwnerId?: string;
   domainId?: string;
+  domainOwnerId?: string;
   ownerEmail?: string;
+  captchaToken: string;
   dashboardUrl?: string;
+}
+
+interface VerifyCaptchaResponse {
+  success: boolean;
+  error?: string;
+}
+
+// Verify hCaptcha token
+async function verifyCaptcha(token: string): Promise<boolean> {
+  // In production, use your actual secret key
+  // const secretKey = Deno.env.get("HCAPTCHA_SECRET_KEY");
+  const secretKey = "0x0000000000000000000000000000000000000000"; // For testing only
+  
+  try {
+    const response = await fetch("https://hcaptcha.com/siteverify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: `secret=${secretKey}&response=${token}`,
+    });
+    
+    const data: VerifyCaptchaResponse = await response.json();
+    return data.success;
+  } catch (error) {
+    console.error("Error verifying captcha:", error);
+    return false;
+  }
 }
 
 serve(async (req: Request) => {
@@ -36,13 +65,20 @@ serve(async (req: Request) => {
       email, 
       message = "", 
       buyerId = null,
-      domainOwnerId,
       domainId,
+      domainOwnerId,
       ownerEmail,
+      captchaToken,
       dashboardUrl = "https://domain.bf/user-center?tab=domains"
     }: OfferRequest = await req.json();
 
     console.log("收到的报价请求数据:", { domain, offer, email, domainOwnerId, ownerEmail });
+    
+    // Verify captcha token
+    const isCaptchaValid = await verifyCaptcha(captchaToken);
+    if (!isCaptchaValid) {
+      throw new Error("人机验证失败，请重试");
+    }
     
     if (!domain) {
       throw new Error("域名是必填项");
@@ -263,31 +299,40 @@ serve(async (req: Request) => {
       html: adminEmailHtml,
     });
 
-    console.log("管理员邮件已发送:", adminEmailResponse);
+    console.log("域名所有者邮件已发送:", adminEmailResponse);
 
-    // If we have domainId and buyerId, also send through the notification function
-    if (domainId && buyerId) {
+    // Create in-app notification for the domain owner if we have domainId and domainOwnerId
+    if (domainId && domainOwnerId) {
       try {
-        // Create notification for in-app notification system
+        // Create Supabase client for creating notification
         const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
         const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
         const supabase = createClient(supabaseUrl, supabaseKey);
         
-        await supabase.functions.invoke('send-notification', {
-          body: {
-            type: 'new_offer',
-            recipient: adminEmail,
-            data: { 
-              domain,
-              amount: offer,
-              buyer_email: email,
-              message: message || ''
-            }
-          }
+        // Create in-app notification for domain owner
+        await supabase.from('notifications').insert({
+          user_id: domainOwnerId,
+          title: '新的域名报价',
+          message: `您的域名 ${domain} 收到了 $${offer} 的新报价`,
+          type: 'offer',
+          related_id: domainId,
+          action_url: '/user-center?tab=transactions'
         });
+        
+        // If buyer is registered, also create notification for them
+        if (buyerId) {
+          await supabase.from('notifications').insert({
+            user_id: buyerId,
+            title: '报价提交成功',
+            message: `您对域名 ${domain} 的 $${offer} 报价已成功发送给卖家`,
+            type: 'offer',
+            related_id: domainId,
+            action_url: '/user-center?tab=transactions'
+          });
+        }
       } catch (notifError) {
-        console.error("发送通知时出错:", notifError);
-        // Continue even if notification fails
+        console.error("创建通知时出错:", notifError);
+        // Continue even if notification creation fails
       }
     }
 
