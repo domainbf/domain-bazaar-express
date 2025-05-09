@@ -21,11 +21,27 @@ i18n
     interpolation: {
       escapeValue: false,
     },
+    // Add debug in development mode
+    debug: process.env.NODE_ENV === 'development',
+    // Add these options for better handling
+    react: {
+      useSuspense: false, // Prevents suspense issues
+    },
+    // Add retry behavior for failed loads
+    retry: true,
+    // Improve caching behavior
+    load: 'currentOnly',
   });
 
 export default i18n;
 
 export const changeLanguage = (language: string) => {
-  localStorage.setItem('language', language);
-  return i18n.changeLanguage(language);
+  try {
+    localStorage.setItem('language', language);
+    document.documentElement.lang = language;
+    return i18n.changeLanguage(language);
+  } catch (error) {
+    console.error('Failed to change language:', error);
+    return Promise.reject(error);
+  }
 };

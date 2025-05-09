@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 export const PendingVerifications = () => {
   const [verifications, setVerifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { fetchPendingVerifications, approveVerification, rejectVerification } = useAdminVerificationService();
   const { t } = useTranslation();
 
@@ -19,7 +20,15 @@ export const PendingVerifications = () => {
   }, []);
 
   const loadPendingVerifications = async () => {
-    setIsLoading(true);
+    if (isRefreshing) return; // Prevent multiple simultaneous calls
+    
+    const showLoading = !isRefreshing;
+    if (showLoading) {
+      setIsLoading(true);
+    } else {
+      setIsRefreshing(true);
+    }
+    
     try {
       const data = await fetchPendingVerifications();
       setVerifications(data);
@@ -28,6 +37,7 @@ export const PendingVerifications = () => {
       toast.error(t('admin.verifications.loadError', 'Failed to load pending verifications'));
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -59,10 +69,16 @@ export const PendingVerifications = () => {
 
   return (
     <div className="space-y-6">
-      <HeaderSection onRefresh={loadPendingVerifications} />
+      <HeaderSection 
+        onRefresh={loadPendingVerifications} 
+        isRefreshing={isRefreshing}
+      />
 
       {verifications.length === 0 ? (
-        <EmptyState onRefresh={loadPendingVerifications} />
+        <EmptyState 
+          onRefresh={loadPendingVerifications}
+          isRefreshing={isRefreshing} 
+        />
       ) : (
         <VerificationsList 
           verifications={verifications}

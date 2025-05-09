@@ -41,7 +41,7 @@ export const useDomainsData = () => {
     }
     
     try {
-      // 优化: 一次性获取所需的所有数据，减少API请求次数
+      // Get all data needed in one request to reduce API calls
       const { data: domainsData, error: domainsError } = await supabase
         .from('domain_listings')
         .select(`
@@ -57,31 +57,30 @@ export const useDomainsData = () => {
         return;
       }
       
-      // 处理域名数据和分析数据
+      // Process domain data and analytics
       const processedDomains = domainsData.map(domain => {
-        // 从嵌套对象中提取分析数据
-        const analyticsData = domain.domain_analytics?.[0];
+        // Get analytics data from the nested object
+        const analyticsData = domain.domain_analytics?.[0] || null;
         
-        // 确保我们正确处理数据类型
+        // Safely handle views data with proper type checking
         let viewsValue = 0;
         if (analyticsData) {
-          // 安全地处理viewsData，确保类型检查
-          const viewsData = analyticsData.views;
+          const rawViews = analyticsData.views;
           
-          // 修复类型错误：确保将viewsData作为number或可转换为number的值处理
-          if (typeof viewsData === 'number') {
-            viewsValue = viewsData;
-          } else if (viewsData !== null && viewsData !== undefined) {
-            // 处理viewsData可能是字符串或其他类型的情况
+          // Ensure value is treated as a number
+          if (typeof rawViews === 'number') {
+            viewsValue = rawViews;
+          } else if (rawViews !== null && rawViews !== undefined) {
+            // Convert string or other type to number
             try {
-              viewsValue = parseInt(String(viewsData), 10) || 0;
+              viewsValue = parseInt(String(rawViews), 10) || 0;
             } catch {
               viewsValue = 0;
             }
           }
         }
         
-        // 移除嵌套对象，保持数据结构扁平化
+        // Remove nested objects for a cleaner structure
         const { domain_analytics, ...domainWithoutAnalytics } = domain;
         
         return {
@@ -92,7 +91,7 @@ export const useDomainsData = () => {
       
       setDomains(processedDomains);
 
-      // 创建缺失的分析记录
+      // Create missing analytics records
       const missingAnalytics = domainsData.filter(domain => !domain.domain_analytics || domain.domain_analytics.length === 0);
       for (const domain of missingAnalytics) {
         await createAnalyticsRecord(domain.id);
@@ -107,14 +106,14 @@ export const useDomainsData = () => {
     }
   }, [user]);
 
-  // 首次加载
+  // Initial load
   useEffect(() => {
     if (user) {
       loadDomains();
     }
   }, [user, loadDomains]);
 
-  // 提供刷新功能但不显示全屏加载状态
+  // Refresh function without showing full loading state
   const refreshDomains = useCallback(() => {
     return loadDomains(false);
   }, [loadDomains]);

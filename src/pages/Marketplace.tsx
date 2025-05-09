@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Navbar } from '@/components/Navbar';
@@ -7,6 +8,7 @@ import { FilterSection } from '@/components/marketplace/FilterSection';
 import { DomainListings } from '@/components/marketplace/DomainListings';
 import { Domain } from '@/types/domain';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTranslation } from 'react-i18next';
 
 export const Marketplace = () => {
   const [domains, setDomains] = useState<Domain[]>([]);
@@ -16,12 +18,13 @@ export const Marketplace = () => {
   const [priceRange, setPriceRange] = useState<{min: string, max: string}>({min: '', max: ''});
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
 
-  // 使用useCallback优化加载函数避免多次重新创建
+  // Optimized load function with useCallback
   const loadDomains = useCallback(async () => {
     setIsLoading(true);
     try {
-      // 1. 获取域名列表
+      // 1. Get domain listings
       const { data: listingsData, error: listingsError } = await supabase
         .from('domain_listings')
         .select('*')
@@ -36,10 +39,9 @@ export const Marketplace = () => {
         return;
       }
       
-      // 2. 单独获取所有域名分析数据
+      // 2. Get analytics data for all domains
       const domainIds = listingsData.map(domain => domain.id);
       
-      // Make a separate query for analytics data instead of using a join
       const { data: analyticsData, error: analyticsError } = await supabase
         .from('domain_analytics')
         .select('*')
@@ -47,35 +49,51 @@ export const Marketplace = () => {
       
       if (analyticsError) {
         console.error('Error fetching analytics:', analyticsError);
-        // 即使分析数据获取失败，仍然处理域名列表
+        // Continue processing even if analytics fetch fails
       }
       
-      // 3. 手动将analytics数据合并到domains
+      // 3. Merge analytics data with domains
       const domainsWithAnalytics = listingsData.map(domain => {
-        // 查找这个域名的所有分析数据
-        const analyticEntry = analyticsData?.find(a => a.domain_id === domain.id) || null;
+        // Find analytics for this domain
+        const analyticEntry = analyticsData?.find(a => a.domain_id === domain.id);
+        
+        // Safely handle views with proper type checking
+        let viewsValue = 0;
+        if (analyticEntry) {
+          const rawViews = analyticEntry.views;
+          
+          if (typeof rawViews === 'number') {
+            viewsValue = rawViews;
+          } else if (rawViews !== null && rawViews !== undefined) {
+            try {
+              viewsValue = parseInt(String(rawViews), 10) || 0;
+            } catch {
+              viewsValue = 0;
+            }
+          }
+        }
         
         return {
           ...domain,
-          views: analyticEntry ? Number(analyticEntry.views || 0) : 0,
+          views: viewsValue,
         };
       });
       
-      // 按查看次数排序（高到低）
+      // Sort by views (high to low)
       domainsWithAnalytics.sort((a, b) => (b.views || 0) - (a.views || 0));
       
       setDomains(domainsWithAnalytics);
     } catch (error: any) {
       console.error('Error loading domains:', error);
-      toast.error(error.message || '加载域名失败');
+      toast.error(t('marketplace.loadError', 'Failed to load domains'));
       setDomains([]);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
-    // Extract search param from URL if present
+    // Get search param from URL if present
     const urlParams = new URLSearchParams(window.location.search);
     const searchParam = urlParams.get('search');
     if (searchParam) {
@@ -85,40 +103,42 @@ export const Marketplace = () => {
     loadDomains();
   }, [loadDomains]);
 
-  const applyFilters = () => {
-    let filteredDomains = domains;
+  // Use memoized filtering for better performance
+  const filteredDomains = useMemo(() => {
+    let result = [...domains];
     
+    // Apply category filter
     if (filter !== 'all') {
-      filteredDomains = filteredDomains.filter(domain => domain.category === filter);
+      result = result.filter(domain => domain.category === filter);
     }
     
+    // Apply search filter
     if (searchQuery) {
-      filteredDomains = filteredDomains.filter(domain => 
-        domain.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        (domain.description && domain.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      const query = searchQuery.toLowerCase();
+      result = result.filter(domain => 
+        (domain.name && domain.name.toLowerCase().includes(query)) || 
+        (domain.description && domain.description.toLowerCase().includes(query))
       );
     }
     
+    // Apply price range filters
     if (priceRange.min) {
-      filteredDomains = filteredDomains.filter(domain => 
-        domain.price && domain.price >= parseFloat(priceRange.min)
-      );
+      const minPrice = parseFloat(priceRange.min);
+      result = result.filter(domain => domain.price && domain.price >= minPrice);
     }
     
     if (priceRange.max) {
-      filteredDomains = filteredDomains.filter(domain => 
-        domain.price && domain.price <= parseFloat(priceRange.max)
-      );
+      const maxPrice = parseFloat(priceRange.max);
+      result = result.filter(domain => domain.price && domain.price <= maxPrice);
     }
     
+    // Apply verification filter
     if (verifiedOnly) {
-      filteredDomains = filteredDomains.filter(domain => domain.is_verified);
+      result = result.filter(domain => domain.is_verified);
     }
     
-    return filteredDomains;
-  };
-
-  const filteredDomains = applyFilters();
+    return result;
+  }, [domains, filter, searchQuery, priceRange, verifiedOnly]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -140,7 +160,7 @@ export const Marketplace = () => {
         isMobile={isMobile}
       />
 
-      <section className={`py-6 ${isMobile ? 'px-2' : 'py-12'}`}>
+      <section className={`${isMobile ? 'py-6 px-2' : 'py-12'}`}>
         <div className={`${isMobile ? 'px-2' : 'max-w-6xl mx-auto px-4'}`}>
           <DomainListings 
             isLoading={isLoading} 
