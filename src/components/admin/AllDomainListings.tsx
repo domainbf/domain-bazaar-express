@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { DomainListing } from '@/types/domain';
@@ -11,12 +11,25 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Star, Check } from 'lucide-react';
+import { MoreHorizontal, Star, Check, RefreshCw, Search } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const AllDomainListings = () => {
+  const { t } = useTranslation();
   const [domains, setDomains] = useState<DomainListing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [verificationFilter, setVerificationFilter] = useState<string>('all');
 
   useEffect(() => {
     loadDomains();
@@ -27,17 +40,49 @@ export const AllDomainListings = () => {
     try {
       const { data, error } = await supabase
         .from('domain_listings')
-        .select('*')
+        .select('*, domain_analytics(views, favorites, offers), profiles!domain_listings_owner_id_fkey(username, full_name)')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      setDomains(data || []);
+      
+      // Process the data to include analytics
+      const processedDomains = data?.map(domain => {
+        const analyticsData = domain.domain_analytics?.[0];
+        const ownerData = domain.profiles;
+        
+        // Extract analytics data
+        const views = analyticsData?.views || 0;
+        const favorites = analyticsData?.favorites || 0;
+        const offers = analyticsData?.offers || 0;
+        
+        // Extract owner info
+        const ownerName = ownerData?.username || ownerData?.full_name || t('common.unknown', '未知');
+        
+        // Remove nested objects
+        const { domain_analytics, profiles, ...rest } = domain;
+        
+        return {
+          ...rest,
+          views,
+          favorites,
+          offers,
+          ownerName
+        };
+      }) || [];
+      
+      setDomains(processedDomains);
     } catch (error: any) {
       console.error('Error loading domains:', error);
-      toast.error(error.message || 'Failed to load domains');
+      toast.error(t('admin.domains.loadError', 'Failed to load domains'));
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const refreshDomains = async () => {
+    setIsRefreshing(true);
+    await loadDomains();
+    setIsRefreshing(false);
   };
 
   const toggleHighlight = async (domain: DomainListing) => {
@@ -51,13 +96,17 @@ export const AllDomainListings = () => {
       
       // Update local state
       setDomains(domains.map(d => 
-        d.id === domain.id ? { ...d, highlight: !d.highlight } : d
+        d.id === domain.id ? { ...d, highlight: !domain.highlight } : d
       ));
       
-      toast.success(`Domain ${domain.highlight ? 'removed from' : 'added to'} featured listings`);
+      toast.success(
+        domain.highlight 
+          ? t('admin.domains.removedHighlight', 'Domain removed from featured listings')
+          : t('admin.domains.addedHighlight', 'Domain added to featured listings')
+      );
     } catch (error: any) {
       console.error('Error toggling highlight:', error);
-      toast.error(error.message || 'Failed to update domain');
+      toast.error(t('admin.domains.updateError', 'Failed to update domain'));
     }
   };
 
@@ -75,24 +124,42 @@ export const AllDomainListings = () => {
         d.id === domain.id ? { ...d, status } : d
       ));
       
-      toast.success(`Domain status updated to ${status}`);
+      toast.success(t('admin.domains.statusUpdated', 'Domain status updated to {{status}}', { status }));
     } catch (error: any) {
       console.error('Error updating status:', error);
-      toast.error(error.message || 'Failed to update domain status');
+      toast.error(t('admin.domains.statusUpdateError', 'Failed to update domain status'));
     }
   };
 
-  const filteredDomains = searchQuery
-    ? domains.filter(domain => 
+  const filteredDomains = useMemo(() => {
+    return domains.filter(domain => {
+      // Apply search query filter
+      const matchesSearch = 
+        searchQuery === '' ||
         domain.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        domain.description?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : domains;
+        (domain.description && domain.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (domain.ownerName && domain.ownerName.toLowerCase().includes(searchQuery.toLowerCase()));
+      
+      // Apply status filter
+      const matchesStatus = 
+        statusFilter === 'all' ||
+        domain.status === statusFilter;
+        
+      // Apply verification filter
+      const matchesVerification = 
+        verificationFilter === 'all' ||
+        (verificationFilter === 'verified' && domain.verification_status === 'verified') ||
+        (verificationFilter === 'pending' && domain.verification_status === 'pending') ||
+        (verificationFilter === 'none' && (!domain.verification_status || domain.verification_status === 'none'));
+      
+      return matchesSearch && matchesStatus && matchesVerification;
+    });
+  }, [domains, searchQuery, statusFilter, verificationFilter]);
 
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+        <LoadingSpinner />
       </div>
     );
   }
@@ -100,32 +167,66 @@ export const AllDomainListings = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">All Domain Listings</h2>
-        <Button size="sm" variant="outline" onClick={loadDomains}>
-          Refresh
+        <h2 className="text-xl font-semibold">{t('admin.domains.allListings', 'All Domain Listings')}</h2>
+        <Button 
+          size="sm" 
+          variant="outline" 
+          onClick={refreshDomains}
+          disabled={isRefreshing}
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+          {t('common.refresh', 'Refresh')}
         </Button>
       </div>
 
-      <div className="flex gap-2 mb-4">
-        <Input 
-          placeholder="Search domains..." 
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="max-w-sm"
-        />
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="flex gap-2 items-center">
+          <Search className="h-4 w-4 text-gray-500" />
+          <Input 
+            placeholder={t('admin.domains.searchPlaceholder', 'Search domains...')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger>
+            <SelectValue placeholder={t('admin.domains.filterByStatus', 'Filter by status')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('common.all', 'All')}</SelectItem>
+            <SelectItem value="available">{t('domains.status.available', 'Available')}</SelectItem>
+            <SelectItem value="sold">{t('domains.status.sold', 'Sold')}</SelectItem>
+            <SelectItem value="reserved">{t('domains.status.reserved', 'Reserved')}</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={verificationFilter} onValueChange={setVerificationFilter}>
+          <SelectTrigger>
+            <SelectValue placeholder={t('admin.domains.filterByVerification', 'Filter by verification')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('common.all', 'All')}</SelectItem>
+            <SelectItem value="verified">{t('domains.verification.verified', 'Verified')}</SelectItem>
+            <SelectItem value="pending">{t('domains.verification.pending', 'Pending')}</SelectItem>
+            <SelectItem value="none">{t('domains.verification.none', 'Not Verified')}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-gray-50">
-              <th className="text-left p-4 border-b">Domain</th>
-              <th className="text-left p-4 border-b">Price</th>
-              <th className="text-left p-4 border-b">Category</th>
-              <th className="text-left p-4 border-b">Status</th>
-              <th className="text-left p-4 border-b">Verification</th>
-              <th className="text-left p-4 border-b">Created</th>
-              <th className="text-left p-4 border-b">Actions</th>
+              <th className="text-left p-4 border-b">{t('domains.name', 'Domain')}</th>
+              <th className="text-left p-4 border-b">{t('domains.price', 'Price')}</th>
+              <th className="text-left p-4 border-b">{t('domains.owner', 'Owner')}</th>
+              <th className="text-left p-4 border-b">{t('domains.category', 'Category')}</th>
+              <th className="text-left p-4 border-b">{t('domains.status', 'Status')}</th>
+              <th className="text-left p-4 border-b">{t('domains.verification', 'Verification')}</th>
+              <th className="text-left p-4 border-b">{t('domains.stats', 'Stats')}</th>
+              <th className="text-left p-4 border-b">{t('domains.created', 'Created')}</th>
+              <th className="text-left p-4 border-b">{t('common.actions', 'Actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -139,20 +240,28 @@ export const AllDomainListings = () => {
                     )}
                   </div>
                 </td>
-                <td className="p-4">${domain.price}</td>
-                <td className="p-4 capitalize">{domain.category}</td>
-                <td className="p-4 capitalize">{domain.status}</td>
+                <td className="p-4">¥{domain.price}</td>
+                <td className="p-4">{domain.ownerName}</td>
+                <td className="p-4 capitalize">{t(`domains.categories.${domain.category}`, domain.category)}</td>
+                <td className="p-4 capitalize">{t(`domains.status.${domain.status}`, domain.status)}</td>
                 <td className="p-4">
-                  {domain.is_verified ? (
+                  {domain.verification_status === 'verified' ? (
                     <span className="inline-flex items-center text-green-600">
                       <Check className="h-4 w-4 mr-1" />
-                      Verified
+                      {t('domains.verification.verified', 'Verified')}
                     </span>
                   ) : domain.verification_status === 'pending' ? (
-                    <span className="text-yellow-600">Pending</span>
+                    <span className="text-yellow-600">{t('domains.verification.pending', 'Pending')}</span>
                   ) : (
-                    <span className="text-gray-500">Not Verified</span>
+                    <span className="text-gray-500">{t('domains.verification.none', 'Not Verified')}</span>
                   )}
+                </td>
+                <td className="p-4">
+                  <div className="flex flex-col">
+                    <span className="text-xs">{t('domains.stats.views', 'Views')}: {domain.views || 0}</span>
+                    <span className="text-xs">{t('domains.stats.favorites', 'Favorites')}: {domain.favorites || 0}</span>
+                    <span className="text-xs">{t('domains.stats.offers', 'Offers')}: {domain.offers || 0}</span>
+                  </div>
                 </td>
                 <td className="p-4">
                   {new Date(domain.created_at).toLocaleDateString()}
@@ -164,18 +273,21 @@ export const AllDomainListings = () => {
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="end" className="bg-white">
                       <DropdownMenuItem onClick={() => toggleHighlight(domain)}>
-                        {domain.highlight ? 'Remove Featured' : 'Mark as Featured'}
+                        {domain.highlight 
+                          ? t('admin.domains.removeFeatured', 'Remove Featured') 
+                          : t('admin.domains.markAsFeatured', 'Mark as Featured')
+                        }
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => updateDomainStatus(domain, 'available')}>
-                        Set as Available
+                        {t('admin.domains.setAvailable', 'Set as Available')}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => updateDomainStatus(domain, 'sold')}>
-                        Mark as Sold
+                        {t('admin.domains.markAsSold', 'Mark as Sold')}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => updateDomainStatus(domain, 'reserved')}>
-                        Mark as Reserved
+                        {t('admin.domains.markAsReserved', 'Mark as Reserved')}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -188,9 +300,8 @@ export const AllDomainListings = () => {
 
       {filteredDomains.length === 0 && (
         <div className="text-center py-8 bg-gray-50 rounded-lg">
-          <p className="text-gray-600">No domains found</p>
+          <p className="text-gray-600">{t('admin.domains.noDomains', 'No domains found')}</p>
         </div>
       )}
     </div>
   );
-};

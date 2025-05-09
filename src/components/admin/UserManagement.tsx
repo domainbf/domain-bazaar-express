@@ -6,12 +6,15 @@ import { UserTable } from "./user/UserTable";
 import { UserHeader } from './user/UserHeader';
 import { UserFilters } from './user/UserFilters';
 import { useUserActions, UserProfile } from './user/UserActions';
+import { useTranslation } from 'react-i18next';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 export const UserManagement = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const { verifyUser, toggleSellerStatus } = useUserActions();
+  const { t } = useTranslation();
 
   useEffect(() => {
     loadUsers();
@@ -30,7 +33,7 @@ export const UserManagement = () => {
       setUsers(data || []);
     } catch (error: any) {
       console.error('Error loading users:', error);
-      toast.error(error.message || 'Failed to load users');
+      toast.error(t('admin.users.loadError', 'Failed to load users'));
     } finally {
       setIsLoading(false);
     }
@@ -43,6 +46,7 @@ export const UserManagement = () => {
       setUsers(users.map(user => 
         user.id === userId ? { ...user, seller_verified: true } : user
       ));
+      toast.success(t('admin.users.verifySuccess', 'User successfully verified'));
     }
   };
 
@@ -53,16 +57,29 @@ export const UserManagement = () => {
       setUsers(users.map(user => 
         user.id === userId ? { ...user, is_seller: !currentStatus } : user
       ));
+      const message = !currentStatus 
+        ? t('admin.users.sellerEnabled', 'Seller status enabled') 
+        : t('admin.users.sellerDisabled', 'Seller status disabled');
+      toast.success(message);
     }
   };
 
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+        <LoadingSpinner />
       </div>
     );
   }
+
+  const filteredUsers = searchQuery
+    ? users.filter(user =>
+        (user.full_name && user.full_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (user.username && user.username.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (user.id && user.id.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+    : users;
 
   return (
     <div className="space-y-6">
@@ -72,7 +89,7 @@ export const UserManagement = () => {
         onSearchChange={setSearchQuery} 
       />
       <UserTable 
-        users={users}
+        users={filteredUsers}
         searchQuery={searchQuery}
         onVerifyUser={handleVerifyUser}
         onToggleSellerStatus={handleToggleSellerStatus}

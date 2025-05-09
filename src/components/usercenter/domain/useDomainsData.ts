@@ -68,7 +68,7 @@ export const useDomainsData = () => {
           // 安全地处理viewsData，确保类型检查
           const viewsData = analyticsData.views;
           
-          // 确保将viewsData作为number或可转换为number的值处理
+          // 修复类型错误：确保将viewsData作为number或可转换为number的值处理
           if (typeof viewsData === 'number') {
             viewsValue = viewsData;
           } else if (viewsData !== null && viewsData !== undefined) {

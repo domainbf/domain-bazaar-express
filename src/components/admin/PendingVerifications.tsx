@@ -6,11 +6,13 @@ import { EmptyState } from './verification/EmptyState';
 import { HeaderSection } from './verification/HeaderSection';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { useAdminVerificationService } from '@/hooks/verification/useAdminVerificationService';
+import { useTranslation } from 'react-i18next';
 
 export const PendingVerifications = () => {
   const [verifications, setVerifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const { fetchPendingVerifications, approveVerification, rejectVerification } = useAdminVerificationService();
+  const { t } = useTranslation();
 
   useEffect(() => {
     loadPendingVerifications();
@@ -23,7 +25,7 @@ export const PendingVerifications = () => {
       setVerifications(data);
     } catch (error) {
       console.error('Error loading pending verifications:', error);
-      toast.error(error.message || 'Failed to load pending verifications');
+      toast.error(t('admin.verifications.loadError', 'Failed to load pending verifications'));
     } finally {
       setIsLoading(false);
     }
@@ -32,22 +34,22 @@ export const PendingVerifications = () => {
   const handleApproveVerification = async (id) => {
     try {
       await approveVerification(id);
-      toast.success('Domain verification approved');
+      toast.success(t('admin.verifications.approveSuccess', 'Domain verification approved'));
       loadPendingVerifications();
     } catch (error) {
       console.error('Error approving verification:', error);
-      toast.error(error.message || 'Failed to approve verification');
+      toast.error(t('admin.verifications.approveError', 'Failed to approve verification'));
     }
   };
 
   const handleRejectVerification = async (id) => {
     try {
       await rejectVerification(id);
-      toast.success('Domain verification rejected');
+      toast.success(t('admin.verifications.rejectSuccess', 'Domain verification rejected'));
       loadPendingVerifications();
     } catch (error) {
       console.error('Error rejecting verification:', error);
-      toast.error(error.message || 'Failed to reject verification');
+      toast.error(t('admin.verifications.rejectError', 'Failed to reject verification'));
     }
   };
 
