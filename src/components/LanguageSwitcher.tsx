@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Globe } from "lucide-react";
 import { changeLanguage } from "@/i18n";
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,12 +26,16 @@ export const LanguageSwitcher = ({ className = "", iconOnly = false }: LanguageS
     
     setIsChanging(true);
     try {
+      toast.loading(t('common.changingLanguage', 'Changing language...'));
       await changeLanguage(lang);
-      // Force refresh to ensure all translated content updates
-      window.location.reload();
+      
+      // Use a slight delay before reload to allow the toast to be visible
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
       console.error("Failed to change language:", error);
-    } finally {
+      toast.error(t('common.languageChangeFailed', 'Failed to change language'));
       setIsChanging(false);
     }
   };

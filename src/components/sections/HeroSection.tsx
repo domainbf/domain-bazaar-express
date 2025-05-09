@@ -21,27 +21,27 @@ export const HeroSection = () => {
 
       <div className="max-w-4xl mx-auto text-center relative z-10">
         <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 animate-glow">
-          {t('title')}
+          {t('homePage.title', '找到您理想的域名')}
         </h1>
         <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto mb-12 leading-relaxed">
-          {t('subtitle')}
+          {t('homePage.subtitle', '探索、发现并获取适合您的下一个大创意的理想域名')}
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
           <div className="glass-card p-6 rounded-xl backdrop-blur-md border border-white/10">
             <GemIcon className="w-10 h-10 text-violet-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2 text-violet-200">独特价值</h3>
-            <p className="text-gray-400">每个域名都是独一无二的数字资产</p>
+            <h3 className="text-xl font-semibold mb-2 text-violet-200">{t('homePage.uniqueValue', '独特价值')}</h3>
+            <p className="text-gray-400">{t('homePage.uniqueValueDescription', '每个域名都是独一无二的数字资产')}</p>
           </div>
           <div className="glass-card p-6 rounded-xl backdrop-blur-md border border-white/10">
             <ShieldCheck className="w-10 h-10 text-cyan-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2 text-cyan-200">安全保障</h3>
-            <p className="text-gray-400">规范的交易流程，确保您的投资安全</p>
+            <h3 className="text-xl font-semibold mb-2 text-cyan-200">{t('homePage.security', '安全保障')}</h3>
+            <p className="text-gray-400">{t('homePage.securityDescription', '规范的交易流程，确保您的投资安全')}</p>
           </div>
           <div className="glass-card p-6 rounded-xl backdrop-blur-md border border-white/10">
             <Rocket className="w-10 h-10 text-amber-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2 text-amber-200">增值潜力</h3>
-            <p className="text-gray-400">优质域名具备巨大的升值空间</p>
+            <h3 className="text-xl font-semibold mb-2 text-amber-200">{t('homePage.potential', '增值潜力')}</h3>
+            <p className="text-gray-400">{t('homePage.potentialDescription', '优质域名具备巨大的升值空间')}</p>
           </div>
         </div>
       </div>

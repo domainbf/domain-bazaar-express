@@ -23,7 +23,6 @@ i18n
     },
     // Add debug in development mode
     debug: process.env.NODE_ENV === 'development',
-    // Add these options for better handling
     react: {
       useSuspense: false, // Prevents suspense issues
     }
@@ -35,6 +34,7 @@ export const changeLanguage = (language: string) => {
   try {
     localStorage.setItem('language', language);
     document.documentElement.lang = language;
+    document.documentElement.setAttribute('dir', language === 'ar' ? 'rtl' : 'ltr'); // Support for RTL languages in the future
     return i18n.changeLanguage(language);
   } catch (error) {
     console.error('Failed to change language:', error);

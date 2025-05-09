@@ -89,10 +89,10 @@ export const AllDomainListings = () => {
           }
         }
         
-        // Extract owner info safely - Fix the null check issue
+        // Extract owner info safely with proper null checks
         let ownerName = t('common.unknown', '未知');
         if (ownerData && typeof ownerData === 'object') {
-          ownerName = ownerData.username || ownerData.full_name || t('common.unknown', '未知');
+          ownerName = (ownerData.username as string) || (ownerData.full_name as string) || t('common.unknown', '未知');
         }
         
         // Remove nested objects

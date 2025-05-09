@@ -455,4 +455,31 @@ export const zh = {
       changeMethod: "更改验证方法"
     }
   },
+  
+  homePage: {
+    title: "找到您理想的域名",
+    subtitle: "探索、发现并获取适合您的下一个大创意的理想域名",
+    searchPlaceholder: "输入关键词或行业",
+    trendingDomains: "热门域名",
+    newlyListed: "最新上架",
+    domainCategories: "域名类别",
+    browseAll: "浏览全部",
+    uniqueValue: "独特价值",
+    uniqueValueDescription: "每个域名都是独一无二的数字资产",
+    security: "安全保障",
+    securityDescription: "规范的交易流程，确保您的投资安全",
+    potential: "增值潜力",
+    potentialDescription: "优质域名具备巨大的升值空间",
+    categories: {
+      tech: "科技",
+      business: "商业",
+      marketing: "营销",
+      health: "健康",
+      education: "教育",
+      travel: "旅游",
+      food: "食品",
+      art: "艺术",
+    },
+  },
+  
 };

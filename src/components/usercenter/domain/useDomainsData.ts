@@ -1,4 +1,3 @@
-
 import { useCallback, useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/contexts/AuthContext';
@@ -62,23 +61,12 @@ export const useDomainsData = () => {
         // Get analytics data from the nested object
         const analyticsData = domain.domain_analytics?.[0] || null;
         
-        // Safely handle views data with proper type checking
-        let viewsValue = 0;
-        if (analyticsData) {
-          const rawViews = analyticsData.views;
-          
-          // Ensure value is treated as a number
-          if (typeof rawViews === 'number') {
-            viewsValue = rawViews;
-          } else if (rawViews !== null && rawViews !== undefined) {
-            // Convert string or other type to number
-            try {
-              viewsValue = parseInt(String(rawViews), 10) || 0;
-            } catch {
-              viewsValue = 0;
-            }
-          }
-        }
+        // Safe parsing for views property
+        const viewsValue = typeof analyticsData.views === 'number' 
+          ? analyticsData.views 
+          : (analyticsData.views !== null && analyticsData.views !== undefined)
+            ? parseInt(String(analyticsData.views), 10) || 0
+            : 0;
         
         // Remove nested objects for a cleaner structure
         const { domain_analytics, ...domainWithoutAnalytics } = domain;

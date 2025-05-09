@@ -1,3 +1,4 @@
+
 export const en = {
   common: {
     loading: "Loading...",
@@ -43,6 +44,12 @@ export const en = {
     newlyListed: "Newly Listed",
     domainCategories: "Domain Categories",
     browseAll: "Browse All",
+    uniqueValue: "Unique Value",
+    uniqueValueDescription: "Each domain is a unique digital asset",
+    security: "Security Guarantee",
+    securityDescription: "Standardized transaction process ensures your investment is safe",
+    potential: "Growth Potential",
+    potentialDescription: "Quality domains have tremendous appreciation potential",
     categories: {
       tech: "Tech",
       business: "Business",
