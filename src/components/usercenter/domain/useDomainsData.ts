@@ -65,13 +65,18 @@ export const useDomainsData = () => {
         // 确保我们正确处理数据类型
         let viewsValue = 0;
         if (analyticsData) {
-          // Type safety check to ensure viewsData is handled correctly
+          // 安全地处理viewsData，确保类型检查
           const viewsData = analyticsData.views;
+          
           if (typeof viewsData === 'number') {
             viewsValue = viewsData;
           } else if (viewsData !== null && viewsData !== undefined) {
-            // Handle case where viewsData might be a string or other type
-            viewsValue = parseInt(String(viewsData), 10) || 0;
+            // 处理viewsData可能是字符串或其他类型的情况
+            try {
+              viewsValue = parseInt(String(viewsData), 10) || 0;
+            } catch {
+              viewsValue = 0;
+            }
           }
         }
         

@@ -3,29 +3,84 @@ import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { Globe } from "lucide-react";
 import { changeLanguage } from "@/i18n";
+import { useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface LanguageSwitcherProps {
   className?: string;
+  iconOnly?: boolean;
 }
 
-export const LanguageSwitcher = ({ className = "" }: LanguageSwitcherProps) => {
-  const { i18n } = useTranslation();
+export const LanguageSwitcher = ({ className = "", iconOnly = false }: LanguageSwitcherProps) => {
+  const { i18n, t } = useTranslation();
+  const [isChanging, setIsChanging] = useState(false);
   
-  const toggleLanguage = () => {
-    const newLanguage = i18n.language === 'en' ? 'zh' : 'en';
-    changeLanguage(newLanguage);
+  const handleLanguageChange = async (lang: string) => {
+    if (lang === i18n.language) return;
+    
+    setIsChanging(true);
+    try {
+      await changeLanguage(lang);
+    } catch (error) {
+      console.error("Failed to change language:", error);
+    } finally {
+      setIsChanging(false);
+    }
   };
 
+  if (iconOnly) {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={`rounded-full p-2 ${className}`}
+            disabled={isChanging}
+          >
+            <Globe className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => handleLanguageChange('zh')}>
+            中文
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleLanguageChange('en')}>
+            English
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
+
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={toggleLanguage}
-      className={`flex items-center gap-1 px-2 ${className}`}
-      title={i18n.language === 'en' ? '切换到中文' : 'Switch to English'}
-    >
-      <Globe className="h-4 w-4" />
-      <span className="text-sm">{i18n.language === 'en' ? '中文' : 'EN'}</span>
-    </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className={`flex items-center gap-1 px-2 ${className}`}
+          disabled={isChanging}
+        >
+          <Globe className="h-4 w-4" />
+          <span className="text-sm">
+            {i18n.language === 'en' ? 'English' : '中文'}
+          </span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => handleLanguageChange('zh')}>
+          中文
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleLanguageChange('en')}>
+          English
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
