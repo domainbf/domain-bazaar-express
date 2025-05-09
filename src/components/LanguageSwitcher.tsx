@@ -26,6 +26,8 @@ export const LanguageSwitcher = ({ className = "", iconOnly = false }: LanguageS
     setIsChanging(true);
     try {
       await changeLanguage(lang);
+      // Force refresh to ensure all translated content updates
+      window.location.reload();
     } catch (error) {
       console.error("Failed to change language:", error);
     } finally {
@@ -46,7 +48,7 @@ export const LanguageSwitcher = ({ className = "", iconOnly = false }: LanguageS
             <Globe className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="bg-white">
           <DropdownMenuItem onClick={() => handleLanguageChange('zh')}>
             中文
           </DropdownMenuItem>
@@ -73,7 +75,7 @@ export const LanguageSwitcher = ({ className = "", iconOnly = false }: LanguageS
           </span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="bg-white">
         <DropdownMenuItem onClick={() => handleLanguageChange('zh')}>
           中文
         </DropdownMenuItem>
