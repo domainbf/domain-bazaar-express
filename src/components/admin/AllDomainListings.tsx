@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -40,32 +39,72 @@ export const AllDomainListings = () => {
     try {
       const { data, error } = await supabase
         .from('domain_listings')
-        .select('*, domain_analytics(views, favorites, offers), profiles!domain_listings_owner_id_fkey(username, full_name)')
-        .order('created_at', { ascending: false });
+        .select('*, domain_analytics(views, favorites, offers), profiles!domain_listings_owner_id_fkey(username, full_name)');
       
       if (error) throw error;
       
       // Process the data to include analytics
-      const processedDomains = data?.map(domain => {
-        const analyticsData = domain.domain_analytics?.[0];
-        const ownerData = domain.profiles;
+      const processedDomains: DomainListing[] = data?.map(domain => {
+        // Type assertions for domain_analytics and profiles
+        const analyticsData = domain.domain_analytics && Array.isArray(domain.domain_analytics) ? domain.domain_analytics[0] : null;
+        const ownerData = domain.profiles || null;
         
-        // Extract analytics data
-        const views = analyticsData?.views || 0;
-        const favorites = analyticsData?.favorites || 0;
-        const offers = analyticsData?.offers || 0;
+        // Extract analytics data with proper type checking
+        let viewsValue = 0;
+        let favoritesValue = 0;
+        let offersValue = 0;
         
-        // Extract owner info
-        const ownerName = ownerData?.username || ownerData?.full_name || t('common.unknown', '未知');
+        if (analyticsData) {
+          // Parse views safely
+          if (typeof analyticsData.views === 'number') {
+            viewsValue = analyticsData.views;
+          } else if (analyticsData.views !== null && analyticsData.views !== undefined) {
+            try {
+              viewsValue = parseInt(String(analyticsData.views), 10) || 0;
+            } catch {
+              viewsValue = 0;
+            }
+          }
+          
+          // Parse favorites safely
+          if (typeof analyticsData.favorites === 'number') {
+            favoritesValue = analyticsData.favorites;
+          } else if (analyticsData.favorites !== null && analyticsData.favorites !== undefined) {
+            try {
+              favoritesValue = parseInt(String(analyticsData.favorites), 10) || 0;
+            } catch {
+              favoritesValue = 0;
+            }
+          }
+          
+          // Parse offers safely
+          if (typeof analyticsData.offers === 'number') {
+            offersValue = analyticsData.offers;
+          } else if (analyticsData.offers !== null && analyticsData.offers !== undefined) {
+            try {
+              offersValue = parseInt(String(analyticsData.offers), 10) || 0;
+            } catch {
+              offersValue = 0;
+            }
+          }
+        }
+        
+        // Extract owner info safely
+        let ownerName = t('common.unknown', '未知');
+        if (ownerData) {
+          if (typeof ownerData === 'object') {
+            ownerName = ownerData.username || ownerData.full_name || t('common.unknown', '未知');
+          }
+        }
         
         // Remove nested objects
         const { domain_analytics, profiles, ...rest } = domain;
         
         return {
           ...rest,
-          views,
-          favorites,
-          offers,
+          views: viewsValue,
+          favorites: favoritesValue,
+          offers: offersValue,
           ownerName
         };
       }) || [];

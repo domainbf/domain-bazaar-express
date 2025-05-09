@@ -26,11 +26,7 @@ i18n
     // Add these options for better handling
     react: {
       useSuspense: false, // Prevents suspense issues
-    },
-    // Add retry behavior for failed loads
-    retry: true,
-    // Improve caching behavior
-    load: 'currentOnly',
+    }
   });
 
 export default i18n;

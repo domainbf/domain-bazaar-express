@@ -1,4 +1,3 @@
-
 export interface Domain {
   id: string;
   name: string;
@@ -16,7 +15,11 @@ export interface Domain {
 }
 
 export interface DomainListing extends Domain {
-  // 继承Domain的所有字段，并添加特定于列表的额外字段
+  // Adding the missing properties
+  ownerName?: string;
+  views?: number;
+  favorites?: number;
+  offers?: number;
 }
 
 export interface DomainOffer {
