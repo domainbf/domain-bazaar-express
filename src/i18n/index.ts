@@ -1,8 +1,8 @@
 
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import enTranslations from './locales/en';
-import zhTranslations from './locales/zh';
+import { en } from './locales/en';
+import { zh } from './locales/zh';
 
 // Initialize i18next
 i18n
@@ -10,10 +10,10 @@ i18n
   .init({
     resources: {
       en: {
-        translation: enTranslations
+        translation: en
       },
       zh: {
-        translation: zhTranslations
+        translation: zh
       }
     },
     lng: localStorage.getItem('language') || 'zh',

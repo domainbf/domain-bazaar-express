@@ -62,15 +62,16 @@ export const useDomainsData = () => {
         // 从嵌套对象中提取分析数据
         const analyticsData = domain.domain_analytics?.[0];
         
-        // 确保我们正确处理数据类型，首先检查analyticsData是否存在
+        // 确保我们正确处理数据类型
         let viewsValue = 0;
         if (analyticsData) {
-          // 确保views是数字类型
+          // Type safety check to ensure viewsData is handled correctly
           const viewsData = analyticsData.views;
           if (typeof viewsData === 'number') {
             viewsValue = viewsData;
           } else if (viewsData !== null && viewsData !== undefined) {
-            viewsValue = parseInt(viewsData.toString(), 10) || 0;
+            // Handle case where viewsData might be a string or other type
+            viewsValue = parseInt(String(viewsData), 10) || 0;
           }
         }
         
