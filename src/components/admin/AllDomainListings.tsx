@@ -117,7 +117,7 @@ export const AllDomainListings = () => {
       setDomains(processedDomains);
     } catch (error: any) {
       console.error('Error loading domains:', error);
-      toast.error(t('admin.domains.loadError', 'Failed to load domains'));
+      toast.error(t('admin.domainsSection.loadError', 'Failed to load domains'));
     } finally {
       setIsLoading(false);
     }
@@ -145,12 +145,12 @@ export const AllDomainListings = () => {
       
       toast.success(
         domain.highlight 
-          ? t('admin.domains.removedHighlight', 'Domain removed from featured listings')
-          : t('admin.domains.addedHighlight', 'Domain added to featured listings')
+          ? t('admin.domainsSection.removedHighlight', 'Domain removed from featured listings')
+          : t('admin.domainsSection.addedHighlight', 'Domain added to featured listings')
       );
     } catch (error: any) {
       console.error('Error toggling highlight:', error);
-      toast.error(t('admin.domains.updateError', 'Failed to update domain'));
+      toast.error(t('admin.domainsSection.updateError', 'Failed to update domain'));
     }
   };
 
@@ -168,10 +168,10 @@ export const AllDomainListings = () => {
         d.id === domain.id ? { ...d, status } : d
       ));
       
-      toast.success(t('admin.domains.statusUpdated', 'Domain status updated to {{status}}', { status }));
+      toast.success(t('admin.domainsSection.statusUpdated', 'Domain status updated to {{status}}', { status }));
     } catch (error: any) {
       console.error('Error updating status:', error);
-      toast.error(t('admin.domains.statusUpdateError', 'Failed to update domain status'));
+      toast.error(t('admin.domainsSection.statusUpdateError', 'Failed to update domain status'));
     }
   };
 
@@ -211,7 +211,7 @@ export const AllDomainListings = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">{t('admin.domains.allListings', 'All Domain Listings')}</h2>
+        <h2 className="text-xl font-semibold">{t('admin.domainsSection.allListings', 'All Domain Listings')}</h2>
         <Button 
           size="sm" 
           variant="outline" 
@@ -227,7 +227,7 @@ export const AllDomainListings = () => {
         <div className="flex gap-2 items-center">
           <Search className="h-4 w-4 text-gray-500" />
           <Input 
-            placeholder={t('admin.domains.searchPlaceholder', 'Search domains...')}
+            placeholder={t('admin.domainsSection.searchPlaceholder', 'Search domains...')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -235,25 +235,25 @@ export const AllDomainListings = () => {
 
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger>
-            <SelectValue placeholder={t('admin.domains.filterByStatus', 'Filter by status')} />
+            <SelectValue placeholder={t('admin.domainsSection.filterByStatus', 'Filter by status')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t('common.all', 'All')}</SelectItem>
-            <SelectItem value="available">{t('domains.status.available', 'Available')}</SelectItem>
-            <SelectItem value="sold">{t('domains.status.sold', 'Sold')}</SelectItem>
-            <SelectItem value="reserved">{t('domains.status.reserved', 'Reserved')}</SelectItem>
+            <SelectItem value="available">{t('domains.statusTypes.available', 'Available')}</SelectItem>
+            <SelectItem value="sold">{t('domains.statusTypes.sold', 'Sold')}</SelectItem>
+            <SelectItem value="reserved">{t('domains.statusTypes.reserved', 'Reserved')}</SelectItem>
           </SelectContent>
         </Select>
 
         <Select value={verificationFilter} onValueChange={setVerificationFilter}>
           <SelectTrigger>
-            <SelectValue placeholder={t('admin.domains.filterByVerification', 'Filter by verification')} />
+            <SelectValue placeholder={t('admin.domainsSection.filterByVerification', 'Filter by verification')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t('common.all', 'All')}</SelectItem>
-            <SelectItem value="verified">{t('domains.verification.verified', 'Verified')}</SelectItem>
-            <SelectItem value="pending">{t('domains.verification.pending', 'Pending')}</SelectItem>
-            <SelectItem value="none">{t('domains.verification.none', 'Not Verified')}</SelectItem>
+            <SelectItem value="verified">{t('domains.verificationTypes.verified', 'Verified')}</SelectItem>
+            <SelectItem value="pending">{t('domains.verificationTypes.pending', 'Pending')}</SelectItem>
+            <SelectItem value="none">{t('domains.verificationTypes.none', 'Not Verified')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -287,24 +287,24 @@ export const AllDomainListings = () => {
                 <td className="p-4">¥{domain.price}</td>
                 <td className="p-4">{domain.ownerName}</td>
                 <td className="p-4 capitalize">{t(`domains.categories.${domain.category}`, domain.category)}</td>
-                <td className="p-4 capitalize">{t(`domains.status.${domain.status}`, domain.status)}</td>
+                <td className="p-4 capitalize">{t(`domains.statusTypes.${domain.status}`, domain.status)}</td>
                 <td className="p-4">
                   {domain.verification_status === 'verified' ? (
                     <span className="inline-flex items-center text-green-600">
                       <Check className="h-4 w-4 mr-1" />
-                      {t('domains.verification.verified', 'Verified')}
+                      {t('domains.verificationTypes.verified', 'Verified')}
                     </span>
                   ) : domain.verification_status === 'pending' ? (
-                    <span className="text-yellow-600">{t('domains.verification.pending', 'Pending')}</span>
+                    <span className="text-yellow-600">{t('domains.verificationTypes.pending', 'Pending')}</span>
                   ) : (
-                    <span className="text-gray-500">{t('domains.verification.none', 'Not Verified')}</span>
+                    <span className="text-gray-500">{t('domains.verificationTypes.none', 'Not Verified')}</span>
                   )}
                 </td>
                 <td className="p-4">
                   <div className="flex flex-col">
-                    <span className="text-xs">{t('domains.stats.views', 'Views')}: {domain.views || 0}</span>
-                    <span className="text-xs">{t('domains.stats.favorites', 'Favorites')}: {domain.favorites || 0}</span>
-                    <span className="text-xs">{t('domains.stats.offers', 'Offers')}: {domain.offers || 0}</span>
+                    <span className="text-xs">{t('domains.statistics.views', 'Views')}: {domain.views || 0}</span>
+                    <span className="text-xs">{t('domains.statistics.favorites', 'Favorites')}: {domain.favorites || 0}</span>
+                    <span className="text-xs">{t('domains.statistics.offers', 'Offers')}: {domain.offers || 0}</span>
                   </div>
                 </td>
                 <td className="p-4">
@@ -320,18 +320,18 @@ export const AllDomainListings = () => {
                     <DropdownMenuContent align="end" className="bg-white">
                       <DropdownMenuItem onClick={() => toggleHighlight(domain)}>
                         {domain.highlight 
-                          ? t('admin.domains.removeFeatured', 'Remove Featured') 
-                          : t('admin.domains.markAsFeatured', 'Mark as Featured')
+                          ? t('admin.domainsSection.removeFeatured', 'Remove Featured') 
+                          : t('admin.domainsSection.markAsFeatured', 'Mark as Featured')
                         }
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => updateDomainStatus(domain, 'available')}>
-                        {t('admin.domains.setAvailable', 'Set as Available')}
+                        {t('admin.domainsSection.setAvailable', 'Set as Available')}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => updateDomainStatus(domain, 'sold')}>
-                        {t('admin.domains.markAsSold', 'Mark as Sold')}
+                        {t('admin.domainsSection.markAsSold', 'Mark as Sold')}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => updateDomainStatus(domain, 'reserved')}>
-                        {t('admin.domains.markAsReserved', 'Mark as Reserved')}
+                        {t('admin.domainsSection.markAsReserved', 'Mark as Reserved')}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -344,7 +344,7 @@ export const AllDomainListings = () => {
 
       {filteredDomains.length === 0 && (
         <div className="text-center py-8 bg-gray-50 rounded-lg">
-          <p className="text-gray-600">{t('admin.domains.noDomains', 'No domains found')}</p>
+          <p className="text-gray-600">{t('admin.domainsSection.noDomains', 'No domains found')}</p>
         </div>
       )}
     </div>

@@ -70,7 +70,11 @@ export const useDomainsData = () => {
           if (typeof analyticsData.views === 'number') {
             viewsValue = analyticsData.views;
           } else if (typeof analyticsData.views === 'string') {
-            viewsValue = parseInt(analyticsData.views, 10) || 0;
+            try {
+              viewsValue = parseInt(analyticsData.views, 10) || 0;
+            } catch {
+              viewsValue = 0;
+            }
           }
         }
         
