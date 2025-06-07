@@ -62,18 +62,23 @@ export const useDomainsData = () => {
       // Process domain data and analytics
       const processedDomains = domainsData.map(domain => {
         // Get analytics data from the nested object
-        const analyticsData = domain.domain_analytics?.[0] || null;
+        const analyticsArray = domain.domain_analytics;
+        const analyticsData = Array.isArray(analyticsArray) && analyticsArray.length > 0 ? analyticsArray[0] : null;
         
         // Safe parsing for views property with proper type checking
         let viewsValue = 0;
-        if (analyticsData && analyticsData.views !== null && analyticsData.views !== undefined) {
-          if (typeof analyticsData.views === 'number') {
-            viewsValue = analyticsData.views;
-          } else if (typeof analyticsData.views === 'string') {
-            try {
-              viewsValue = parseInt(analyticsData.views, 10) || 0;
-            } catch {
-              viewsValue = 0;
+        if (analyticsData && typeof analyticsData === 'object' && analyticsData !== null) {
+          const analytics = analyticsData as { views?: number | string | null; favorites?: number | string | null; offers?: number | string | null };
+          
+          if (analytics.views !== null && analytics.views !== undefined) {
+            if (typeof analytics.views === 'number') {
+              viewsValue = analytics.views;
+            } else if (typeof analytics.views === 'string') {
+              try {
+                viewsValue = parseInt(analytics.views, 10) || 0;
+              } catch {
+                viewsValue = 0;
+              }
             }
           }
         }
