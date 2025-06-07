@@ -72,6 +72,9 @@ export const zh = {
     stats: '统计',
     created: '创建时间',
     loadError: '加载域名失败',
+    addDomain: '添加域名',
+    myDomains: '我的域名',
+    refreshing: '刷新中...',
     categories: {
       business: '商业',
       tech: '科技',
@@ -81,18 +84,18 @@ export const zh = {
       entertainment: '娱乐',
       standard: '标准'
     },
-    status: {
+    statusTypes: {
       available: '可售',
       sold: '已售',
       reserved: '保留',
       pending: '待处理'
     },
-    verification: {
+    verificationTypes: {
       verified: '已验证',
       pending: '待验证',
       none: '未验证'
     },
-    stats: {
+    statistics: {
       views: '浏览量',
       favorites: '收藏数',
       offers: '报价数'
@@ -116,7 +119,7 @@ export const zh = {
     stats: {
       loadError: '加载管理统计信息失败'
     },
-    domains: {
+    domainsSection: {
       allListings: '所有域名列表',
       loadError: '加载域名失败',
       searchPlaceholder: '搜索域名...',
@@ -134,7 +137,7 @@ export const zh = {
       markAsSold: '标记为已售',
       markAsReserved: '标记为保留'
     },
-    verifications: {
+    verificationsSection: {
       loadError: '加载待验证列表失败',
       approveSuccess: '域名验证已通过',
       approveError: '批准验证失败',

@@ -72,6 +72,9 @@ export const en = {
     stats: 'Stats',
     created: 'Created',
     loadError: 'Failed to load domains',
+    addDomain: 'Add Domain',
+    myDomains: 'My Domains',
+    refreshing: 'Refreshing...',
     categories: {
       business: 'Business',
       tech: 'Technology',
@@ -81,18 +84,18 @@ export const en = {
       entertainment: 'Entertainment',
       standard: 'Standard'
     },
-    status: {
+    statusTypes: {
       available: 'Available',
       sold: 'Sold',
       reserved: 'Reserved',
       pending: 'Pending'
     },
-    verification: {
+    verificationTypes: {
       verified: 'Verified',
       pending: 'Pending',
       none: 'Not Verified'
     },
-    stats: {
+    statistics: {
       views: 'Views',
       favorites: 'Favorites',
       offers: 'Offers'
@@ -116,7 +119,7 @@ export const en = {
     stats: {
       loadError: 'Failed to load admin statistics'
     },
-    domains: {
+    domainsSection: {
       allListings: 'All Domain Listings',
       loadError: 'Failed to load domains',
       searchPlaceholder: 'Search domains...',
@@ -134,7 +137,7 @@ export const en = {
       markAsSold: 'Mark as Sold',
       markAsReserved: 'Mark as Reserved'
     },
-    verifications: {
+    verificationsSection: {
       loadError: 'Failed to load pending verifications',
       approveSuccess: 'Domain verification approved',
       approveError: 'Failed to approve verification',
