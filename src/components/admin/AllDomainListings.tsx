@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -39,15 +40,19 @@ export const AllDomainListings = () => {
     try {
       const { data, error } = await supabase
         .from('domain_listings')
-        .select('*, domain_analytics(views, favorites, offers), profiles!domain_listings_owner_id_fkey(username, full_name)');
+        .select(`
+          *,
+          domain_analytics(views, favorites, offers),
+          profiles!domain_listings_owner_id_fkey(username, full_name)
+        `);
       
       if (error) throw error;
       
       // Process the data to include analytics
       const processedDomains: DomainListing[] = data?.map(domain => {
-        // Type assertions for domain_analytics and profiles
+        // Type assertions for domain_analytics and profiles with proper null checks
         const analyticsData = domain.domain_analytics && Array.isArray(domain.domain_analytics) ? domain.domain_analytics[0] : null;
-        const ownerData = domain.profiles || null;
+        const ownerData = domain.profiles;
         
         // Extract analytics data with proper type checking
         let viewsValue = 0;
@@ -91,8 +96,10 @@ export const AllDomainListings = () => {
         
         // Extract owner info safely with proper null checks
         let ownerName = t('common.unknown', '未知');
-        if (ownerData && typeof ownerData === 'object') {
-          ownerName = (ownerData.username as string) || (ownerData.full_name as string) || t('common.unknown', '未知');
+        if (ownerData && typeof ownerData === 'object' && ownerData !== null) {
+          // Additional type checking to ensure ownerData has the expected properties
+          const owner = ownerData as { username?: string; full_name?: string };
+          ownerName = owner.username || owner.full_name || t('common.unknown', '未知');
         }
         
         // Remove nested objects

@@ -1,11 +1,14 @@
+
 import { useCallback, useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
 import { Domain } from '@/types/domain';
+import { useTranslation } from 'react-i18next';
 
 export const useDomainsData = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [domains, setDomains] = useState<Domain[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -61,12 +64,15 @@ export const useDomainsData = () => {
         // Get analytics data from the nested object
         const analyticsData = domain.domain_analytics?.[0] || null;
         
-        // Safe parsing for views property
-        const viewsValue = typeof analyticsData.views === 'number' 
-          ? analyticsData.views 
-          : (analyticsData.views !== null && analyticsData.views !== undefined)
-            ? parseInt(String(analyticsData.views), 10) || 0
-            : 0;
+        // Safe parsing for views property with proper type checking
+        let viewsValue = 0;
+        if (analyticsData && analyticsData.views !== null && analyticsData.views !== undefined) {
+          if (typeof analyticsData.views === 'number') {
+            viewsValue = analyticsData.views;
+          } else if (typeof analyticsData.views === 'string') {
+            viewsValue = parseInt(analyticsData.views, 10) || 0;
+          }
+        }
         
         // Remove nested objects for a cleaner structure
         const { domain_analytics, ...domainWithoutAnalytics } = domain;
@@ -86,13 +92,13 @@ export const useDomainsData = () => {
       }
     } catch (error: any) {
       console.error('Error loading domains:', error);
-      toast.error(error.message || '加载域名失败');
+      toast.error(error.message || t('domains.loadError', '加载域名失败'));
       setDomains([]);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [user]);
+  }, [user, t]);
 
   // Initial load
   useEffect(() => {

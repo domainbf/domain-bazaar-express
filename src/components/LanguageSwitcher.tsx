@@ -26,18 +26,32 @@ export const LanguageSwitcher = ({ className = "", iconOnly = false }: LanguageS
     
     setIsChanging(true);
     try {
-      toast.loading(t('common.changingLanguage', 'Changing language...'));
+      const loadingToast = toast.loading(t('common.changingLanguage', 'Changing language...'));
       await changeLanguage(lang);
+      
+      // Dismiss the loading toast
+      toast.dismiss(loadingToast);
+      
+      // Show success message briefly before reload
+      toast.success(t('common.success', 'Success'), { duration: 1000 });
       
       // Use a slight delay before reload to allow the toast to be visible
       setTimeout(() => {
         window.location.reload();
-      }, 500);
+      }, 1000);
     } catch (error) {
       console.error("Failed to change language:", error);
       toast.error(t('common.languageChangeFailed', 'Failed to change language'));
       setIsChanging(false);
     }
+  };
+
+  const getLanguageDisplay = (langCode: string) => {
+    const languageMap = {
+      'zh': '中文',
+      'en': 'English'
+    };
+    return languageMap[langCode as keyof typeof languageMap] || langCode;
   };
 
   if (iconOnly) {
@@ -54,10 +68,16 @@ export const LanguageSwitcher = ({ className = "", iconOnly = false }: LanguageS
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="bg-white">
-          <DropdownMenuItem onClick={() => handleLanguageChange('zh')}>
+          <DropdownMenuItem 
+            onClick={() => handleLanguageChange('zh')}
+            className={i18n.language === 'zh' ? 'bg-gray-100' : ''}
+          >
             中文
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleLanguageChange('en')}>
+          <DropdownMenuItem 
+            onClick={() => handleLanguageChange('en')}
+            className={i18n.language === 'en' ? 'bg-gray-100' : ''}
+          >
             English
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -76,15 +96,21 @@ export const LanguageSwitcher = ({ className = "", iconOnly = false }: LanguageS
         >
           <Globe className="h-4 w-4" />
           <span className="text-sm">
-            {i18n.language === 'en' ? 'English' : '中文'}
+            {getLanguageDisplay(i18n.language)}
           </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-white">
-        <DropdownMenuItem onClick={() => handleLanguageChange('zh')}>
+        <DropdownMenuItem 
+          onClick={() => handleLanguageChange('zh')}
+          className={i18n.language === 'zh' ? 'bg-gray-100' : ''}
+        >
           中文
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleLanguageChange('en')}>
+        <DropdownMenuItem 
+          onClick={() => handleLanguageChange('en')}
+          className={i18n.language === 'en' ? 'bg-gray-100' : ''}
+        >
           English
         </DropdownMenuItem>
       </DropdownMenuContent>

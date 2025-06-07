@@ -8,8 +8,10 @@ import { EmptyDomainState } from './domain/EmptyDomainState';
 import { useDomainsData } from './domain/useDomainsData';
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const DomainManagement = () => {
+  const { t } = useTranslation();
   const { domains, isLoading, isRefreshing, loadDomains, refreshDomains } = useDomainsData();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
@@ -49,7 +51,7 @@ export const DomainManagement = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h2 className="text-2xl font-bold">我的域名</h2>
+        <h2 className="text-2xl font-bold">{t('userCenter.myDomains', '我的域名')}</h2>
         <div className="flex gap-2">
           <Button 
             variant="outline" 
@@ -59,7 +61,7 @@ export const DomainManagement = () => {
             className="flex items-center gap-1"
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-            {isRefreshing ? "刷新中..." : "刷新"}
+            {isRefreshing ? t('common.loading', '刷新中...') : t('common.refresh', '刷新')}
           </Button>
           <DomainActions mode="add" onSuccess={loadDomains} />
         </div>
