@@ -49,7 +49,7 @@ export const zh = {
   // 市场页面
   marketplace: {
     title: '域名市场',
-    subtitle: '浏览和购买优质域名',
+    subtitle: '浏览并购买优质域名',
     searchPlaceholder: '搜索域名...',
     loadError: '加载域名失败',
     noDomainsFound: '未找到域名',
@@ -57,7 +57,10 @@ export const zh = {
       all: '全部',
       category: '分类',
       priceRange: '价格范围',
-      verifiedOnly: '仅显示已验证'
+      verifiedOnly: '仅显示已验证',
+      premium: '优质',
+      short: '短域名',
+      dev: '开发'
     }
   },
 
@@ -67,9 +70,9 @@ export const zh = {
     price: '价格',
     owner: '所有者',
     category: '分类',
-    status: '状态',
-    verification: '验证状态',
-    stats: '统计',
+    domainStatus: '状态',
+    domainVerification: '验证状态',
+    domainStats: '统计',
     created: '创建时间',
     loadError: '加载域名失败',
     addDomain: '添加域名',
@@ -116,7 +119,7 @@ export const zh = {
       users: '用户管理',
       settings: '网站设置'
     },
-    stats: {
+    adminStats: {
       loadError: '加载管理统计信息失败'
     },
     domainsSection: {
@@ -143,6 +146,10 @@ export const zh = {
       approveError: '批准验证失败',
       rejectSuccess: '域名验证已拒绝',
       rejectError: '拒绝验证失败'
+    },
+    verifications: {
+      title: '待验证域名',
+      noPending: '没有待验证的域名'
     }
   },
 

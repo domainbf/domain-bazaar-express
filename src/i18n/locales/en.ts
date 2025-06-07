@@ -57,7 +57,10 @@ export const en = {
       all: 'All',
       category: 'Category',
       priceRange: 'Price Range',
-      verifiedOnly: 'Verified Only'
+      verifiedOnly: 'Verified Only',
+      premium: 'Premium',
+      short: 'Short',
+      dev: 'Development'
     }
   },
 
@@ -67,9 +70,9 @@ export const en = {
     price: 'Price',
     owner: 'Owner',
     category: 'Category',
-    status: 'Status',
-    verification: 'Verification',
-    stats: 'Stats',
+    domainStatus: 'Status',
+    domainVerification: 'Verification',
+    domainStats: 'Stats',
     created: 'Created',
     loadError: 'Failed to load domains',
     addDomain: 'Add Domain',
@@ -116,7 +119,7 @@ export const en = {
       users: 'User Management',
       settings: 'Site Settings'
     },
-    stats: {
+    adminStats: {
       loadError: 'Failed to load admin statistics'
     },
     domainsSection: {
@@ -143,6 +146,10 @@ export const en = {
       approveError: 'Failed to approve verification',
       rejectSuccess: 'Domain verification rejected',
       rejectError: 'Failed to reject verification'
+    },
+    verifications: {
+      title: 'Pending Domain Verifications',
+      noPending: 'No pending verifications'
     }
   },
 

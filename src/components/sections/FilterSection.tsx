@@ -10,6 +10,16 @@ interface FilterSectionProps {
 export const FilterSection = ({ currentFilter, onFilterChange }: FilterSectionProps) => {
   const { t } = useTranslation();
 
+  const getFilterLabel = (filter: string) => {
+    const filterLabels = {
+      all: t('marketplace.filters.all', '全部'),
+      premium: t('marketplace.filters.premium', '优质'),
+      short: t('marketplace.filters.short', '短域名'),
+      dev: t('marketplace.filters.dev', '开发')
+    };
+    return filterLabels[filter as keyof typeof filterLabels] || filter;
+  };
+
   return (
     <div className="mb-8">
       <div className="flex flex-wrap gap-3 justify-center">
@@ -24,7 +34,7 @@ export const FilterSection = ({ currentFilter, onFilterChange }: FilterSectionPr
                 : 'bg-white/10 hover:bg-white/20'
             }`}
           >
-            {t(category)}
+            {getFilterLabel(category)}
           </Button>
         ))}
       </div>

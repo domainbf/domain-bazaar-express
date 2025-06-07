@@ -32,16 +32,12 @@ export const LanguageSwitcher = ({ className = "", iconOnly = false }: LanguageS
       // Dismiss the loading toast
       toast.dismiss(loadingToast);
       
-      // Show success message briefly before reload
-      toast.success(t('common.success', 'Success'), { duration: 1000 });
-      
-      // Use a slight delay before reload to allow the toast to be visible
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      // Show success message
+      toast.success(t('common.success', 'Success'), { duration: 1500 });
     } catch (error) {
       console.error("Failed to change language:", error);
       toast.error(t('common.languageChangeFailed', 'Failed to change language'));
+    } finally {
       setIsChanging(false);
     }
   };
