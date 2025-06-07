@@ -16,7 +16,6 @@ export const DomainManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   
-  // 使用useCallback优化过滤函数以避免不必要的重新渲染
   const filterDomains = useCallback(() => {
     return domains
       .filter(domain => 
@@ -32,10 +31,8 @@ export const DomainManagement = () => {
       });
   }, [domains, searchQuery, activeTab]);
 
-  // 预先计算过滤后的域名列表
   const filteredDomains = filterDomains();
 
-  // 处理刷新动作
   const handleRefresh = () => {
     refreshDomains();
   };
@@ -51,7 +48,7 @@ export const DomainManagement = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h2 className="text-2xl font-bold">{t('userCenter.myDomains', '我的域名')}</h2>
+        <h2 className="text-2xl font-bold">{t('userCenter.myDomains')}</h2>
         <div className="flex gap-2">
           <Button 
             variant="outline" 
@@ -61,7 +58,7 @@ export const DomainManagement = () => {
             className="flex items-center gap-1"
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-            {isRefreshing ? t('common.loading', '刷新中...') : t('common.refresh', '刷新')}
+            {isRefreshing ? t('domains.refreshing') : t('common.refresh')}
           </Button>
           <DomainActions mode="add" onSuccess={loadDomains} />
         </div>

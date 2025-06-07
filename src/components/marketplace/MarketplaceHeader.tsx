@@ -16,10 +16,10 @@ export const MarketplaceHeader = ({ searchQuery, setSearchQuery, isMobile = fals
       <div className={`${isMobile ? '' : 'max-w-6xl mx-auto px-4'}`}>
         <div className="text-center">
           <h1 className={`${isMobile ? 'text-2xl mb-2' : 'text-4xl mb-4'} font-bold`}>
-            {t('marketplace.title', '域名市场')}
+            {t('marketplace.title')}
           </h1>
           <p className={`${isMobile ? 'text-sm mb-4' : 'text-xl mb-6'} text-gray-300`}>
-            {t('marketplace.subtitle', '浏览并购买优质域名')}
+            {t('marketplace.subtitle')}
           </p>
           <SearchBar 
             searchQuery={searchQuery} 

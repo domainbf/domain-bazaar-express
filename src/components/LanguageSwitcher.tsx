@@ -26,17 +26,11 @@ export const LanguageSwitcher = ({ className = "", iconOnly = false }: LanguageS
     
     setIsChanging(true);
     try {
-      const loadingToast = toast.loading(t('common.changingLanguage', 'Changing language...'));
       await changeLanguage(lang);
-      
-      // Dismiss the loading toast
-      toast.dismiss(loadingToast);
-      
-      // Show success message
-      toast.success(t('common.success', 'Success'), { duration: 1500 });
+      toast.success(t('common.languageChanged', '语言切换成功'), { duration: 1000 });
     } catch (error) {
       console.error("Failed to change language:", error);
-      toast.error(t('common.languageChangeFailed', 'Failed to change language'));
+      toast.error(t('common.languageChangeFailed', '语言切换失败'));
     } finally {
       setIsChanging(false);
     }
