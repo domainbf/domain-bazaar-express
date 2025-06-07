@@ -31,19 +31,79 @@ export const en = {
     finish: 'Finish',
     backToHome: 'Back to Home',
     changingLanguage: 'Changing language...',
-    languageChangeFailed: 'Failed to change language'
+    languageChangeFailed: 'Failed to change language',
+    languageChanged: 'Language changed successfully',
+    more: 'More',
+    less: 'Less',
+    view: 'View',
+    contact: 'Contact',
+    email: 'Email',
+    phone: 'Phone',
+    name: 'Name',
+    description: 'Description',
+    status: 'Status',
+    type: 'Type',
+    date: 'Date',
+    time: 'Time',
+    viewAll: 'View All'
+  },
+
+  // Navigation
+  nav: {
+    home: 'Home',
+    marketplace: 'Marketplace',
+    dashboard: 'Dashboard',
+    profile: 'Profile',
+    admin: 'Admin',
+    login: 'Login',
+    register: 'Register',
+    logout: 'Logout',
+    userCenter: 'User Center'
   },
 
   // Home page
   homePage: {
     title: 'Find Your Perfect Domain',
     subtitle: 'Explore, discover, and acquire the perfect domain name for your next big idea',
+    browseDomains: 'Browse Marketplace',
+    sellDomains: 'Sell Your Domains',
+    userDashboard: 'Your Domain Console',
+    activeDomains: 'Active Domains',
+    manageDomains: 'Manage Domains',
+    unreadMessages: 'Unread Messages',
+    viewNotifications: 'View Notifications',
+    defaultUser: 'User',
+    basicUser: 'Basic User',
+    editProfile: 'Edit Profile',
+    fullDashboard: 'Enter Full Console',
+    featuredDomains: 'Featured Domains',
+    tryAdjustingFilters: 'Try adjusting your filters or add your own domains',
+    addYourDomain: 'Add Your Domain',
+    howItWorks: 'How It Works',
+    step1Title: 'Create an Account',
+    step1Description: 'Sign up for free to buy or sell domains',
+    step2Title: 'List or Browse',
+    step2Description: 'List your domains or browse marketplace',
+    step3Title: 'Make Deals',
+    step3Description: 'Complete transactions securely',
+    platformStats: 'Platform Statistics',
+    activeUsers: 'Active Users',
+    countries: 'Countries',
+    transactionVolume: 'Transaction Volume',
+    customerSupport: 'Customer Support',
+    ctaTitle: 'Ready to Buy or Sell Domains?',
+    ctaDescription: 'Join our platform today and start trading domains with ease',
+    visitUserCenter: 'Visit User Center',
+    registerLogin: 'Register/Login',
+    footer: '© 2024 Domain Trading Platform. All rights reserved.',
     uniqueValue: 'Unique Value',
     uniqueValueDescription: 'Every domain name is a unique digital asset',
     security: 'Security',
     securityDescription: 'Standardized transaction process ensures your investment security',
     potential: 'Growth Potential',
-    potentialDescription: 'Premium domains have huge appreciation potential'
+    potentialDescription: 'Premium domains have huge appreciation potential',
+    getStarted: 'Get Started',
+    learnMore: 'Learn More'
   },
 
   // Marketplace
@@ -53,6 +113,8 @@ export const en = {
     searchPlaceholder: 'Search domains...',
     loadError: 'Failed to load domains',
     noDomainsFound: 'No domains found',
+    resultsFound: 'Found {{count}} results',
+    sortBy: 'Sort by',
     filters: {
       all: 'All',
       category: 'Category',
@@ -60,7 +122,21 @@ export const en = {
       verifiedOnly: 'Verified Only',
       premium: 'Premium',
       short: 'Short',
-      dev: 'Development'
+      dev: 'Development',
+      business: 'Business',
+      tech: 'Technology',
+      finance: 'Finance',
+      education: 'Education',
+      health: 'Health',
+      entertainment: 'Entertainment'
+    },
+    sort: {
+      newest: 'Newest First',
+      oldest: 'Oldest First',
+      priceHigh: 'Price High to Low',
+      priceLow: 'Price Low to High',
+      nameAZ: 'Name A-Z',
+      nameZA: 'Name Z-A'
     }
   },
 
@@ -74,10 +150,18 @@ export const en = {
     domainVerification: 'Verification',
     domainStats: 'Stats',
     created: 'Created',
+    updated: 'Updated',
     loadError: 'Failed to load domains',
     addDomain: 'Add Domain',
     myDomains: 'My Domains',
     refreshing: 'Refreshing...',
+    viewDetails: 'View Details',
+    makeOffer: 'Make Offer',
+    buyNow: 'Buy Now',
+    contactSeller: 'Contact Seller',
+    addToFavorites: 'Add to Favorites',
+    shareLink: 'Share Link',
+    reportDomain: 'Report Domain',
     categories: {
       business: 'Business',
       tech: 'Technology',
@@ -85,23 +169,31 @@ export const en = {
       education: 'Education',
       health: 'Health',
       entertainment: 'Entertainment',
-      standard: 'Standard'
+      standard: 'Standard',
+      premium: 'Premium',
+      short: 'Short',
+      brandable: 'Brandable'
     },
     statusTypes: {
       available: 'Available',
       sold: 'Sold',
       reserved: 'Reserved',
-      pending: 'Pending'
+      pending: 'Pending',
+      draft: 'Draft',
+      active: 'Active',
+      inactive: 'Inactive'
     },
     verificationTypes: {
       verified: 'Verified',
       pending: 'Pending',
-      none: 'Not Verified'
+      none: 'Not Verified',
+      rejected: 'Verification Failed'
     },
     statistics: {
       views: 'Views',
       favorites: 'Favorites',
-      offers: 'Offers'
+      offers: 'Offers',
+      inquiries: 'Inquiries'
     }
   },
 
@@ -117,10 +209,16 @@ export const en = {
       verifications: 'Pending Verifications',
       domains: 'All Domains',
       users: 'User Management',
-      settings: 'Site Settings'
+      settings: 'Site Settings',
+      analytics: 'Analytics',
+      reports: 'Reports'
     },
     adminStats: {
-      loadError: 'Failed to load admin statistics'
+      loadError: 'Failed to load admin statistics',
+      totalDomains: 'Total Domains',
+      pendingVerifications: 'Pending Verifications',
+      totalUsers: 'Total Users',
+      monthlyRevenue: 'Monthly Revenue'
     },
     domainsSection: {
       allListings: 'All Domain Listings',
@@ -149,21 +247,34 @@ export const en = {
     },
     verifications: {
       title: 'Pending Domain Verifications',
-      noPending: 'No pending verifications'
+      noPending: 'No pending verifications',
+      approve: 'Approve',
+      reject: 'Reject',
+      viewDetails: 'View Details'
     }
   },
 
   // Verification
   verification: {
+    title: 'Domain Verification',
     methods: {
       dns: 'DNS Verification',
       html: 'HTML File Verification',
       email: 'Email Verification'
-    }
+    },
+    status: {
+      pending: 'Pending',
+      verified: 'Verified',
+      failed: 'Failed'
+    },
+    instructions: 'Please follow these steps to complete domain verification'
   },
 
   // Notifications
   notifications: {
+    title: 'Notifications',
+    markAllRead: 'Mark All as Read',
+    noNotifications: 'No notifications',
     verificationApproved: {
       title: 'Domain Verification Approved',
       message: 'Your domain {{domain}} has been verified and is now available for sale.'
@@ -181,6 +292,40 @@ export const en = {
     myDomains: 'My Domains',
     transactions: 'Transaction History',
     profile: 'Profile',
-    settings: 'Settings'
+    settings: 'Settings',
+    notifications: 'Notifications',
+    favorites: 'My Favorites',
+    offers: 'My Offers',
+    dashboard: 'Dashboard'
+  },
+
+  // Forms and inputs
+  forms: {
+    required: 'This field is required',
+    invalid: 'Invalid input format',
+    tooShort: 'Input too short',
+    tooLong: 'Input too long',
+    passwordMismatch: 'Passwords do not match',
+    emailInvalid: 'Invalid email format',
+    domainInvalid: 'Invalid domain format',
+    priceInvalid: 'Invalid price format'
+  },
+
+  // Error and success messages
+  messages: {
+    success: {
+      saved: 'Saved successfully',
+      updated: 'Updated successfully',
+      deleted: 'Deleted successfully',
+      sent: 'Sent successfully',
+      uploaded: 'Uploaded successfully'
+    },
+    error: {
+      general: 'Operation failed, please try again',
+      network: 'Network connection error',
+      unauthorized: 'Unauthorized access',
+      notFound: 'Content not found',
+      serverError: 'Server error'
+    }
   }
 };

@@ -13,6 +13,7 @@ import { Domain } from '@/types/domain';
 import { toast } from 'sonner';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslation } from 'react-i18next';
 
 const Index = () => {
   const [filter, setFilter] = useState('all');
@@ -21,6 +22,7 @@ const Index = () => {
   const [domains, setDomains] = useState<Domain[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user, profile } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -81,6 +83,10 @@ const Index = () => {
     }
   };
 
+  useEffect(() => {
+    loadDomains();
+  }, []);
+
   const filteredDomains = domains
     .filter(domain => filter === 'all' || domain.category === filter)
     .filter(domain => 
@@ -103,16 +109,16 @@ const Index = () => {
       <header className="pt-16 pb-20 md:py-24 bg-gray-900 text-white">
         <div className="max-w-6xl mx-auto px-4 md:px-8 text-center">
           <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 md:mb-8 leading-tight text-white-enhanced">
-            Find Your Ideal Domain
+            {t('homePage.title')}
           </h1>
           <p className="text-base md:text-xl text-white mb-8 md:mb-12 max-w-3xl mx-auto px-2 font-semibold">
-            Premium domains available for purchase or make your offer
+            {t('homePage.subtitle')}
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center px-2">
             <Link to="/marketplace" className="w-full sm:w-auto">
               <Button className="w-full sm:w-auto bg-white text-gray-900 hover:bg-gray-100 px-6 py-2 md:px-8 md:py-6 text-base md:text-lg font-bold">
-                Browse Marketplace
+                {t('homePage.browseDomains')}
               </Button>
             </Link>
             <Button 
@@ -120,7 +126,7 @@ const Index = () => {
               className="w-full sm:w-auto border-gray-400 border-2 bg-transparent text-white hover:bg-gray-700 px-6 py-2 md:px-8 md:py-6 text-base md:text-lg font-bold"
               onClick={handleSellDomains}
             >
-              Sell Your Domains
+              {t('homePage.sellDomains')}
             </Button>
           </div>
         </div>
@@ -131,9 +137,9 @@ const Index = () => {
         <section className="py-12 bg-white">
           <div className="max-w-6xl mx-auto px-4">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900">您的域名控制台</h2>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900">{t('homePage.userDashboard')}</h2>
               <Link to="/user-center" className="text-blue-600 hover:text-blue-800 flex items-center">
-                查看全部 <ArrowRight className="ml-1 h-4 w-4" />
+                {t('common.viewAll')} <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </div>
             
@@ -142,16 +148,16 @@ const Index = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <ClipboardList className="h-5 w-5 text-gray-600" />
-                    我的域名
+                    {t('userCenter.myDomains')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-3xl font-bold">{profile?.domains_count || 0}</p>
-                  <p className="text-sm text-gray-500">在售域名</p>
+                  <p className="text-sm text-gray-500">{t('homePage.activeDomains')}</p>
                 </CardContent>
                 <CardFooter>
                   <Button variant="outline" size="sm" className="w-full" onClick={() => navigate('/user-center?tab=domains')}>
-                    管理域名
+                    {t('homePage.manageDomains')}
                   </Button>
                 </CardFooter>
               </Card>
@@ -160,16 +166,16 @@ const Index = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Bell className="h-5 w-5 text-gray-600" />
-                    通知
+                    {t('notifications.title')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-3xl font-bold">0</p>
-                  <p className="text-sm text-gray-500">未读消息</p>
+                  <p className="text-sm text-gray-500">{t('homePage.unreadMessages')}</p>
                 </CardContent>
                 <CardFooter>
                   <Button variant="outline" size="sm" className="w-full" onClick={() => navigate('/user-center?tab=notifications')}>
-                    查看通知
+                    {t('homePage.viewNotifications')}
                   </Button>
                 </CardFooter>
               </Card>
@@ -178,16 +184,16 @@ const Index = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <User className="h-5 w-5 text-gray-600" />
-                    个人资料
+                    {t('userCenter.profile')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-lg font-medium truncate">{profile?.full_name || user?.email?.split('@')[0] || '用户'}</p>
-                  <p className="text-sm text-gray-500">{profile?.account_level || "基础用户"}</p>
+                  <p className="text-lg font-medium truncate">{profile?.full_name || user?.email?.split('@')[0] || t('homePage.defaultUser')}</p>
+                  <p className="text-sm text-gray-500">{profile?.account_level || t('homePage.basicUser')}</p>
                 </CardContent>
                 <CardFooter>
                   <Button variant="outline" size="sm" className="w-full" onClick={() => navigate('/user-center?tab=profile')}>
-                    设置资料
+                    {t('homePage.editProfile')}
                   </Button>
                 </CardFooter>
               </Card>
@@ -198,7 +204,7 @@ const Index = () => {
                 onClick={() => navigate('/dashboard')}
                 className="bg-black hover:bg-gray-800 text-white"
               >
-                进入完整控制台
+                {t('homePage.fullDashboard')}
               </Button>
             </div>
           </div>
@@ -208,7 +214,7 @@ const Index = () => {
       {/* Filter Section */}
       <section className="py-12 md:py-16 bg-white">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-dark-enhanced mb-8 md:mb-10">Featured Domains</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-center text-dark-enhanced mb-8 md:mb-10">{t('homePage.featuredDomains')}</h2>
           
           {/* Filter buttons */}
           <div className="overflow-x-auto pb-4 mb-8">
@@ -219,7 +225,7 @@ const Index = () => {
                 className={filter === 'all' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
                 size="sm"
               >
-                All
+                {t('common.all')}
               </Button>
               <Button
                 variant={filter === 'premium' ? 'default' : 'outline'}
@@ -227,7 +233,7 @@ const Index = () => {
                 className={filter === 'premium' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
                 size="sm"
               >
-                Premium
+                {t('domains.categories.premium')}
               </Button>
               <Button
                 variant={filter === 'short' ? 'default' : 'outline'}
@@ -235,7 +241,7 @@ const Index = () => {
                 className={filter === 'short' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
                 size="sm"
               >
-                Short
+                {t('domains.categories.short')}
               </Button>
               <Button
                 variant={filter === 'dev' ? 'default' : 'outline'}
@@ -243,7 +249,7 @@ const Index = () => {
                 className={filter === 'dev' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
                 size="sm"
               >
-                Development
+                {t('domains.categories.tech')}
               </Button>
             </div>
           </div>
@@ -252,7 +258,7 @@ const Index = () => {
             <div className="relative">
               <Input
                 type="text"
-                placeholder="Search domains..."
+                placeholder={t('marketplace.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full h-10 md:h-12 pl-12 pr-4 bg-white border-gray-500 focus:border-gray-900 text-gray-900 font-medium"
@@ -283,10 +289,10 @@ const Index = () => {
             </div>
           ) : (
             <div className="text-center py-16 bg-gray-50 rounded-lg border border-gray-200 mb-12">
-              <h3 className="text-2xl font-medium text-gray-600 mb-4">No domains found</h3>
-              <p className="text-gray-500 mb-4">Try adjusting your filters or add your own domains</p>
+              <h3 className="text-2xl font-medium text-gray-600 mb-4">{t('marketplace.noDomainsFound')}</h3>
+              <p className="text-gray-500 mb-4">{t('homePage.tryAdjustingFilters')}</p>
               <Button onClick={handleSellDomains} className="bg-gray-900">
-                Add Your Domain
+                {t('homePage.addYourDomain')}
               </Button>
             </div>
           )}
@@ -296,24 +302,24 @@ const Index = () => {
       {/* Features Section */}
       <section className="py-16 md:py-20 bg-gray-900 text-white">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-10 md:mb-16 text-white-enhanced">How It Works</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-10 md:mb-16 text-white-enhanced">{t('homePage.howItWorks')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
             <div className="bg-gray-800 rounded-xl p-6 md:p-8 text-center">
               <div className="bg-white text-gray-900 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">1</div>
-              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-white-enhanced">Create an Account</h3>
-              <p className="text-white text-sm md:text-base font-semibold">Sign up for free to buy or sell domains</p>
+              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-white-enhanced">{t('homePage.step1Title')}</h3>
+              <p className="text-white text-sm md:text-base font-semibold">{t('homePage.step1Description')}</p>
             </div>
             
             <div className="bg-gray-800 rounded-xl p-6 md:p-8 text-center">
               <div className="bg-white text-gray-900 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">2</div>
-              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-white-enhanced">List or Browse</h3>
-              <p className="text-white text-sm md:text-base font-semibold">List your domains or browse marketplace</p>
+              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-white-enhanced">{t('homePage.step2Title')}</h3>
+              <p className="text-white text-sm md:text-base font-semibold">{t('homePage.step2Description')}</p>
             </div>
             
             <div className="bg-gray-800 rounded-xl p-6 md:p-8 text-center">
               <div className="bg-white text-gray-900 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">3</div>
-              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-white-enhanced">Make Deals</h3>
-              <p className="text-white text-sm md:text-base font-semibold">Complete transactions securely</p>
+              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-white-enhanced">{t('homePage.step3Title')}</h3>
+              <p className="text-white text-sm md:text-base font-semibold">{t('homePage.step3Description')}</p>
             </div>
           </div>
         </div>
@@ -322,23 +328,23 @@ const Index = () => {
       {/* Statistics Section */}
       <section className="py-16 md:py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-dark-enhanced mb-10 md:mb-16">Platform Statistics</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-center text-dark-enhanced mb-10 md:mb-16">{t('homePage.platformStats')}</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             <div className="text-center p-4 md:p-6 bg-gray-100 rounded-lg shadow-sm">
               <div className="text-2xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-3">50,000+</div>
-              <div className="text-gray-800 text-sm md:text-base font-semibold">Active Users</div>
+              <div className="text-gray-800 text-sm md:text-base font-semibold">{t('homePage.activeUsers')}</div>
             </div>
             <div className="text-center p-4 md:p-6 bg-gray-100 rounded-lg shadow-sm">
               <div className="text-2xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-3">100+</div>
-              <div className="text-gray-800 text-sm md:text-base font-semibold">Countries</div>
+              <div className="text-gray-800 text-sm md:text-base font-semibold">{t('homePage.countries')}</div>
             </div>
             <div className="text-center p-4 md:p-6 bg-gray-100 rounded-lg shadow-sm">
               <div className="text-2xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-3">$100M+</div>
-              <div className="text-gray-800 text-sm md:text-base font-semibold">Transaction Volume</div>
+              <div className="text-gray-800 text-sm md:text-base font-semibold">{t('homePage.transactionVolume')}</div>
             </div>
             <div className="text-center p-4 md:p-6 bg-gray-100 rounded-lg shadow-sm">
               <div className="text-2xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-3">24/7</div>
-              <div className="text-gray-800 text-sm md:text-base font-semibold">Customer Support</div>
+              <div className="text-gray-800 text-sm md:text-base font-semibold">{t('homePage.customerSupport')}</div>
             </div>
           </div>
         </div>
@@ -347,14 +353,14 @@ const Index = () => {
       {/* Call to Action */}
       <section className="py-16 md:py-20 bg-gray-900 text-white">
         <div className="max-w-4xl mx-auto px-4 md:px-8 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-white-enhanced">Ready to Buy or Sell Domains?</h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-white-enhanced">{t('homePage.ctaTitle')}</h2>
           <p className="text-base md:text-xl text-white mb-8 md:mb-10 font-semibold">
-            Join our platform today and start trading domains with ease
+            {t('homePage.ctaDescription')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/marketplace" className="w-full sm:w-auto">
               <Button className="w-full sm:w-auto bg-white text-gray-900 hover:bg-gray-100 px-6 py-2 md:px-6 md:py-3 text-base font-bold">
-                Browse Domains
+                {t('homePage.browseDomains')}
               </Button>
             </Link>
             <Link to={user ? "/user-center" : "#"} onClick={user ? undefined : () => setIsAuthModalOpen(true)} className="w-full sm:w-auto">
@@ -362,7 +368,7 @@ const Index = () => {
                 variant="outline" 
                 className="w-full sm:w-auto border-white border-2 bg-transparent text-white hover:bg-gray-700 px-6 py-2 md:px-6 md:py-3 text-base font-bold"
               >
-                {user ? "访问用户中心" : "注册登录"}
+                {user ? t('homePage.visitUserCenter') : t('homePage.registerLogin')}
               </Button>
             </Link>
           </div>
@@ -372,7 +378,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="py-8 md:py-12 bg-black text-white">
         <div className="max-w-6xl mx-auto px-4 md:px-8 text-center">
-          <p className="text-sm md:text-base font-semibold">© 2024 DomainX Trading Platform. All rights reserved.</p>
+          <p className="text-sm md:text-base font-semibold">{t('homePage.footer')}</p>
         </div>
       </footer>
 
