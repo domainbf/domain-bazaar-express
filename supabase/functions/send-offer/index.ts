@@ -106,8 +106,8 @@ serve(async (req: Request) => {
             .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; text-align: center; }
             .header h1 { color: white; margin: 0; font-size: 28px; font-weight: 600; }
             .content { padding: 40px 30px; }
-            .button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 8px; font-weight: bold; margin: 25px 0; transition: transform 0.2s; }
-            .button:hover { transform: translateY(-2px); }
+            .button { display: inline-block; background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 8px; font-weight: bold; margin: 25px 0; transition: all 0.2s; text-shadow: 0 1px 2px rgba(0,0,0,0.1); box-shadow: 0 2px 4px rgba(5,150,105,0.3); }
+            .button:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(5,150,105,0.4); }
             .footer { text-align: center; padding: 30px; font-size: 14px; color: #888; background-color: #f8f9fa; }
             .logo { font-size: 16px; opacity: 0.8; }
             .offer-card { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); padding: 25px; border-radius: 10px; margin: 25px 0; border: 2px solid #0ea5e9; }
@@ -125,7 +125,7 @@ serve(async (req: Request) => {
         <body>
           <div class="container">
             <div class="header">
-              <div class="logo">🎯 SALE.NIC.BN</div>
+              <div class="logo">🎯 NIC.BN Ltd</div>
               <h1>域名交易平台</h1>
             </div>
             <div class="content">
@@ -173,11 +173,11 @@ serve(async (req: Request) => {
               </div>
               
               <p style="margin-top: 30px;">如果您有任何问题，请回复此邮件或联系我们的客服团队。</p>
-              <p>祝您交易成功！<br><strong>域名交易平台团队</strong></p>
+              <p>祝您交易成功！<br><strong>NIC.BN Ltd 团队</strong></p>
             </div>
             <div class="footer">
-              <p>© ${new Date().getFullYear()} Sale.nic.bn 域名交易平台 - 保留所有权利</p>
-              <p>您收到此邮件是因为您在 Sale.nic.bn 平台上提交了域名报价</p>
+              <p>© ${new Date().getFullYear()} NIC.BN Ltd 域名交易平台 - 保留所有权利</p>
+              <p>您收到此邮件是因为您在 NIC.BN Ltd 平台上提交了域名报价</p>
             </div>
           </div>
         </body>
@@ -198,8 +198,8 @@ serve(async (req: Request) => {
             .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px 20px; text-align: center; }
             .header h1 { color: white; margin: 0; font-size: 28px; font-weight: 600; }
             .content { padding: 40px 30px; }
-            .button { display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 8px; font-weight: bold; margin: 25px 0; transition: transform 0.2s; }
-            .button:hover { transform: translateY(-2px); }
+            .button { display: inline-block; background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 8px; font-weight: bold; margin: 25px 0; transition: all 0.2s; text-shadow: 0 1px 2px rgba(0,0,0,0.1); box-shadow: 0 2px 4px rgba(5,150,105,0.3); }
+            .button:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(5,150,105,0.4); }
             .footer { text-align: center; padding: 30px; font-size: 14px; color: #888; background-color: #f8f9fa; }
             .logo { font-size: 16px; opacity: 0.8; }
             .offer-card { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); padding: 25px; border-radius: 10px; margin: 25px 0; border: 2px solid #10b981; }
@@ -218,7 +218,7 @@ serve(async (req: Request) => {
         <body>
           <div class="container">
             <div class="header">
-              <div class="logo">💰 SALE.NIC.BN</div>
+              <div class="logo">💰 NIC.BN Ltd</div>
               <h1>新的域名报价</h1>
             </div>
             <div class="content">
@@ -276,10 +276,10 @@ serve(async (req: Request) => {
               </div>
               
               <p>感谢您选择我们的域名交易平台。如需任何协助，我们的客服团队随时为您服务！</p>
-              <p>祝您交易成功！<br><strong>域名交易平台团队</strong></p>
+              <p>祝您交易成功！<br><strong>NIC.BN Ltd 团队</strong></p>
             </div>
             <div class="footer">
-              <p>© ${new Date().getFullYear()} Sale.nic.bn 域名交易平台 - 保留所有权利</p>
+              <p>© ${new Date().getFullYear()} NIC.BN Ltd 域名交易平台 - 保留所有权利</p>
               <p>您收到此邮件是因为您是域名 ${domain} 的持有者</p>
             </div>
           </div>
@@ -289,7 +289,7 @@ serve(async (req: Request) => {
 
     // Send confirmation email to the user/buyer
     const userEmailResponse = await resend.emails.send({
-      from: "域名交易平台 <noreply@sale.nic.bn>",
+      from: "NIC.BN Ltd <noreply@sale.nic.bn>",
       to: [email],
       subject: `✅ 您对 ${domain} 的报价已收到 - $${offer}`,
       html: userEmailHtml,
@@ -330,7 +330,7 @@ serve(async (req: Request) => {
 
     // Send notification email to the domain owner or admin
     const adminEmailResponse = await resend.emails.send({
-      from: "域名交易平台 <noreply@sale.nic.bn>",
+      from: "NIC.BN Ltd <noreply@sale.nic.bn>",
       to: [adminEmail],
       subject: `💰 ${domain} 收到新报价：$${offer}`,
       html: adminEmailHtml,

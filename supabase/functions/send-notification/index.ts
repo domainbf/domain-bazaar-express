@@ -37,7 +37,7 @@ serve(async (req) => {
     // Process based on notification type
     switch (type) {
       case "email_verification":
-        emailSubject = "请验证您的邮箱地址 - 域名交易平台";
+        emailSubject = "请验证您的邮箱地址 - NIC.BN Ltd";
         emailBody = `
           <!DOCTYPE html>
           <html>
@@ -63,7 +63,7 @@ serve(async (req) => {
             <body>
               <div class="container">
                 <div class="header">
-                  <div class="logo">🌐 SALE.NIC.BN</div>
+                  <div class="logo">🌐 NIC.BN Ltd</div>
                   <h1>域名交易平台</h1>
                 </div>
                 <div class="content">
@@ -85,11 +85,11 @@ serve(async (req) => {
                   </div>
                   
                   <p>如有任何疑问，请随时联系我们的客服团队。</p>
-                  <p>祝您使用愉快！<br><strong>域名交易平台团队</strong></p>
+                  <p>祝您使用愉快！<br><strong>NIC.BN Ltd 团队</strong></p>
                 </div>
                 <div class="footer">
-                  <p>© ${new Date().getFullYear()} Sale.nic.bn 域名交易平台 - 保留所有权利</p>
-                  <p>您收到此邮件是因为您在我们的平台上注册了账户</p>
+                  <p>© ${new Date().getFullYear()} NIC.BN Ltd 域名交易平台 - 保留所有权利</p>
+                  <p>您收到此邮件是因为您在 NIC.BN Ltd 平台上注册了账户</p>
                 </div>
               </div>
             </body>
@@ -98,7 +98,7 @@ serve(async (req) => {
         break;
 
       case "password_reset":
-        emailSubject = "重置您的账户密码 - 域名交易平台";
+        emailSubject = "重置您的账户密码 - NIC.BN Ltd";
         emailBody = `
           <!DOCTYPE html>
           <html>
@@ -124,7 +124,7 @@ serve(async (req) => {
             <body>
               <div class="container">
                 <div class="header">
-                  <div class="logo">🔐 SALE.NIC.BN</div>
+                  <div class="logo">🔐 NIC.BN Ltd</div>
                   <h1>密码重置</h1>
                 </div>
                 <div class="content">
@@ -146,10 +146,10 @@ serve(async (req) => {
                   </div>
                   
                   <p>如有疑问，请联系我们的技术支持团队。</p>
-                  <p>保护您的账户安全！<br><strong>域名交易平台团队</strong></p>
+                  <p>保护您的账户安全！<br><strong>NIC.BN Ltd 团队</strong></p>
                 </div>
                 <div class="footer">
-                  <p>© ${new Date().getFullYear()} Sale.nic.bn 域名交易平台 - 保留所有权利</p>
+                  <p>© ${new Date().getFullYear()} NIC.BN Ltd 域名交易平台 - 保留所有权利</p>
                 </div>
               </div>
             </body>
@@ -172,8 +172,8 @@ serve(async (req) => {
                 .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px 20px; text-align: center; }
                 .header h1 { color: white; margin: 0; font-size: 28px; font-weight: 600; }
                 .content { padding: 40px 30px; }
-                .button { display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 8px; font-weight: bold; margin: 25px 0; transition: transform 0.2s; }
-                .button:hover { transform: translateY(-2px); }
+                .button { display: inline-block; background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 8px; font-weight: bold; margin: 25px 0; transition: all 0.2s; text-shadow: 0 1px 2px rgba(0,0,0,0.1); box-shadow: 0 2px 4px rgba(5,150,105,0.3); }
+                .button:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(5,150,105,0.4); }
                 .footer { text-align: center; padding: 30px; font-size: 14px; color: #888; background-color: #f8f9fa; }
                 .logo { font-size: 16px; opacity: 0.8; }
                 .offer-card { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); padding: 25px; border-radius: 10px; margin: 25px 0; border: 2px solid #0ea5e9; }
@@ -190,7 +190,7 @@ serve(async (req) => {
             <body>
               <div class="container">
                 <div class="header">
-                  <div class="logo">💰 SALE.NIC.BN</div>
+                  <div class="logo">💰 NIC.BN Ltd</div>
                   <h1>新的域名报价</h1>
                 </div>
                 <div class="content">
@@ -229,10 +229,10 @@ serve(async (req) => {
                   </div>
                   
                   <p>感谢您使用我们的平台进行域名交易！</p>
-                  <p>祝您交易顺利！<br><strong>域名交易平台团队</strong></p>
+                  <p>祝您交易顺利！<br><strong>NIC.BN Ltd 团队</strong></p>
                 </div>
                 <div class="footer">
-                  <p>© ${new Date().getFullYear()} Sale.nic.bn 域名交易平台 - 保留所有权利</p>
+                  <p>© ${new Date().getFullYear()} NIC.BN Ltd 域名交易平台 - 保留所有权利</p>
                   <p>您收到此邮件是因为您是域名 ${data.domain} 的持有者</p>
                 </div>
               </div>
@@ -256,8 +256,8 @@ serve(async (req) => {
                 .header { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 30px 20px; text-align: center; }
                 .header h1 { color: white; margin: 0; font-size: 28px; font-weight: 600; }
                 .content { padding: 40px 30px; }
-                .button { display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 8px; font-weight: bold; margin: 25px 0; transition: transform 0.2s; }
-                .button:hover { transform: translateY(-2px); }
+                .button { display: inline-block; background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 8px; font-weight: bold; margin: 25px 0; transition: all 0.2s; text-shadow: 0 1px 2px rgba(0,0,0,0.1); box-shadow: 0 2px 4px rgba(29,78,216,0.3); }
+                .button:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(29,78,216,0.4); }
                 .footer { text-align: center; padding: 30px; font-size: 14px; color: #888; background-color: #f8f9fa; }
                 .logo { font-size: 16px; opacity: 0.8; }
                 .response-card { background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%); padding: 25px; border-radius: 10px; margin: 25px 0; border: 2px solid #f59e0b; }
@@ -272,7 +272,7 @@ serve(async (req) => {
             <body>
               <div class="container">
                 <div class="header">
-                  <div class="logo">📬 SALE.NIC.BN</div>
+                  <div class="logo">📬 NIC.BN Ltd</div>
                   <h1>报价回复</h1>
                 </div>
                 <div class="content">
@@ -311,10 +311,10 @@ serve(async (req) => {
                   </div>
                   
                   <p>感谢您使用我们的域名交易平台！</p>
-                  <p>祝您交易愉快！<br><strong>域名交易平台团队</strong></p>
+                  <p>祝您交易愉快！<br><strong>NIC.BN Ltd 团队</strong></p>
                 </div>
                 <div class="footer">
-                  <p>© ${new Date().getFullYear()} Sale.nic.bn 域名交易平台 - 保留所有权利</p>
+                  <p>© ${new Date().getFullYear()} NIC.BN Ltd 域名交易平台 - 保留所有权利</p>
                 </div>
               </div>
             </body>
