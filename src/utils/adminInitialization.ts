@@ -3,7 +3,16 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const initializeAdminUser = async () => {
   try {
-    // Check if admin user with email 9208522@qq.com exists
+    // 使用更简单的方式检查管理员用户
+    // 避免在每次页面加载时都调用edge function
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (user?.email === '9208522@qq.com') {
+      console.info('Admin user detected:', user.email);
+      return { message: "Admin user already exists" };
+    }
+    
+    // 只在需要时才调用edge function
     const response = await supabase.functions.invoke('admin-provisioning', {
       body: {
         action: 'create_admin',

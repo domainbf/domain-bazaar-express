@@ -17,15 +17,19 @@ export const AdminDashboard = ({ stats, isLoading, onRefresh }: AdminDashboardPr
   const navigate = useNavigate();
 
   const handleVerifyPendingDomains = () => {
-    navigate('/admin?tab=verifications');
+    // 使用更快的状态更新而不是URL参数
+    const event = new CustomEvent('admin-tab-change', { detail: 'verifications' });
+    window.dispatchEvent(event);
   };
 
   const handleManageListings = () => {
-    navigate('/admin?tab=domains');
+    const event = new CustomEvent('admin-tab-change', { detail: 'domains' });
+    window.dispatchEvent(event);
   };
 
   const handleManageSiteSettings = () => {
-    navigate('/admin?tab=settings');
+    const event = new CustomEvent('admin-tab-change', { detail: 'settings' });
+    window.dispatchEvent(event);
   };
 
   return (
@@ -39,7 +43,7 @@ export const AdminDashboard = ({ stats, isLoading, onRefresh }: AdminDashboardPr
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('admin.dashboard.totalDomains', '总域名数')}</CardTitle>
             <ShoppingBag className="h-4 w-4 text-muted-foreground" />
@@ -52,7 +56,7 @@ export const AdminDashboard = ({ stats, isLoading, onRefresh }: AdminDashboardPr
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('admin.dashboard.pendingVerifications', '待验证域名')}</CardTitle>
             <Link className="h-4 w-4 text-muted-foreground" />
@@ -65,7 +69,7 @@ export const AdminDashboard = ({ stats, isLoading, onRefresh }: AdminDashboardPr
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('admin.dashboard.activeListings', '活跃列表')}</CardTitle>
             <ShoppingBag className="h-4 w-4 text-muted-foreground" />
@@ -78,7 +82,7 @@ export const AdminDashboard = ({ stats, isLoading, onRefresh }: AdminDashboardPr
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('admin.dashboard.totalOffers', '总报价数')}</CardTitle>
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
@@ -91,7 +95,7 @@ export const AdminDashboard = ({ stats, isLoading, onRefresh }: AdminDashboardPr
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('admin.dashboard.recentTransactions', '近期交易')}</CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
@@ -115,7 +119,7 @@ export const AdminDashboard = ({ stats, isLoading, onRefresh }: AdminDashboardPr
               size="sm" 
               variant="outline"
               onClick={handleVerifyPendingDomains}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
             >
               <Shield className="h-4 w-4" />
               {t('admin.dashboard.verifyPendingDomains', '验证待处理域名')}
@@ -130,7 +134,7 @@ export const AdminDashboard = ({ stats, isLoading, onRefresh }: AdminDashboardPr
               size="sm" 
               variant="outline"
               onClick={handleManageListings}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
             >
               <ShoppingBag className="h-4 w-4" />
               {t('admin.dashboard.manageDomainListings', '管理域名列表')}
@@ -140,7 +144,7 @@ export const AdminDashboard = ({ stats, isLoading, onRefresh }: AdminDashboardPr
               size="sm" 
               variant="outline"
               onClick={handleManageSiteSettings}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
             >
               <Settings className="h-4 w-4" />
               {t('admin.dashboard.siteSettings', '网站设置')}
@@ -149,7 +153,7 @@ export const AdminDashboard = ({ stats, isLoading, onRefresh }: AdminDashboardPr
             <Button 
               size="sm" 
               variant="outline"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
               asChild
             >
               <a href="/marketplace" target="_blank" rel="noopener noreferrer">

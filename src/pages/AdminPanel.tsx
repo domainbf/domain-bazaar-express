@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 
 export const AdminPanel = () => {
-  const { user, isAdmin, checkAdminStatus } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
   
@@ -29,64 +29,49 @@ export const AdminPanel = () => {
     recent_transactions: 0
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [isVerifyingAdminStatus, setIsVerifyingAdminStatus] = useState(true);
   const [isRefreshingStats, setIsRefreshingStats] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('dashboard');
 
   useEffect(() => {
-    const verifyAndLoad = async () => {
-      setIsVerifyingAdminStatus(true);
-      // Re-check admin status when the page loads
-      const adminStatus = await checkAdminStatus();
-      
-      if (!adminStatus) {
-        toast.error(t('admin.accessDenied', '您没有管理员权限'));
-        navigate('/');
-        return;
-      }
-      
-      setIsVerifyingAdminStatus(false);
-      loadAdminStats();
-    };
+    // 快速权限检查
+    if (user && !isAdmin) {
+      toast.error(t('admin.accessDenied', '您没有管理员权限'));
+      navigate('/');
+      return;
+    }
     
-    verifyAndLoad();
-  }, []);
+    if (user && isAdmin) {
+      loadAdminStats();
+    }
+  }, [user, isAdmin, navigate]);
 
   const loadAdminStats = async () => {
-    setIsLoading(true);
-    setIsRefreshingStats(true);
     try {
-      // 并行获取统计信息，优化加载性能
-      const [domainsResult, verificationsResult, activeListingsResult, offersResult, transactionsResult] = await Promise.all([
-        // 获取总域名数
-        supabase.from('domain_listings').select('id', { count: 'exact' }),
-        
-        // 获取待验证域名数
-        supabase.from('domain_verifications').select('id', { count: 'exact' }).eq('status', 'pending'),
-        
-        // 获取活跃列表数
-        supabase.from('domain_listings').select('id', { count: 'exact' }).eq('status', 'available'),
-        
-        // 获取报价总数
-        supabase.from('domain_offers').select('id', { count: 'exact' }),
-        
-        // 获取最近交易数
-        supabase.from('transactions').select('id', { count: 'exact' }).gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+      setIsLoading(true);
+      setIsRefreshingStats(true);
+      
+      // 使用单个查询获取所有统计信息，提高性能
+      const [
+        { count: totalDomains },
+        { count: pendingVerifications },
+        { count: activeListings },
+        { count: totalOffers },
+        { count: recentTransactions }
+      ] = await Promise.all([
+        supabase.from('domain_listings').select('*', { count: 'exact', head: true }),
+        supabase.from('domain_verifications').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('domain_listings').select('*', { count: 'exact', head: true }).eq('status', 'available'),
+        supabase.from('domain_offers').select('*', { count: 'exact', head: true }),
+        supabase.from('transactions').select('*', { count: 'exact', head: true })
+          .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
       ]);
       
-      // 检查是否有任何错误
-      if (domainsResult.error) throw domainsResult.error;
-      if (verificationsResult.error) throw verificationsResult.error;
-      if (activeListingsResult.error) throw activeListingsResult.error;
-      if (offersResult.error) throw offersResult.error;
-      if (transactionsResult.error) throw transactionsResult.error;
-      
       setStats({
-        total_domains: domainsResult.data?.length || 0,
-        pending_verifications: verificationsResult.data?.length || 0,
-        active_listings: activeListingsResult.data?.length || 0,
-        total_offers: offersResult.data?.length || 0,
-        recent_transactions: transactionsResult.data?.length || 0,
+        total_domains: totalDomains || 0,
+        pending_verifications: pendingVerifications || 0,
+        active_listings: activeListings || 0,
+        total_offers: totalOffers || 0,
+        recent_transactions: recentTransactions || 0,
       });
     } catch (error: any) {
       console.error('Error loading admin stats:', error);
@@ -97,18 +82,8 @@ export const AdminPanel = () => {
     }
   };
 
-  if (isVerifyingAdminStatus) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center flex flex-col items-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-          <p className="text-gray-600">{t('admin.verifyingPermissions', '验证管理员权限...')}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
+  // 如果用户未登录或不是管理员，显示错误页面
+  if (!user || !isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -128,8 +103,8 @@ export const AdminPanel = () => {
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    // 切换到相应的Tab时自动刷新相关数据
-    if (value === 'dashboard') {
+    // 只有在切换到仪表盘时才刷新统计数据
+    if (value === 'dashboard' && !isLoading) {
       loadAdminStats();
     }
   };
