@@ -51,20 +51,24 @@ export const handleAuthError = (error: any, action: string) => {
   
   // Friendlier error messages for common errors
   if (errorMessage.includes('Email not confirmed')) {
-    errorMessage = '请先验证您的邮箱，然后再尝试登录';
+    errorMessage = '请先验证您的邮箱，然后再尝试登录。验证邮件已重新发送，请检查您的邮箱。';
     // Try to resend verification email
     if (error.email) {
       sendVerificationEmail(error.email, `${window.location.origin}/auth/verify`)
-        .then(() => toast.info('验证邮件已重新发送，请检查您的邮箱'));
+        .then(() => toast.info('✉️ 验证邮件已重新发送，请检查您的邮箱（包括垃圾邮件文件夹）'));
     }
   } else if (errorMessage.includes('Invalid login credentials')) {
-    errorMessage = '邮箱或密码错误，请重试';
+    errorMessage = '邮箱或密码错误，请检查后重试';
   } else if (errorMessage.includes('User already registered')) {
     errorMessage = '该邮箱已被注册，请尝试登录或使用另一个邮箱';
   } else if (errorMessage.includes('Password should be')) {
     errorMessage = '密码应至少包含6个字符';
   } else if (errorMessage.includes('rate limited')) {
     errorMessage = '操作过于频繁，请稍后再试';
+  } else if (errorMessage.includes('signup is disabled')) {
+    errorMessage = '注册功能暂时关闭，请联系管理员';
+  } else if (errorMessage.includes('email address is invalid')) {
+    errorMessage = '邮箱地址格式不正确，请检查后重试';
   }
   
   toast.error(errorMessage || `${action}失败`);

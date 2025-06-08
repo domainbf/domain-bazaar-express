@@ -20,12 +20,15 @@ export const signInWithEmailPassword = async (email: string, password: string) =
 
 export const signUpWithEmailPassword = async (email: string, password: string, options?: { metadata?: { [key: string]: any }, redirectTo?: string }) => {
   try {
+    // Use the current domain for redirect
+    const redirectUrl = `${window.location.origin}/auth/callback`;
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: options?.metadata || {},
-        emailRedirectTo: options?.redirectTo || `${window.location.origin}/auth/callback`
+        emailRedirectTo: options?.redirectTo || redirectUrl
       }
     });
     
@@ -98,11 +101,11 @@ export const handleAuthError = (error: any, action: string) => {
   
   // Friendlier error messages for common errors
   if (errorMessage.includes('Email not confirmed')) {
-    errorMessage = '请先验证您的邮箱，然后再尝试登录';
+    errorMessage = '请先验证您的邮箱，然后再尝试登录。验证邮件已重新发送。';
     // Try to resend verification email
     if (error.email) {
       sendVerificationEmail(error.email, `${window.location.origin}/auth/verify`)
-        .then(() => toast.info('验证邮件已重新发送，请检查您的邮箱'));
+        .then(() => toast.info('✉️ 验证邮件已重新发送，请检查您的邮箱'));
     }
   } else if (errorMessage.includes('Invalid login credentials')) {
     errorMessage = '邮箱或密码错误，请重试';
@@ -120,7 +123,7 @@ export const handleAuthError = (error: any, action: string) => {
 
 export const resetUserPassword = async (email: string) => {
   try {
-    // Use window.location.origin to get the current domain
+    // Use current domain for reset URL
     const resetPasswordURL = `${window.location.origin}/reset-password`;
     
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
