@@ -25,6 +25,7 @@ import { DomainOfferForm } from '@/components/domain/DomainOfferForm';
 import { PriceHistoryChart } from '@/components/domain/PriceHistoryChart';
 import { SimilarDomainsGrid } from '@/components/domain/SimilarDomainsGrid';
 import { DomainShareButtons } from '@/components/domain/DomainShareButtons';
+import { DomainAnalytics } from '@/components/domain/DomainAnalytics';
 
 export const DomainDetailPage: React.FC = () => {
   const { domainId } = useParams<{ domainId: string }>();
@@ -304,6 +305,16 @@ export const DomainDetailPage: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <PriceHistoryChart data={priceHistory} />
+              </CardContent>
+            </Card>
+
+            {/* 域名分析 */}
+            <Card>
+              <CardHeader>
+                <CardTitle>域名分析</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DomainAnalytics domainId={domain.id} createdAt={domain.created_at} />
               </CardContent>
             </Card>
 
