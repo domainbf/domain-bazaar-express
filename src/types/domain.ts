@@ -1,3 +1,4 @@
+
 export interface Domain {
   id: string;
   name: string;
@@ -109,4 +110,89 @@ export interface Notification {
   created_at: string;
   related_id?: string;
   action_url?: string;
+}
+
+// 新增类型定义
+export interface DomainPriceHistory {
+  id: string;
+  domain_id: string;
+  price: number;
+  previous_price?: number;
+  change_reason: string;
+  changed_by?: string;
+  created_at: string;
+}
+
+export interface DomainAuction {
+  id: string;
+  domain_id: string;
+  starting_price: number;
+  current_price: number;
+  reserve_price?: number;
+  bid_increment: number;
+  start_time: string;
+  end_time: string;
+  status: 'active' | 'ended' | 'cancelled';
+  winner_id?: string;
+  total_bids: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AuctionBid {
+  id: string;
+  auction_id: string;
+  bidder_id: string;
+  amount: number;
+  is_automatic: boolean;
+  created_at: string;
+}
+
+export interface UserReview {
+  id: string;
+  reviewer_id: string;
+  reviewed_user_id: string;
+  transaction_id?: string;
+  rating: number;
+  comment?: string;
+  created_at: string;
+}
+
+export interface DomainShare {
+  id: string;
+  domain_id: string;
+  user_id?: string;
+  platform: string;
+  created_at: string;
+}
+
+export interface UserActivity {
+  id: string;
+  user_id?: string;
+  activity_type: string;
+  resource_id?: string;
+  metadata?: any;
+  created_at: string;
+}
+
+export interface SearchFilters {
+  category?: string;
+  priceRange?: {
+    min: number;
+    max: number;
+  };
+  length?: {
+    min: number;
+    max: number;
+  };
+  keywords?: string[];
+  extension?: string[];
+  sortBy?: 'price' | 'name' | 'length' | 'popularity';
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface SearchSuggestion {
+  domain: string;
+  type: 'exact' | 'similar' | 'trending';
+  score: number;
 }

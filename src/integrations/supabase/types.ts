@@ -9,6 +9,41 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      auction_bids: {
+        Row: {
+          amount: number
+          auction_id: string | null
+          bidder_id: string | null
+          created_at: string | null
+          id: string
+          is_automatic: boolean | null
+        }
+        Insert: {
+          amount: number
+          auction_id?: string | null
+          bidder_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_automatic?: boolean | null
+        }
+        Update: {
+          amount?: number
+          auction_id?: string | null
+          bidder_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_automatic?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_bids_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "domain_auctions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dns_records: {
         Row: {
           created_at: string | null
@@ -79,6 +114,62 @@ export type Database = {
             columns: ["domain_id"]
             isOneToOne: false
             referencedRelation: "domains"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      domain_auctions: {
+        Row: {
+          bid_increment: number | null
+          created_at: string | null
+          current_price: number
+          domain_id: string | null
+          end_time: string
+          id: string
+          reserve_price: number | null
+          start_time: string
+          starting_price: number
+          status: string | null
+          total_bids: number | null
+          updated_at: string | null
+          winner_id: string | null
+        }
+        Insert: {
+          bid_increment?: number | null
+          created_at?: string | null
+          current_price: number
+          domain_id?: string | null
+          end_time: string
+          id?: string
+          reserve_price?: number | null
+          start_time: string
+          starting_price: number
+          status?: string | null
+          total_bids?: number | null
+          updated_at?: string | null
+          winner_id?: string | null
+        }
+        Update: {
+          bid_increment?: number | null
+          created_at?: string | null
+          current_price?: number
+          domain_id?: string | null
+          end_time?: string
+          id?: string
+          reserve_price?: number | null
+          start_time?: string
+          starting_price?: number
+          status?: string | null
+          total_bids?: number | null
+          updated_at?: string | null
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "domain_auctions_domain_id_fkey"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "domain_listings"
             referencedColumns: ["id"]
           },
         ]
@@ -220,6 +311,44 @@ export type Database = {
           },
         ]
       }
+      domain_price_history: {
+        Row: {
+          change_reason: string | null
+          changed_by: string | null
+          created_at: string | null
+          domain_id: string | null
+          id: string
+          previous_price: number | null
+          price: number
+        }
+        Insert: {
+          change_reason?: string | null
+          changed_by?: string | null
+          created_at?: string | null
+          domain_id?: string | null
+          id?: string
+          previous_price?: number | null
+          price: number
+        }
+        Update: {
+          change_reason?: string | null
+          changed_by?: string | null
+          created_at?: string | null
+          domain_id?: string | null
+          id?: string
+          previous_price?: number | null
+          price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "domain_price_history_domain_id_fkey"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "domain_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       domain_sale_settings: {
         Row: {
           created_at: string | null
@@ -257,6 +386,44 @@ export type Database = {
             columns: ["domain_id"]
             isOneToOne: false
             referencedRelation: "domains"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      domain_shares: {
+        Row: {
+          created_at: string | null
+          domain_id: string | null
+          id: string
+          ip_address: unknown | null
+          platform: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          domain_id?: string | null
+          id?: string
+          ip_address?: unknown | null
+          platform?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          domain_id?: string | null
+          id?: string
+          ip_address?: unknown | null
+          platform?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "domain_shares_domain_id_fkey"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "domain_listings"
             referencedColumns: ["id"]
           },
         ]
@@ -437,6 +604,50 @@ export type Database = {
         }
         Relationships: []
       }
+      escrow_services: {
+        Row: {
+          created_at: string | null
+          escrow_fee: number | null
+          escrow_provider: string | null
+          funded_at: string | null
+          id: string
+          released_at: string | null
+          status: string | null
+          transaction_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          escrow_fee?: number | null
+          escrow_provider?: string | null
+          funded_at?: string | null
+          id?: string
+          released_at?: string | null
+          status?: string | null
+          transaction_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          escrow_fee?: number | null
+          escrow_provider?: string | null
+          funded_at?: string | null
+          id?: string
+          released_at?: string | null
+          status?: string | null
+          transaction_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "escrow_services_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       languages: {
         Row: {
           code: string
@@ -527,6 +738,39 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_methods: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          provider_data: Json
+          type: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          provider_data: Json
+          type: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          provider_data?: Json
+          type?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -592,6 +836,50 @@ export type Database = {
           verification_status?: string | null
         }
         Relationships: []
+      }
+      referral_rewards: {
+        Row: {
+          created_at: string | null
+          id: string
+          paid_at: string | null
+          referred_user_id: string | null
+          referrer_id: string | null
+          reward_amount: number | null
+          reward_type: string | null
+          status: string | null
+          transaction_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          paid_at?: string | null
+          referred_user_id?: string | null
+          referrer_id?: string | null
+          reward_amount?: number | null
+          reward_type?: string | null
+          status?: string | null
+          transaction_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          paid_at?: string | null
+          referred_user_id?: string | null
+          referrer_id?: string | null
+          reward_amount?: number | null
+          reward_type?: string | null
+          status?: string | null
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_rewards_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       site_content: {
         Row: {
@@ -771,6 +1059,39 @@ export type Database = {
           },
         ]
       }
+      user_activities: {
+        Row: {
+          activity_type: string
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          resource_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          resource_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          resource_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_favorites: {
         Row: {
           created_at: string | null
@@ -796,6 +1117,44 @@ export type Database = {
             columns: ["domain_id"]
             isOneToOne: false
             referencedRelation: "domains"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          rating: number | null
+          reviewed_user_id: string | null
+          reviewer_id: string | null
+          transaction_id: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number | null
+          reviewed_user_id?: string | null
+          reviewer_id?: string | null
+          transaction_id?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number | null
+          reviewed_user_id?: string | null
+          reviewer_id?: string | null
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_reviews_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
             referencedColumns: ["id"]
           },
         ]
