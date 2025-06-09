@@ -1,109 +1,78 @@
 
-import React, { useState } from 'react';
-import { Domain } from '@/types/domain';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
 import { Share2, Facebook, Twitter, Linkedin, Mail, Copy } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface DomainShareButtonsProps {
-  domain: Domain;
+  domainName: string;
 }
 
-export const DomainShareButtons: React.FC<DomainShareButtonsProps> = ({ domain }) => {
-  const [isSharing, setIsSharing] = useState(false);
-  
-  const domainUrl = `${window.location.origin}/domain/${domain.id}`;
-  const shareText = `查看这个优质域名：${domain.name} - ¥${domain.price.toLocaleString()}`;
+export const DomainShareButtons: React.FC<DomainShareButtonsProps> = ({ domainName }) => {
+  const currentUrl = window.location.href;
+  const shareText = `查看这个域名：${domainName}`;
 
-  const logShare = async (platform: string) => {
-    try {
-      await supabase.from('domain_shares').insert({
-        domain_id: domain.id,
-        platform: platform,
-        user_agent: navigator.userAgent
-      });
-    } catch (error) {
-      console.error('Failed to log share:', error);
-    }
-  };
-
-  const handleShare = async (platform: string, url?: string) => {
-    setIsSharing(true);
+  const handleShare = (platform: string) => {
+    let shareUrl = '';
     
-    try {
-      if (platform === 'copy') {
-        await navigator.clipboard.writeText(domainUrl);
+    switch (platform) {
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`;
+        break;
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(currentUrl)}`;
+        break;
+      case 'linkedin':
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}`;
+        break;
+      case 'email':
+        shareUrl = `mailto:?subject=${encodeURIComponent(`域名推荐：${domainName}`)}&body=${encodeURIComponent(`${shareText}\n${currentUrl}`)}`;
+        break;
+      case 'copy':
+        navigator.clipboard.writeText(currentUrl);
         toast.success('链接已复制到剪贴板');
-      } else if (url) {
-        window.open(url, '_blank', 'width=600,height=400');
-      }
-      
-      await logShare(platform);
-    } catch (error) {
-      console.error('Share error:', error);
-      toast.error('分享失败，请重试');
-    } finally {
-      setIsSharing(false);
+        return;
+    }
+    
+    if (shareUrl) {
+      window.open(shareUrl, '_blank', 'width=600,height=400');
     }
   };
-
-  const shareOptions = [
-    {
-      name: 'Facebook',
-      icon: Facebook,
-      platform: 'facebook',
-      url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(domainUrl)}`
-    },
-    {
-      name: 'Twitter',
-      icon: Twitter,
-      platform: 'twitter',
-      url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(domainUrl)}`
-    },
-    {
-      name: 'LinkedIn',
-      icon: Linkedin,
-      platform: 'linkedin',
-      url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(domainUrl)}`
-    },
-    {
-      name: 'Email',
-      icon: Mail,
-      platform: 'email',
-      url: `mailto:?subject=${encodeURIComponent(`推荐域名：${domain.name}`)}&body=${encodeURIComponent(`${shareText}\n\n${domainUrl}`)}`
-    },
-    {
-      name: '复制链接',
-      icon: Copy,
-      platform: 'copy'
-    }
-  ];
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" disabled={isSharing}>
+        <Button variant="outline" size="sm">
           <Share2 className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {shareOptions.map((option) => (
-          <DropdownMenuItem
-            key={option.platform}
-            onClick={() => handleShare(option.platform, option.url)}
-            className="flex items-center gap-2"
-          >
-            <option.icon className="h-4 w-4" />
-            {option.name}
-          </DropdownMenuItem>
-        ))}
+        <DropdownMenuItem onClick={() => handleShare('facebook')}>
+          <Facebook className="h-4 w-4 mr-2" />
+          Facebook
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleShare('twitter')}>
+          <Twitter className="h-4 w-4 mr-2" />
+          Twitter
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleShare('linkedin')}>
+          <Linkedin className="h-4 w-4 mr-2" />
+          LinkedIn
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleShare('email')}>
+          <Mail className="h-4 w-4 mr-2" />
+          邮件
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleShare('copy')}>
+          <Copy className="h-4 w-4 mr-2" />
+          复制链接
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

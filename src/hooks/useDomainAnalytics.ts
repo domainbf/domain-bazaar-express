@@ -68,22 +68,34 @@ export const useDomainAnalytics = (domainId: string) => {
     return trends;
   };
 
-  // Record a view
+  // Record a view - 使用直接的数据库更新而不是不存在的函数
   const recordView = async () => {
     try {
-      const { error } = await supabase.rpc('increment_domain_views', {
-        domain_id: domainId
-      });
+      // 首先尝试获取现有的分析记录
+      const { data: existingAnalytics } = await supabase
+        .from('domain_analytics')
+        .select('*')
+        .eq('domain_id', domainId)
+        .single();
 
-      if (error) {
-        // Fallback to manual update if function doesn't exist
+      if (existingAnalytics) {
+        // 如果记录存在，更新浏览量
         await supabase
           .from('domain_analytics')
-          .upsert({ 
+          .update({ 
+            views: (existingAnalytics.views || 0) + 1,
+            last_updated: new Date().toISOString()
+          })
+          .eq('domain_id', domainId);
+      } else {
+        // 如果记录不存在，创建新记录
+        await supabase
+          .from('domain_analytics')
+          .insert({ 
             domain_id: domainId, 
-            views: (analytics?.views || 0) + 1,
-            favorites: analytics?.favorites || 0,
-            offers: analytics?.offers || 0
+            views: 1,
+            favorites: 0,
+            offers: 0
           });
       }
 

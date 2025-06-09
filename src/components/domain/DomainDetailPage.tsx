@@ -264,7 +264,7 @@ export const DomainDetailPage: React.FC = () => {
               >
                 <Heart className={`h-4 w-4 ${isFavorited ? "fill-current" : ""}`} />
               </Button>
-              <DomainShareButtons domain={domain} />
+              <DomainShareButtons domainName={domain.name} />
               <div className="text-right">
                 <div className="text-3xl font-bold text-primary">
                   ¥{domain.price.toLocaleString()}
