@@ -66,7 +66,31 @@ export const DomainDetailPage: React.FC = () => {
         return;
       }
 
-      setDomain(domainData);
+      // 处理域名数据，确保类型正确
+      const processedDomain: Domain = {
+        id: domainData.id,
+        name: domainData.name,
+        price: Number(domainData.price),
+        category: domainData.category,
+        description: domainData.description,
+        status: domainData.status,
+        highlight: domainData.highlight,
+        owner_id: domainData.owner_id,
+        created_at: domainData.created_at,
+        is_verified: domainData.is_verified,
+        verification_status: domainData.verification_status,
+        views: 0
+      };
+
+      // 处理 analytics 数据
+      if (domainData.domain_analytics && Array.isArray(domainData.domain_analytics)) {
+        const analytics = domainData.domain_analytics[0];
+        if (analytics) {
+          processedDomain.views = analytics.views || 0;
+        }
+      }
+
+      setDomain(processedDomain);
 
       // 加载价格历史
       const { data: priceHistoryData } = await supabase
@@ -78,7 +102,7 @@ export const DomainDetailPage: React.FC = () => {
       setPriceHistory(priceHistoryData || []);
 
       // 加载相似域名
-      await loadSimilarDomains(domainData.name, domainData.category);
+      await loadSimilarDomains(processedDomain.name, processedDomain.category);
 
       // 更新浏览量
       await updateDomainViews();
@@ -124,6 +148,11 @@ export const DomainDetailPage: React.FC = () => {
           .from('domain_analytics')
           .update({ views: (analytics.views || 0) + 1 })
           .eq('domain_id', domainId);
+      } else {
+        // 如果没有分析记录，创建一个新的
+        await supabase
+          .from('domain_analytics')
+          .insert({ domain_id: domainId, views: 1 });
       }
     } catch (error) {
       console.error('Error updating views:', error);
@@ -184,8 +213,6 @@ export const DomainDetailPage: React.FC = () => {
     );
   }
 
-  const analytics = domain.domain_analytics?.[0];
-
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -213,15 +240,15 @@ export const DomainDetailPage: React.FC = () => {
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Eye className="h-4 w-4" />
-                    {analytics?.views || 0} 次浏览
+                    {domain.views || 0} 次浏览
                   </span>
                   <span className="flex items-center gap-1">
                     <Heart className="h-4 w-4" />
-                    {analytics?.favorites || 0} 次收藏
+                    0 次收藏
                   </span>
                   <span className="flex items-center gap-1">
                     <MessageSquare className="h-4 w-4" />
-                    {analytics?.offers || 0} 次报价
+                    0 次报价
                   </span>
                 </div>
               </div>

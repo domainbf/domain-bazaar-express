@@ -11,6 +11,7 @@ import { Profile } from './pages/Profile';
 import { ResetPassword } from './pages/ResetPassword';
 import { UserCenter } from './pages/UserCenter';
 import { UserProfilePage } from './pages/UserProfile';
+import { DomainDetailPage } from './components/domain/DomainDetailPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { initializeAdminUser } from './utils/adminInitialization';
 
@@ -25,6 +26,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/marketplace" element={<Marketplace />} />
+        <Route path="/domain/:domainId" element={<DomainDetailPage />} />
         <Route 
           path="/dashboard" 
           element={

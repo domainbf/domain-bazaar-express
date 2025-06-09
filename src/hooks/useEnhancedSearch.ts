@@ -180,13 +180,16 @@ export const useEnhancedSearch = () => {
     if (!debouncedSearchTerm) return;
     
     try {
+      // 将搜索参数转换为符合 JSONB 格式的对象
+      const metadata = {
+        search_term: debouncedSearchTerm,
+        filters: JSON.parse(JSON.stringify(filters)), // 确保是纯JSON对象
+        results_count: totalCount
+      };
+
       await supabase.from('user_activities').insert({
         activity_type: 'search',
-        metadata: {
-          search_term: debouncedSearchTerm,
-          filters: filters,
-          results_count: totalCount
-        }
+        metadata: metadata
       });
     } catch (error) {
       console.error('Failed to log search activity:', error);
