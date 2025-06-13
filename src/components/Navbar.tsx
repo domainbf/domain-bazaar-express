@@ -64,22 +64,22 @@ export const Navbar = ({ transparent = false }: NavbarProps) => {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-6">
           <Link to="/" className={`font-medium ${textColor} hover:text-gray-600`}>
-            {t('home')}
+            首页
           </Link>
           <Link to="/marketplace" className={`font-medium ${textColor} hover:text-gray-600`}>
-            {t('marketplace')}
+            域名市场
           </Link>
           {user && (
             <>
               <Link to="/dashboard" className={`font-medium ${textColor} hover:text-gray-600`}>
-                {t('dashboard')}
+                仪表板
               </Link>
               <Link to="/user-center" className={`font-medium ${textColor} hover:text-gray-600`}>
-                {t('user_center')}
+                用户中心
               </Link>
               {profile?.is_admin && (
                 <Link to="/admin" className={`font-medium ${textColor} hover:text-gray-600`}>
-                  {t('admin')}
+                  管理员
                 </Link>
               )}
             </>
@@ -109,13 +109,13 @@ export const Navbar = ({ transparent = false }: NavbarProps) => {
                   </Link>
                 </Button>
                 <Button variant="ghost" size="sm" className={textColor} onClick={handleLogout}>
-                  {t('logout')}
+                  退出登录
                 </Button>
               </div>
             </div>
           ) : (
             <Button onClick={() => setIsAuthModalOpen(true)} variant="default">
-              {t('login')}
+              登录
             </Button>
           )}
         </div>
@@ -149,13 +149,13 @@ export const Navbar = ({ transparent = false }: NavbarProps) => {
               to="/"
               className="block py-2 px-4 hover:bg-gray-100 rounded font-medium flex items-center gap-2"
             >
-              <Home className="h-5 w-5" /> {t('home')}
+              <Home className="h-5 w-5" /> 首页
             </Link>
             <Link
               to="/marketplace"
               className="block py-2 px-4 hover:bg-gray-100 rounded font-medium flex items-center gap-2"
             >
-              <ShoppingCart className="h-5 w-5" /> {t('marketplace')}
+              <ShoppingCart className="h-5 w-5" /> 域名市场
             </Link>
 
             {user ? (
@@ -164,34 +164,34 @@ export const Navbar = ({ transparent = false }: NavbarProps) => {
                   to="/dashboard"
                   className="block py-2 px-4 hover:bg-gray-100 rounded font-medium flex items-center gap-2"
                 >
-                  <Settings className="h-5 w-5" /> {t('dashboard')}
+                  <Settings className="h-5 w-5" /> 仪表板
                 </Link>
                 <Link
                   to="/user-center"
                   className="block py-2 px-4 hover:bg-gray-100 rounded font-medium flex items-center gap-2"
                 >
-                  <User className="h-5 w-5" /> {t('user_center')}
+                  <User className="h-5 w-5" /> 用户中心
                 </Link>
                 {profile?.is_admin && (
                   <Link
                     to="/admin"
                     className="block py-2 px-4 hover:bg-gray-100 rounded font-medium flex items-center gap-2"
                   >
-                    <Settings className="h-5 w-5" /> {t('admin')}
+                    <Settings className="h-5 w-5" /> 管理员
                   </Link>
                 )}
                 <Link
                   to="/profile"
                   className="block py-2 px-4 hover:bg-gray-100 rounded font-medium flex items-center gap-2"
                 >
-                  <User className="h-5 w-5" /> {t('profile')}
+                  <User className="h-5 w-5" /> 个人资料
                 </Link>
                 <Button
                   variant="ghost"
                   className="w-full justify-start py-2 px-4 hover:bg-gray-100 rounded font-medium flex items-center gap-2"
                   onClick={handleLogout}
                 >
-                  <LogIn className="h-5 w-5" /> {t('logout')}
+                  <LogIn className="h-5 w-5" /> 退出登录
                 </Button>
               </>
             ) : (
@@ -202,7 +202,7 @@ export const Navbar = ({ transparent = false }: NavbarProps) => {
                   setIsAuthModalOpen(true);
                 }}
               >
-                {t('login')}
+                登录
               </Button>
             )}
           </div>

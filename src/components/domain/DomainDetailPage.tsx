@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -314,7 +313,7 @@ export const DomainDetailPage: React.FC = () => {
                 <CardTitle>域名分析</CardTitle>
               </CardHeader>
               <CardContent>
-                <DomainAnalytics domainId={domain.id} createdAt={domain.created_at} />
+                <DomainAnalytics domainId={domainId || ''} createdAt={domain.created_at} />
               </CardContent>
             </Card>
 
