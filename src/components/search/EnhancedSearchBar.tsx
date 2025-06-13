@@ -1,166 +1,273 @@
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Search, Filter, X, TrendingUp } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Search, TrendingUp, Clock, Star } from 'lucide-react';
+import { useDebounce } from '@/hooks/useDebounce';
 import { SearchSuggestion } from '@/types/domain';
-import { cn } from '@/lib/utils';
 
 interface EnhancedSearchBarProps {
-  searchTerm: string;
-  onSearchChange: (term: string) => void;
-  suggestions: SearchSuggestion[];
-  onSuggestionSelect: (suggestion: string) => void;
-  onFiltersToggle: () => void;
+  onSearch: (query: string) => void;
+  placeholder?: string;
   className?: string;
 }
 
 export const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
-  searchTerm,
-  onSearchChange,
-  suggestions,
-  onSuggestionSelect,
-  onFiltersToggle,
-  className
+  onSearch,
+  placeholder = "搜索域名...",
+  className = ""
 }) => {
+  const [query, setQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const suggestionsRef = useRef<HTMLDivElement>(null);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [trendingSearches] = useState<string[]>([
+    'AI域名', '区块链', '电商平台', '科技公司', '在线教育'
+  ]);
 
-  useEffect(() => {
-    setSelectedIndex(-1);
-  }, [suggestions]);
+  const debouncedQuery = useDebounce(query, 300);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!showSuggestions || suggestions.length === 0) return;
+  // 模糊搜索和智能推荐
+  const searchSuggestions = useCallback(async (searchQuery: string) => {
+    if (!searchQuery.trim()) {
+      setSuggestions([]);
+      return;
+    }
 
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setSelectedIndex(prev => 
-          prev < suggestions.length - 1 ? prev + 1 : 0
-        );
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setSelectedIndex(prev => 
-          prev > 0 ? prev - 1 : suggestions.length - 1
-        );
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (selectedIndex >= 0) {
-          onSuggestionSelect(suggestions[selectedIndex].domain);
-          setShowSuggestions(false);
+    try {
+      // 模拟智能推荐算法
+      const mockSuggestions: SearchSuggestion[] = [
+        {
+          domain: `${searchQuery}.com`,
+          type: 'exact',
+          score: 100
+        },
+        {
+          domain: `${searchQuery}.cn`,
+          type: 'exact',
+          score: 95
+        },
+        {
+          domain: `my${searchQuery}.com`,
+          type: 'similar',
+          score: 85
+        },
+        {
+          domain: `${searchQuery}app.com`,
+          type: 'similar',
+          score: 80
+        },
+        {
+          domain: `get${searchQuery}.com`,
+          type: 'similar',
+          score: 75
+        },
+        {
+          domain: `${searchQuery}online.com`,
+          type: 'trending',
+          score: 70
         }
-        break;
-      case 'Escape':
-        setShowSuggestions(false);
-        inputRef.current?.blur();
-        break;
+      ];
+
+      // 根据查询相似度排序
+      const filteredSuggestions = mockSuggestions
+        .filter(s => s.domain.toLowerCase().includes(searchQuery.toLowerCase()))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 6);
+
+      setSuggestions(filteredSuggestions);
+    } catch (error) {
+      console.error('搜索建议失败:', error);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (debouncedQuery) {
+      searchSuggestions(debouncedQuery);
+      setShowSuggestions(true);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  }, [debouncedQuery, searchSuggestions]);
+
+  const handleSearch = (searchQuery: string) => {
+    const trimmedQuery = searchQuery.trim();
+    if (trimmedQuery) {
+      // 添加到最近搜索
+      setRecentSearches(prev => {
+        const updated = [trimmedQuery, ...prev.filter(item => item !== trimmedQuery)];
+        return updated.slice(0, 5);
+      });
+      
+      onSearch(trimmedQuery);
+      setShowSuggestions(false);
     }
   };
 
-  const getSuggestionIcon = (type: SearchSuggestion['type']) => {
-    switch (type) {
-      case 'exact':
-        return <Search className="h-3 w-3" />;
-      case 'trending':
-        return <TrendingUp className="h-3 w-3" />;
-      default:
-        return <Search className="h-3 w-3" />;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setQuery(value);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch(query);
     }
   };
 
-  const getSuggestionBadge = (type: SearchSuggestion['type']) => {
+  const handleSuggestionClick = (suggestion: SearchSuggestion) => {
+    setQuery(suggestion.domain);
+    handleSearch(suggestion.domain);
+  };
+
+  const getSuggestionIcon = (type: string) => {
     switch (type) {
-      case 'exact':
-        return <Badge variant="default" className="text-xs">精确</Badge>;
       case 'trending':
-        return <Badge variant="secondary" className="text-xs">热门</Badge>;
+        return <TrendingUp className="h-4 w-4 text-orange-500" />;
       case 'similar':
-        return <Badge variant="outline" className="text-xs">相似</Badge>;
+        return <Star className="h-4 w-4 text-blue-500" />;
       default:
-        return null;
+        return <Search className="h-4 w-4 text-green-500" />;
     }
+  };
+
+  const getSuggestionBadge = (type: string) => {
+    const badgeConfig = {
+      exact: { label: '精确匹配', variant: 'default' as const },
+      similar: { label: '相似推荐', variant: 'secondary' as const },
+      trending: { label: '热门推荐', variant: 'outline' as const }
+    };
+    
+    const config = badgeConfig[type as keyof typeof badgeConfig] || badgeConfig.similar;
+    return <Badge variant={config.variant} className="text-xs">{config.label}</Badge>;
   };
 
   return (
-    <div className={cn("relative w-full max-w-2xl", className)}>
+    <div className={`relative ${className}`}>
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
         <Input
-          ref={inputRef}
           type="text"
-          placeholder="搜索域名... (例如: example.com, tech, ai)"
-          value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder={placeholder}
+          value={query}
+          onChange={handleInputChange}
+          onKeyPress={handleKeyPress}
           onFocus={() => setShowSuggestions(true)}
-          onBlur={() => {
-            // 延迟隐藏建议，以便处理点击事件
-            setTimeout(() => setShowSuggestions(false), 200);
-          }}
-          onKeyDown={handleKeyDown}
-          className="pl-10 pr-20 h-12 text-base"
+          className="pl-10 pr-12"
         />
-        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-          {searchTerm && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                onSearchChange('');
-                inputRef.current?.focus();
-              }}
-              className="h-8 w-8 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onFiltersToggle}
-            className="h-8 px-3"
-          >
-            <Filter className="h-4 w-4" />
-          </Button>
-        </div>
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Button
+          size="sm"
+          onClick={() => handleSearch(query)}
+          className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8"
+        >
+          搜索
+        </Button>
       </div>
 
-      {/* 搜索建议下拉框 */}
-      {showSuggestions && suggestions.length > 0 && (
+      {/* 搜索建议和推荐 */}
+      {showSuggestions && (
+        <Card className="absolute top-full left-0 right-0 z-50 mt-1 max-h-96 overflow-y-auto">
+          <CardContent className="p-0">
+            {/* 智能推荐 */}
+            {suggestions.length > 0 && (
+              <div className="p-3 border-b">
+                <div className="text-sm font-medium text-muted-foreground mb-2">
+                  智能推荐
+                </div>
+                <div className="space-y-1">
+                  {suggestions.map((suggestion, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-2 hover:bg-muted rounded cursor-pointer"
+                      onClick={() => handleSuggestionClick(suggestion)}
+                    >
+                      <div className="flex items-center gap-2">
+                        {getSuggestionIcon(suggestion.type)}
+                        <span>{suggestion.domain}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {getSuggestionBadge(suggestion.type)}
+                        <span className="text-xs text-muted-foreground">
+                          {suggestion.score}%
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 最近搜索 */}
+            {recentSearches.length > 0 && query === '' && (
+              <div className="p-3 border-b">
+                <div className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                  <Clock className="h-4 w-4" />
+                  最近搜索
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {recentSearches.map((search, index) => (
+                    <Badge
+                      key={index}
+                      variant="outline"
+                      className="cursor-pointer hover:bg-muted"
+                      onClick={() => {
+                        setQuery(search);
+                        handleSearch(search);
+                      }}
+                    >
+                      {search}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 热门搜索 */}
+            {query === '' && (
+              <div className="p-3">
+                <div className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                  <TrendingUp className="h-4 w-4" />
+                  热门搜索
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {trendingSearches.map((search, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="cursor-pointer hover:bg-muted"
+                      onClick={() => {
+                        setQuery(search);
+                        handleSearch(search);
+                      }}
+                    >
+                      {search}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 无结果状态 */}
+            {query && suggestions.length === 0 && (
+              <div className="p-6 text-center text-muted-foreground">
+                <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>未找到相关建议</p>
+                <p className="text-sm">尝试其他关键词或查看热门搜索</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 点击外部关闭建议 */}
+      {showSuggestions && (
         <div
-          ref={suggestionsRef}
-          className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto"
-        >
-          {suggestions.map((suggestion, index) => (
-            <div
-              key={`${suggestion.domain}-${suggestion.type}`}
-              className={cn(
-                "flex items-center justify-between px-4 py-3 cursor-pointer transition-colors",
-                index === selectedIndex 
-                  ? "bg-accent text-accent-foreground" 
-                  : "hover:bg-muted"
-              )}
-              onClick={() => {
-                onSuggestionSelect(suggestion.domain);
-                setShowSuggestions(false);
-              }}
-            >
-              <div className="flex items-center gap-3">
-                {getSuggestionIcon(suggestion.type)}
-                <span className="font-medium">{suggestion.domain}</span>
-                {getSuggestionBadge(suggestion.type)}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {Math.round(suggestion.score * 100)}% 匹配
-              </div>
-            </div>
-          ))}
-        </div>
+          className="fixed inset-0 z-40"
+          onClick={() => setShowSuggestions(false)}
+        />
       )}
     </div>
   );

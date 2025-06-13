@@ -25,6 +25,7 @@ import { PriceHistoryChart } from '@/components/domain/PriceHistoryChart';
 import { SimilarDomainsGrid } from '@/components/domain/SimilarDomainsGrid';
 import { DomainShareButtons } from '@/components/domain/DomainShareButtons';
 import { DomainAnalytics } from '@/components/domain/DomainAnalytics';
+import { PaymentIntegration } from '@/components/payment/PaymentIntegration';
 
 export const DomainDetailPage: React.FC = () => {
   const { domainId } = useParams<{ domainId: string }>();
@@ -34,6 +35,7 @@ export const DomainDetailPage: React.FC = () => {
   const [similarDomains, setSimilarDomains] = useState<Domain[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showOfferForm, setShowOfferForm] = useState(false);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
 
   useEffect(() => {
@@ -176,6 +178,16 @@ export const DomainDetailPage: React.FC = () => {
   const handleFavoriteToggle = async () => {
     setIsFavorited(!isFavorited);
     toast.success(isFavorited ? '已取消收藏' : '已添加收藏');
+  };
+
+  const handlePurchase = () => {
+    setShowPaymentForm(true);
+  };
+
+  const handlePaymentSuccess = () => {
+    setShowPaymentForm(false);
+    toast.success('购买成功！域名转移将在24小时内完成');
+    loadDomainDetails();
   };
 
   if (isLoading) {
@@ -337,6 +349,7 @@ export const DomainDetailPage: React.FC = () => {
                 <Button 
                   className="w-full" 
                   size="lg"
+                  onClick={handlePurchase}
                   disabled={domain.status !== 'available'}
                 >
                   <DollarSign className="h-4 w-4 mr-2" />
@@ -399,8 +412,17 @@ export const DomainDetailPage: React.FC = () => {
           onClose={() => setShowOfferForm(false)}
           onSuccess={() => {
             setShowOfferForm(false);
-            loadDomainDetails(); // 重新加载以更新报价数量
+            loadDomainDetails();
           }}
+        />
+      )}
+
+      {/* 支付表单弹窗 */}
+      {showPaymentForm && (
+        <PaymentIntegration
+          domain={domain}
+          onPaymentSuccess={handlePaymentSuccess}
+          onClose={() => setShowPaymentForm(false)}
         />
       )}
     </div>
