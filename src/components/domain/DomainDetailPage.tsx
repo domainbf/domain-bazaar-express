@@ -313,7 +313,7 @@ export const DomainDetailPage: React.FC = () => {
                 <CardTitle>域名分析</CardTitle>
               </CardHeader>
               <CardContent>
-                <DomainAnalytics domainId={domain.id} createdAt={domain.created_at} />
+                <DomainAnalytics domainId={domain.id} createdAt={domain.created_at || ''} />
               </CardContent>
             </Card>
 
