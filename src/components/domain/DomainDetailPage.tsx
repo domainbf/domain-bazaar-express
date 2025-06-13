@@ -149,7 +149,6 @@ export const DomainDetailPage: React.FC = () => {
           .update({ views: (analytics.views || 0) + 1 })
           .eq('domain_id', domainId);
       } else {
-        // 如果没有分析记录，创建一个新的
         await supabase
           .from('domain_analytics')
           .insert({ domain_id: domainId, views: 1 });
@@ -175,7 +174,6 @@ export const DomainDetailPage: React.FC = () => {
   };
 
   const handleFavoriteToggle = async () => {
-    // TODO: 实现收藏功能
     setIsFavorited(!isFavorited);
     toast.success(isFavorited ? '已取消收藏' : '已添加收藏');
   };
