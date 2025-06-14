@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,6 +17,9 @@ import { User, Settings, ClipboardList, Home, Award, HelpCircle, Bell } from 'lu
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
+// 新增
+import { Badge } from "@/components/ui/badge";
+import { useNotifications } from '@/hooks/useNotifications';
 
 export const UserCenter = () => {
   const { user, profile, isLoading: isAuthLoading } = useAuth();
@@ -23,6 +27,9 @@ export const UserCenter = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('domains');
   const [showHelp, setShowHelp] = useState(false);
+
+  // 新增：获取未读通知数
+  const { unreadCount, refreshNotifications } = useNotifications();
 
   useEffect(() => {
     if (isAuthLoading) {
@@ -40,6 +47,7 @@ export const UserCenter = () => {
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     window.history.replaceState({}, '', `/user-center?tab=${value}`);
+    if (value === 'notifications') refreshNotifications();
   };
 
   useEffect(() => {
@@ -61,7 +69,7 @@ export const UserCenter = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <Navbar unreadCount={unreadCount} />
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
@@ -119,9 +127,15 @@ export const UserCenter = () => {
               <ClipboardList className="w-4 h-4" />
               交易记录
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-1 data-[state=active]:bg-black data-[state=active]:text-white">
+            <TabsTrigger value="notifications" className="flex items-center gap-1 relative data-[state=active]:bg-black data-[state=active]:text-white">
               <Bell className="w-4 h-4" />
               通知中心
+              {/* 新增未读角标 */}
+              {unreadCount > 0 && (
+                <Badge className="bg-blue-500 absolute -top-2 -right-4 px-2 py-0.5 text-xs font-bold min-w-[1.5rem] flex items-center justify-center">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger value="profile" className="flex items-center gap-1 data-[state=active]:bg-black data-[state=active]:text-white">
               <User className="w-4 h-4" />

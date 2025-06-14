@@ -1,215 +1,105 @@
-
-import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { X, Menu, User, LogIn, ShoppingCart, Home, Settings } from 'lucide-react';
-import { AuthModal } from './AuthModal';
+import React from "react";
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { NotificationsMenu } from './notifications/NotificationsMenu';
-import { useTranslation } from 'react-i18next';
-import { LanguageSwitcher } from './LanguageSwitcher';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast"
+import { LogOut, Settings, User, Home, Plus, ClipboardList } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import logo from '../../public/logo.png';
 
-interface NavbarProps {
-  transparent?: boolean;
-}
-
-export const Navbar = ({ transparent = false }: NavbarProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const { user, profile, signOut } = useAuth();
-  const location = useLocation();
-  const { t } = useTranslation();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    setIsOpen(false);
-  }, [location]);
+// 新增：支持 unreadCount 传参
+export const Navbar = ({ unreadCount = 0 }: { unreadCount?: number }) => {
+  const { user, profile, logout } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast()
 
   const handleLogout = async () => {
-    await signOut();
-    if (location.pathname !== '/') {
-      window.location.href = '/';
+    try {
+      await logout();
+      navigate('/');
+      toast({
+        title: "登出成功",
+        description: "您已成功登出",
+      })
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "登出失败",
+        description: "请稍后重试",
+      })
     }
   };
 
-  const navbarClass = transparent
-    ? `fixed w-full z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white shadow-md py-2' : 'bg-transparent py-4'
-      }`
-    : 'bg-white shadow-sm';
-
-  const textColor = transparent && !scrolled ? 'text-white' : 'text-gray-900';
-
+  // 修改“通知”入口，带角标
   return (
-    <nav className={navbarClass}>
-      <div className="container mx-auto px-4 flex justify-between items-center">
-        {/* Logo */}
-        <Link to="/" className="text-xl md:text-2xl font-bold flex items-center">
-          <span className={`${textColor}`}>NIC.BN</span>
+    <nav className="w-full bg-white shadow-sm">
+      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+        <Link to="/" className="flex items-center font-semibold text-2xl">
+          <img src={logo} alt="Logo" className="h-8 w-auto mr-2" />
+          域名交易平台
         </Link>
-
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-6">
-          <Link to="/" className={`font-medium ${textColor} hover:text-gray-600`}>
-            首页
-          </Link>
-          <Link to="/marketplace" className={`font-medium ${textColor} hover:text-gray-600`}>
-            域名市场
-          </Link>
-          {user && (
+        <div className="flex items-center space-x-2">
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={profile?.avatar_url || ""} alt={profile?.full_name || user?.email || "头像"} />
+                    <AvatarFallback>{profile?.full_name?.slice(0, 2).toUpperCase() || user?.email?.slice(0, 2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel>我的账户</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => navigate('/user-center?tab=profile')}>
+                  <User className="mr-2 h-4 w-4" />
+                  个人资料
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/user-center?tab=domains')}>
+                  <ClipboardList className="mr-2 h-4 w-4" />
+                  我的域名
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  控制面板
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  退出登录
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
             <>
-              <Link to="/dashboard" className={`font-medium ${textColor} hover:text-gray-600`}>
-                仪表板
-              </Link>
-              <Link to="/user-center" className={`font-medium ${textColor} hover:text-gray-600`}>
-                用户中心
-              </Link>
-              {profile?.is_admin && (
-                <Link to="/admin" className={`font-medium ${textColor} hover:text-gray-600`}>
-                  管理员
-                </Link>
-              )}
+              <Button variant="ghost" onClick={() => navigate('/profile')}>登录</Button>
+              <Button onClick={() => navigate('/profile')}>注册</Button>
             </>
           )}
-          
-          <LanguageSwitcher className={textColor} />
-          
-          {user ? (
-            <div className="flex items-center gap-2">
-              <NotificationsMenu />
-              <div className="flex items-center">
-                <Button
-                  variant="ghost"
-                  className="p-2 group relative flex hover:bg-gray-100 rounded-full"
-                  asChild
-                >
-                  <Link to="/profile">
-                    {profile?.avatar_url ? (
-                      <img
-                        src={profile.avatar_url}
-                        alt={profile?.full_name || 'User profile'}
-                        className="w-8 h-8 rounded-full"
-                      />
-                    ) : (
-                      <User className={`${textColor} h-5 w-5`} />
-                    )}
-                  </Link>
-                </Button>
-                <Button variant="ghost" size="sm" className={textColor} onClick={handleLogout}>
-                  退出登录
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <Button onClick={() => setIsAuthModalOpen(true)} variant="default">
-              登录
-            </Button>
-          )}
-        </div>
-
-        {/* Mobile menu button */}
-        <div className="flex items-center gap-2 md:hidden">
-          <LanguageSwitcher className={textColor} />
-          
-          {user && <NotificationsMenu />}
-          
-          <Button
-            variant="ghost"
-            className="p-2"
-            size="icon"
-            onClick={() => setIsOpen(!isOpen)}
-          >
-            {isOpen ? (
-              <X className={`h-6 w-6 ${textColor}`} />
-            ) : (
-              <Menu className={`h-6 w-6 ${textColor}`} />
-            )}
-          </Button>
-        </div>
-      </div>
-
-      {/* Mobile Navigation */}
-      {isOpen && (
-        <div className="md:hidden bg-white border-t shadow-lg">
-          <div className="container mx-auto px-4 py-2 space-y-2">
-            <Link
-              to="/"
-              className="block py-2 px-4 hover:bg-gray-100 rounded font-medium flex items-center gap-2"
+          <div className="relative">
+            <button
+              className="relative flex items-center justify-center h-10 w-10 rounded-full hover:bg-gray-100"
+              title="通知"
             >
-              <Home className="h-5 w-5" /> 首页
-            </Link>
-            <Link
-              to="/marketplace"
-              className="block py-2 px-4 hover:bg-gray-100 rounded font-medium flex items-center gap-2"
-            >
-              <ShoppingCart className="h-5 w-5" /> 域名市场
-            </Link>
-
-            {user ? (
-              <>
-                <Link
-                  to="/dashboard"
-                  className="block py-2 px-4 hover:bg-gray-100 rounded font-medium flex items-center gap-2"
-                >
-                  <Settings className="h-5 w-5" /> 仪表板
-                </Link>
-                <Link
-                  to="/user-center"
-                  className="block py-2 px-4 hover:bg-gray-100 rounded font-medium flex items-center gap-2"
-                >
-                  <User className="h-5 w-5" /> 用户中心
-                </Link>
-                {profile?.is_admin && (
-                  <Link
-                    to="/admin"
-                    className="block py-2 px-4 hover:bg-gray-100 rounded font-medium flex items-center gap-2"
-                  >
-                    <Settings className="h-5 w-5" /> 管理员
-                  </Link>
-                )}
-                <Link
-                  to="/profile"
-                  className="block py-2 px-4 hover:bg-gray-100 rounded font-medium flex items-center gap-2"
-                >
-                  <User className="h-5 w-5" /> 个人资料
-                </Link>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start py-2 px-4 hover:bg-gray-100 rounded font-medium flex items-center gap-2"
-                  onClick={handleLogout}
-                >
-                  <LogIn className="h-5 w-5" /> 退出登录
-                </Button>
-              </>
-            ) : (
-              <Button
-                className="w-full"
-                onClick={() => {
-                  setIsOpen(false);
-                  setIsAuthModalOpen(true);
-                }}
-              >
-                登录
-              </Button>
-            )}
+              <Bell className="w-5 h-5 text-gray-700" />
+              {unreadCount > 0 && (
+                <Badge className="bg-blue-500 absolute -top-1 -right-1 px-1.5 py-0 text-xs font-bold flex items-center justify-center">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Badge>
+              )}
+            </button>
           </div>
         </div>
-      )}
-
-      <AuthModal open={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      </div>
     </nav>
   );
 };
