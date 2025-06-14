@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
+import { Alert } from "@/components/ui/alert";
 
 export const DomainManagement = () => {
   const { t } = useTranslation();
@@ -17,8 +18,32 @@ export const DomainManagement = () => {
   const { domains, isLoading, isRefreshing, loadDomains, refreshDomains } = useDomainsData();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [error, setError] = useState<string | null>(null);
 
-  // 只有鉴权通过才拉数据，否则先 loading
+  // 超时逻辑
+  useState(() => {
+    let timer: any;
+    if ((isAuthLoading || isLoading) && !error) {
+      timer = setTimeout(() => {
+        setError('加载超时，请刷新重试。如多次失败请检查网络或账号状态。');
+      }, 12000);
+    }
+    return () => clearTimeout(timer);
+  }, [isAuthLoading, isLoading, error]);
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center py-10">
+        <Alert variant="destructive" className="mb-4">
+          <div className="text-red-700">{error}</div>
+        </Alert>
+        <Button variant="outline" onClick={() => window.location.reload()}>
+          刷新页面
+        </Button>
+      </div>
+    );
+  }
+
   if (isAuthLoading || !user) {
     return (
       <div className="flex justify-center py-10">
@@ -45,13 +70,15 @@ export const DomainManagement = () => {
   const filteredDomains = filterDomains();
 
   const handleRefresh = () => {
+    setError(null);
     refreshDomains();
   };
 
   if (isLoading) {
     return (
-      <div className="flex justify-center py-10">
+      <div className="flex flex-col items-center py-10">
         <LoadingSpinner />
+        <div className="mt-2 text-gray-600 text-sm">正在加载域名数据…请稍候</div>
       </div>
     );
   }

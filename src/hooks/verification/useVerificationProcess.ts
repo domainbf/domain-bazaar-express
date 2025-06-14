@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { DomainVerification, VerificationCheckResult } from '@/types/domain';
@@ -10,7 +9,6 @@ export const useVerificationProcess = () => {
   const startVerification = async (domainId: string, domainName: string, verificationMethod: string): Promise<DomainVerification | null> => {
     setIsLoading(true);
     try {
-      // 创建验证记录
       const { data, error } = await supabase
         .from('domain_verifications')
         .insert({
@@ -27,13 +25,10 @@ export const useVerificationProcess = () => {
         .select('*')
         .single();
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       return data as DomainVerification;
     } catch (error: any) {
-      console.error('启动验证失败:', error);
       toast.error(error.message || '启动域名验证失败');
       return null;
     } finally {
@@ -44,7 +39,7 @@ export const useVerificationProcess = () => {
   const checkVerification = async (verificationId: string, domainId: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      // 首先更新验证记录的尝试次数
+      // 更新验证记录尝试次数
       const { data: verificationData } = await supabase
         .from('domain_verifications')
         .select('verification_attempts')
@@ -61,7 +56,7 @@ export const useVerificationProcess = () => {
         })
         .eq('id', verificationId);
 
-      // 调用验证函数
+      // 调用后端真实验证，若失败建议反馈具体原因
       const { data: result, error } = await supabase.functions.invoke('check-domain-verification', {
         body: { 
           verificationId,
@@ -72,7 +67,6 @@ export const useVerificationProcess = () => {
       if (error) throw error;
 
       if (result && result.verified) {
-        // 如果验证成功，更新验证记录和域名记录
         await supabase
           .from('domain_verifications')
           .update({
@@ -91,11 +85,15 @@ export const useVerificationProcess = () => {
         toast.success('域名验证成功！');
         return true;
       } else {
-        toast.error(result?.message || '域名验证失败，请确保您已正确设置验证信息');
+        // 优化失败反馈，附带详细提示
+        toast.error(
+          result?.message
+            ? `域名验证失败：${result.message}。请根据提示检查 DNS/文件/Meta/邮箱等设置后重试。`
+            : '域名验证失败，请确保您已正确设置验证信息'
+        );
         return false;
       }
     } catch (error: any) {
-      console.error('验证检查失败:', error);
       toast.error(error.message || '验证检查过程中出错');
       return false;
     } finally {
