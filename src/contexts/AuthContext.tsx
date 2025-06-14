@@ -403,14 +403,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       setIsAuthenticating(true);
       console.log('Requesting password reset for:', email);
-      
+
       const result = await resetUserPassword(email);
-      
+
       if (result.success) {
         toast.success('重置密码链接已发送到您的邮箱');
         return true;
       } else {
-        // 修复类型错误 - resetUserPassword 只返回 { success: boolean }
+        // 修复类型错误 - 只返回 { success: boolean }，不访问 .error
         const errorMsg = '发送重置密码邮件失败';
         console.error('Password reset failed:', errorMsg);
         toast.error(errorMsg);

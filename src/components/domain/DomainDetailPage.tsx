@@ -471,7 +471,7 @@ export const DomainDetailPage: React.FC = () => {
         />
       )}
 
-      {/* 支付表单弹窗 - 确保传递正确的Domain对象 */}
+      {/* 支付表单弹窗 - 确保只传递 props，无 children */}
       {showPaymentForm && domain && (
         <MultiCurrencyPayment
           domain={domain}
