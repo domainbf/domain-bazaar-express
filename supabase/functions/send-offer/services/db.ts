@@ -1,4 +1,3 @@
-
 import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { OfferRequest } from '../utils/types.ts';
 
@@ -34,15 +33,31 @@ export async function getDomainOwnerEmail(supabase: SupabaseClient, domainId: st
 }
 
 export async function storeOfferInDB(supabase: SupabaseClient, {
-  domainId,
+  domain,
   offer,
   email,
   message,
   buyerId,
   domainOwnerId
 }: OfferRequest) {
+  // The frontend gets the domain ID from the `domain_listings` table,
+  // but the `domain_offers` table has a foreign key referencing the `domains` table.
+  // To fix the foreign key violation, we look up the domain in the `domains` table using its name
+  // to get the correct ID.
+  const { data: domainData, error: domainError } = await supabase
+    .from('domains')
+    .select('id')
+    .eq('name', domain)
+    .single();
+  
+  if (domainError || !domainData) {
+    console.error(`存储报价失败: 在 'domains' 表中没有找到域名 '${domain}'.`, domainError);
+    // This indicates a data consistency problem where a domain exists in `domain_listings` but not `domains`.
+    throw new Error(`无法处理对 '${domain}' 的报价，因为数据记录不完整。请联系网站管理员。`);
+  }
+
   const offerData = {
-    domain_id: domainId,
+    domain_id: domainData.id, // Use the correct ID from the `domains` table
     amount: parseFloat(offer),
     contact_email: email,
     message: message || null,
