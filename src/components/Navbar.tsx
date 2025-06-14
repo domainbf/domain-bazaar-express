@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast"
 import { LogOut, Settings, User, Home, Plus, ClipboardList, Bell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import logo from '/logo.png';
+import logo from '/placeholder.svg';
 
 // 新增：支持 unreadCount 传参
 export const Navbar = ({ unreadCount = 0 }: { unreadCount?: number }) => {

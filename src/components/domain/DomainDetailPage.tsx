@@ -1,180 +1,60 @@
-import React, { Suspense, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+
 import { Navbar } from "@/components/Navbar";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
-import { useDomainDetail } from "./useDomainDetail";
-import { DomainDetailHeader } from "./DomainDetailHeader";
+import { DomainDetailHeader } from "@/components/domain/DomainDetailHeader";
+import { DomainDetailMainContent } from "@/components/domain/DomainDetailMainContent";
+import { DomainDetailSidebar } from "@/components/domain/DomainDetailSidebar";
+import { DomainShareButtons } from "@/components/domain/DomainShareButtons";
+import { useDomainDetail } from "@/components/domain/useDomainDetail";
+import { SimilarDomainsGrid } from "@/components/domain/SimilarDomainsGrid";
+import { PriceHistoryChart } from "@/components/domain/PriceHistoryChart";
+import { DomainValuationTool } from "@/components/domain/DomainValuationTool";
+import NotFound from "@/pages/NotFound";
 
-const DomainDetailMainContent = React.lazy(() =>
-  import("./DomainDetailMainContent").then(mod => ({ default: mod.DomainDetailMainContent }))
-);
-const DomainDetailSidebar = React.lazy(() =>
-  import("./DomainDetailSidebar").then(mod => ({ default: mod.DomainDetailSidebar }))
-);
-const DomainOfferForm = React.lazy(() =>
-  import("@/components/domain/DomainOfferForm").then(mod => ({ default: mod.DomainOfferForm }))
-);
-const MultiCurrencyPayment = React.lazy(() =>
-  import("@/components/payment/MultiCurrencyPayment").then(mod => ({ default: mod.MultiCurrencyPayment }))
-);
-const DomainShareButtons = React.lazy(() =>
-  import("@/components/domain/DomainShareButtons").then(mod => ({ default: mod.DomainShareButtons }))
-);
-
-export const DomainDetailPage: React.FC = () => {
-  const { domainId } = useParams<{ domainId: string }>();
-  const navigate = useNavigate();
-
-  const {
-    domain,
-    priceHistory,
-    similarDomains,
-    isLoading,
-    error,
-    reload,
-  } = useDomainDetail(domainId);
-
-  const [showOfferForm, setShowOfferForm] = React.useState(false);
-  const [showPaymentForm, setShowPaymentForm] = React.useState(false);
-  const [isFavorited, setIsFavorited] = React.useState(false);
-
-  useEffect(() => {
-    setIsFavorited(false); // 或从 domain.is_favorited 判断
-  }, [domain]);
-
-  const handleFavoriteToggle = async () => {
-    if (!domain) return;
-    setIsFavorited((cur) => !cur);
-    toast.success(isFavorited ? "已取消收藏" : "已添加收藏");
-  };
-
-  const handlePurchase = () => {
-    if (!domain || domain.status !== "available") {
-      toast.error("域名当前不可购买");
-      return;
-    }
-    setShowPaymentForm(true);
-  };
-
-  const handlePaymentSuccess = () => {
-    setShowPaymentForm(false);
-    toast.success("购买成功！域名转移将在24小时内完成");
-    reload();
-  };
+export const DomainDetailPage = () => {
+  const { domain, similarDomains, priceHistory, isLoading, error } = useDomainDetail();
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <>
         <Navbar />
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center">
-              <LoadingSpinner size="lg" />
-              <p className="mt-4 text-muted-foreground">正在加载域名详情…</p>
-            </div>
-          </div>
+        <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
+          <LoadingSpinner size="lg" text="加载域名信息中..." />
         </div>
-      </div>
+      </>
     );
   }
 
   if (error || !domain) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="container mx-auto px-4 py-8 text-center">
-          <div className="max-w-md mx-auto">
-            <h1 className="text-2xl font-bold mb-4 text-destructive">
-              {error || "域名不存在"}
-            </h1>
-            <p className="text-muted-foreground mb-6">{error || "请检查域名地址是否正确，或返回市场浏览其他域名"}</p>
-            <div className="space-x-4">
-              <Button onClick={() => navigate("/marketplace")}>返回市场</Button>
-              <Button variant="outline" onClick={() => window.location.reload()}>
-                重新加载
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <NotFound />;
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-gray-50 min-h-screen">
       <Navbar />
-      <div className="container mx-auto px-4 py-8 transition-all animate-fade-in">
-        {/* Header部分 */}
-        <div className="mb-8">
-          <DomainDetailHeader
-            domain={{
-              name: domain.name,
-              is_verified: domain.is_verified,
-              category: domain.category,
-              views: domain.views || 0,
-              status: domain.status,
-              price: domain.price
-            }}
-            isFavorited={isFavorited}
-            onToggleFavorite={handleFavoriteToggle}
-          />
+      <main className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <DomainDetailHeader domain={domain} />
+        
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 lg:gap-8">
+          <div className="lg:col-span-2 space-y-8">
+            <DomainDetailMainContent domain={domain} />
+            <PriceHistoryChart data={priceHistory} />
+          </div>
+          <div className="mt-8 lg:mt-0 space-y-8">
+            <DomainDetailSidebar domain={domain} />
+            <DomainShareButtons domainName={domain.name} />
+          </div>
         </div>
-        {/* 主要内容区域 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <Suspense
-            fallback={
-              <div className="lg:col-span-2 bg-white rounded-lg h-80 flex items-center justify-center">
-                <LoadingSpinner size="lg" />
-              </div>
-            }
-          >
-            <DomainDetailMainContent
-              domain={domain}
-              priceHistory={priceHistory}
-              similarDomains={similarDomains}
-            />
-          </Suspense>
-          <Suspense
-            fallback={
-              <div className="bg-white rounded-lg h-80 flex items-center justify-center">
-                <LoadingSpinner size="md" />
-              </div>
-            }
-          >
-            <DomainDetailSidebar
-              domain={domain}
-              onPurchase={handlePurchase}
-              onOffer={() => setShowOfferForm(true)}
-            />
-          </Suspense>
+
+        <div className="mt-16">
+          <DomainValuationTool />
         </div>
-      </div>
-      {/* 报价弹窗、支付弹窗 */}
-      <Suspense fallback={null}>
-        {showOfferForm && domain && (
-          <DomainOfferForm
-            domain={domain}
-            onClose={() => setShowOfferForm(false)}
-            onSuccess={() => {
-              setShowOfferForm(false);
-              reload();
-            }}
-          />
-        )}
-        {showPaymentForm && domain && (
-          <MultiCurrencyPayment
-            domain={domain}
-            onPaymentSuccess={handlePaymentSuccess}
-            onClose={() => setShowPaymentForm(false)}
-          />
-        )}
-      </Suspense>
-      {/* 修复DomainShareButtons的prop类型错误 */}
-      <Suspense fallback={null}>
-        <DomainShareButtons domainName={domain.name} />
-      </Suspense>
+
+        <div className="mt-16">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">相似域名</h2>
+          <SimilarDomainsGrid domains={similarDomains} />
+        </div>
+      </main>
     </div>
   );
 };
