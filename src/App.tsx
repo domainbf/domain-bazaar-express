@@ -1,3 +1,4 @@
+
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Toaster } from "sonner";
 import { useEffect } from 'react';
@@ -14,6 +15,8 @@ import { DomainDetailPage } from './components/domain/DomainDetailPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { initializeAdminUser } from './utils/adminInitialization';
 import NotFound from './pages/NotFound';
+import { ContactPage } from './pages/ContactPage';
+import { FAQPage } from './pages/FAQPage';
 
 function App() {
   useEffect(() => {
@@ -62,6 +65,8 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile/:profileId" element={<UserProfilePage />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/faq" element={<FAQPage />} />
         {/* 通用404路由放最后 */}
         <Route path="*" element={<NotFound />} />
       </Routes>

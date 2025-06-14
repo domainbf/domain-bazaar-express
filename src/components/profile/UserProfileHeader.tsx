@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { CalendarIcon, Mail, Phone, Building2 } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 
 interface UserProfileHeaderProps {
   profile: UserProfile;
@@ -56,7 +57,7 @@ export const UserProfileHeader = ({ profile }: UserProfileHeaderProps) => {
               
               <div className="flex items-center gap-1 text-gray-600">
                 <CalendarIcon className="h-4 w-4" />
-                <span>加入于 {formatDistanceToNow(joinedDate, { addSuffix: true })}</span>
+                <span>加入于 {formatDistanceToNow(joinedDate, { addSuffix: true, locale: zhCN })}</span>
               </div>
             </div>
           </div>
