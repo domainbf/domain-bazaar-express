@@ -210,30 +210,73 @@ export async function sendOfferEmails({
   dashboardUrl,
   domainOwnerEmail,
 }: OfferRequest & { domainOwnerEmail: string }) {
-    const finalDashboardUrl = dashboardUrl || "https://sale.nic.bn/user-center?tab=domains";
-    
-    const userEmailHtml = getUserEmailHtml(domain, offer, message, finalDashboardUrl);
-    const ownerEmailHtml = getOwnerEmailHtml(domain, offer, email, message, buyerId, finalDashboardUrl);
+  const finalDashboardUrl = dashboardUrl || "https://sale.nic.bn/user-center?tab=domains";
 
-    // Send confirmation email to the user/buyer
+  const userEmailHtml = getUserEmailHtml(domain, offer, message, finalDashboardUrl);
+  const ownerEmailHtml = getOwnerEmailHtml(domain, offer, email, message, buyerId, finalDashboardUrl);
+
+  // 捕获所有错误并输出详细日志
+  try {
+    // 先发给买家
     const userEmailResponse = await resend.emails.send({
       from: "域名交易平台 <noreply@sale.nic.bn>",
       to: [email],
       subject: `✅ 您对 ${domain} 的报价已收到 - ¥${offer}`,
       html: userEmailHtml,
     });
+    if (userEmailResponse.error) {
+      console.error("发送给买家失败:", userEmailResponse.error, userEmailResponse);
+      let errMsg = getResendErrorMessage(userEmailResponse.error);
+      throw new Error("买家邮件发送失败：" + errMsg);
+    } else {
+      console.log("用户邮件已发送:", userEmailResponse);
+    }
 
-    console.log("用户邮件已发送:", userEmailResponse);
-
-    // Send notification email to the domain owner
+    // 再发给卖家
     const ownerEmailResponse = await resend.emails.send({
       from: "域名交易平台 <noreply@sale.nic.bn>",
       to: [domainOwnerEmail],
       subject: `💰 ${domain} 收到新报价：¥${offer}`,
       html: ownerEmailHtml,
     });
-
-    console.log("域名所有者邮件已发送:", ownerEmailResponse);
+    if (ownerEmailResponse.error) {
+      console.error("发送给卖家失败:", ownerEmailResponse.error, ownerEmailResponse);
+      let errMsg = getResendErrorMessage(ownerEmailResponse.error);
+      throw new Error("卖家邮件发送失败：" + errMsg);
+    } else {
+      console.log("域名所有者邮件已发送:", ownerEmailResponse);
+    }
 
     return { userEmailResponse, ownerEmailResponse };
+  } catch (error: any) {
+    // 高亮记录错误日志，返回友好的 message
+    console.error("【报价邮件发送失败】", error && error.message, error);
+    throw new Error(
+      typeof error.message === "string"
+        ? error.message
+        : "邮件发送失败，请检查发件邮箱与 API Key 配置（或稍后重试）"
+    );
+  }
+}
+
+// 解析 Resend 常见报错，返回中文友好提示
+function getResendErrorMessage(errorObj: any): string {
+  if (!errorObj) return "未知错误";
+  // 典型错误模式
+  if (typeof errorObj === "object" && errorObj.message) {
+    if (/Domain not verified/i.test(errorObj.message)) {
+      return "发件域名未验证，请至 Resend 域名认证页面确认已通过";
+    }
+    if (/Invalid API key/i.test(errorObj.message)) {
+      return "API Key 无效，请确认在 Supabase Secrets 配置的密钥正确有效";
+    }
+    if (/Blocked sender/i.test(errorObj.message)) {
+      return "发件人邮箱未被允许，请在 Resend 的发件人设置页面进行添加和认证";
+    }
+    if (/Mailbox unavailable/i.test(errorObj.message)) {
+      return "目标邮箱地址不可用或格式错误";
+    }
+    return errorObj.message;
+  }
+  return typeof errorObj === "string" ? errorObj : JSON.stringify(errorObj);
 }
