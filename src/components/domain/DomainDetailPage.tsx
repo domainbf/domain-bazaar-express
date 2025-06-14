@@ -1,34 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { Domain, DomainPriceHistory } from '@/types/domain';
-import { Navbar } from '@/components/Navbar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { 
-  Share2, 
-  Heart, 
-  MessageSquare, 
-  Eye, 
-  Calendar,
-  DollarSign,
-  TrendingUp,
-  Globe,
-  Star,
-  Shield
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { DomainOfferForm } from '@/components/domain/DomainOfferForm';
-import { PriceHistoryChart } from '@/components/domain/PriceHistoryChart';
-import { SimilarDomainsGrid } from '@/components/domain/SimilarDomainsGrid';
-import { DomainShareButtons } from '@/components/domain/DomainShareButtons';
-import { DomainAnalytics } from '@/components/domain/DomainAnalytics';
-import { MultiCurrencyPayment } from '@/components/payment/MultiCurrencyPayment';
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { DomainDetailMainContent } from './DomainDetailMainContent';
-import { DomainDetailSidebar } from './DomainDetailSidebar';
+import React, { useState, useEffect, Suspense } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Domain, DomainPriceHistory } from "@/types/domain";
+import { Navbar } from "@/components/Navbar";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { Heart, Eye, MessageSquare, Shield, DollarSign } from "lucide-react";
+import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+
+// 使用 React.lazy 动态导入子内容
+const DomainDetailMainContent = React.lazy(() =>
+  import("./DomainDetailMainContent").then(mod => ({ default: mod.DomainDetailMainContent }))
+);
+const DomainDetailSidebar = React.lazy(() =>
+  import("./DomainDetailSidebar").then(mod => ({ default: mod.DomainDetailSidebar }))
+);
+const DomainOfferForm = React.lazy(() =>
+  import("@/components/domain/DomainOfferForm").then(mod => ({ default: mod.DomainOfferForm }))
+);
+const MultiCurrencyPayment = React.lazy(() =>
+  import("@/components/payment/MultiCurrencyPayment").then(mod => ({ default: mod.MultiCurrencyPayment }))
+);
+const DomainShareButtons = React.lazy(() =>
+  import("@/components/domain/DomainShareButtons").then(mod => ({ default: mod.DomainShareButtons }))
+);
 
 export const DomainDetailPage: React.FC = () => {
   const { domainId } = useParams<{ domainId: string }>();
@@ -47,6 +42,7 @@ export const DomainDetailPage: React.FC = () => {
       loadDomainDetails();
       logDomainView();
     }
+    // eslint-disable-next-line
   }, [domainId]);
 
   const loadDomainDetails = async () => {
@@ -222,8 +218,8 @@ export const DomainDetailPage: React.FC = () => {
   };
 
   const handlePurchase = () => {
-    if (!domain || domain.status !== 'available') {
-      toast.error('域名当前不可购买');
+    if (!domain || domain.status !== "available") {
+      toast.error("域名当前不可购买");
       return;
     }
     setShowPaymentForm(true);
@@ -231,8 +227,8 @@ export const DomainDetailPage: React.FC = () => {
 
   const handlePaymentSuccess = () => {
     setShowPaymentForm(false);
-    toast.success('购买成功！域名转移将在24小时内完成');
-    loadDomainDetails(); // 重新加载域名信息
+    toast.success("购买成功！域名转移将在24小时内完成");
+    loadDomainDetails();
   };
 
   if (isLoading) {
@@ -243,7 +239,7 @@ export const DomainDetailPage: React.FC = () => {
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
               <LoadingSpinner size="lg" />
-              <p className="mt-4 text-muted-foreground">正在加载域名详情...</p>
+              <p className="mt-4 text-muted-foreground">正在加载域名详情…</p>
             </div>
           </div>
         </div>
@@ -258,15 +254,11 @@ export const DomainDetailPage: React.FC = () => {
         <div className="container mx-auto px-4 py-8 text-center">
           <div className="max-w-md mx-auto">
             <h1 className="text-2xl font-bold mb-4 text-destructive">
-              {error || '域名不存在'}
+              {error || "域名不存在"}
             </h1>
-            <p className="text-muted-foreground mb-6">
-              {error || '请检查域名地址是否正确，或返回市场浏览其他域名'}
-            </p>
+            <p className="text-muted-foreground mb-6">{error || "请检查域名地址是否正确，或返回市场浏览其他域名"}</p>
             <div className="space-x-4">
-              <Button onClick={() => navigate('/marketplace')}>
-                返回市场
-              </Button>
+              <Button onClick={() => navigate("/marketplace")}>返回市场</Button>
               <Button variant="outline" onClick={() => window.location.reload()}>
                 重新加载
               </Button>
@@ -277,30 +269,28 @@ export const DomainDetailPage: React.FC = () => {
     );
   }
 
+  // 主要页面内容按需加载 + 动画
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 transition-all animate-fade-in">
         {/* 域名标题和基本信息 */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-                {domain.name}
-              </h1>
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">{domain.name}</h1>
               <div className="flex items-center gap-3 flex-wrap">
-                <Badge variant={domain.is_verified ? "default" : "secondary"}>
+                <span className="inline-flex items-center">
+                  <Shield className="h-3 w-3 mr-1" />
                   {domain.is_verified ? (
-                    <>
-                      <Shield className="h-3 w-3 mr-1" />
-                      已验证
-                    </>
+                    <span className="text-green-600">已验证</span>
                   ) : (
-                    '待验证'
+                    <span className="text-gray-500">待验证</span>
                   )}
-                </Badge>
-                <Badge variant="outline">{domain.category}</Badge>
+                </span>
+                <span className="px-2 py-1 rounded border border-primary text-primary text-xs">
+                  {domain.category}
+                </span>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Eye className="h-4 w-4" />
@@ -317,7 +307,6 @@ export const DomainDetailPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            
             <div className="flex items-center gap-3">
               <Button
                 variant="outline"
@@ -327,160 +316,67 @@ export const DomainDetailPage: React.FC = () => {
               >
                 <Heart className={`h-4 w-4 ${isFavorited ? "fill-current" : ""}`} />
               </Button>
-              <DomainShareButtons domainName={domain.name} />
+              <Suspense fallback={<div />}>
+                <DomainShareButtons domainName={domain.name} />
+              </Suspense>
               <div className="text-right">
-                <div className="text-3xl font-bold text-primary">
-                  ¥{domain.price.toLocaleString()}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  一口价
-                </div>
+                <div className="text-3xl font-bold text-primary">¥{domain.price.toLocaleString()}</div>
+                <div className="text-sm text-muted-foreground">一口价</div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* 主要内容区域 */}
+        {/* 主要内容区域，这里为两栏布局，均为懒加载 */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* 左侧：域名详情 */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* 域名描述 */}
-            {domain.description && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>域名描述</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {domain.description}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* 价格历史图表 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  价格历史
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <PriceHistoryChart data={priceHistory} />
-              </CardContent>
-            </Card>
-
-            {/* 域名分析 */}
-            <Card>
-              <CardHeader>
-                <CardTitle>域名分析</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <DomainAnalytics domainId={domain.id} createdAt={domain.created_at} />
-              </CardContent>
-            </Card>
-
-            {/* 相似域名推荐 */}
-            {similarDomains.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>相似域名推荐</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <SimilarDomainsGrid domains={similarDomains} />
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* 右侧：操作面板 */}
-          <div className="space-y-6">
-            {/* 购买/报价面板 */}
-            <Card>
-              <CardHeader>
-                <CardTitle>购买选项</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Button 
-                  className="w-full" 
-                  size="lg"
-                  onClick={handlePurchase}
-                  disabled={domain.status !== 'available'}
-                >
-                  <DollarSign className="h-4 w-4 mr-2" />
-                  立即购买 ¥{domain.price.toLocaleString()}
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => setShowOfferForm(true)}
-                  disabled={domain.status !== 'available'}
-                >
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  提交报价
-                </Button>
-
-                <div className="text-xs text-muted-foreground text-center">
-                  所有交易都受到平台保护
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* 域名信息 */}
-            <Card>
-              <CardHeader>
-                <CardTitle>域名信息</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">域名长度</span>
-                  <span>{domain.name.length} 字符</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">创建时间</span>
-                  <span>{new Date(domain.created_at).toLocaleDateString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">状态</span>
-                  <Badge variant={domain.status === 'available' ? 'default' : 'secondary'}>
-                    {domain.status === 'available' ? '可购买' : '不可用'}
-                  </Badge>
-                </div>
-                <Separator />
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">验证状态</span>
-                  <Badge variant={domain.is_verified ? 'default' : 'secondary'}>
-                    {domain.is_verified ? '已验证' : domain.verification_status}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <Suspense
+            fallback={
+              <div className="lg:col-span-2 bg-white rounded-lg h-80 flex items-center justify-center">
+                <LoadingSpinner size="lg" />
+              </div>
+            }
+          >
+            <DomainDetailMainContent
+              domain={domain}
+              priceHistory={priceHistory}
+              similarDomains={similarDomains}
+            />
+          </Suspense>
+          <Suspense
+            fallback={
+              <div className="bg-white rounded-lg h-80 flex items-center justify-center">
+                <LoadingSpinner size="md" />
+              </div>
+            }
+          >
+            <DomainDetailSidebar
+              domain={domain}
+              onPurchase={handlePurchase}
+              onOffer={() => setShowOfferForm(true)}
+            />
+          </Suspense>
         </div>
       </div>
-
-      {/* 报价表单弹窗 */}
-      {showOfferForm && domain && (
-        <DomainOfferForm
-          domain={domain}
-          onClose={() => setShowOfferForm(false)}
-          onSuccess={() => {
-            setShowOfferForm(false);
-            loadDomainDetails();
-          }}
-        />
-      )}
-
-      {/* 支付表单弹窗 - 确保只传递 props，无 children */}
-      {showPaymentForm && domain && (
-        <MultiCurrencyPayment
-          domain={domain}
-          onPaymentSuccess={handlePaymentSuccess}
-          onClose={() => setShowPaymentForm(false)}
-        />
-      )}
+      {/* 报价弹窗、支付弹窗，加动画和 loading fallback */}
+      <Suspense fallback={null}>
+        {showOfferForm && domain && (
+          <DomainOfferForm
+            domain={domain}
+            onClose={() => setShowOfferForm(false)}
+            onSuccess={() => {
+              setShowOfferForm(false);
+              loadDomainDetails();
+            }}
+          />
+        )}
+        {showPaymentForm && domain && (
+          <MultiCurrencyPayment
+            domain={domain}
+            onPaymentSuccess={handlePaymentSuccess}
+            onClose={() => setShowPaymentForm(false)}
+          />
+        )}
+      </Suspense>
     </div>
   );
 };
