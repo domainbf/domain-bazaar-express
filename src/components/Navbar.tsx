@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,19 +13,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast"
-import { LogOut, Settings, User, Home, Plus, ClipboardList } from "lucide-react";
+import { LogOut, Settings, User, Home, Plus, ClipboardList, Bell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import logo from '../../public/logo.png';
+import logo from '/logo.png';
 
 // 新增：支持 unreadCount 传参
 export const Navbar = ({ unreadCount = 0 }: { unreadCount?: number }) => {
-  const { user, profile, logout } = useAuth();
+  const { user, profile, logOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast()
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await logOut();
       navigate('/');
       toast({
         title: "登出成功",
@@ -87,6 +88,7 @@ export const Navbar = ({ unreadCount = 0 }: { unreadCount?: number }) => {
           )}
           <div className="relative">
             <button
+              onClick={() => user && navigate('/user-center?tab=notifications')}
               className="relative flex items-center justify-center h-10 w-10 rounded-full hover:bg-gray-100"
               title="通知"
             >
