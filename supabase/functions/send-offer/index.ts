@@ -31,8 +31,6 @@ interface VerifyCaptchaResponse {
 
 // Verify hCaptcha token
 async function verifyCaptcha(token: string): Promise<boolean> {
-  // In production, use your actual secret key
-  // const secretKey = Deno.env.get("HCAPTCHA_SECRET_KEY");
   const secretKey = "0x0000000000000000000000000000000000000000"; // For testing only
   
   try {
@@ -184,8 +182,8 @@ serve(async (req: Request) => {
       </html>
     `;
 
-    // Email template for the admin/seller
-    const adminEmailHtml = `
+    // Email template for the domain owner
+    const ownerEmailHtml = `
       <!DOCTYPE html>
       <html>
         <head>
@@ -297,12 +295,12 @@ serve(async (req: Request) => {
 
     console.log("用户邮件已发送:", userEmailResponse);
 
-    // Determine admin/seller email
-    let adminEmail = "admin@sale.nic.bn"; // Default fallback
+    // Determine domain owner email
+    let domainOwnerEmail = "admin@sale.nic.bn"; // Default fallback
     
     // Try to use the email provided directly first
     if (ownerEmail) {
-      adminEmail = ownerEmail;
+      domainOwnerEmail = ownerEmail;
     } 
     // If no email provided but we have domainOwnerId, try to fetch from database
     else if (domainOwnerId) {
@@ -320,7 +318,7 @@ serve(async (req: Request) => {
           .single();
         
         if (!profileError && profileData?.contact_email) {
-          adminEmail = profileData.contact_email;
+          domainOwnerEmail = profileData.contact_email;
         }
       } catch (error) {
         console.error("获取域名所有者邮箱时出错:", error);
@@ -328,15 +326,15 @@ serve(async (req: Request) => {
       }
     }
 
-    // Send notification email to the domain owner or admin
-    const adminEmailResponse = await resend.emails.send({
+    // Send notification email to the domain owner
+    const ownerEmailResponse = await resend.emails.send({
       from: "NIC.BN Ltd <noreply@sale.nic.bn>",
-      to: [adminEmail],
+      to: [domainOwnerEmail],
       subject: `💰 ${domain} 收到新报价：$${offer}`,
-      html: adminEmailHtml,
+      html: ownerEmailHtml,
     });
 
-    console.log("域名所有者邮件已发送:", adminEmailResponse);
+    console.log("域名所有者邮件已发送:", ownerEmailResponse);
 
     // Create in-app notification for the domain owner if we have domainId and domainOwnerId
     if (domainId && domainOwnerId) {
@@ -375,9 +373,9 @@ serve(async (req: Request) => {
 
     return new Response(
       JSON.stringify({ 
-        message: "报价提交成功，邮件通知已发送",
+        message: "报价提交成功，邮件通知已发送给买家和卖家",
         userEmail: userEmailResponse,
-        adminEmail: adminEmailResponse
+        ownerEmail: ownerEmailResponse
       }),
       {
         status: 200,

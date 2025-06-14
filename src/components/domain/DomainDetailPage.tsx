@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -233,11 +234,11 @@ export const DomainDetailPage: React.FC = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-                {domain.name}
+                {domain?.name}
               </h1>
               <div className="flex items-center gap-3 flex-wrap">
-                <Badge variant={domain.is_verified ? "default" : "secondary"}>
-                  {domain.is_verified ? (
+                <Badge variant={domain?.is_verified ? "default" : "secondary"}>
+                  {domain?.is_verified ? (
                     <>
                       <Shield className="h-3 w-3 mr-1" />
                       已验证
@@ -246,11 +247,11 @@ export const DomainDetailPage: React.FC = () => {
                     '待验证'
                   )}
                 </Badge>
-                <Badge variant="outline">{domain.category}</Badge>
+                <Badge variant="outline">{domain?.category}</Badge>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Eye className="h-4 w-4" />
-                    {domain.views || 0} 次浏览
+                    {domain?.views || 0} 次浏览
                   </span>
                   <span className="flex items-center gap-1">
                     <Heart className="h-4 w-4" />
@@ -273,10 +274,10 @@ export const DomainDetailPage: React.FC = () => {
               >
                 <Heart className={`h-4 w-4 ${isFavorited ? "fill-current" : ""}`} />
               </Button>
-              <DomainShareButtons domainName={domain.name} />
+              <DomainShareButtons domainName={domain?.name || ''} />
               <div className="text-right">
                 <div className="text-3xl font-bold text-primary">
-                  ¥{domain.price.toLocaleString()}
+                  ¥{domain?.price.toLocaleString()}
                 </div>
                 <div className="text-sm text-muted-foreground">
                   一口价
@@ -291,7 +292,7 @@ export const DomainDetailPage: React.FC = () => {
           {/* 左侧：域名详情 */}
           <div className="lg:col-span-2 space-y-6">
             {/* 域名描述 */}
-            {domain.description && (
+            {domain?.description && (
               <Card>
                 <CardHeader>
                   <CardTitle>域名描述</CardTitle>
@@ -323,7 +324,7 @@ export const DomainDetailPage: React.FC = () => {
                 <CardTitle>域名分析</CardTitle>
               </CardHeader>
               <CardContent>
-                <DomainAnalytics domainId={domain.id} createdAt={domain.created_at || ''} />
+                <DomainAnalytics domainId={domain?.id || ''} createdAt={domain?.created_at || ''} />
               </CardContent>
             </Card>
 
@@ -350,17 +351,17 @@ export const DomainDetailPage: React.FC = () => {
                   className="w-full" 
                   size="lg"
                   onClick={handlePurchase}
-                  disabled={domain.status !== 'available'}
+                  disabled={domain?.status !== 'available'}
                 >
                   <DollarSign className="h-4 w-4 mr-2" />
-                  立即购买 ¥{domain.price.toLocaleString()}
+                  立即购买 ¥{domain?.price.toLocaleString()}
                 </Button>
                 
                 <Button 
                   variant="outline" 
                   className="w-full"
                   onClick={() => setShowOfferForm(true)}
-                  disabled={domain.status !== 'available'}
+                  disabled={domain?.status !== 'available'}
                 >
                   <MessageSquare className="h-4 w-4 mr-2" />
                   提交报价
@@ -380,23 +381,23 @@ export const DomainDetailPage: React.FC = () => {
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">域名长度</span>
-                  <span>{domain.name.length} 字符</span>
+                  <span>{domain?.name.length} 字符</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">创建时间</span>
-                  <span>{new Date(domain.created_at || '').toLocaleDateString()}</span>
+                  <span>{new Date(domain?.created_at || '').toLocaleDateString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">状态</span>
-                  <Badge variant={domain.status === 'available' ? 'default' : 'secondary'}>
-                    {domain.status === 'available' ? '可购买' : '不可用'}
+                  <Badge variant={domain?.status === 'available' ? 'default' : 'secondary'}>
+                    {domain?.status === 'available' ? '可购买' : '不可用'}
                   </Badge>
                 </div>
                 <Separator />
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">验证状态</span>
-                  <Badge variant={domain.is_verified ? 'default' : 'secondary'}>
-                    {domain.is_verified ? '已验证' : domain.verification_status}
+                  <Badge variant={domain?.is_verified ? 'default' : 'secondary'}>
+                    {domain?.is_verified ? '已验证' : domain?.verification_status}
                   </Badge>
                 </div>
               </CardContent>
@@ -406,7 +407,7 @@ export const DomainDetailPage: React.FC = () => {
       </div>
 
       {/* 报价表单弹窗 */}
-      {showOfferForm && (
+      {showOfferForm && domain && (
         <DomainOfferForm
           domain={domain}
           onClose={() => setShowOfferForm(false)}
@@ -418,7 +419,7 @@ export const DomainDetailPage: React.FC = () => {
       )}
 
       {/* 支付表单弹窗 */}
-      {showPaymentForm && (
+      {showPaymentForm && domain && (
         <PaymentIntegration
           domain={domain}
           onPaymentSuccess={handlePaymentSuccess}
@@ -427,4 +428,67 @@ export const DomainDetailPage: React.FC = () => {
       )}
     </div>
   );
+
+  async function loadSimilarDomains(domainName: string, category?: string) {
+    try {
+      let query = supabase
+        .from('domain_listings')
+        .select('*')
+        .eq('status', 'available')
+        .neq('id', domainId)
+        .limit(6);
+
+      if (category) {
+        query = query.eq('category', category);
+      }
+
+      const { data } = await query;
+      setSimilarDomains(data || []);
+    } catch (error) {
+      console.error('Error loading similar domains:', error);
+    }
+  }
+
+  async function updateDomainViews() {
+    try {
+      const { data: analytics } = await supabase
+        .from('domain_analytics')
+        .select('views')
+        .eq('domain_id', domainId)
+        .single();
+
+      if (analytics) {
+        await supabase
+          .from('domain_analytics')
+          .update({ views: (analytics.views || 0) + 1 })
+          .eq('domain_id', domainId);
+      } else {
+        await supabase
+          .from('domain_analytics')
+          .insert({ domain_id: domainId, views: 1 });
+      }
+    } catch (error) {
+      console.error('Error updating views:', error);
+    }
+  }
+
+  async function logDomainView() {
+    try {
+      await supabase.from('user_activities').insert({
+        activity_type: 'domain_view',
+        resource_id: domainId,
+        metadata: {
+          domain_name: domain?.name,
+          timestamp: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      console.error('Error logging domain view:', error);
+    }
+  }
+
+  function handleFavoriteToggle() {
+    setIsFavorited(!isFavorited);
+    toast.success(isFavorited ? '已取消收藏' : '已添加收藏');
+  }
 };
