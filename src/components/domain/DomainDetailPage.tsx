@@ -6,13 +6,13 @@ import { DomainDetailMainContent } from "@/components/domain/DomainDetailMainCon
 import { DomainDetailSidebar } from "@/components/domain/DomainDetailSidebar";
 import { DomainShareButtons } from "@/components/domain/DomainShareButtons";
 import { useDomainDetail } from "@/components/domain/useDomainDetail";
-import { SimilarDomainsGrid } from "@/components/domain/SimilarDomainsGrid";
-import { PriceHistoryChart } from "@/components/domain/PriceHistoryChart";
 import { DomainValuationTool } from "@/components/domain/DomainValuationTool";
 import NotFound from "@/pages/NotFound";
+import { useState } from "react";
 
 export const DomainDetailPage = () => {
   const { domain, similarDomains, priceHistory, isLoading, error } = useDomainDetail();
+  const [isFavorited, setIsFavorited] = useState(false);
 
   if (isLoading) {
     return (
@@ -29,19 +29,42 @@ export const DomainDetailPage = () => {
     return <NotFound />;
   }
 
+  const handleToggleFavorite = () => {
+    setIsFavorited(!isFavorited);
+  };
+
+  const handlePurchase = () => {
+    console.log(`Purchasing ${domain.name}`);
+  };
+
+  const handleOffer = () => {
+    console.log(`Making an offer for ${domain.name}`);
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen">
       <Navbar />
       <main className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <DomainDetailHeader domain={domain} />
+        <DomainDetailHeader 
+          domain={domain} 
+          isFavorited={isFavorited} 
+          onToggleFavorite={handleToggleFavorite} 
+        />
         
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 lg:gap-8">
           <div className="lg:col-span-2 space-y-8">
-            <DomainDetailMainContent domain={domain} />
-            <PriceHistoryChart data={priceHistory} />
+            <DomainDetailMainContent 
+              domain={domain} 
+              priceHistory={priceHistory} 
+              similarDomains={similarDomains} 
+            />
           </div>
           <div className="mt-8 lg:mt-0 space-y-8">
-            <DomainDetailSidebar domain={domain} />
+            <DomainDetailSidebar 
+              domain={domain}
+              onPurchase={handlePurchase}
+              onOffer={handleOffer}
+            />
             <DomainShareButtons domainName={domain.name} />
           </div>
         </div>
@@ -50,10 +73,6 @@ export const DomainDetailPage = () => {
           <DomainValuationTool />
         </div>
 
-        <div className="mt-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">相似域名</h2>
-          <SimilarDomainsGrid domains={similarDomains} />
-        </div>
       </main>
     </div>
   );

@@ -1,4 +1,3 @@
-
 import React, { Suspense } from "react";
 import { Shield, Eye, Heart, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,10 +9,10 @@ const DomainShareButtons = React.lazy(() =>
 interface DomainDetailHeaderProps {
   domain: {
     name: string;
-    is_verified: boolean;
-    category: string;
-    views: number;
-    status: string;
+    is_verified?: boolean;
+    category?: string;
+    views?: number;
+    status?: string;
     price: number;
   };
   isFavorited: boolean;
