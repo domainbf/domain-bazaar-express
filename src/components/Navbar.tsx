@@ -2,24 +2,21 @@
 import React from "react";
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast"
-import { LogOut, Settings, User, Home, Plus, ClipboardList, Bell } from "lucide-react";
+import { LogOut, Settings, User, Bell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import logo from '/placeholder.svg';
 
 // 新增：支持 unreadCount 传参
 export const Navbar = ({ unreadCount = 0 }: { unreadCount?: number }) => {
-  const { user, profile, logOut } = useAuth();
+  const { user, logOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast()
 
@@ -50,56 +47,60 @@ export const Navbar = ({ unreadCount = 0 }: { unreadCount?: number }) => {
         </Link>
         <div className="flex items-center space-x-2">
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={profile?.avatar_url || ""} alt={profile?.full_name || user?.email || "头像"} />
-                    <AvatarFallback>{profile?.full_name?.slice(0, 2).toUpperCase() || user?.email?.slice(0, 2).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel>我的账户</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => navigate('/user-center?tab=profile')}>
-                  <User className="mr-2 h-4 w-4" />
-                  个人资料
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/user-center?tab=domains')}>
-                  <ClipboardList className="mr-2 h-4 w-4" />
-                  我的域名
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/dashboard')}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  控制面板
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  退出登录
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <TooltipProvider>
+              <div className="flex items-center space-x-1">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="h-10 w-10 rounded-full">
+                      <Settings className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent><p>控制面板</p></TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={() => navigate('/user-center')} className="h-10 w-10 rounded-full">
+                      <User className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent><p>用户中心</p></TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => navigate('/user-center?tab=notifications')}
+                      className="relative flex items-center justify-center h-10 w-10 rounded-full hover:bg-gray-100"
+                      title="通知"
+                    >
+                      <Bell className="w-5 h-5 text-gray-700" />
+                      {unreadCount > 0 && (
+                        <Badge className="bg-blue-500 absolute -top-1 -right-1 px-1.5 py-0 text-xs font-bold flex items-center justify-center">
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </Badge>
+                      )}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent><p>通知</p></TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={handleLogout} className="h-10 w-10 rounded-full">
+                      <LogOut className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent><p>退出登录</p></TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
           ) : (
             <>
               <Button variant="ghost" onClick={() => navigate('/profile')}>登录</Button>
               <Button onClick={() => navigate('/profile')}>注册</Button>
             </>
           )}
-          <div className="relative">
-            <button
-              onClick={() => user && navigate('/user-center?tab=notifications')}
-              className="relative flex items-center justify-center h-10 w-10 rounded-full hover:bg-gray-100"
-              title="通知"
-            >
-              <Bell className="w-5 h-5 text-gray-700" />
-              {unreadCount > 0 && (
-                <Badge className="bg-blue-500 absolute -top-1 -right-1 px-1.5 py-0 text-xs font-bold flex items-center justify-center">
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </Badge>
-              )}
-            </button>
-          </div>
         </div>
       </div>
     </nav>
