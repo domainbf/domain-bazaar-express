@@ -48,34 +48,48 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       try {
         if (session?.user) {
+          console.log('Setting user data:', session.user.email);
           setUser(session.user);
           setSession(session);
           
-          // 检查管理员状态
-          const isAdminUser = session.user.app_metadata?.is_admin || false;
+          // 安全地检查管理员状态
+          const isAdminUser = Boolean(session.user.app_metadata?.is_admin);
           setIsAdmin(isAdminUser);
+          console.log('Admin status:', isAdminUser);
           
-          // 获取用户资料，使用超时和错误处理
+          // 获取用户资料，使用优化的查询
           try {
+            const profilePromise = supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+            
+            const timeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Profile fetch timeout')), 3000)
+            );
+            
             const { data: profileData, error } = await Promise.race([
-              supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single(),
-              new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
-              )
+              profilePromise,
+              timeoutPromise
             ]) as any;
             
             if (!error && profileData && mounted) {
               setProfile(profileData);
+              console.log('Profile loaded:', profileData.username || profileData.full_name);
+            } else if (error && mounted) {
+              console.error('Profile fetch error:', error);
+              // 创建默认 profile 如果不存在
+              if (error.code === 'PGRST116') {
+                await createDefaultProfile(session.user.id, session.user.email);
+              }
             }
           } catch (profileError) {
             console.error('Error fetching profile:', profileError);
-            // 继续执行，不阻塞认证流程
+            // 不阻塞认证流程
           }
         } else {
+          console.log('No session, clearing user data');
           setUser(null);
           setSession(null);
           setProfile(null);
@@ -86,22 +100,57 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     };
 
+    const createDefaultProfile = async (userId: string, email?: string) => {
+      try {
+        const { error } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            full_name: email?.split('@')[0] || 'User',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+        
+        if (error) {
+          console.error('Error creating default profile:', error);
+        } else {
+          console.log('Default profile created successfully');
+          // 重新获取 profile
+          const { data: newProfile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+          
+          if (newProfile && mounted) {
+            setProfile(newProfile);
+          }
+        }
+      } catch (error) {
+        console.error('Error in createDefaultProfile:', error);
+      }
+    };
+
     // 设置认证状态监听器
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
         
-        console.log('Auth state change:', event, !!session);
-        setIsLoading(true);
+        console.log('Auth state change:', event, !!session?.user);
         
-        try {
+        // 对于某些事件，延迟处理以避免竞态条件
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          setTimeout(async () => {
+            if (mounted) {
+              setIsLoading(true);
+              await setData(session);
+              setIsLoading(false);
+            }
+          }, 100);
+        } else {
+          setIsLoading(true);
           await setData(session);
-        } catch (error) {
-          console.error('Error handling auth state change:', error);
-        } finally {
-          if (mounted) {
-            setIsLoading(false);
-          }
+          setIsLoading(false);
         }
       }
     );
@@ -109,7 +158,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // 检查现有会话
     const getInitialSession = async () => {
       try {
+        console.log('Getting initial session...');
         const { data: { session }, error } = await supabase.auth.getSession();
+        
         if (error) {
           console.error('Error getting session:', error);
           return;
@@ -147,6 +198,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         
       if (!error && data) {
         setProfile(data);
+        console.log('Profile refreshed successfully');
+      } else if (error) {
+        console.error('Error refreshing profile:', error);
       }
     } catch (error) {
       console.error('Error refreshing profile:', error);
@@ -157,14 +211,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     if (!user) return false;
     
     try {
-      // 检查用户是否具有管理员角色
-      const isAdminUser = user.app_metadata?.is_admin || false;
+      // 重新获取用户会话以确保最新的元数据
+      const { data: { session }, error } = await supabase.auth.getSession();
       
-      // 双重检查以确保我们有最新的元数据
-      const { data: { session } } = await supabase.auth.getSession();
-      const currentIsAdmin = session?.user?.app_metadata?.is_admin || false;
+      if (error) {
+        console.error('Error checking session:', error);
+        return false;
+      }
       
+      const currentIsAdmin = Boolean(session?.user?.app_metadata?.is_admin);
       setIsAdmin(currentIsAdmin);
+      
+      console.log('Admin status checked:', currentIsAdmin);
       return currentIsAdmin;
     } catch (error) {
       console.error('Error checking admin status:', error);
@@ -175,43 +233,40 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const signIn = async (email: string, password: string) => {
     try {
       setIsAuthenticating(true);
+      console.log('Starting sign in process for:', email);
       
       // 清理现有认证状态
       try {
         await supabase.auth.signOut();
+        // 清理本地存储
+        localStorage.removeItem('supabase.auth.token');
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+            localStorage.removeItem(key);
+          }
+        });
       } catch {
-        // 忽略退出错误
+        // 忽略清理错误
       }
       
-      const { success, data, error } = await signInWithEmailPassword(email, password);
+      const result = await signInWithEmailPassword(email, password);
       
-      if (success && data.user) {
+      if (result.success && result.data?.user) {
+        console.log('Sign in successful, waiting for auth state update...');
+        
         // 等待认证状态更新
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // 获取用户资料
-        try {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', data.user.id)
-            .single();
-          
-          if (profileData) {
-            setProfile(profileData);
-          }
-        } catch (profileError) {
-          console.error('Error fetching profile after login:', profileError);
-        }
-        
         // 检查管理员状态
-        const isAdminUser = data.user.app_metadata?.is_admin || false;
+        const isAdminUser = Boolean(result.data.user.app_metadata?.is_admin);
         setIsAdmin(isAdminUser);
         
         toast.success('登录成功');
         return true;
       } else {
-        toast.error(error?.message || '登录失败');
+        const errorMsg = result.error?.message || '登录失败';
+        console.error('Sign in failed:', errorMsg);
+        toast.error(errorMsg);
         return false;
       }
     } catch (error: any) {
@@ -226,16 +281,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const signUp = async (email: string, password: string, metadata?: { [key: string]: any }) => {
     try {
       setIsAuthenticating(true);
-      const { success, error } = await signUpWithEmailPassword(email, password, { 
+      console.log('Starting sign up process for:', email);
+      
+      const result = await signUpWithEmailPassword(email, password, { 
         metadata,
         redirectTo: `${window.location.origin}/`
       });
       
-      if (success) {
+      if (result.success) {
         toast.success('注册成功，请验证您的邮箱');
         return true;
       } else {
-        toast.error(error?.message || '注册失败');
+        const errorMsg = result.error?.message || '注册失败';
+        console.error('Sign up failed:', errorMsg);
+        toast.error(errorMsg);
         return false;
       }
     } catch (error: any) {
@@ -249,27 +308,46 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const logOut = async () => {
     try {
-      // 清理本地状态
+      console.log('Starting logout process...');
+      
+      // 立即清理本地状态
       setUser(null);
       setSession(null);
       setProfile(null);
       setIsAdmin(false);
       
-      // 执行退出
-      const { success } = await authSignOut();
+      // 清理本地存储
+      localStorage.removeItem('supabase.auth.token');
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+          localStorage.removeItem(key);
+        }
+      });
       
-      if (success) {
+      // 执行退出
+      const result = await authSignOut();
+      
+      if (result.success) {
         toast.success('退出成功');
         // 强制页面刷新以清理所有状态
-        window.location.href = '/';
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 500);
       } else {
-        toast.error('退出失败');
+        console.error('Logout failed:', result.error);
+        toast.error('退出失败，请重试');
+        // 即使退出失败也清理本地状态并重定向
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1000);
       }
     } catch (error: any) {
       console.error('Logout error:', error);
       toast.error(error.message || '退出失败');
-      // 即使退出失败也清理本地状态
-      window.location.href = '/';
+      // 强制清理状态并重定向
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1000);
     }
   };
 
@@ -280,30 +358,40 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     if (!user) return false;
     
     try {
-      // 创建一个新对象，只包含存在于 profiles 表中的属性
-      const profileData: Record<string, any> = {};
+      console.log('Updating profile for user:', user.id);
+      
+      // 创建一个新对象，只包含有效的 profile 属性
+      const profileData: Record<string, any> = {
+        updated_at: new Date().toISOString()
+      };
       
       // 复制有效属性
-      if ('full_name' in data) profileData.full_name = data.full_name;
-      if ('username' in data) profileData.username = data.username;
-      if ('bio' in data) profileData.bio = data.bio;
-      if ('contact_email' in data) profileData.contact_email = data.contact_email;
-      if ('contact_phone' in data) profileData.contact_phone = data.contact_phone;
-      if ('company_name' in data) profileData.company_name = data.company_name;
-      if ('custom_url' in data) profileData.custom_url = data.custom_url;
-      if ('avatar_url' in data) profileData.avatar_url = data.avatar_url;
+      const validFields = [
+        'full_name', 'username', 'bio', 'contact_email', 'contact_phone',
+        'company_name', 'custom_url', 'avatar_url'
+      ];
+      
+      validFields.forEach(field => {
+        if (field in data && data[field as keyof UserProfile] !== undefined) {
+          profileData[field] = data[field as keyof UserProfile];
+        }
+      });
       
       const { error } = await supabase
         .from('profiles')
         .update(profileData)
         .eq('id', user.id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Profile update error:', error);
+        throw error;
+      }
       
       // 更新本地资料状态
       setProfile((prev) => prev ? { ...prev, ...profileData } : null);
       
       toast.success('个人资料更新成功');
+      console.log('Profile updated successfully');
       return true;
     } catch (error: any) {
       console.error('Profile update error:', error);
@@ -315,12 +403,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const resetPassword = async (email: string) => {
     try {
       setIsAuthenticating(true);
-      const { success, error } = await resetUserPassword(email);
-      if (success) {
+      console.log('Requesting password reset for:', email);
+      
+      const result = await resetUserPassword(email);
+      
+      if (result.success) {
         toast.success('重置密码链接已发送到您的邮箱');
         return true;
       } else {
-        toast.error(error?.message || '发送重置密码邮件失败');
+        const errorMsg = result.error?.message || '发送重置密码邮件失败';
+        console.error('Password reset failed:', errorMsg);
+        toast.error(errorMsg);
         return false;
       }
     } catch (error: any) {

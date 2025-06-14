@@ -27,6 +27,7 @@ import { SimilarDomainsGrid } from '@/components/domain/SimilarDomainsGrid';
 import { DomainShareButtons } from '@/components/domain/DomainShareButtons';
 import { DomainAnalytics } from '@/components/domain/DomainAnalytics';
 import { MultiCurrencyPayment } from '@/components/payment/MultiCurrencyPayment';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 export const DomainDetailPage: React.FC = () => {
   const { domainId } = useParams<{ domainId: string }>();
@@ -38,6 +39,7 @@ export const DomainDetailPage: React.FC = () => {
   const [showOfferForm, setShowOfferForm] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (domainId) {
@@ -50,14 +52,18 @@ export const DomainDetailPage: React.FC = () => {
     if (!domainId) return;
 
     setIsLoading(true);
+    setError(null);
+    
     try {
-      // 首先尝试通过域名 ID 查找
+      console.log('Loading domain details for:', domainId);
+      
+      // 优化查询：使用更精确的查询条件
       let domainQuery = supabase
         .from('domain_listings')
         .select(`
           *,
           domain_analytics(views, favorites, offers),
-          profiles(username, full_name, avatar_url, seller_rating)
+          profiles(username, full_name, avatar_url)
         `);
 
       // 检查 domainId 是否是 UUID 格式
@@ -66,7 +72,6 @@ export const DomainDetailPage: React.FC = () => {
       if (isUUID) {
         domainQuery = domainQuery.eq('id', domainId);
       } else {
-        // 如果不是 UUID，按域名名称查找
         domainQuery = domainQuery.eq('name', domainId);
       }
 
@@ -74,62 +79,70 @@ export const DomainDetailPage: React.FC = () => {
 
       if (domainError) {
         console.error('Error loading domain:', domainError);
-        toast.error('域名不存在或已被删除');
-        navigate('/marketplace');
+        setError('域名不存在或已被删除');
         return;
       }
 
-      // 处理域名数据，确保类型正确
+      // 安全地处理域名数据
       const processedDomain: Domain = {
         id: domainData.id,
-        name: domainData.name,
-        price: Number(domainData.price),
-        category: domainData.category,
-        description: domainData.description,
-        status: domainData.status,
-        highlight: domainData.highlight,
-        owner_id: domainData.owner_id,
-        created_at: domainData.created_at,
-        is_verified: domainData.is_verified,
-        verification_status: domainData.verification_status,
+        name: domainData.name || '',
+        price: Number(domainData.price) || 0,
+        category: domainData.category || 'standard',
+        description: domainData.description || '',
+        status: domainData.status || 'available',
+        highlight: Boolean(domainData.highlight),
+        owner_id: domainData.owner_id || '',
+        created_at: domainData.created_at || new Date().toISOString(),
+        is_verified: Boolean(domainData.is_verified),
+        verification_status: domainData.verification_status || 'pending',
         views: 0
       };
 
-      // 处理 analytics 数据
-      if (domainData.domain_analytics && Array.isArray(domainData.domain_analytics)) {
+      // 安全地处理 analytics 数据
+      if (domainData.domain_analytics && Array.isArray(domainData.domain_analytics) && domainData.domain_analytics.length > 0) {
         const analytics = domainData.domain_analytics[0];
         if (analytics) {
-          processedDomain.views = analytics.views || 0;
+          processedDomain.views = Number(analytics.views) || 0;
         }
       }
 
       setDomain(processedDomain);
+      console.log('Domain loaded successfully:', processedDomain);
 
-      // 加载价格历史
-      const { data: priceHistoryData } = await supabase
-        .from('domain_price_history')
-        .select('*')
-        .eq('domain_id', processedDomain.id)
-        .order('created_at', { ascending: true });
+      // 并行加载相关数据以提高性能
+      await Promise.all([
+        loadPriceHistory(processedDomain.id),
+        loadSimilarDomains(processedDomain.name, processedDomain.category),
+        updateDomainViews(processedDomain.id)
+      ]);
 
-      setPriceHistory(priceHistoryData || []);
-
-      // 加载相似域名
-      await loadSimilarDomainsData(processedDomain.name, processedDomain.category);
-
-      // 更新浏览量
-      await updateDomainViewsData(processedDomain.id);
-
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading domain details:', error);
-      toast.error('加载域名详情失败');
-      navigate('/marketplace');
+      setError('加载域名详情失败，请刷新重试');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const loadSimilarDomainsData = async (domainName: string, category?: string) => {
+  const loadPriceHistory = async (domainId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('domain_price_history')
+        .select('*')
+        .eq('domain_id', domainId)
+        .order('created_at', { ascending: true })
+        .limit(50); // 限制数据量
+
+      if (!error && data) {
+        setPriceHistory(data);
+      }
+    } catch (error) {
+      console.error('Error loading price history:', error);
+    }
+  };
+
+  const loadSimilarDomains = async (domainName: string, category?: string) => {
     try {
       let query = supabase
         .from('domain_listings')
@@ -138,48 +151,55 @@ export const DomainDetailPage: React.FC = () => {
         .neq('name', domainName)
         .limit(6);
 
-      if (category) {
+      if (category && category !== 'standard') {
         query = query.eq('category', category);
       }
 
-      const { data } = await query;
-      setSimilarDomains(data || []);
+      const { data, error } = await query;
+      
+      if (!error && data) {
+        setSimilarDomains(data);
+      }
     } catch (error) {
       console.error('Error loading similar domains:', error);
     }
   };
 
-  const updateDomainViewsData = async (domainId: string) => {
+  const updateDomainViews = async (domainId: string) => {
     try {
-      const { data: analytics } = await supabase
+      // 使用 upsert 来更新或插入 analytics 数据
+      const { error } = await supabase
         .from('domain_analytics')
-        .select('views')
-        .eq('domain_id', domainId)
-        .single();
+        .upsert(
+          { 
+            domain_id: domainId, 
+            views: 1 
+          },
+          { 
+            onConflict: 'domain_id',
+            ignoreDuplicates: false 
+          }
+        );
 
-      if (analytics) {
-        await supabase
-          .from('domain_analytics')
-          .update({ views: (analytics.views || 0) + 1 })
-          .eq('domain_id', domainId);
-      } else {
-        await supabase
-          .from('domain_analytics')
-          .insert({ domain_id: domainId, views: 1 });
+      if (error) {
+        console.error('Error updating views:', error);
       }
     } catch (error) {
-      console.error('Error updating views:', error);
+      console.error('Error updating domain views:', error);
     }
   };
 
-  const logDomainViewData = async () => {
+  const logDomainView = async () => {
     try {
+      if (!domainId) return;
+      
       await supabase.from('user_activities').insert({
         activity_type: 'domain_view',
         resource_id: domainId,
         metadata: {
-          domain_name: domain?.name,
-          timestamp: new Date().toISOString()
+          domain_name: domain?.name || domainId,
+          timestamp: new Date().toISOString(),
+          user_agent: navigator.userAgent
         }
       });
     } catch (error) {
@@ -187,23 +207,31 @@ export const DomainDetailPage: React.FC = () => {
     }
   };
 
-  const logDomainView = () => {
-    logDomainViewData();
-  };
-
-  const handleFavoriteToggleAction = () => {
-    setIsFavorited(!isFavorited);
-    toast.success(isFavorited ? '已取消收藏' : '已添加收藏');
+  const handleFavoriteToggle = async () => {
+    if (!domain) return;
+    
+    try {
+      // 这里可以添加收藏功能的实现
+      setIsFavorited(!isFavorited);
+      toast.success(isFavorited ? '已取消收藏' : '已添加收藏');
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      toast.error('操作失败，请重试');
+    }
   };
 
   const handlePurchase = () => {
+    if (!domain || domain.status !== 'available') {
+      toast.error('域名当前不可购买');
+      return;
+    }
     setShowPaymentForm(true);
   };
 
   const handlePaymentSuccess = () => {
     setShowPaymentForm(false);
     toast.success('购买成功！域名转移将在24小时内完成');
-    loadDomainDetails();
+    loadDomainDetails(); // 重新加载域名信息
   };
 
   if (isLoading) {
@@ -211,13 +239,10 @@ export const DomainDetailPage: React.FC = () => {
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="container mx-auto px-4 py-8">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-muted rounded w-1/3"></div>
-            <div className="h-64 bg-muted rounded"></div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="h-48 bg-muted rounded"></div>
-              <div className="h-48 bg-muted rounded"></div>
-              <div className="h-48 bg-muted rounded"></div>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <LoadingSpinner size="lg" />
+              <p className="mt-4 text-muted-foreground">正在加载域名详情...</p>
             </div>
           </div>
         </div>
@@ -225,15 +250,27 @@ export const DomainDetailPage: React.FC = () => {
     );
   }
 
-  if (!domain) {
+  if (error || !domain) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="container mx-auto px-4 py-8 text-center">
-          <h1 className="text-2xl font-bold mb-4">域名不存在</h1>
-          <Button onClick={() => navigate('/marketplace')}>
-            返回市场
-          </Button>
+          <div className="max-w-md mx-auto">
+            <h1 className="text-2xl font-bold mb-4 text-destructive">
+              {error || '域名不存在'}
+            </h1>
+            <p className="text-muted-foreground mb-6">
+              {error || '请检查域名地址是否正确，或返回市场浏览其他域名'}
+            </p>
+            <div className="space-x-4">
+              <Button onClick={() => navigate('/marketplace')}>
+                返回市场
+              </Button>
+              <Button variant="outline" onClick={() => window.location.reload()}>
+                重新加载
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -284,7 +321,7 @@ export const DomainDetailPage: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleFavoriteToggleAction}
+                onClick={handleFavoriteToggle}
                 className={isFavorited ? "text-red-500" : ""}
               >
                 <Heart className={`h-4 w-4 ${isFavorited ? "fill-current" : ""}`} />
@@ -344,14 +381,16 @@ export const DomainDetailPage: React.FC = () => {
             </Card>
 
             {/* 相似域名推荐 */}
-            <Card>
-              <CardHeader>
-                <CardTitle>相似域名推荐</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <SimilarDomainsGrid domains={similarDomains} />
-              </CardContent>
-            </Card>
+            {similarDomains.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>相似域名推荐</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <SimilarDomainsGrid domains={similarDomains} />
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* 右侧：操作面板 */}
