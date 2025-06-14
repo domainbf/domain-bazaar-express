@@ -9,10 +9,21 @@ import { useDomainDetail } from "@/components/domain/useDomainDetail";
 import { DomainValuationTool } from "@/components/domain/DomainValuationTool";
 import NotFound from "@/pages/NotFound";
 import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { DomainOfferForm } from "@/components/domain/DomainOfferForm";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const DomainDetailPage = () => {
   const { domain, similarDomains, priceHistory, isLoading, error } = useDomainDetail();
   const [isFavorited, setIsFavorited] = useState(false);
+  const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
+  const { user } = useAuth();
 
   if (isLoading) {
     return (
@@ -38,7 +49,7 @@ export const DomainDetailPage = () => {
   };
 
   const handleOffer = () => {
-    console.log(`Making an offer for ${domain.name}`);
+    setIsOfferModalOpen(true);
   };
 
   return (
@@ -74,6 +85,24 @@ export const DomainDetailPage = () => {
         </div>
 
       </main>
+
+      <Dialog open={isOfferModalOpen} onOpenChange={setIsOfferModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>为 {domain.name} 提交报价</DialogTitle>
+            <DialogDescription>
+              您的报价将发送给域名所有者。如果他们感兴趣，将通过您提供的邮箱与您联系。
+            </DialogDescription>
+          </DialogHeader>
+          <DomainOfferForm
+            domain={domain.name}
+            domainId={domain.id}
+            sellerId={domain.owner_id}
+            onClose={() => setIsOfferModalOpen(false)}
+            isAuthenticated={!!user}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
