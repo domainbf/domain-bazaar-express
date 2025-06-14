@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { DomainCard } from '@/components/DomainCard';
@@ -356,11 +355,8 @@ const Index = () => {
               </Button>
             </div>
           ) : isLoading ? (
-            <div className="flex justify-center py-12">
-              <div className="text-center">
-                <LoadingSpinner size="lg" />
-                <p className="mt-4 text-gray-600">正在加载精选域名...</p>
-              </div>
+            <div className="flex flex-col items-center justify-center py-20">
+              <LoadingSpinner size="lg" text="正在加载精选域名..." />
             </div>
           ) : filteredDomains.length > 0 ? (
             <>

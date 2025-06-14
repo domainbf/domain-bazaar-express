@@ -52,9 +52,9 @@ export const UserCenter = () => {
 
   if (isAuthLoading || isLoading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center">
         <Navbar />
-        <LoadingSpinner />
+        <LoadingSpinner size="lg" text="正在加载用户中心..." />
       </div>
     );
   }
