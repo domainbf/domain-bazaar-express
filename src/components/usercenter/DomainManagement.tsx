@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { DomainActions } from './DomainActions';
 import { DomainFilters } from './domain/DomainFilters';
@@ -20,15 +20,17 @@ export const DomainManagement = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [error, setError] = useState<string | null>(null);
 
-  // 超时逻辑
-  useState(() => {
-    let timer: any;
+  // 正确用 useEffect 做超时
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
     if ((isAuthLoading || isLoading) && !error) {
       timer = setTimeout(() => {
         setError('加载超时，请刷新重试。如多次失败请检查网络或账号状态。');
       }, 12000);
     }
-    return () => clearTimeout(timer);
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [isAuthLoading, isLoading, error]);
 
   if (error) {
