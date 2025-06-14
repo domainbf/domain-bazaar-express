@@ -168,6 +168,11 @@ export const DomainDetailPage: React.FC = () => {
           />
         )}
       </Suspense>
+      {/* 修复DomainShareButtons的prop类型错误 */}
+      <Suspense fallback={null}>
+        <DomainShareButtons domainName={domain.name} />
+      </Suspense>
     </div>
   );
 };
+
