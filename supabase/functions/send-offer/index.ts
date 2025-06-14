@@ -5,7 +5,6 @@ import { corsHeaders } from './utils/cors.ts';
 import { OfferRequest } from './utils/types.ts';
 import { verifyCaptcha } from './services/captcha.ts';
 import { sendOfferEmails } from './services/email.ts';
-import { getDomainOwnerEmail } from './services/db.ts';
 
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -61,19 +60,18 @@ serve(async (req: Request) => {
 
     // 验证domain_listing是否存在
     let validDomainListingId = domainId;
-    let domainOwnerData = null;
+    let realDomainOwnerId = domainOwnerId;
+    let domainOwnerEmail = "admin@sale.nic.bn"; // Default fallback
+    
     console.log("开始验证域名列表记录...");
     
     if (domainId) {
       console.log("验证domain_listing ID:", domainId);
+      
+      // 先查询 domain_listings 表
       const { data: domainListing, error: domainError } = await supabase
         .from('domain_listings')
-        .select(`
-          id, 
-          name, 
-          owner_id,
-          profiles!inner(contact_email, username, full_name)
-        `)
+        .select('id, name, owner_id')
         .eq('id', domainId)
         .maybeSingle();
       
@@ -87,12 +85,7 @@ serve(async (req: Request) => {
         // 尝试通过域名查找
         const { data: domainByName, error: nameError } = await supabase
           .from('domain_listings')
-          .select(`
-            id, 
-            name, 
-            owner_id,
-            profiles!inner(contact_email, username, full_name)
-          `)
+          .select('id, name, owner_id')
           .eq('name', domain)
           .maybeSingle();
         
@@ -107,36 +100,37 @@ serve(async (req: Request) => {
         }
         
         validDomainListingId = domainByName.id;
-        domainOwnerData = domainByName;
-        console.log("通过域名找到的有效ID:", validDomainListingId);
+        realDomainOwnerId = domainByName.owner_id;
+        console.log("通过域名找到的有效ID:", validDomainListingId, "所有者ID:", realDomainOwnerId);
       } else {
-        domainOwnerData = domainListing;
+        realDomainOwnerId = domainListing.owner_id;
         console.log("找到有效的domain_listing:", domainListing);
+      }
+
+      // 如果有 owner_id，单独查询 profiles 表获取邮箱
+      if (realDomainOwnerId) {
+        console.log("查询所有者Profile信息...");
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('contact_email, username, full_name')
+          .eq('id', realDomainOwnerId)
+          .maybeSingle();
+        
+        if (profileError) {
+          console.error("查询Profile时出错:", profileError);
+        } else if (profileData?.contact_email) {
+          domainOwnerEmail = profileData.contact_email;
+          console.log("从Profile获取到邮箱:", domainOwnerEmail);
+        } else {
+          console.log("Profile中没有找到contact_email");
+        }
       }
     } else {
       console.error("缺少域名ID信息");
       throw new Error("缺少域名ID信息");
     }
 
-    // 获取域名所有者邮箱和用户ID
-    let domainOwnerEmail = "admin@sale.nic.bn"; // Default fallback
-    let realDomainOwnerId = domainOwnerId;
-    
-    if (domainOwnerData) {
-      console.log("从域名数据获取所有者信息:", domainOwnerData);
-      
-      // 设置真实的域名所有者ID
-      if (domainOwnerData.owner_id) {
-        realDomainOwnerId = domainOwnerData.owner_id;
-      }
-      
-      // 获取所有者邮箱
-      if (domainOwnerData.profiles?.contact_email) {
-        domainOwnerEmail = domainOwnerData.profiles.contact_email;
-        console.log("从profiles获取到邮箱:", domainOwnerEmail);
-      }
-    }
-
+    // 如果传入了 ownerEmail，使用传入的邮箱
     if (ownerEmail && ownerEmail.includes('@')) {
       domainOwnerEmail = ownerEmail;
       console.log("使用传入的所有者邮箱:", domainOwnerEmail);
@@ -215,12 +209,31 @@ serve(async (req: Request) => {
     
     // 发送邮件给买家和卖家
     console.log("开始发送邮件...");
+    console.log("邮件发送参数:", {
+      domain,
+      offer,
+      email,
+      message,
+      buyerId,
+      domainOwnerEmail,
+      dashboardUrl: "https://sale.nic.bn/user-center?tab=domains"
+    });
+
     const { userEmailResponse, ownerEmailResponse } = await sendOfferEmails({ 
       ...offerRequest, 
-      domainOwnerEmail 
+      domainOwnerEmail,
+      dashboardUrl: "https://sale.nic.bn/user-center?tab=domains"
     });
+    
     console.log("邮件发送完成 - 买家邮件:", userEmailResponse.data ? "成功" : "失败");
     console.log("邮件发送完成 - 卖家邮件:", ownerEmailResponse.data ? "成功" : "失败");
+
+    if (userEmailResponse.error) {
+      console.error("买家邮件发送错误:", userEmailResponse.error);
+    }
+    if (ownerEmailResponse.error) {
+      console.error("卖家邮件发送错误:", ownerEmailResponse.error);
+    }
 
     console.log("=== Send Offer Function Completed Successfully ===");
     
