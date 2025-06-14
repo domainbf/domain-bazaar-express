@@ -1,5 +1,4 @@
-
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -40,6 +39,10 @@ export const DomainDetailPage: React.FC = () => {
   const [showOfferForm, setShowOfferForm] = React.useState(false);
   const [showPaymentForm, setShowPaymentForm] = React.useState(false);
   const [isFavorited, setIsFavorited] = React.useState(false);
+
+  useEffect(() => {
+    setIsFavorited(false); // 或从 domain.is_favorited 判断
+  }, [domain]);
 
   const handleFavoriteToggle = async () => {
     if (!domain) return;
@@ -175,4 +178,3 @@ export const DomainDetailPage: React.FC = () => {
     </div>
   );
 };
-

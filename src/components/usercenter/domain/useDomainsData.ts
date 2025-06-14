@@ -1,4 +1,3 @@
-
 import { useCallback, useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/contexts/AuthContext';
@@ -33,6 +32,7 @@ export const useDomainsData = () => {
   const loadDomains = useCallback(async (showLoadingState = true) => {
     if (!user) {
       setIsLoading(false);
+      setDomains([]);
       return;
     }
     
