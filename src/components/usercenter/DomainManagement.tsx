@@ -9,13 +9,24 @@ import { useDomainsData } from './domain/useDomainsData';
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const DomainManagement = () => {
   const { t } = useTranslation();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const { domains, isLoading, isRefreshing, loadDomains, refreshDomains } = useDomainsData();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
-  
+
+  // 只有鉴权通过才拉数据，否则先 loading
+  if (isAuthLoading || !user) {
+    return (
+      <div className="flex justify-center py-10">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
   const filterDomains = useCallback(() => {
     return domains
       .filter(domain => 

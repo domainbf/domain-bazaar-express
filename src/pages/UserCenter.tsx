@@ -16,30 +16,35 @@ import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
 
 export const UserCenter = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, isLoading: isAuthLoading } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('domains');
   const [showHelp, setShowHelp] = useState(false);
 
+  // 优化鉴权与 profile 状态判断
   useEffect(() => {
-    // Check if user is authenticated
+    // 只用 isAuthLoading 控制首次 loading
+    if (isAuthLoading) {
+      setIsLoading(true);
+      return;
+    }
     if (!user) {
       toast.error('请登录以访问您的账户');
       navigate('/');
       return;
     }
     setIsLoading(false);
-  }, [user, navigate]);
+  }, [user, isAuthLoading, navigate]);
 
+  // tab 切换只用 setActiveTab
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    // Update URL without refreshing
-    window.history.pushState({}, '', `/user-center?tab=${value}`);
+    window.history.replaceState({}, '', `/user-center?tab=${value}`);
   };
 
   useEffect(() => {
-    // Read initial tab from URL query param
+    // 优化首次 tab 参数读取
     const params = new URLSearchParams(window.location.search);
     const tabParam = params.get('tab');
     if (tabParam && ['domains', 'transactions', 'profile', 'notifications'].includes(tabParam)) {
@@ -47,13 +52,12 @@ export const UserCenter = () => {
     }
   }, []);
 
-  if (isLoading) {
+  // 用更可靠的 loading 控制
+  if (isAuthLoading || isLoading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <Navbar />
-        <div className="max-w-6xl mx-auto px-4 py-16 flex justify-center items-center">
-          <LoadingSpinner />
-        </div>
+        <LoadingSpinner />
       </div>
     );
   }
@@ -262,3 +266,5 @@ export const UserCenter = () => {
     </div>
   );
 };
+
+
