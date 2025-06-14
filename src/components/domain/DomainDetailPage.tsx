@@ -317,7 +317,7 @@ export const DomainDetailPage: React.FC = () => {
                 <Heart className={`h-4 w-4 ${isFavorited ? "fill-current" : ""}`} />
               </Button>
               <Suspense fallback={<div />}>
-                {/* 必须传入 domainName={domain.name} 而不是整个对象 */}
+                {/* 必须传入 domainName={domain.name} */}
                 <DomainShareButtons domainName={domain.name} />
               </Suspense>
               <div className="text-right">
@@ -328,7 +328,7 @@ export const DomainDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 主要内容区域，这里为两栏布局，均为懒加载 */}
+        {/* 主要内容区域 */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <Suspense
             fallback={
@@ -358,7 +358,7 @@ export const DomainDetailPage: React.FC = () => {
           </Suspense>
         </div>
       </div>
-      {/* 报价弹窗、支付弹窗，加动画和 loading fallback */}
+      {/* 报价弹窗、支付弹窗 */}
       <Suspense fallback={null}>
         {showOfferForm && domain && (
           <DomainOfferForm
