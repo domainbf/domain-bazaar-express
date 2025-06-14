@@ -1,4 +1,3 @@
-
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from '@supabase/supabase-js';
@@ -411,8 +410,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         toast.success('重置密码链接已发送到您的邮箱');
         return true;
       } else {
-        // 修复第414行的错误 - 正确访问错误信息
-        const errorMsg = result.error || '发送重置密码邮件失败';
+        // 修复类型错误 - resetUserPassword 只返回 { success: boolean }
+        const errorMsg = '发送重置密码邮件失败';
         console.error('Password reset failed:', errorMsg);
         toast.error(errorMsg);
         return false;

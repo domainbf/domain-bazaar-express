@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -472,7 +471,7 @@ export const DomainDetailPage: React.FC = () => {
         />
       )}
 
-      {/* 支付表单弹窗 - 修复第466行的类型错误 */}
+      {/* 支付表单弹窗 - 确保传递正确的Domain对象 */}
       {showPaymentForm && domain && (
         <MultiCurrencyPayment
           domain={domain}
