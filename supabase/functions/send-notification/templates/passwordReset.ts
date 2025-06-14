@@ -13,7 +13,7 @@ export const getPasswordResetHtml = (data: { token: string }, baseUrl: string) =
   <body>
     <div class="email-container">
       <div class="header">
-        <div class="logo">🔐 NIC.BN</div>
+        <div class="logo">🌐 NIC.BN</div>
         <div class="tagline">账户安全保护</div>
       </div>
       
@@ -39,8 +39,8 @@ export const getPasswordResetHtml = (data: { token: string }, baseUrl: string) =
         </div>
         
         <div class="highlight-box">
-          <p><strong>⚠️ 如果您没有请求重置密码：</strong></p>
-          <p>请忽略此邮件，您的账户仍然安全。为了进一步保护账户安全，建议您定期更换密码并开启两步验证。</p>
+          <p><strong style="color: #92400e;">⚠️ 如果您没有请求重置密码：</strong></p>
+          <p style="color: #92400e;">请忽略此邮件，您的账户仍然安全。为了进一步保护账户安全，建议您定期更换密码并开启两步验证。</p>
         </div>
         
         <div class="divider"></div>
@@ -49,7 +49,7 @@ export const getPasswordResetHtml = (data: { token: string }, baseUrl: string) =
         
         <p style="margin-top: 32px;">
           此致<br>
-          <strong style="color: #667eea;">NIC.BN 安全团队</strong>
+          <strong style="color: #1f2937;">NIC.BN 安全团队</strong>
         </p>
       </div>
       

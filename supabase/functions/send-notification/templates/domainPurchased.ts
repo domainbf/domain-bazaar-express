@@ -13,17 +13,17 @@ export const getDomainPurchasedHtml = (data: { domain: string; amount: number; s
   <body>
     <div class="email-container">
       <div class="header">
-        <div class="logo">🎉 NIC.BN</div>
-        <div class="tagline">购买成功通知</div>
+        <div class="logo">🌐 NIC.BN</div>
+        <div class="tagline">专业域名交易平台</div>
       </div>
       
       <div class="content">
         <h1 class="title">🎊 域名购买成功！</h1>
         <p class="subtitle">恭喜您成功获得心仪的域名</p>
         
-        <div class="info-card" style="text-align: center; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border-left-color: #3b82f6;">
+        <div class="info-card" style="text-align: center; border-left-color: #1e40af;">
           <div class="domain-name">${data.domain}</div>
-          <div class="price-display" style="color: #3b82f6;">$${data.amount.toLocaleString()}</div>
+          <div class="price-display" style="color: #1e40af;">$${data.amount.toLocaleString()}</div>
           <span class="status-badge status-info">已购买</span>
         </div>
         
@@ -34,7 +34,7 @@ export const getDomainPurchasedHtml = (data: { domain: string; amount: number; s
           </tr>
           <tr>
             <td>💰 支付金额</td>
-            <td><strong style="color: #3b82f6; font-size: 18px;">$${data.amount.toLocaleString()}</strong></td>
+            <td><strong style="color: #1e40af; font-size: 18px;">$${data.amount.toLocaleString()}</strong></td>
           </tr>
           <tr>
             <td>👤 卖家</td>
@@ -53,8 +53,8 @@ export const getDomainPurchasedHtml = (data: { domain: string; amount: number; s
         </div>
         
         <div class="highlight-box">
-          <h3 style="margin-bottom: 12px;">🔄 域名转移流程：</h3>
-          <ul style="margin: 0; padding-left: 20px;">
+          <h3 style="margin-bottom: 12px; color: #92400e;">🔄 域名转移流程：</h3>
+          <ul style="margin: 0; padding-left: 20px; color: #92400e;">
             <li>域名将在 24-48 小时内转移到您的账户</li>
             <li>转移完成后您将收到确认邮件</li>
             <li>可在用户中心查看域名管理详情</li>
@@ -68,7 +68,7 @@ export const getDomainPurchasedHtml = (data: { domain: string; amount: number; s
         
         <p style="margin-top: 32px;">
           祝您使用愉快！<br>
-          <strong style="color: #667eea;">NIC.BN 客户服务团队</strong>
+          <strong style="color: #1f2937;">NIC.BN 客户服务团队</strong>
         </p>
       </div>
       

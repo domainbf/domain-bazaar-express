@@ -2,38 +2,133 @@
 export function getOwnerEmailHtml(domain: string, offer: string, email: string, message: string | undefined, buyerId: string | null | undefined, dashboardUrl: string): string {
   return `
       <!DOCTYPE html>
-      <html>
+      <html lang="zh-CN">
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>您收到了新域名报价</title>
           <style>
-            body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f9f9f9; margin: 0; padding: 0; }
-            .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-            .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px 20px; text-align: center; }
-            .header h1 { color: white; margin: 0; font-size: 28px; font-weight: 600; }
-            .content { padding: 40px 30px; }
-            .button { display: inline-block; background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 8px; font-weight: bold; margin: 25px 0; transition: all 0.2s; text-shadow: 0 1px 2px rgba(0,0,0,0.1); box-shadow: 0 2px 4px rgba(5,150,105,0.3); }
-            .button:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(5,150,105,0.4); }
-            .footer { text-align: center; padding: 30px; font-size: 14px; color: #888; background-color: #f8f9fa; }
-            .logo { font-size: 16px; opacity: 0.8; }
-            .offer-card { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); padding: 25px; border-radius: 10px; margin: 25px 0; border: 2px solid #10b981; }
-            .offer-details { background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0; }
-            .offer-details table { width: 100%; border-collapse: collapse; }
-            .offer-details td, .offer-details th { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-            .offer-details th { background-color: #f1f5f9; font-weight: normal; color: #64748b; width: 40%; }
-            .highlight { color: #10b981; font-weight: bold; font-size: 28px; text-align: center; }
-            .domain-name { font-weight: bold; color: #1e40af; font-size: 20px; }
-            .actions { text-align: center; margin: 30px 0; }
-            h2 { color: #333; margin-bottom: 20px; }
-            p { margin: 16px 0; line-height: 1.8; }
-            .urgent { background-color: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b; margin: 20px 0; }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+              line-height: 1.6; 
+              color: #1f2937; 
+              background: #f3f4f6;
+              padding: 20px;
+            }
+            .container { 
+              max-width: 600px; 
+              margin: 0 auto; 
+              background: #ffffff; 
+              border-radius: 12px; 
+              overflow: hidden; 
+              box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            }
+            .header { 
+              background: #1f2937; 
+              padding: 40px 32px; 
+              text-align: center; 
+            }
+            .header h1 { 
+              color: white; 
+              margin: 0; 
+              font-size: 24px; 
+              font-weight: 700; 
+            }
+            .logo { 
+              color: white; 
+              font-size: 28px; 
+              font-weight: 800; 
+              margin-bottom: 8px;
+            }
+            .content { 
+              padding: 40px 32px; 
+            }
+            .button { 
+              display: inline-block; 
+              background: #1f2937; 
+              color: white; 
+              text-decoration: none; 
+              padding: 14px 28px; 
+              border-radius: 8px; 
+              font-weight: 600; 
+              margin: 24px 0; 
+              transition: all 0.3s ease;
+            }
+            .button:hover { 
+              background: #374151;
+            }
+            .footer { 
+              text-align: center; 
+              padding: 32px; 
+              font-size: 14px; 
+              color: #6b7280; 
+              background: #f3f4f6; 
+            }
+            .offer-card { 
+              background: #f9fafb; 
+              padding: 24px; 
+              border-radius: 12px; 
+              margin: 24px 0; 
+              border-left: 4px solid #10b981;
+            }
+            .offer-details { 
+              background: #f9fafb; 
+              padding: 20px; 
+              border-radius: 8px; 
+              margin: 20px 0;
+            }
+            .offer-details table { 
+              width: 100%; 
+              border-collapse: collapse; 
+            }
+            .offer-details td, .offer-details th { 
+              padding: 12px; 
+              text-align: left; 
+              border-bottom: 1px solid #e5e7eb; 
+            }
+            .offer-details th { 
+              background: #f3f4f6; 
+              font-weight: 600; 
+              color: #374151; 
+              width: 40%; 
+            }
+            .highlight { 
+              color: #10b981; 
+              font-weight: 800; 
+              font-size: 28px; 
+              text-align: center; 
+            }
+            .domain-name { 
+              font-weight: 700; 
+              color: #1f2937; 
+              font-size: 20px; 
+            }
+            .actions { 
+              text-align: center; 
+              margin: 30px 0; 
+            }
+            h2 { 
+              color: #1f2937; 
+              margin-bottom: 20px; 
+            }
+            p { 
+              margin: 16px 0; 
+              line-height: 1.8; 
+            }
+            .urgent { 
+              background: #fef3c7; 
+              padding: 20px; 
+              border-radius: 8px; 
+              border-left: 4px solid #f59e0b; 
+              margin: 20px 0; 
+            }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <div class="logo">💰 域名交易平台</div>
+              <div class="logo">🌐 NIC.BN</div>
               <h1>新的域名报价</h1>
             </div>
             <div class="content">
@@ -41,9 +136,9 @@ export function getOwnerEmailHtml(domain: string, offer: string, email: string, 
               <p>您的域名 <span class="domain-name">${domain}</span> 收到了一个很有竞争力的报价！</p>
               
               <div class="offer-card">
-                <h3 style="margin-top: 0; color: #059669; text-align: center;">💎 新报价详情</h3>
+                <h3 style="margin-top: 0; color: #10b981; text-align: center;">💎 新报价详情</h3>
                 <div class="highlight">¥${offer}</div>
-                <p style="text-align: center; margin: 10px 0; color: #059669;"><strong>域名：${domain}</strong></p>
+                <p style="text-align: center; margin: 10px 0; color: #10b981;"><strong>域名：${domain}</strong></p>
               </div>
               
               <div class="offer-details">
@@ -58,7 +153,7 @@ export function getOwnerEmailHtml(domain: string, offer: string, email: string, 
                   </tr>
                   <tr>
                     <th>📧 买家邮箱</th>
-                    <td><a href="mailto:${email}" style="color: #3b82f6;">${email}</a></td>
+                    <td><a href="mailto:${email}" style="color: #1f2937;">${email}</a></td>
                   </tr>
                   <tr>
                     <th>👤 买家身份</th>
@@ -70,14 +165,14 @@ export function getOwnerEmailHtml(domain: string, offer: string, email: string, 
                   </tr>
                   ${message ? `<tr>
                     <th>💬 买家留言</th>
-                    <td style="font-style: italic; background-color: #f0f9ff; padding: 10px; border-radius: 4px;">"${message}"</td>
+                    <td style="font-style: italic; background: #f0f9ff; padding: 10px; border-radius: 4px;">"${message}"</td>
                   </tr>` : ''}
                 </table>
               </div>
               
               <div class="urgent">
-                <p><strong>⚡ 行动建议：</strong></p>
-                <ul style="margin: 10px 0;">
+                <p><strong style="color: #92400e;">⚡ 行动建议：</strong></p>
+                <ul style="margin: 10px 0; color: #92400e;">
                   <li>📈 <strong>快速回复</strong>可以提高成交几率</li>
                   <li>💡 考虑买家的诚意和报价合理性</li>
                   <li>🤝 友好沟通有助于达成共识</li>
@@ -91,10 +186,10 @@ export function getOwnerEmailHtml(domain: string, offer: string, email: string, 
               </div>
               
               <p>感谢您选择我们的域名交易平台。如需任何协助，我们的客服团队随时为您服务！</p>
-              <p>祝您交易成功！<br><strong>域名交易平台团队</strong></p>
+              <p>祝您交易成功！<br><strong>NIC.BN 团队</strong></p>
             </div>
             <div class="footer">
-              <p>© ${new Date().getFullYear()} 域名交易平台 - 保留所有权利</p>
+              <p>© ${new Date().getFullYear()} NIC.BN Ltd. - 保留所有权利</p>
               <p>您收到此邮件是因为您是域名 ${domain} 的持有者</p>
             </div>
           </div>

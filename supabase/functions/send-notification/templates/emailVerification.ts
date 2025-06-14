@@ -41,8 +41,8 @@ export const getEmailVerificationHtml = (data: { name: string; verificationUrl: 
         </div>
         
         <div class="highlight-box">
-          <p><strong>⚠️ 重要提醒：</strong></p>
-          <ul style="margin: 12px 0; padding-left: 20px;">
+          <p><strong style="color: #92400e;">⚠️ 重要提醒：</strong></p>
+          <ul style="margin: 12px 0; padding-left: 20px; color: #92400e;">
             <li>验证链接有效期为 24 小时</li>
             <li>如果您没有注册账户，请忽略此邮件</li>
             <li>验证成功后即可享受完整平台功能</li>
@@ -55,19 +55,19 @@ export const getEmailVerificationHtml = (data: { name: string; verificationUrl: 
         
         <p style="margin-top: 32px;">
           此致<br>
-          <strong style="color: #667eea;">NIC.BN 团队</strong>
+          <strong style="color: #1f2937;">NIC.BN 团队</strong>
         </p>
       </div>
       
       <div class="footer">
         <div class="social-links">
-          <a href="#">Twitter</a> | 
-          <a href="#">LinkedIn</a> | 
-          <a href="#">Facebook</a>
+          <a href="#">帮助中心</a> | 
+          <a href="#">服务条款</a> | 
+          <a href="#">隐私政策</a>
         </div>
         <p>© ${new Date().getFullYear()} NIC.BN Ltd. 版权所有</p>
         <p style="margin-top: 8px; font-size: 12px;">
-          您收到此邮件是因为您在 <a href="${baseUrl}" style="color: #667eea;">NIC.BN</a> 注册了账户
+          您收到此邮件是因为您在 <a href="${baseUrl}" style="color: #1f2937;">NIC.BN</a> 注册了账户
         </p>
       </div>
     </div>

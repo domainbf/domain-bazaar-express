@@ -13,15 +13,15 @@ export const getOfferResponseHtml = (data: { domain: string; amount: number; res
   <body>
     <div class="email-container">
       <div class="header">
-        <div class="logo">📬 NIC.BN</div>
-        <div class="tagline">交易进展通知</div>
+        <div class="logo">🌐 NIC.BN</div>
+        <div class="tagline">专业域名交易平台</div>
       </div>
       
       <div class="content">
         <h1 class="title">📨 您的域名报价有新回复</h1>
         <p class="subtitle">卖家已回复您的报价，请查看详情</p>
         
-        <div class="info-card" style="text-align: center; background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%); border-left-color: #f59e0b;">
+        <div class="info-card" style="text-align: center; border-left-color: #f59e0b;">
           <div class="domain-name">${data.domain}</div>
           <span class="status-badge status-warning">卖家已回复</span>
         </div>
@@ -42,7 +42,7 @@ export const getOfferResponseHtml = (data: { domain: string; amount: number; res
           ${data.counter_offer ? `
           <tr>
             <td>💵 卖家反报价</td>
-            <td><strong style="color: #059669; font-size: 18px;">$${data.counter_offer.toLocaleString()}</strong></td>
+            <td><strong style="color: #10b981; font-size: 18px;">$${data.counter_offer.toLocaleString()}</strong></td>
           </tr>` : ''}
         </table>
         
@@ -53,8 +53,8 @@ export const getOfferResponseHtml = (data: { domain: string; amount: number; res
         </div>
         
         <div class="highlight-box">
-          <h3 style="margin-bottom: 12px;">📋 下一步操作：</h3>
-          <ul style="margin: 0; padding-left: 20px;">
+          <h3 style="margin-bottom: 12px; color: #92400e;">📋 下一步操作：</h3>
+          <ul style="margin: 0; padding-left: 20px; color: #92400e;">
             <li>登录账户查看完整回复内容</li>
             <li>如有反报价，请及时考虑回应</li>
             <li>可继续与卖家进行友好协商</li>
@@ -67,7 +67,7 @@ export const getOfferResponseHtml = (data: { domain: string; amount: number; res
         
         <p style="margin-top: 32px;">
           祝您交易愉快！<br>
-          <strong style="color: #667eea;">NIC.BN 交易团队</strong>
+          <strong style="color: #1f2937;">NIC.BN 交易团队</strong>
         </p>
       </div>
       
