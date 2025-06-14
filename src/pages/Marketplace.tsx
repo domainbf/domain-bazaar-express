@@ -17,25 +17,29 @@ export const Marketplace = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [priceRange, setPriceRange] = useState<{min: string, max: string}>({min: '', max: ''});
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const { t } = useTranslation();
 
-  // Optimized load function with useCallback
+  // 优化的加载函数
   const loadDomains = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
+    
     try {
       console.log('Loading domains from marketplace...');
       
-      // 1. Get domain listings with better error handling
+      // 首先获取域名列表
       const { data: listingsData, error: listingsError } = await supabase
         .from('domain_listings')
         .select('*')
         .eq('status', 'available')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100); // 限制数量以提高性能
       
       if (listingsError) {
         console.error('Error loading domain listings:', listingsError);
-        throw listingsError;
+        throw new Error(`加载域名列表失败: ${listingsError.message}`);
       }
       
       console.log('Loaded domain listings:', listingsData?.length || 0);
@@ -43,46 +47,51 @@ export const Marketplace = () => {
       if (!listingsData || listingsData.length === 0) {
         console.log('No domains found in database');
         setDomains([]);
-        setIsLoading(false);
         return;
       }
       
-      // 2. Get analytics data for all domains
+      // 获取所有域名的分析数据（批量查询）
       const domainIds = listingsData.map(domain => domain.id);
       
       const { data: analyticsData, error: analyticsError } = await supabase
         .from('domain_analytics')
-        .select('*')
+        .select('domain_id, views, favorites, offers')
         .in('domain_id', domainIds);
       
       if (analyticsError) {
         console.error('Error fetching analytics:', analyticsError);
-        // Continue processing even if analytics fetch fails
+        // 继续处理，即使分析数据获取失败
       }
       
       console.log('Loaded analytics data:', analyticsData?.length || 0);
       
-      // 3. Process and merge analytics data with domains
-      const domainsWithAnalytics = listingsData.map(domain => {
-        // Find analytics for this domain
-        const analyticEntry = analyticsData?.find(a => a.domain_id === domain.id);
+      // 创建分析数据映射
+      const analyticsMap = new Map();
+      if (analyticsData) {
+        analyticsData.forEach(item => {
+          analyticsMap.set(item.domain_id, item);
+        });
+      }
+      
+      // 处理并合并数据
+      const processedDomains: Domain[] = listingsData.map(domain => {
+        const analytics = analyticsMap.get(domain.id);
         
-        //  Handle views with proper type checking
+        // 安全地解析浏览量
         let viewsValue = 0;
-        if (analyticEntry?.views) {
-          if (typeof analyticEntry.views === 'number') {
-            viewsValue = analyticEntry.views;
+        if (analytics?.views) {
+          if (typeof analytics.views === 'number') {
+            viewsValue = analytics.views;
           } else {
             try {
-              viewsValue = parseInt(String(analyticEntry.views), 10) || 0;
+              viewsValue = parseInt(String(analytics.views), 10) || 0;
             } catch {
               viewsValue = 0;
             }
           }
         }
         
-        // Convert to Domain type with proper structure
-        const processedDomain: Domain = {
+        return {
           id: domain.id,
           name: domain.name || '',
           price: Number(domain.price) || 0,
@@ -96,51 +105,64 @@ export const Marketplace = () => {
           verification_status: domain.verification_status || 'pending',
           views: viewsValue
         };
-        
-        return processedDomain;
       });
       
-      // Sort by views (high to low), then by creation date
-      domainsWithAnalytics.sort((a, b) => {
+      // 排序：优先显示已验证的域名，然后按浏览量，最后按创建时间
+      processedDomains.sort((a, b) => {
+        // 首先按验证状态排序
+        if (a.is_verified !== b.is_verified) {
+          return b.is_verified ? 1 : -1;
+        }
+        
+        // 然后按浏览量排序
         const viewsDiff = (b.views || 0) - (a.views || 0);
         if (viewsDiff !== 0) return viewsDiff;
+        
+        // 最后按创建时间排序
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       });
       
-      console.log('Processed domains:', domainsWithAnalytics.length);
-      setDomains(domainsWithAnalytics);
+      console.log('Processed domains successfully:', processedDomains.length);
+      setDomains(processedDomains);
       
     } catch (error: any) {
       console.error('Error loading domains:', error);
-      toast.error('加载域名列表失败，请刷新页面重试');
+      const errorMessage = error.message || '加载域名列表失败，请刷新页面重试';
+      setError(errorMessage);
+      toast.error(errorMessage);
       setDomains([]);
     } finally {
       setIsLoading(false);
     }
-  }, [t]);
+  }, []);
 
   useEffect(() => {
-    // Get search param from URL if present
+    // 从 URL 获取搜索参数
     const urlParams = new URLSearchParams(window.location.search);
     const searchParam = urlParams.get('search');
     if (searchParam) {
       setSearchQuery(searchParam);
     }
 
-    loadDomains();
+    // 延迟加载以确保组件完全挂载
+    const timer = setTimeout(() => {
+      loadDomains();
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [loadDomains]);
 
-  // Use memoized filtering for better performance
+  // 使用 memoized 过滤以提高性能
   const filteredDomains = useMemo(() => {
     let result = [...domains];
     
-    // Apply category filter
+    // 应用分类过滤
     if (filter !== 'all') {
       result = result.filter(domain => domain.category === filter);
     }
     
-    // Apply search filter
-    if (searchQuery) {
+    // 应用搜索过滤
+    if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       result = result.filter(domain => 
         (domain.name && domain.name.toLowerCase().includes(query)) || 
@@ -148,7 +170,7 @@ export const Marketplace = () => {
       );
     }
     
-    // Apply price range filters
+    // 应用价格范围过滤
     if (priceRange.min) {
       const minPrice = parseFloat(priceRange.min);
       if (!isNaN(minPrice)) {
@@ -163,13 +185,18 @@ export const Marketplace = () => {
       }
     }
     
-    // Apply verification filter
+    // 应用验证过滤
     if (verifiedOnly) {
       result = result.filter(domain => domain.is_verified);
     }
     
     return result;
   }, [domains, filter, searchQuery, priceRange, verifiedOnly]);
+
+  const handleRetry = () => {
+    setError(null);
+    loadDomains();
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -193,34 +220,51 @@ export const Marketplace = () => {
 
       <section className={`${isMobile ? 'py-6 px-2' : 'py-12'}`}>
         <div className={`${isMobile ? 'px-2' : 'max-w-6xl mx-auto px-4'}`}>
-          <DomainListings 
-            isLoading={isLoading} 
-            domains={filteredDomains}
-            isMobile={isMobile}
-          />
-          
-          {!isLoading && filteredDomains.length === 0 && domains.length === 0 && (
+          {error ? (
             <div className="text-center py-12">
-              <h3 className="text-lg font-semibold mb-2">暂无域名列表</h3>
-              <p className="text-muted-foreground mb-4">
-                看起来还没有域名添加到市场中
-              </p>
+              <div className="text-red-500 mb-4">
+                <h3 className="text-lg font-semibold mb-2">加载失败</h3>
+                <p>{error}</p>
+              </div>
               <button 
-                onClick={loadDomains}
+                onClick={handleRetry}
                 className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
               >
                 重新加载
               </button>
             </div>
-          )}
-          
-          {!isLoading && filteredDomains.length === 0 && domains.length > 0 && (
-            <div className="text-center py-12">
-              <h3 className="text-lg font-semibold mb-2">没有找到匹配的域名</h3>
-              <p className="text-muted-foreground">
-                请尝试调整搜索条件或筛选器
-              </p>
-            </div>
+          ) : (
+            <>
+              <DomainListings 
+                isLoading={isLoading} 
+                domains={filteredDomains}
+                isMobile={isMobile}
+              />
+              
+              {!isLoading && filteredDomains.length === 0 && domains.length === 0 && !error && (
+                <div className="text-center py-12">
+                  <h3 className="text-lg font-semibold mb-2">暂无域名列表</h3>
+                  <p className="text-muted-foreground mb-4">
+                    看起来还没有域名添加到市场中
+                  </p>
+                  <button 
+                    onClick={loadDomains}
+                    className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+                  >
+                    重新加载
+                  </button>
+                </div>
+              )}
+              
+              {!isLoading && filteredDomains.length === 0 && domains.length > 0 && !error && (
+                <div className="text-center py-12">
+                  <h3 className="text-lg font-semibold mb-2">没有找到匹配的域名</h3>
+                  <p className="text-muted-foreground">
+                    请尝试调整搜索条件或筛选器
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>

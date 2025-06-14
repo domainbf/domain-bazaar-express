@@ -16,7 +16,7 @@ export const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRoutePr
   const navigate = useNavigate();
 
   useEffect(() => {
-    const checkAccess = async () => {
+    const checkAccess = () => {
       // 等待认证状态加载完成
       if (isLoading) return;
       
@@ -25,23 +25,30 @@ export const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRoutePr
       try {
         // 检查用户是否已登录
         if (!user) {
+          console.log('User not authenticated, redirecting to home');
           toast.error('请先登录以访问此页面');
-          navigate('/');
+          navigate('/', { replace: true });
           return;
         }
 
         // 检查管理员权限（如果需要）
         if (adminOnly && !isAdmin) {
+          console.log('User is not admin, redirecting to dashboard');
           toast.error('您没有访问此页面的权限');
-          navigate('/dashboard');
+          navigate('/dashboard', { replace: true });
           return;
         }
+
+        console.log('Access granted for user:', user.email);
       } catch (error) {
         console.error('Access check failed:', error);
         toast.error('验证权限时发生错误');
-        navigate('/');
+        navigate('/', { replace: true });
       } finally {
-        setIsChecking(false);
+        // 添加一个小的延迟以确保状态更新
+        setTimeout(() => {
+          setIsChecking(false);
+        }, 100);
       }
     };
 
@@ -51,15 +58,33 @@ export const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRoutePr
   // 显示加载状态
   if (isLoading || isChecking) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="lg" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="mt-4 text-muted-foreground">正在验证权限...</p>
+        </div>
       </div>
     );
   }
 
   // 如果用户未登录或没有权限，不渲染子组件
   if (!user || (adminOnly && !isAdmin)) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">访问被拒绝</h1>
+          <p className="text-muted-foreground mb-4">
+            {!user ? '请先登录' : '您没有访问此页面的权限'}
+          </p>
+          <button 
+            onClick={() => navigate('/', { replace: true })}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+          >
+            返回首页
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return <>{children}</>;

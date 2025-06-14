@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -50,16 +51,26 @@ export const DomainDetailPage: React.FC = () => {
 
     setIsLoading(true);
     try {
-      // 加载域名详情
-      const { data: domainData, error: domainError } = await supabase
+      // 首先尝试通过域名 ID 查找
+      let domainQuery = supabase
         .from('domain_listings')
         .select(`
           *,
           domain_analytics(views, favorites, offers),
           profiles(username, full_name, avatar_url, seller_rating)
-        `)
-        .eq('id', domainId)
-        .single();
+        `);
+
+      // 检查 domainId 是否是 UUID 格式
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(domainId);
+      
+      if (isUUID) {
+        domainQuery = domainQuery.eq('id', domainId);
+      } else {
+        // 如果不是 UUID，按域名名称查找
+        domainQuery = domainQuery.eq('name', domainId);
+      }
+
+      const { data: domainData, error: domainError } = await domainQuery.single();
 
       if (domainError) {
         console.error('Error loading domain:', domainError);
@@ -98,7 +109,7 @@ export const DomainDetailPage: React.FC = () => {
       const { data: priceHistoryData } = await supabase
         .from('domain_price_history')
         .select('*')
-        .eq('domain_id', domainId)
+        .eq('domain_id', processedDomain.id)
         .order('created_at', { ascending: true });
 
       setPriceHistory(priceHistoryData || []);
@@ -107,11 +118,12 @@ export const DomainDetailPage: React.FC = () => {
       await loadSimilarDomainsData(processedDomain.name, processedDomain.category);
 
       // 更新浏览量
-      await updateDomainViewsData();
+      await updateDomainViewsData(processedDomain.id);
 
     } catch (error) {
       console.error('Error loading domain details:', error);
       toast.error('加载域名详情失败');
+      navigate('/marketplace');
     } finally {
       setIsLoading(false);
     }
@@ -123,7 +135,7 @@ export const DomainDetailPage: React.FC = () => {
         .from('domain_listings')
         .select('*')
         .eq('status', 'available')
-        .neq('id', domainId)
+        .neq('name', domainName)
         .limit(6);
 
       if (category) {
@@ -137,7 +149,7 @@ export const DomainDetailPage: React.FC = () => {
     }
   };
 
-  const updateDomainViewsData = async () => {
+  const updateDomainViewsData = async (domainId: string) => {
     try {
       const { data: analytics } = await supabase
         .from('domain_analytics')
