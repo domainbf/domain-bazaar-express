@@ -27,6 +27,8 @@ import { DomainShareButtons } from '@/components/domain/DomainShareButtons';
 import { DomainAnalytics } from '@/components/domain/DomainAnalytics';
 import { MultiCurrencyPayment } from '@/components/payment/MultiCurrencyPayment';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { DomainDetailMainContent } from './DomainDetailMainContent';
+import { DomainDetailSidebar } from './DomainDetailSidebar';
 
 export const DomainDetailPage: React.FC = () => {
   const { domainId } = useParams<{ domainId: string }>();
