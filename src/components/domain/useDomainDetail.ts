@@ -12,7 +12,7 @@ const fetchDomainDetails = async (domainId: string | undefined) => {
   // 根据域名或ID查询
   let domainQuery;
   const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(domainId);
-  const selectQuery = '*, domain_analytics(views, favorites, offers), profiles(username, full_name, avatar_url)';
+  const selectQuery = '*, profiles(username, full_name, avatar_url)';
 
   if (isUUID) {
     domainQuery = supabase.from('domain_listings').select(selectQuery).eq('id', domainId).single();
@@ -23,12 +23,27 @@ const fetchDomainDetails = async (domainId: string | undefined) => {
   const { data: domainData, error: domainError } = await domainQuery;
 
   if (domainError) {
-    throw new Error('域名不存在或已被删除');
+    if (domainError.code === 'PGRST116') {
+        throw new Error('域名不存在或已被删除');
+    }
+    throw domainError;
   }
 
-  const analytics = Array.isArray(domainData.domain_analytics) && domainData.domain_analytics.length > 0
-    ? domainData.domain_analytics[0]
-    : { views: 0, favorites: 0, offers: 0 };
+  if (!domainData) {
+    throw new Error('域名不存在或已被删除');
+  }
+  
+  const { data: analyticsData, error: analyticsError } = await supabase
+    .from('domain_analytics')
+    .select('views, favorites, offers')
+    .eq('domain_id', domainData.id)
+    .maybeSingle();
+
+  if (analyticsError) {
+    console.error("Error fetching domain analytics", analyticsError);
+  }
+
+  const analytics = analyticsData || { views: 0, favorites: 0, offers: 0 };
 
   const processedDomain: Domain = {
     id: domainData.id,

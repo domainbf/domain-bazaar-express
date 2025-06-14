@@ -43,13 +43,9 @@ export const useDomainsData = () => {
     }
     
     try {
-      // Get all data needed in one request to reduce API calls
       const { data: domainsData, error: domainsError } = await supabase
         .from('domain_listings')
-        .select(`
-          *,
-          domain_analytics(views, favorites, offers)
-        `)
+        .select('*')
         .eq('owner_id', user.id);
       
       if (domainsError) throw domainsError;
@@ -58,44 +54,37 @@ export const useDomainsData = () => {
         setDomains([]);
         return;
       }
+
+      const domainIds = domainsData.map(d => d.id);
+      const { data: analyticsData, error: analyticsError } = await supabase
+        .from('domain_analytics')
+        .select('*')
+        .in('domain_id', domainIds);
       
-      // Process domain data and analytics
+      if (analyticsError) {
+        console.error("Error fetching analytics data", analyticsError);
+      }
+
+      const analyticsMap = new Map();
+      if (analyticsData) {
+        analyticsData.forEach(item => {
+          analyticsMap.set(item.domain_id, item);
+        });
+      }
+      
       const processedDomains = domainsData.map(domain => {
-        // Get analytics data from the nested object
-        const analyticsArray = domain.domain_analytics;
-        const analyticsData = Array.isArray(analyticsArray) && analyticsArray.length > 0 ? analyticsArray[0] : null;
-        
-        // Safe parsing for views property with proper type checking
-        let viewsValue = 0;
-        if (analyticsData && typeof analyticsData === 'object' && analyticsData !== null) {
-          const analytics = analyticsData as { views?: number | string | null; favorites?: number | string | null; offers?: number | string | null };
-          
-          if (analytics.views !== null && analytics.views !== undefined) {
-            if (typeof analytics.views === 'number') {
-              viewsValue = analytics.views;
-            } else if (typeof analytics.views === 'string') {
-              try {
-                viewsValue = parseInt(analytics.views, 10) || 0;
-              } catch {
-                viewsValue = 0;
-              }
-            }
-          }
-        }
-        
-        // Remove nested objects for a cleaner structure
-        const { domain_analytics, ...domainWithoutAnalytics } = domain;
-        
+        const analytics = analyticsMap.get(domain.id);
         return {
-          ...domainWithoutAnalytics,
-          views: viewsValue,
+          ...domain,
+          views: analytics?.views || 0,
+          favorites: analytics?.favorites || 0,
+          offers: analytics?.offers || 0,
         };
       });
       
-      setDomains(processedDomains);
+      setDomains(processedDomains as Domain[]);
 
-      // Create missing analytics records
-      const missingAnalytics = domainsData.filter(domain => !domain.domain_analytics || domain.domain_analytics.length === 0);
+      const missingAnalytics = domainsData.filter(domain => !analyticsMap.has(domain.id));
       for (const domain of missingAnalytics) {
         await createAnalyticsRecord(domain.id);
       }
