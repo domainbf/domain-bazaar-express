@@ -9,7 +9,8 @@ import {
   BarChart3,
   DollarSign,
   Shield,
-  Globe
+  Globe,
+  Star
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
