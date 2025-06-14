@@ -250,22 +250,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       const result = await signInWithEmailPassword(email, password);
       
-      if (result.success && result.data?.user) {
-        console.log('Sign in successful, waiting for auth state update...');
+      if (result.success && result.data?.session) {
+        console.log('Sign in successful, updating auth state manually.');
         
-        // 等待认证状态更新
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // 检查管理员状态
-        const isAdminUser = Boolean(result.data.user.app_metadata?.is_admin);
-        setIsAdmin(isAdminUser);
-        
+        // Manually update the state to avoid race conditions
+        await setData(result.data.session);
+
         toast.success('登录成功');
         return true;
       } else {
         const errorMsg = result.error?.message || '登录失败';
         console.error('Sign in failed:', errorMsg);
-        toast.error(errorMsg);
+
+        if (errorMsg.includes('Email not confirmed')) {
+          toast.error('请先验证您的邮箱再登录。');
+        } else if (errorMsg.includes('Invalid login credentials')) {
+          toast.error('邮箱或密码错误，请重试。');
+        } else {
+          toast.error(errorMsg);
+        }
         return false;
       }
     } catch (error: any) {
