@@ -34,9 +34,10 @@ serve(async (req: Request) => {
       throw new Error("域名、报价金额和联系邮箱是必填项");
     }
 
+    // 使用 service_role_key 以绕过 RLS 策略
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
     let domainOwnerEmail = "admin@sale.nic.bn"; // Default fallback
