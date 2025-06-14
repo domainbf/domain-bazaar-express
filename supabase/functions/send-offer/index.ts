@@ -61,13 +61,19 @@ serve(async (req: Request) => {
 
     // 验证domain_listing是否存在
     let validDomainListingId = domainId;
+    let domainOwnerData = null;
     console.log("开始验证域名列表记录...");
     
     if (domainId) {
       console.log("验证domain_listing ID:", domainId);
       const { data: domainListing, error: domainError } = await supabase
         .from('domain_listings')
-        .select('id, name, owner_id')
+        .select(`
+          id, 
+          name, 
+          owner_id,
+          profiles!inner(contact_email, username, full_name)
+        `)
         .eq('id', domainId)
         .maybeSingle();
       
@@ -81,7 +87,12 @@ serve(async (req: Request) => {
         // 尝试通过域名查找
         const { data: domainByName, error: nameError } = await supabase
           .from('domain_listings')
-          .select('id, name, owner_id')
+          .select(`
+            id, 
+            name, 
+            owner_id,
+            profiles!inner(contact_email, username, full_name)
+          `)
           .eq('name', domain)
           .maybeSingle();
         
@@ -96,8 +107,10 @@ serve(async (req: Request) => {
         }
         
         validDomainListingId = domainByName.id;
+        domainOwnerData = domainByName;
         console.log("通过域名找到的有效ID:", validDomainListingId);
       } else {
+        domainOwnerData = domainListing;
         console.log("找到有效的domain_listing:", domainListing);
       }
     } else {
@@ -105,15 +118,22 @@ serve(async (req: Request) => {
       throw new Error("缺少域名ID信息");
     }
 
-    // 获取域名所有者邮箱
+    // 获取域名所有者邮箱和用户ID
     let domainOwnerEmail = "admin@sale.nic.bn"; // Default fallback
+    let realDomainOwnerId = domainOwnerId;
     
-    if (validDomainListingId) {
-      console.log("获取域名所有者邮箱...");
-      const emailFromDB = await getDomainOwnerEmail(supabase, validDomainListingId);
-      if (emailFromDB) {
-        domainOwnerEmail = emailFromDB;
-        console.log("从数据库获取到邮箱:", domainOwnerEmail);
+    if (domainOwnerData) {
+      console.log("从域名数据获取所有者信息:", domainOwnerData);
+      
+      // 设置真实的域名所有者ID
+      if (domainOwnerData.owner_id) {
+        realDomainOwnerId = domainOwnerData.owner_id;
+      }
+      
+      // 获取所有者邮箱
+      if (domainOwnerData.profiles?.contact_email) {
+        domainOwnerEmail = domainOwnerData.profiles.contact_email;
+        console.log("从profiles获取到邮箱:", domainOwnerEmail);
       }
     }
 
@@ -123,19 +143,10 @@ serve(async (req: Request) => {
     }
     
     console.log("最终使用的域名所有者邮箱:", domainOwnerEmail);
+    console.log("最终使用的域名所有者ID:", realDomainOwnerId);
 
     // 插入domain_offers表
     console.log("准备插入domain_offers表...");
-    console.log("插入参数:", {
-      domain_id: validDomainListingId,
-      amount: parseFloat(offer),
-      contact_email: email,
-      message: message || null,
-      buyer_id: buyerId || null,
-      seller_id: domainOwnerId || null,
-      status: 'pending'
-    });
-
     const { data: insertData, error: insertError } = await supabase
       .from('domain_offers')
       .insert({
@@ -144,7 +155,7 @@ serve(async (req: Request) => {
         contact_email: email,
         message: message || null,
         buyer_id: buyerId || null,
-        seller_id: domainOwnerId || null,
+        seller_id: realDomainOwnerId || null,
         status: 'pending'
       })
       .select()
@@ -152,12 +163,6 @@ serve(async (req: Request) => {
 
     if (insertError) {
       console.error("插入domain_offers失败:", insertError);
-      console.error("错误详情:", {
-        code: insertError.code,
-        message: insertError.message,
-        details: insertError.details,
-        hint: insertError.hint
-      });
       throw new Error(`保存报价失败: ${insertError.message}`);
     }
 
@@ -167,12 +172,12 @@ serve(async (req: Request) => {
     console.log("开始创建通知...");
     
     // 为卖家创建通知
-    if (domainOwnerId) {
+    if (realDomainOwnerId) {
       console.log("为卖家创建通知...");
       const { error: sellerNotificationError } = await supabase
         .from('notifications')
         .insert({
-          user_id: domainOwnerId,
+          user_id: realDomainOwnerId,
           title: '💰 新的域名报价',
           message: `您的域名 ${domain} 收到了 $${offer} 的新报价`,
           type: 'offer',
@@ -208,13 +213,14 @@ serve(async (req: Request) => {
       }
     }
     
-    // 发送邮件
+    // 发送邮件给买家和卖家
     console.log("开始发送邮件...");
     const { userEmailResponse, ownerEmailResponse } = await sendOfferEmails({ 
       ...offerRequest, 
       domainOwnerEmail 
     });
-    console.log("邮件发送完成");
+    console.log("邮件发送完成 - 买家邮件:", userEmailResponse.data ? "成功" : "失败");
+    console.log("邮件发送完成 - 卖家邮件:", ownerEmailResponse.data ? "成功" : "失败");
 
     console.log("=== Send Offer Function Completed Successfully ===");
     
