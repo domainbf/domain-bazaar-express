@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Domain, SearchFilters, SearchSuggestion } from '@/types/domain';
@@ -58,10 +57,7 @@ export const useEnhancedSearch = () => {
   const buildSearchQuery = () => {
     let query = supabase
       .from('domain_listings')
-      .select(`
-        *,
-        domain_analytics(views, favorites, offers)
-      `, { count: 'exact' })
+      .select(`*`, { count: 'exact' })
       .eq('status', 'available');
 
     // 搜索词过滤
@@ -119,23 +115,41 @@ export const useEnhancedSearch = () => {
 
       if (error) {
         console.error('Search error:', error);
+        setDomains([]);
+        setTotalCount(0);
         return;
       }
 
-      let processedDomains = (data || []).map(domain => {
-        const analyticsArray = domain.domain_analytics;
-        const analyticsData = Array.isArray(analyticsArray) && analyticsArray.length > 0 ? analyticsArray[0] : null;
-        
-        let viewsValue = 0;
-        if (analyticsData && typeof analyticsData === 'object' && analyticsData !== null) {
-          const analytics = analyticsData as { views?: number };
-          viewsValue = analytics.views || 0;
-        }
-        
-        const { domain_analytics, ...domainWithoutAnalytics } = domain;
+      if (!data || data.length === 0) {
+        setDomains([]);
+        setTotalCount(0);
+        return;
+      }
+
+      const domainIds = data.map(d => d.id);
+      const { data: analyticsData, error: analyticsError } = await supabase
+        .from('domain_analytics')
+        .select('domain_id, views, favorites, offers')
+        .in('domain_id', domainIds);
+
+      if (analyticsError) {
+        console.error("Error fetching analytics for search:", analyticsError);
+      }
+
+      const analyticsMap = new Map();
+      if (analyticsData) {
+        analyticsData.forEach(item => {
+          analyticsMap.set(item.domain_id, item);
+        });
+      }
+
+      let processedDomains = data.map(domain => {
+        const analytics = analyticsMap.get(domain.id);
         return {
-          ...domainWithoutAnalytics,
-          views: viewsValue,
+          ...domain,
+          views: analytics?.views || 0,
+          favorites: analytics?.favorites || 0,
+          offers: analytics?.offers || 0,
         };
       });
 
@@ -166,10 +180,12 @@ export const useEnhancedSearch = () => {
         });
       }
 
-      setDomains(processedDomains);
+      setDomains(processedDomains as unknown as Domain[]);
       setTotalCount(count || 0);
     } catch (error) {
       console.error('Search error:', error);
+      setDomains([]);
+      setTotalCount(0);
     } finally {
       setIsLoading(false);
     }
