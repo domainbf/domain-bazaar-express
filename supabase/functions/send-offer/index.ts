@@ -13,6 +13,8 @@ serve(async (req: Request) => {
   }
 
   try {
+    console.log("=== Send Offer Function Started ===");
+    
     const offerRequest: OfferRequest = await req.json();
     const { 
       domain, 
@@ -26,16 +28,31 @@ serve(async (req: Request) => {
       domainOwnerId
     } = offerRequest;
 
-    console.log("收到的报价请求数据:", { domain, offer, email, domainOwnerId, ownerEmail, domainId });
+    console.log("收到的报价请求数据:", { 
+      domain, 
+      offer, 
+      email, 
+      domainOwnerId, 
+      ownerEmail, 
+      domainId,
+      buyerId,
+      hasCaptchaToken: !!captchaToken 
+    });
 
-    const isCaptchaValid = await verifyCaptcha(captchaToken);
-    if (!isCaptchaValid) {
-      throw new Error("人机验证失败，请重试");
-    }
-    
+    // 验证必填字段
     if (!domain || !offer || !email) {
+      console.error("缺少必填字段:", { domain: !!domain, offer: !!offer, email: !!email });
       throw new Error("域名、报价金额和联系邮箱是必填项");
     }
+
+    // 验证人机验证
+    console.log("开始验证人机验证...");
+    const isCaptchaValid = await verifyCaptcha(captchaToken);
+    if (!isCaptchaValid) {
+      console.error("人机验证失败");
+      throw new Error("人机验证失败，请重试");
+    }
+    console.log("人机验证通过");
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -44,25 +61,37 @@ serve(async (req: Request) => {
 
     // 验证domain_listing是否存在
     let validDomainListingId = domainId;
+    console.log("开始验证域名列表记录...");
+    
     if (domainId) {
       console.log("验证domain_listing ID:", domainId);
       const { data: domainListing, error: domainError } = await supabase
         .from('domain_listings')
         .select('id, name, owner_id')
         .eq('id', domainId)
-        .single();
+        .maybeSingle();
       
-      if (domainError || !domainListing) {
-        console.error("域名列表记录不存在:", domainError);
+      if (domainError) {
+        console.error("查询域名列表时出错:", domainError);
+        throw new Error(`查询域名信息时出错: ${domainError.message}`);
+      }
+      
+      if (!domainListing) {
+        console.log("未找到域名ID，尝试通过域名查找...");
         // 尝试通过域名查找
         const { data: domainByName, error: nameError } = await supabase
           .from('domain_listings')
           .select('id, name, owner_id')
           .eq('name', domain)
-          .single();
+          .maybeSingle();
         
-        if (nameError || !domainByName) {
-          console.error("通过域名查找也失败:", nameError);
+        if (nameError) {
+          console.error("通过域名查找出错:", nameError);
+          throw new Error(`查询域名信息时出错: ${nameError.message}`);
+        }
+        
+        if (!domainByName) {
+          console.error("通过域名也未找到记录");
           throw new Error(`未找到域名 ${domain} 的有效记录。请确认域名信息是否正确。`);
         }
         
@@ -72,26 +101,41 @@ serve(async (req: Request) => {
         console.log("找到有效的domain_listing:", domainListing);
       }
     } else {
+      console.error("缺少域名ID信息");
       throw new Error("缺少域名ID信息");
     }
 
+    // 获取域名所有者邮箱
     let domainOwnerEmail = "admin@sale.nic.bn"; // Default fallback
     
     if (validDomainListingId) {
+      console.log("获取域名所有者邮箱...");
       const emailFromDB = await getDomainOwnerEmail(supabase, validDomainListingId);
       if (emailFromDB) {
         domainOwnerEmail = emailFromDB;
+        console.log("从数据库获取到邮箱:", domainOwnerEmail);
       }
     }
 
     if (ownerEmail && ownerEmail.includes('@')) {
       domainOwnerEmail = ownerEmail;
+      console.log("使用传入的所有者邮箱:", domainOwnerEmail);
     }
     
-    console.log("准备发送邮件到域名所有者:", domainOwnerEmail);
+    console.log("最终使用的域名所有者邮箱:", domainOwnerEmail);
 
-    // 现在外键约束已修复，直接插入domain_offers表
-    console.log("插入domain_offers表，使用domain_listing_id:", validDomainListingId);
+    // 插入domain_offers表
+    console.log("准备插入domain_offers表...");
+    console.log("插入参数:", {
+      domain_id: validDomainListingId,
+      amount: parseFloat(offer),
+      contact_email: email,
+      message: message || null,
+      buyer_id: buyerId || null,
+      seller_id: domainOwnerId || null,
+      status: 'pending'
+    });
+
     const { data: insertData, error: insertError } = await supabase
       .from('domain_offers')
       .insert({
@@ -108,13 +152,23 @@ serve(async (req: Request) => {
 
     if (insertError) {
       console.error("插入domain_offers失败:", insertError);
+      console.error("错误详情:", {
+        code: insertError.code,
+        message: insertError.message,
+        details: insertError.details,
+        hint: insertError.hint
+      });
       throw new Error(`保存报价失败: ${insertError.message}`);
     }
 
     console.log("报价插入成功:", insertData);
 
-    // 为卖家和买家创建通知
+    // 创建通知
+    console.log("开始创建通知...");
+    
+    // 为卖家创建通知
     if (domainOwnerId) {
+      console.log("为卖家创建通知...");
       const { error: sellerNotificationError } = await supabase
         .from('notifications')
         .insert({
@@ -128,10 +182,14 @@ serve(async (req: Request) => {
       
       if (sellerNotificationError) {
         console.error("创建卖家通知失败:", sellerNotificationError);
+      } else {
+        console.log("卖家通知创建成功");
       }
     }
 
+    // 为买家创建通知
     if (buyerId) {
+      console.log("为买家创建通知...");
       const { error: buyerNotificationError } = await supabase
         .from('notifications')
         .insert({
@@ -145,11 +203,21 @@ serve(async (req: Request) => {
       
       if (buyerNotificationError) {
         console.error("创建买家通知失败:", buyerNotificationError);
+      } else {
+        console.log("买家通知创建成功");
       }
     }
     
-    const { userEmailResponse, ownerEmailResponse } = await sendOfferEmails({ ...offerRequest, domainOwnerEmail });
+    // 发送邮件
+    console.log("开始发送邮件...");
+    const { userEmailResponse, ownerEmailResponse } = await sendOfferEmails({ 
+      ...offerRequest, 
+      domainOwnerEmail 
+    });
+    console.log("邮件发送完成");
 
+    console.log("=== Send Offer Function Completed Successfully ===");
+    
     return new Response(
       JSON.stringify({ 
         message: "报价提交成功，邮件通知已发送给买家和卖家",
@@ -165,9 +233,17 @@ serve(async (req: Request) => {
     );
 
   } catch (error: any) {
-    console.error("send-offer 函数中的顶层捕获错误:", error);
+    console.error("=== Send Offer Function Error ===");
+    console.error("错误类型:", error.constructor.name);
+    console.error("错误消息:", error.message);
+    console.error("错误堆栈:", error.stack);
+    console.error("================================");
+    
     return new Response(
-      JSON.stringify({ error: error.message || "提交报价失败" }),
+      JSON.stringify({ 
+        error: error.message || "提交报价失败",
+        details: error.stack
+      }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
