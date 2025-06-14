@@ -24,14 +24,12 @@ export const DomainAnalytics = ({ domainId, createdAt }: DomainAnalyticsProps) =
     isFavorited 
   } = useDomainAnalytics(domainId);
   const isMobile = useIsMobile();
-  
-  // Record a view when component mounts
+
   useEffect(() => {
     recordView();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
-  // Calculate days since listing
   const daysSinceListing = () => {
     if (!createdAt) return 'N/A';
     const created = new Date(createdAt);
@@ -49,7 +47,6 @@ export const DomainAnalytics = ({ domainId, createdAt }: DomainAnalyticsProps) =
     );
   }
 
-  // Format date for chart tooltip
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString();

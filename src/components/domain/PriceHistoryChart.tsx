@@ -8,14 +8,12 @@ interface PriceHistoryChartProps {
 }
 
 export const PriceHistoryChart: React.FC<PriceHistoryChartProps> = ({ data }) => {
-  // 如果没有数据，显示占位图表
   if (!data || data.length === 0) {
     const placeholderData = [
       { date: '2024-01-01', price: 1000 },
       { date: '2024-06-01', price: 1200 },
       { date: '2024-12-01', price: 1500 }
     ];
-
     return (
       <div className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
@@ -38,7 +36,6 @@ export const PriceHistoryChart: React.FC<PriceHistoryChartProps> = ({ data }) =>
     );
   }
 
-  // 处理实际数据
   const chartData = data.map(item => ({
     date: new Date(item.created_at).toLocaleDateString(),
     price: Number(item.price),

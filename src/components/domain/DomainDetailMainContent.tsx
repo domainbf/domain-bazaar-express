@@ -3,9 +3,9 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp } from "lucide-react";
 import { Domain } from "@/types/domain";
-import { PriceHistoryChart } from "@/components/domain/PriceHistoryChart";
-import { DomainAnalytics } from "@/components/domain/DomainAnalytics";
-import { SimilarDomainsGrid } from "@/components/domain/SimilarDomainsGrid";
+import { PriceHistoryChart } from "./PriceHistoryChart";
+import { DomainAnalytics } from "./DomainAnalytics";
+import { SimilarDomainsGrid } from "./SimilarDomainsGrid";
 
 interface Props {
   domain: Domain;
@@ -69,4 +69,3 @@ export const DomainDetailMainContent: React.FC<Props> = ({
     )}
   </div>
 );
-

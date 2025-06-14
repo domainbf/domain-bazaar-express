@@ -1,16 +1,13 @@
-import React, { useState, useEffect, Suspense, ReactElement } from "react";
+
+import React, { Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { Domain, DomainPriceHistory } from "@/types/domain";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Heart, Eye, MessageSquare, Shield, DollarSign } from "lucide-react";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { useDomainDetail } from "./useDomainDetail";
 import { DomainDetailHeader } from "./DomainDetailHeader";
 
-// 使用 React.lazy 动态导入子内容
 const DomainDetailMainContent = React.lazy(() =>
   import("./DomainDetailMainContent").then(mod => ({ default: mod.DomainDetailMainContent }))
 );
@@ -44,14 +41,12 @@ export const DomainDetailPage: React.FC = () => {
   const [showPaymentForm, setShowPaymentForm] = React.useState(false);
   const [isFavorited, setIsFavorited] = React.useState(false);
 
-  // 收藏逻辑
   const handleFavoriteToggle = async () => {
     if (!domain) return;
     setIsFavorited((cur) => !cur);
     toast.success(isFavorited ? "已取消收藏" : "已添加收藏");
   };
 
-  // 支付
   const handlePurchase = () => {
     if (!domain || domain.status !== "available") {
       toast.error("域名当前不可购买");
@@ -104,7 +99,6 @@ export const DomainDetailPage: React.FC = () => {
     );
   }
 
-  // 页面渲染
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
