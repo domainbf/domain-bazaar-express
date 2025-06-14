@@ -1179,6 +1179,18 @@ export type Database = {
           user_id: string
         }[]
       }
+      handle_new_offer: {
+        Args: {
+          p_domain_name: string
+          p_offer_amount: number
+          p_contact_email: string
+          p_message: string
+          p_buyer_id: string
+          p_seller_id: string
+          p_domain_listing_id: string
+        }
+        Returns: undefined
+      }
       mark_all_notifications_as_read: {
         Args: { user_id_param: string }
         Returns: undefined

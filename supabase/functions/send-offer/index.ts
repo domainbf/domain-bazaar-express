@@ -5,7 +5,7 @@ import { corsHeaders } from './utils/cors.ts';
 import { OfferRequest } from './utils/types.ts';
 import { verifyCaptcha } from './services/captcha.ts';
 import { sendOfferEmails } from './services/email.ts';
-import { getDomainOwnerEmail, storeOfferInDB, createInAppNotifications } from './services/db.ts';
+import { getDomainOwnerEmail } from './services/db.ts';
 
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -21,9 +21,12 @@ serve(async (req: Request) => {
       captchaToken,
       domainId,
       ownerEmail,
+      message,
+      buyerId,
+      domainOwnerId
     } = offerRequest;
 
-    console.log("收到的报价请求数据:", { domain, offer, email, domainOwnerId: offerRequest.domainOwnerId, ownerEmail });
+    console.log("收到的报价请求数据:", { domain, offer, email, domainOwnerId, ownerEmail });
 
     const isCaptchaValid = await verifyCaptcha(captchaToken);
     if (!isCaptchaValid) {
@@ -34,7 +37,6 @@ serve(async (req: Request) => {
       throw new Error("域名、报价金额和联系邮箱是必填项");
     }
 
-    // 使用 service_role_key 以绕过 RLS 策略
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -56,14 +58,23 @@ serve(async (req: Request) => {
     console.log("发送邮件到域名所有者:", domainOwnerEmail);
 
     if (domainId) {
-        await storeOfferInDB(supabase, offerRequest);
+      const { error: rpcError } = await supabase.rpc('handle_new_offer', {
+        p_domain_name: domain,
+        p_offer_amount: parseFloat(offer),
+        p_contact_email: email,
+        p_message: message || null,
+        p_buyer_id: buyerId || null,
+        p_seller_id: domainOwnerId || null,
+        p_domain_listing_id: domainId
+      });
+
+      if (rpcError) {
+        console.error("调用 handle_new_offer RPC 失败:", rpcError);
+        throw rpcError;
+      }
     }
     
     const { userEmailResponse, ownerEmailResponse } = await sendOfferEmails({ ...offerRequest, domainOwnerEmail });
-
-    if (offerRequest.domainId && (offerRequest.domainOwnerId || offerRequest.buyerId)) {
-        await createInAppNotifications(supabase, offerRequest);
-    }
 
     return new Response(
       JSON.stringify({ 
