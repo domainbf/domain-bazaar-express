@@ -55,10 +55,10 @@ serve(async (req: Request) => {
       domainOwnerEmail = ownerEmail;
     }
     
-    console.log("发送邮件到域名所有者:", domainOwnerEmail);
+    console.log("准备发送邮件到域名所有者:", domainOwnerEmail);
 
     if (domainId) {
-      const { error: rpcError } = await supabase.rpc('handle_new_offer', {
+      const rpcParams = {
         p_domain_name: domain,
         p_offer_amount: parseFloat(offer),
         p_contact_email: email,
@@ -66,12 +66,17 @@ serve(async (req: Request) => {
         p_buyer_id: buyerId || null,
         p_seller_id: domainOwnerId || null,
         p_domain_listing_id: domainId
-      });
+      };
+      console.log("调用 handle_new_offer RPC，参数:", JSON.stringify(rpcParams, null, 2));
+
+      const { error: rpcError } = await supabase.rpc('handle_new_offer', rpcParams);
 
       if (rpcError) {
-        console.error("调用 handle_new_offer RPC 失败:", rpcError);
-        throw rpcError;
+        console.error("调用 handle_new_offer RPC 失败:", JSON.stringify(rpcError, null, 2));
+        throw new Error(`数据库操作失败: ${rpcError.message}。请检查域名信息是否正确或联系支持。`);
       }
+      
+      console.log("调用 handle_new_offer RPC 成功。");
     }
     
     const { userEmailResponse, ownerEmailResponse } = await sendOfferEmails({ ...offerRequest, domainOwnerEmail });
@@ -90,7 +95,7 @@ serve(async (req: Request) => {
     );
 
   } catch (error: any) {
-    console.error("send-offer函数中的错误:", error);
+    console.error("send-offer 函数中的顶层捕获错误:", error);
     return new Response(
       JSON.stringify({ error: error.message || "提交报价失败" }),
       {
