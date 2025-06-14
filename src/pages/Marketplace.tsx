@@ -24,16 +24,24 @@ export const Marketplace = () => {
   const loadDomains = useCallback(async () => {
     setIsLoading(true);
     try {
-      // 1. Get domain listings
+      console.log('Loading domains from marketplace...');
+      
+      // 1. Get domain listings with better error handling
       const { data: listingsData, error: listingsError } = await supabase
         .from('domain_listings')
         .select('*')
         .eq('status', 'available')
         .order('created_at', { ascending: false });
       
-      if (listingsError) throw listingsError;
+      if (listingsError) {
+        console.error('Error loading domain listings:', listingsError);
+        throw listingsError;
+      }
+      
+      console.log('Loaded domain listings:', listingsData?.length || 0);
       
       if (!listingsData || listingsData.length === 0) {
+        console.log('No domains found in database');
         setDomains([]);
         setIsLoading(false);
         return;
@@ -52,40 +60,59 @@ export const Marketplace = () => {
         // Continue processing even if analytics fetch fails
       }
       
-      // 3. Merge analytics data with domains
+      console.log('Loaded analytics data:', analyticsData?.length || 0);
+      
+      // 3. Process and merge analytics data with domains
       const domainsWithAnalytics = listingsData.map(domain => {
         // Find analytics for this domain
         const analyticEntry = analyticsData?.find(a => a.domain_id === domain.id);
         
-        // Safely handle views with proper type checking
+        //  Handle views with proper type checking
         let viewsValue = 0;
-        if (analyticEntry) {
-          const rawViews = analyticEntry.views;
-          
-          if (typeof rawViews === 'number') {
-            viewsValue = rawViews;
-          } else if (rawViews !== null && rawViews !== undefined) {
+        if (analyticEntry?.views) {
+          if (typeof analyticEntry.views === 'number') {
+            viewsValue = analyticEntry.views;
+          } else {
             try {
-              viewsValue = parseInt(String(rawViews), 10) || 0;
+              viewsValue = parseInt(String(analyticEntry.views), 10) || 0;
             } catch {
               viewsValue = 0;
             }
           }
         }
         
-        return {
-          ...domain,
-          views: viewsValue,
+        // Convert to Domain type with proper structure
+        const processedDomain: Domain = {
+          id: domain.id,
+          name: domain.name || '',
+          price: Number(domain.price) || 0,
+          category: domain.category || 'standard',
+          description: domain.description || '',
+          status: domain.status || 'available',
+          highlight: Boolean(domain.highlight),
+          owner_id: domain.owner_id || '',
+          created_at: domain.created_at || new Date().toISOString(),
+          is_verified: Boolean(domain.is_verified),
+          verification_status: domain.verification_status || 'pending',
+          views: viewsValue
         };
+        
+        return processedDomain;
       });
       
-      // Sort by views (high to low)
-      domainsWithAnalytics.sort((a, b) => (b.views || 0) - (a.views || 0));
+      // Sort by views (high to low), then by creation date
+      domainsWithAnalytics.sort((a, b) => {
+        const viewsDiff = (b.views || 0) - (a.views || 0);
+        if (viewsDiff !== 0) return viewsDiff;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
       
+      console.log('Processed domains:', domainsWithAnalytics.length);
       setDomains(domainsWithAnalytics);
+      
     } catch (error: any) {
       console.error('Error loading domains:', error);
-      toast.error(t('marketplace.loadError', 'Failed to load domains'));
+      toast.error('加载域名列表失败，请刷新页面重试');
       setDomains([]);
     } finally {
       setIsLoading(false);
@@ -114,7 +141,7 @@ export const Marketplace = () => {
     
     // Apply search filter
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+      const query = searchQuery.toLowerCase().trim();
       result = result.filter(domain => 
         (domain.name && domain.name.toLowerCase().includes(query)) || 
         (domain.description && domain.description.toLowerCase().includes(query))
@@ -124,12 +151,16 @@ export const Marketplace = () => {
     // Apply price range filters
     if (priceRange.min) {
       const minPrice = parseFloat(priceRange.min);
-      result = result.filter(domain => domain.price && domain.price >= minPrice);
+      if (!isNaN(minPrice)) {
+        result = result.filter(domain => domain.price >= minPrice);
+      }
     }
     
     if (priceRange.max) {
       const maxPrice = parseFloat(priceRange.max);
-      result = result.filter(domain => domain.price && domain.price <= maxPrice);
+      if (!isNaN(maxPrice)) {
+        result = result.filter(domain => domain.price <= maxPrice);
+      }
     }
     
     // Apply verification filter
@@ -167,6 +198,30 @@ export const Marketplace = () => {
             domains={filteredDomains}
             isMobile={isMobile}
           />
+          
+          {!isLoading && filteredDomains.length === 0 && domains.length === 0 && (
+            <div className="text-center py-12">
+              <h3 className="text-lg font-semibold mb-2">暂无域名列表</h3>
+              <p className="text-muted-foreground mb-4">
+                看起来还没有域名添加到市场中
+              </p>
+              <button 
+                onClick={loadDomains}
+                className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+              >
+                重新加载
+              </button>
+            </div>
+          )}
+          
+          {!isLoading && filteredDomains.length === 0 && domains.length > 0 && (
+            <div className="text-center py-12">
+              <h3 className="text-lg font-semibold mb-2">没有找到匹配的域名</h3>
+              <p className="text-muted-foreground">
+                请尝试调整搜索条件或筛选器
+              </p>
+            </div>
+          )}
         </div>
       </section>
     </div>

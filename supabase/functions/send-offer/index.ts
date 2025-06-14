@@ -90,6 +90,80 @@ serve(async (req: Request) => {
       throw new Error("联系邮箱是必填项");
     }
 
+    // Create Supabase client
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Determine domain owner email
+    let domainOwnerEmail = "admin@sale.nic.bn"; // Default fallback
+    
+    // Try to get owner email from database if domainId is provided
+    if (domainId) {
+      try {
+        // Get domain with owner information
+        const { data: domainData, error: domainError } = await supabase
+          .from('domain_listings')
+          .select(`
+            *,
+            profiles!inner(contact_email, username, full_name)
+          `)
+          .eq('id', domainId)
+          .single();
+
+        if (!domainError && domainData?.profiles?.contact_email) {
+          domainOwnerEmail = domainData.profiles.contact_email;
+        } else if (domainData?.owner_id) {
+          // Fallback: try to get email from profiles table directly
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('contact_email')
+            .eq('id', domainData.owner_id)
+            .single();
+          
+          if (profileData?.contact_email) {
+            domainOwnerEmail = profileData.contact_email;
+          }
+        }
+      } catch (error) {
+        console.error("获取域名所有者邮箱时出错:", error);
+      }
+    }
+
+    // Use provided owner email if available
+    if (ownerEmail && ownerEmail.includes('@')) {
+      domainOwnerEmail = ownerEmail;
+    }
+
+    console.log("发送邮件到域名所有者:", domainOwnerEmail);
+
+    // Store offer in database if domainId is provided
+    if (domainId) {
+      try {
+        const offerData = {
+          domain_id: domainId,
+          amount: parseFloat(offer),
+          contact_email: email,
+          message: message || null,
+          buyer_id: buyerId || null,
+          seller_id: domainOwnerId || null,
+          status: 'pending'
+        };
+
+        const { error: insertError } = await supabase
+          .from('domain_offers')
+          .insert(offerData);
+
+        if (insertError) {
+          console.error("存储报价到数据库失败:", insertError);
+        } else {
+          console.log("报价成功存储到数据库");
+        }
+      } catch (error) {
+        console.error("数据库操作错误:", error);
+      }
+    }
+
     // Email template for the user (buyer)
     const userEmailHtml = `
       <!DOCTYPE html>
@@ -133,7 +207,7 @@ serve(async (req: Request) => {
               <div class="offer-card">
                 <div style="text-align: center;">
                   <div class="domain-name">${domain}</div>
-                  <div class="price">$${offer}</div>
+                  <div class="price">¥${offer}</div>
                 </div>
               </div>
               
@@ -146,7 +220,7 @@ serve(async (req: Request) => {
                   </tr>
                   <tr>
                     <th>💰 报价金额</th>
-                    <td><strong>$${offer}</strong></td>
+                    <td><strong>¥${offer}</strong></td>
                   </tr>
                   <tr>
                     <th>📊 状态</th>
@@ -225,7 +299,7 @@ serve(async (req: Request) => {
               
               <div class="offer-card">
                 <h3 style="margin-top: 0; color: #059669; text-align: center;">💎 新报价详情</h3>
-                <div class="highlight">$${offer}</div>
+                <div class="highlight">¥${offer}</div>
                 <p style="text-align: center; margin: 10px 0; color: #059669;"><strong>域名：${domain}</strong></p>
               </div>
               
@@ -237,7 +311,7 @@ serve(async (req: Request) => {
                   </tr>
                   <tr>
                     <th>💰 报价金额</th>
-                    <td><span style="color: #10b981; font-weight: bold; font-size: 18px;">$${offer}</span></td>
+                    <td><span style="color: #10b981; font-weight: bold; font-size: 18px;">¥${offer}</span></td>
                   </tr>
                   <tr>
                     <th>📧 买家邮箱</th>
@@ -289,85 +363,64 @@ serve(async (req: Request) => {
     const userEmailResponse = await resend.emails.send({
       from: "NIC.BN Ltd <noreply@sale.nic.bn>",
       to: [email],
-      subject: `✅ 您对 ${domain} 的报价已收到 - $${offer}`,
+      subject: `✅ 您对 ${domain} 的报价已收到 - ¥${offer}`,
       html: userEmailHtml,
     });
 
     console.log("用户邮件已发送:", userEmailResponse);
 
-    // Determine domain owner email
-    let domainOwnerEmail = "admin@sale.nic.bn"; // Default fallback
-    
-    // Try to use the email provided directly first
-    if (ownerEmail) {
-      domainOwnerEmail = ownerEmail;
-    } 
-    // If no email provided but we have domainOwnerId, try to fetch from database
-    else if (domainOwnerId) {
-      try {
-        // Create Supabase client to fetch owner email
-        const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-        const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
-        const supabase = createClient(supabaseUrl, supabaseKey);
-        
-        // Fetch the domain owner's email from the profiles table
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('contact_email')
-          .eq('id', domainOwnerId)
-          .single();
-        
-        if (!profileError && profileData?.contact_email) {
-          domainOwnerEmail = profileData.contact_email;
-        }
-      } catch (error) {
-        console.error("获取域名所有者邮箱时出错:", error);
-        // Continue with default admin email
-      }
-    }
-
     // Send notification email to the domain owner
     const ownerEmailResponse = await resend.emails.send({
       from: "NIC.BN Ltd <noreply@sale.nic.bn>",
       to: [domainOwnerEmail],
-      subject: `💰 ${domain} 收到新报价：$${offer}`,
+      subject: `💰 ${domain} 收到新报价：¥${offer}`,
       html: ownerEmailHtml,
     });
 
     console.log("域名所有者邮件已发送:", ownerEmailResponse);
 
-    // Create in-app notification for the domain owner if we have domainId and domainOwnerId
-    if (domainId && domainOwnerId) {
+    // Create in-app notifications if we have the necessary IDs
+    if (domainId && (domainOwnerId || buyerId)) {
       try {
-        // Create Supabase client for creating notification
-        const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-        const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
-        const supabase = createClient(supabaseUrl, supabaseKey);
-        
-        // Create in-app notification for domain owner
-        await supabase.from('notifications').insert({
-          user_id: domainOwnerId,
-          title: '💰 新的域名报价',
-          message: `您的域名 ${domain} 收到了 $${offer} 的新报价`,
-          type: 'offer',
-          related_id: domainId,
-          action_url: '/user-center?tab=transactions'
-        });
-        
-        // If buyer is registered, also create notification for them
-        if (buyerId) {
-          await supabase.from('notifications').insert({
-            user_id: buyerId,
-            title: '✅ 报价提交成功',
-            message: `您对域名 ${domain} 的 $${offer} 报价已成功发送给卖家`,
+        const notifications = [];
+
+        // Create notification for domain owner
+        if (domainOwnerId) {
+          notifications.push({
+            user_id: domainOwnerId,
+            title: '💰 新的域名报价',
+            message: `您的域名 ${domain} 收到了 ¥${offer} 的新报价`,
             type: 'offer',
             related_id: domainId,
             action_url: '/user-center?tab=transactions'
           });
         }
+
+        // Create notification for buyer if registered
+        if (buyerId) {
+          notifications.push({
+            user_id: buyerId,
+            title: '✅ 报价提交成功',
+            message: `您对域名 ${domain} 的 ¥${offer} 报价已成功发送给卖家`,
+            type: 'offer',
+            related_id: domainId,
+            action_url: '/user-center?tab=transactions'
+          });
+        }
+
+        if (notifications.length > 0) {
+          const { error: notifError } = await supabase
+            .from('notifications')
+            .insert(notifications);
+
+          if (notifError) {
+            console.error("创建通知时出错:", notifError);
+          } else {
+            console.log("应用内通知创建成功");
+          }
+        }
       } catch (notifError) {
         console.error("创建通知时出错:", notifError);
-        // Continue even if notification creation fails
       }
     }
 
@@ -375,7 +428,8 @@ serve(async (req: Request) => {
       JSON.stringify({ 
         message: "报价提交成功，邮件通知已发送给买家和卖家",
         userEmail: userEmailResponse,
-        ownerEmail: ownerEmailResponse
+        ownerEmail: ownerEmailResponse,
+        domainOwnerEmail: domainOwnerEmail
       }),
       {
         status: 200,
