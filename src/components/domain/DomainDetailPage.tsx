@@ -472,7 +472,7 @@ export const DomainDetailPage: React.FC = () => {
         />
       )}
 
-      {/* 支付表单弹窗 */}
+      {/* 支付表单弹窗 - 修复第466行的类型错误 */}
       {showPaymentForm && domain && (
         <MultiCurrencyPayment
           domain={domain}
