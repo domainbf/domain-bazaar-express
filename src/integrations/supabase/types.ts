@@ -299,13 +299,6 @@ export type Database = {
             foreignKeyName: "domain_offers_domain_id_fkey"
             columns: ["domain_id"]
             isOneToOne: false
-            referencedRelation: "domains"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_domain_listings"
-            columns: ["domain_id"]
-            isOneToOne: false
             referencedRelation: "domain_listings"
             referencedColumns: ["id"]
           },

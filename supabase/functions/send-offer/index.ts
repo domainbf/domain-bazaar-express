@@ -90,8 +90,8 @@ serve(async (req: Request) => {
     
     console.log("准备发送邮件到域名所有者:", domainOwnerEmail);
 
-    // 直接插入domain_offers表，使用验证过的domain_listing_id
-    console.log("直接插入domain_offers表，使用domain_listing_id:", validDomainListingId);
+    // 现在外键约束已修复，直接插入domain_offers表
+    console.log("插入domain_offers表，使用domain_listing_id:", validDomainListingId);
     const { data: insertData, error: insertError } = await supabase
       .from('domain_offers')
       .insert({
