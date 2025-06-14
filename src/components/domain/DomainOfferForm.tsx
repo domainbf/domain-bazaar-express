@@ -80,41 +80,6 @@ export const DomainOfferForm = ({
       }
 
       const { data: { session } } = await supabase.auth.getSession();
-      
-      const offerData = {
-        domain_id: domainInfo.domainId,
-        amount: parseFloat(offer),
-        message: message,
-        contact_email: email,
-        seller_id: domainInfo.sellerId,
-        buyer_id: session?.user.id
-      };
-
-      // If user is logged in, save the offer to the database
-      if (session) {
-        const { error } = await supabase
-          .from('domain_offers')
-          .insert([offerData]);
-        
-        if (error) throw error;
-      }
-      
-      // Get owner email for notification purposes
-      let ownerEmail;
-      try {
-        const { data: ownerData } = await supabase
-          .from('profiles')
-          .select('contact_email')
-          .eq('id', domainInfo.sellerId)
-          .maybeSingle();
-        
-        if (ownerData && ownerData.contact_email) {
-          ownerEmail = ownerData.contact_email;
-        }
-      } catch (error) {
-        console.error('Error fetching owner email:', error);
-        // Continue without owner email if there's an error
-      }
         
       // Send offer via the separate edge function
       const { error: offerError } = await supabase.functions.invoke('send-offer', {
@@ -126,14 +91,13 @@ export const DomainOfferForm = ({
           buyerId: session?.user.id,
           domainId: domainInfo.domainId,
           domainOwnerId: domainInfo.sellerId,
-          ownerEmail: ownerEmail,
           captchaToken: captchaToken
         }
       });
 
       if (offerError) {
         console.error('Error submitting offer:', offerError);
-        throw new Error('提交报价失败，请稍后重试');
+        throw new Error(offerError.message || '提交报价失败，请稍后重试');
       }
 
       toast.success('您的报价已成功提交！');

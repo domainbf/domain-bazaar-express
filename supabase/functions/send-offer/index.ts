@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
@@ -156,11 +155,13 @@ serve(async (req: Request) => {
 
         if (insertError) {
           console.error("存储报价到数据库失败:", insertError);
+          throw insertError;
         } else {
           console.log("报价成功存储到数据库");
         }
       } catch (error) {
         console.error("数据库操作错误:", error);
+        throw error;
       }
     }
 
@@ -197,7 +198,7 @@ serve(async (req: Request) => {
         <body>
           <div class="container">
             <div class="header">
-              <div class="logo">🎯 NIC.BN Ltd</div>
+              <div class="logo">🎯 域名交易平台</div>
               <h1>域名交易平台</h1>
             </div>
             <div class="content">
@@ -245,11 +246,11 @@ serve(async (req: Request) => {
               </div>
               
               <p style="margin-top: 30px;">如果您有任何问题，请回复此邮件或联系我们的客服团队。</p>
-              <p>祝您交易成功！<br><strong>NIC.BN Ltd 团队</strong></p>
+              <p>祝您交易成功！<br><strong>域名交易平台团队</strong></p>
             </div>
             <div class="footer">
-              <p>© ${new Date().getFullYear()} NIC.BN Ltd 域名交易平台 - 保留所有权利</p>
-              <p>您收到此邮件是因为您在 NIC.BN Ltd 平台上提交了域名报价</p>
+              <p>© ${new Date().getFullYear()} 域名交易平台 - 保留所有权利</p>
+              <p>您收到此邮件是因为您在 域名交易平台 平台上提交了域名报价</p>
             </div>
           </div>
         </body>
@@ -290,7 +291,7 @@ serve(async (req: Request) => {
         <body>
           <div class="container">
             <div class="header">
-              <div class="logo">💰 NIC.BN Ltd</div>
+              <div class="logo">💰 域名交易平台</div>
               <h1>新的域名报价</h1>
             </div>
             <div class="content">
@@ -348,10 +349,10 @@ serve(async (req: Request) => {
               </div>
               
               <p>感谢您选择我们的域名交易平台。如需任何协助，我们的客服团队随时为您服务！</p>
-              <p>祝您交易成功！<br><strong>NIC.BN Ltd 团队</strong></p>
+              <p>祝您交易成功！<br><strong>域名交易平台团队</strong></p>
             </div>
             <div class="footer">
-              <p>© ${new Date().getFullYear()} NIC.BN Ltd 域名交易平台 - 保留所有权利</p>
+              <p>© ${new Date().getFullYear()} 域名交易平台 - 保留所有权利</p>
               <p>您收到此邮件是因为您是域名 ${domain} 的持有者</p>
             </div>
           </div>
@@ -361,7 +362,7 @@ serve(async (req: Request) => {
 
     // Send confirmation email to the user/buyer
     const userEmailResponse = await resend.emails.send({
-      from: "NIC.BN Ltd <noreply@sale.nic.bn>",
+      from: "域名交易平台 <noreply@sale.nic.bn>",
       to: [email],
       subject: `✅ 您对 ${domain} 的报价已收到 - ¥${offer}`,
       html: userEmailHtml,
@@ -371,7 +372,7 @@ serve(async (req: Request) => {
 
     // Send notification email to the domain owner
     const ownerEmailResponse = await resend.emails.send({
-      from: "NIC.BN Ltd <noreply@sale.nic.bn>",
+      from: "域名交易平台 <noreply@sale.nic.bn>",
       to: [domainOwnerEmail],
       subject: `💰 ${domain} 收到新报价：¥${offer}`,
       html: ownerEmailHtml,
