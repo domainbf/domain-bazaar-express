@@ -317,6 +317,7 @@ export const DomainDetailPage: React.FC = () => {
                 <Heart className={`h-4 w-4 ${isFavorited ? "fill-current" : ""}`} />
               </Button>
               <Suspense fallback={<div />}>
+                {/* FIX: Pass domain.name as string, not domain */}
                 <DomainShareButtons domainName={domain.name} />
               </Suspense>
               <div className="text-right">
