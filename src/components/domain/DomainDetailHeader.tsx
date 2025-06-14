@@ -1,3 +1,4 @@
+
 import React, { Suspense } from "react";
 import { Shield, Eye, Heart, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,8 @@ interface DomainDetailHeaderProps {
     is_verified?: boolean;
     category?: string;
     views?: number;
+    favorites?: number;
+    offers?: number;
     status?: string;
     price: number;
   };
@@ -46,11 +49,11 @@ export const DomainDetailHeader: React.FC<DomainDetailHeaderProps> = ({
           </span>
           <span className="flex items-center gap-1">
             <Heart className="h-4 w-4" />
-            0 次收藏
+            {domain.favorites || 0} 次收藏
           </span>
           <span className="flex items-center gap-1">
             <MessageSquare className="h-4 w-4" />
-            0 次报价
+            {domain.offers || 0} 次报价
           </span>
         </div>
       </div>

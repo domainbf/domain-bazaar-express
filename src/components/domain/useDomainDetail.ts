@@ -2,7 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Domain, DomainPriceHistory } from "@/types/domain";
+import { Domain } from "@/types/domain";
 
 const fetchDomainDetails = async (domainId: string | undefined) => {
   if (!domainId) {
@@ -28,7 +28,7 @@ const fetchDomainDetails = async (domainId: string | undefined) => {
 
   const analytics = Array.isArray(domainData.domain_analytics) && domainData.domain_analytics.length > 0
     ? domainData.domain_analytics[0]
-    : { views: 0 };
+    : { views: 0, favorites: 0, offers: 0 };
 
   const processedDomain: Domain = {
     id: domainData.id,
@@ -43,6 +43,8 @@ const fetchDomainDetails = async (domainId: string | undefined) => {
     is_verified: Boolean(domainData.is_verified),
     verification_status: domainData.verification_status || 'pending',
     views: Number(analytics?.views) || 0,
+    favorites: Number(analytics?.favorites) || 0,
+    offers: Number(analytics?.offers) || 0,
   };
 
   // 并行执行：更新浏览量、获取价格历史、获取相似域名

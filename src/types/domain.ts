@@ -12,6 +12,8 @@ export interface Domain {
   is_verified?: boolean;
   verification_status?: string;
   views?: number;
+  favorites?: number;
+  offers?: number;
   domain_analytics?: DomainAnalytics[];
 }
 
