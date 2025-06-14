@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
@@ -39,96 +39,94 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
 
-  useEffect(() => {
-    let mounted = true;
-
-    const setData = async (session: Session | null) => {
-      if (!mounted) return;
+  const createDefaultProfile = useCallback(async (userId: string, email?: string) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .insert({
+          id: userId,
+          full_name: email?.split('@')[0] || 'User',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
       
-      try {
-        if (session?.user) {
-          console.log('Setting user data:', session.user.email);
-          setUser(session.user);
-          setSession(session);
-          
-          // 安全地检查管理员状态
-          const isAdminUser = Boolean(session.user.app_metadata?.is_admin);
-          setIsAdmin(isAdminUser);
-          console.log('Admin status:', isAdminUser);
-          
-          // 获取用户资料，使用优化的查询
-          try {
-            const profilePromise = supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-            
-            const timeoutPromise = new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Profile fetch timeout')), 3000)
-            );
-            
-            const { data: profileData, error } = await Promise.race([
-              profilePromise,
-              timeoutPromise
-            ]) as any;
-            
-            if (!error && profileData && mounted) {
-              setProfile(profileData);
-              console.log('Profile loaded:', profileData.username || profileData.full_name);
-            } else if (error && mounted) {
-              console.error('Profile fetch error:', error);
-              // 创建默认 profile 如果不存在
-              if (error.code === 'PGRST116') {
-                await createDefaultProfile(session.user.id, session.user.email);
-              }
-            }
-          } catch (profileError) {
-            console.error('Error fetching profile:', profileError);
-            // 不阻塞认证流程
-          }
-        } else {
-          console.log('No session, clearing user data');
-          setUser(null);
-          setSession(null);
-          setProfile(null);
-          setIsAdmin(false);
-        }
-      } catch (error) {
-        console.error('Error in setData:', error);
-      }
-    };
-
-    const createDefaultProfile = async (userId: string, email?: string) => {
-      try {
-        const { error } = await supabase
+      if (error) {
+        console.error('Error creating default profile:', error);
+      } else {
+        console.log('Default profile created successfully');
+        // 重新获取 profile
+        const { data: newProfile } = await supabase
           .from('profiles')
-          .insert({
-            id: userId,
-            full_name: email?.split('@')[0] || 'User',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          });
+          .select('*')
+          .eq('id', userId)
+          .single();
         
-        if (error) {
-          console.error('Error creating default profile:', error);
-        } else {
-          console.log('Default profile created successfully');
-          // 重新获取 profile
-          const { data: newProfile } = await supabase
+        if (newProfile) {
+          setProfile(newProfile);
+        }
+      }
+    } catch (error) {
+      console.error('Error in createDefaultProfile:', error);
+    }
+  }, [setProfile]);
+
+  const setData = useCallback(async (session: Session | null) => {
+    try {
+      if (session?.user) {
+        console.log('Setting user data:', session.user.email);
+        setUser(session.user);
+        setSession(session);
+        
+        // 安全地检查管理员状态
+        const isAdminUser = Boolean(session.user.app_metadata?.is_admin);
+        setIsAdmin(isAdminUser);
+        console.log('Admin status:', isAdminUser);
+        
+        // 获取用户资料，使用优化的查询
+        try {
+          const profilePromise = supabase
             .from('profiles')
             .select('*')
-            .eq('id', userId)
+            .eq('id', session.user.id)
             .single();
           
-          if (newProfile && mounted) {
-            setProfile(newProfile);
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Profile fetch timeout')), 3000)
+          );
+          
+          const { data: profileData, error } = await Promise.race([
+            profilePromise,
+            timeoutPromise
+          ]) as any;
+          
+          if (!error && profileData) {
+            setProfile(profileData);
+            console.log('Profile loaded:', profileData.username || profileData.full_name);
+          } else if (error) {
+            console.error('Profile fetch error:', error);
+            // 创建默认 profile 如果不存在
+            if (error.code === 'PGRST116') {
+              await createDefaultProfile(session.user.id, session.user.email);
+            }
           }
+        } catch (profileError) {
+          console.error('Error fetching profile:', profileError);
+          // 不阻塞认证流程
         }
-      } catch (error) {
-        console.error('Error in createDefaultProfile:', error);
+      } else {
+        console.log('No session, clearing user data');
+        setUser(null);
+        setSession(null);
+        setProfile(null);
+        setIsAdmin(false);
       }
-    };
+    } catch (error) {
+      console.error('Error in setData:', error);
+    }
+  }, [createDefaultProfile, setProfile, setUser, setSession, setIsAdmin]);
+
+  useEffect(() => {
+    let mounted = true;
 
     // 设置认证状态监听器
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -183,7 +181,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [setData]);
 
   const refreshProfile = async () => {
     if (!user) return;
