@@ -60,6 +60,12 @@ export const UserCenter = () => {
     }
   }, []);
 
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    window.history.replaceState({}, '', `/user-center?tab=${value}`);
+    if (value === 'notifications') refreshNotifications();
+  };
+
   if (isAuthLoading || isLoading) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center">
