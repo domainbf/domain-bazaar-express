@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,50 +8,29 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserCenterHelpCard } from '@/components/usercenter/UserCenterHelpCard';
 import { UserCenterStatsGrid } from '@/components/usercenter/UserCenterStatsGrid';
 import { UserCenterTabsContent } from '@/components/usercenter/UserCenterTabsContent';
-import { DomainManagement } from '@/components/usercenter/DomainManagement';
-import { ProfileSettings } from '@/components/usercenter/ProfileSettings';
-import { TransactionHistory } from '@/components/usercenter/TransactionHistory';
-import { NotificationsPanel } from '@/components/usercenter/NotificationsPanel';
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { User, Settings, ClipboardList, Home, Award, HelpCircle, Bell } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Home, HelpCircle, Settings, ClipboardList, User, Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Badge } from "@/components/ui/badge";
 import { useNotifications } from '@/hooks/useNotifications';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 export const UserCenter = () => {
   const { user, profile, isLoading: isAuthLoading } = useAuth();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('domains');
   const [showHelp, setShowHelp] = useState(false);
-  const [loadTimeout, setLoadTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // 新增：获取未读通知数
   const { unreadCount, refreshNotifications } = useNotifications();
 
   useEffect(() => {
-    // 超时时间，防止死等
-    if (isAuthLoading) {
-      setIsLoading(true);
-      return;
+    // 如果认证已结束并且没有 user，则直接跳 auth 页
+    if (!isAuthLoading && !user) {
+      toast.error('会话已失效，请重新登录');
+      navigate('/auth', { replace: true });
     }
-
-    // 新增超时防护
-    if (!user) {
-      // 等待1.2秒，如果还是没 auth，自动回首页
-      const timer = setTimeout(() => {
-        toast.error('会话已失效，请重新登录');
-        navigate('/');
-      }, 1200);
-      setLoadTimeout(timer);
-      return () => clearTimeout(timer);
-    } else {
-      setIsLoading(false);
-      if (loadTimeout) clearTimeout(loadTimeout);
-    }
-  }, [user, isAuthLoading, navigate]);
+  }, [isAuthLoading, user, navigate]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -66,7 +46,8 @@ export const UserCenter = () => {
     if (value === 'notifications') refreshNotifications();
   };
 
-  if (isAuthLoading || isLoading) {
+  if (isAuthLoading || !user) {
+    // 统一 loading，认证异常直接跳转
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center">
         <Navbar />
@@ -122,7 +103,6 @@ export const UserCenter = () => {
         </div>
 
         <UserCenterHelpCard open={showHelp} onClose={() => setShowHelp(false)} />
-
         <UserCenterStatsGrid profile={profile} user={user} />
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
@@ -171,3 +151,4 @@ export const UserCenter = () => {
     </div>
   );
 };
+
