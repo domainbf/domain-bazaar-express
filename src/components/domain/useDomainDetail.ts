@@ -9,24 +9,24 @@ const fetchDomainDetails = async (domainId: string | undefined) => {
     return null;
   }
 
+  console.log('Fetching domain details for:', domainId);
+
   // 根据域名或ID查询
   let domainQuery;
   const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(domainId);
   const selectQuery = '*, profiles(username, full_name, avatar_url)';
 
   if (isUUID) {
-    domainQuery = supabase.from('domain_listings').select(selectQuery).eq('id', domainId).single();
+    domainQuery = supabase.from('domain_listings').select(selectQuery).eq('id', domainId).maybeSingle();
   } else {
-    domainQuery = supabase.from('domain_listings').select(selectQuery).eq('name', domainId).single();
+    domainQuery = supabase.from('domain_listings').select(selectQuery).eq('name', domainId).maybeSingle();
   }
 
   const { data: domainData, error: domainError } = await domainQuery;
 
   if (domainError) {
-    if (domainError.code === 'PGRST116') {
-        throw new Error('域名不存在或已被删除');
-    }
-    throw domainError;
+    console.error('Error fetching domain:', domainError);
+    throw new Error('域名加载失败');
   }
 
   if (!domainData) {
@@ -91,6 +91,8 @@ const fetchDomainDetails = async (domainId: string | undefined) => {
     updateViewsPromise,
   ]);
 
+  console.log('Domain details fetched successfully');
+
   return {
     domain: processedDomain,
     priceHistory: priceHistoryResult.data || [],
@@ -105,6 +107,15 @@ export function useDomainDetail() {
     queryKey: ['domainDetail', domainId],
     queryFn: () => fetchDomainDetails(domainId),
     enabled: !!domainId,
+    staleTime: 5 * 60 * 1000, // 5分钟缓存
+    gcTime: 10 * 60 * 1000, // 10分钟垃圾回收
+    retry: (failureCount, error) => {
+      // 只在网络错误时重试，不在域名不存在时重试
+      if (error instanceof Error && error.message.includes('域名不存在')) {
+        return false;
+      }
+      return failureCount < 2;
+    },
   });
 
   return {

@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { DomainCard } from '@/components/DomainCard';
-import { Search, User, ClipboardList, ArrowRight, Bell, Award } from 'lucide-react';
+import { Search, User, ClipboardList, ArrowRight, Bell } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/Navbar';
@@ -11,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Domain } from '@/types/domain';
 import { toast } from 'sonner';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslation } from 'react-i18next';
 
 const Index = () => {
@@ -33,7 +34,6 @@ const Index = () => {
     try {
       console.log('Loading domains for homepage...');
       
-      // 使用更高效的查询，减少数据传输
       const { data: listingsData, error: listingsError } = await supabase
         .from('domain_listings')
         .select(`
@@ -51,7 +51,7 @@ const Index = () => {
         `)
         .eq('status', 'available')
         .order('created_at', { ascending: false })
-        .limit(12); // 增加到12个域名以填充网格
+        .limit(12);
       
       if (listingsError) {
         console.error('Error loading domain listings:', listingsError);
@@ -66,7 +66,6 @@ const Index = () => {
       
       console.log('Loaded domain listings:', listingsData.length);
       
-      // 获取分析数据（批量查询）
       const domainIds = listingsData.map(domain => domain.id);
       const { data: analyticsData, error: analyticsError } = await supabase
         .from('domain_analytics')
@@ -77,7 +76,6 @@ const Index = () => {
         console.error('Error fetching analytics:', analyticsError);
       }
       
-      // 创建分析数据映射
       const analyticsMap = new Map();
       if (analyticsData) {
         analyticsData.forEach(item => {
@@ -85,7 +83,6 @@ const Index = () => {
         });
       }
       
-      // 处理并合并数据
       const processedDomains: Domain[] = listingsData.map(domain => ({
         id: domain.id,
         name: domain.name || '',
@@ -101,23 +98,18 @@ const Index = () => {
         views: analyticsMap.get(domain.id) || 0
       }));
       
-      // 智能排序：已验证域名优先，然后按浏览量和价格
       processedDomains.sort((a, b) => {
-        // 验证状态优先
         if (a.is_verified !== b.is_verified) {
           return b.is_verified ? 1 : -1;
         }
         
-        // 精选域名优先
         if (a.highlight !== b.highlight) {
           return b.highlight ? 1 : -1;
         }
         
-        // 浏览量优先
         const viewsDiff = (b.views || 0) - (a.views || 0);
         if (viewsDiff !== 0) return viewsDiff;
         
-        // 最后按创建时间
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       });
       
@@ -143,13 +135,9 @@ const Index = () => {
       setSearchQuery(searchParam);
     }
 
-    // 延迟加载以确保组件完全挂载
-    const timer = setTimeout(() => {
-      loadDomains();
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, []);
+    // 只在组件首次挂载时加载数据
+    loadDomains();
+  }, []); // 移除所有依赖项，防止无限循环
 
   // 优化的过滤逻辑
   const filteredDomains = domains
@@ -164,7 +152,7 @@ const Index = () => {
       }
       return true;
     })
-    .slice(0, 9); // 限制显示数量
+    .slice(0, 9);
 
   const handleSellDomains = () => {
     if (user) {
@@ -234,9 +222,11 @@ const Index = () => {
                   <p className="text-sm text-gray-500">{t('homePage.activeDomains')}</p>
                 </CardContent>
                 <CardFooter>
-                  <Button variant="outline" size="sm" className="w-full" onClick={() => navigate('/user-center?tab=domains')}>
-                    {t('homePage.manageDomains')}
-                  </Button>
+                  <Link to="/user-center?tab=domains" className="w-full">
+                    <Button variant="outline" size="sm" className="w-full">
+                      {t('homePage.manageDomains')}
+                    </Button>
+                  </Link>
                 </CardFooter>
               </Card>
               
@@ -252,9 +242,11 @@ const Index = () => {
                   <p className="text-sm text-gray-500">{t('homePage.unreadMessages')}</p>
                 </CardContent>
                 <CardFooter>
-                  <Button variant="outline" size="sm" className="w-full" onClick={() => navigate('/user-center?tab=notifications')}>
-                    {t('homePage.viewNotifications')}
-                  </Button>
+                  <Link to="/user-center?tab=notifications" className="w-full">
+                    <Button variant="outline" size="sm" className="w-full">
+                      {t('homePage.viewNotifications')}
+                    </Button>
+                  </Link>
                 </CardFooter>
               </Card>
               
@@ -270,20 +262,21 @@ const Index = () => {
                   <p className="text-sm text-gray-500">{profile?.account_level || t('homePage.basicUser')}</p>
                 </CardContent>
                 <CardFooter>
-                  <Button variant="outline" size="sm" className="w-full" onClick={() => navigate('/user-center?tab=profile')}>
-                    {t('homePage.editProfile')}
-                  </Button>
+                  <Link to="/user-center?tab=profile" className="w-full">
+                    <Button variant="outline" size="sm" className="w-full">
+                      {t('homePage.editProfile')}
+                    </Button>
+                  </Link>
                 </CardFooter>
               </Card>
             </div>
             
             <div className="text-center">
-              <Button 
-                onClick={() => navigate('/dashboard')}
-                className="bg-black hover:bg-gray-800 text-white"
-              >
-                {t('homePage.fullDashboard')}
-              </Button>
+              <Link to="/dashboard">
+                <Button className="bg-black hover:bg-gray-800 text-white">
+                  {t('homePage.fullDashboard')}
+                </Button>
+              </Link>
             </div>
           </div>
         </section>
