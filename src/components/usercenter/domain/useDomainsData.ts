@@ -12,6 +12,7 @@ export const useDomainsData = () => {
   const [domains, setDomains] = useState<Domain[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   const createAnalyticsRecord = async (domainId: string) => {
     try {
@@ -34,16 +35,19 @@ export const useDomainsData = () => {
     if (!user) {
       setIsLoading(false);
       setDomains([]);
+      setHasLoaded(true);
       return;
     }
     
-    if (showLoadingState) {
-      setIsLoading(true);
-    } else {
-      setIsRefreshing(true);
-    }
-    
     try {
+      if (showLoadingState) {
+        setIsLoading(true);
+      } else {
+        setIsRefreshing(true);
+      }
+
+      console.log('Loading domains for user:', user.id);
+      
       const { data: domainsData, error: domainsError } = await supabase
         .from('domain_listings')
         .select('*')
@@ -52,9 +56,12 @@ export const useDomainsData = () => {
       if (domainsError) throw domainsError;
       
       if (!domainsData || domainsData.length === 0) {
+        console.log('No domains found for user');
         setDomains([]);
         return;
       }
+
+      console.log('Found domains:', domainsData.length);
 
       // 使用单独的查询获取 analytics 数据，避免关系查询问题
       const domainIds = domainsData.map(d => d.id);
@@ -91,6 +98,8 @@ export const useDomainsData = () => {
       for (const domain of missingAnalytics) {
         await createAnalyticsRecord(domain.id);
       }
+
+      console.log('Domains loaded successfully');
     } catch (error: any) {
       console.error('Error loading domains:', error);
       toast.error(error.message || t('domains.loadError', '加载域名失败'));
@@ -98,18 +107,26 @@ export const useDomainsData = () => {
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
+      setHasLoaded(true);
     }
   }, [user, t]);
 
-  // Initial load
+  // Initial load only once when user is available
   useEffect(() => {
-    if (user) {
+    if (user && !hasLoaded) {
+      console.log('Initializing domain load for user:', user.id);
       loadDomains();
+    } else if (!user) {
+      // 如果没有用户，直接设置为已加载状态，避免无限等待
+      setIsLoading(false);
+      setHasLoaded(true);
+      setDomains([]);
     }
-  }, [user, loadDomains]);
+  }, [user, hasLoaded, loadDomains]);
 
   // Refresh function without showing full loading state
   const refreshDomains = useCallback(() => {
+    setHasLoaded(false);
     return loadDomains(false);
   }, [loadDomains]);
 

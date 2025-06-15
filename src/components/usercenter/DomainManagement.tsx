@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
-import { Alert } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export const DomainManagement = () => {
   const { t } = useTranslation();
@@ -19,37 +19,54 @@ export const DomainManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   const [error, setError] = useState<string | null>(null);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
-  // 正确用 useEffect 做超时
+  // 防止无限加载的超时机制
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if ((isAuthLoading || isLoading) && !error) {
-      timer = setTimeout(() => {
-        setError('加载超时，请刷新重试。如多次失败请检查网络或账号状态。');
-      }, 12000);
+    let timeoutId: NodeJS.Timeout;
+    
+    if (isLoading && !hasInitialized) {
+      timeoutId = setTimeout(() => {
+        if (isLoading) {
+          console.log('Domain loading timeout, forcing stop...');
+          setError('加载超时，请刷新页面重试');
+          setHasInitialized(true);
+        }
+      }, 10000); // 10秒超时
     }
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [isAuthLoading, isLoading, error]);
 
-  if (error) {
+    if (!isLoading && !hasInitialized) {
+      setHasInitialized(true);
+    }
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [isLoading, hasInitialized]);
+
+  // 认证检查
+  if (isAuthLoading) {
     return (
-      <div className="flex flex-col items-center py-10">
-        <Alert variant="destructive" className="mb-4">
-          <div className="text-red-700">{error}</div>
-        </Alert>
-        <Button variant="outline" onClick={() => window.location.reload()}>
-          刷新页面
-        </Button>
+      <div className="flex justify-center py-10">
+        <LoadingSpinner />
+        <span className="ml-2 text-gray-600">正在验证用户权限...</span>
       </div>
     );
   }
 
-  if (isAuthLoading || !user) {
+  if (!user) {
     return (
-      <div className="flex justify-center py-10">
-        <LoadingSpinner />
+      <div className="flex flex-col items-center py-10">
+        <Alert className="mb-4">
+          <AlertDescription>
+            请登录后查看域名管理
+          </AlertDescription>
+        </Alert>
+        <Button variant="outline" onClick={() => window.location.href = '/auth'}>
+          前往登录
+        </Button>
       </div>
     );
   }
@@ -73,14 +90,33 @@ export const DomainManagement = () => {
 
   const handleRefresh = () => {
     setError(null);
+    setHasInitialized(false);
     refreshDomains();
   };
 
-  if (isLoading) {
+  // 错误状态显示
+  if (error) {
+    return (
+      <div className="flex flex-col items-center py-10">
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+        <Button variant="outline" onClick={handleRefresh}>
+          重新加载
+        </Button>
+      </div>
+    );
+  }
+
+  // 初始加载状态
+  if (isLoading && !hasInitialized) {
     return (
       <div className="flex flex-col items-center py-10">
         <LoadingSpinner />
-        <div className="mt-2 text-gray-600 text-sm">正在加载域名数据…请稍候</div>
+        <div className="mt-4 text-gray-600 text-center">
+          <div>正在加载域名数据...</div>
+          <div className="text-sm text-gray-500 mt-2">首次加载可能需要几秒钟</div>
+        </div>
       </div>
     );
   }
@@ -88,7 +124,7 @@ export const DomainManagement = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h2 className="text-2xl font-bold">{t('userCenter.myDomains')}</h2>
+        <h2 className="text-2xl font-bold">{t('userCenter.myDomains', '我的域名')}</h2>
         <div className="flex gap-2">
           <Button 
             variant="outline" 
@@ -98,7 +134,7 @@ export const DomainManagement = () => {
             className="flex items-center gap-1"
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-            {isRefreshing ? t('domains.refreshing') : t('common.refresh')}
+            {isRefreshing ? '刷新中...' : '刷新'}
           </Button>
           <DomainActions mode="add" onSuccess={loadDomains} />
         </div>
