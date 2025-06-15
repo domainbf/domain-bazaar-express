@@ -5,13 +5,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
 import { Domain } from '@/types/domain';
 import { useTranslation } from 'react-i18next';
-import { useErrorHandler } from '@/hooks/useErrorHandler';
-import { handleSupabaseError, retrySupabaseOperation } from '@/utils/supabaseHelpers';
 
 export const useDomainsData = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const { handleError } = useErrorHandler();
   const [domains, setDomains] = useState<Domain[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -47,16 +44,12 @@ export const useDomainsData = () => {
     }
     
     try {
-      // Use retry mechanism for better reliability
-      const domainsData = await retrySupabaseOperation(async () => {
-        const { data, error } = await supabase
-          .from('domain_listings')
-          .select('*')
-          .eq('owner_id', user.id);
-        
-        if (error) throw error;
-        return data;
-      });
+      const { data: domainsData, error: domainsError } = await supabase
+        .from('domain_listings')
+        .select('*')
+        .eq('owner_id', user.id);
+      
+      if (domainsError) throw domainsError;
       
       if (!domainsData || domainsData.length === 0) {
         setDomains([]);
@@ -65,19 +58,14 @@ export const useDomainsData = () => {
 
       // 使用单独的查询获取 analytics 数据，避免关系查询问题
       const domainIds = domainsData.map(d => d.id);
-      const analyticsData = await retrySupabaseOperation(async () => {
-        const { data, error } = await supabase
-          .from('domain_analytics')
-          .select('*')
-          .in('domain_id', domainIds);
-        
-        if (error) {
-          console.error("Error fetching analytics data", error);
-          // Don't throw error for analytics, just log it
-          return [];
-        }
-        return data;
-      });
+      const { data: analyticsData, error: analyticsError } = await supabase
+        .from('domain_analytics')
+        .select('*')
+        .in('domain_id', domainIds);
+      
+      if (analyticsError) {
+        console.error("Error fetching analytics data", analyticsError);
+      }
 
       const analyticsMap = new Map();
       if (analyticsData) {
@@ -105,14 +93,13 @@ export const useDomainsData = () => {
       }
     } catch (error: any) {
       console.error('Error loading domains:', error);
-      const errorMessage = handleSupabaseError(error);
-      handleError(new Error(errorMessage));
+      toast.error(error.message || t('domains.loadError', '加载域名失败'));
       setDomains([]);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [user, t, handleError]);
+  }, [user, t]);
 
   // Initial load
   useEffect(() => {

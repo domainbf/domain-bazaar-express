@@ -28,7 +28,7 @@ export const DomainDetailSidebar: React.FC<Props> = ({
 
   const handleVerifyDomain = () => {
     if (isOwner) {
-      navigate(`/verify/${domain.id}`);
+      navigate(`/domain-verification/${domain.id}`);
     }
   };
 
