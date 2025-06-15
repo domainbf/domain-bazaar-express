@@ -51,13 +51,6 @@
       ]
     }
   ],
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
   "cleanUrls": true,
-  "trailingSlash": false,
-  "functions": {
-    "app/api/[...routes].ts": {
-      "maxDuration": 30
-    }
-  }
+  "trailingSlash": false
 }
