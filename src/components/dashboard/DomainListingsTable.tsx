@@ -6,6 +6,7 @@ import { Edit, Trash, CheckCircle, ExternalLink, Eye, ShieldCheck } from 'lucide
 import { supabase } from "@/integrations/supabase/client";
 import { DomainListing } from "@/types/domain";
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface DomainListingsTableProps {
   domains: DomainListing[];
@@ -14,6 +15,7 @@ interface DomainListingsTableProps {
   onVerify?: (domainId: string) => void;
   onDelete?: (domainId: string) => Promise<void>;
   showActions?: boolean;
+  currentUserId?: string;
 }
 
 export const DomainListingsTable = ({ 
@@ -22,9 +24,11 @@ export const DomainListingsTable = ({
   onRefresh, 
   onVerify, 
   onDelete, 
-  showActions = true 
+  showActions = true,
+  currentUserId
 }: DomainListingsTableProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const handleDeleteDomain = async (domainId: string) => {
     if (!confirm('您确定要删除这个域名吗？')) return;
@@ -78,6 +82,11 @@ export const DomainListingsTable = ({
     }
   };
 
+  // 检查当前用户是否是域名所有者
+  const isOwner = (domain: DomainListing) => {
+    return user?.id === domain.owner_id || currentUserId === domain.owner_id;
+  };
+
   if (domains.length === 0) {
     return (
       <div className="text-center py-12 bg-gray-50 rounded-lg">
@@ -101,7 +110,7 @@ export const DomainListingsTable = ({
             <th className="text-left p-4 border-b">价格</th>
             <th className="text-left p-4 border-b">分类</th>
             <th className="text-left p-4 border-b">状态</th>
-            <th className="text-left p-4 border-b">操作</th>
+            {showActions && <th className="text-left p-4 border-b">操作</th>}
           </tr>
         </thead>
         <tbody>
@@ -148,17 +157,21 @@ export const DomainListingsTable = ({
               {showActions && (
                 <td className="p-4">
                   <div className="flex space-x-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => onEdit(domain)}
-                      className="border-gray-300 text-black hover:bg-gray-100"
-                      title="编辑域名"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
+                    {/* 只有所有者才能看到编辑按钮 */}
+                    {isOwner(domain) && (
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => onEdit(domain)}
+                        className="border-gray-300 text-black hover:bg-gray-100"
+                        title="编辑域名"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    )}
                     
-                    {domain.verification_status !== 'verified' && (
+                    {/* 只有所有者且未验证的域名才能看到验证按钮 */}
+                    {isOwner(domain) && domain.verification_status !== 'verified' && (
                       <Button 
                         size="sm" 
                         variant="outline" 
@@ -170,7 +183,8 @@ export const DomainListingsTable = ({
                       </Button>
                     )}
                     
-                    {domain.verification_status === 'verified' && (
+                    {/* 只有所有者且已验证的域名才能看到上架/下架按钮 */}
+                    {isOwner(domain) && domain.verification_status === 'verified' && (
                       <Button 
                         size="sm" 
                         variant="outline" 
@@ -186,6 +200,7 @@ export const DomainListingsTable = ({
                       </Button>
                     )}
                     
+                    {/* 所有人都可以查看在售的域名 */}
                     {domain.status === 'available' && (
                       <Button 
                         size="sm" 
@@ -198,15 +213,18 @@ export const DomainListingsTable = ({
                       </Button>
                     )}
                     
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => handleDeleteDomain(domain.id as string)}
-                      className="border-gray-300 text-red-600 hover:bg-red-50 hover:border-red-300"
-                      title="删除域名"
-                    >
-                      <Trash className="w-4 h-4" />
-                    </Button>
+                    {/* 只有所有者才能删除域名 */}
+                    {isOwner(domain) && (
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => handleDeleteDomain(domain.id as string)}
+                        className="border-gray-300 text-red-600 hover:bg-red-50 hover:border-red-300"
+                        title="删除域名"
+                      >
+                        <Trash className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
                 </td>
               )}

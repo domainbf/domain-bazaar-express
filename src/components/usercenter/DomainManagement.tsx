@@ -126,7 +126,8 @@ export const DomainManagement = () => {
       ) : (
         <DomainTable 
           domains={filteredDomains} 
-          onDomainUpdate={loadDomains} 
+          onDomainUpdate={loadDomains}
+          currentUserId={user.id}
         />
       )}
     </div>

@@ -45,10 +45,20 @@ export const DomainDetailPage = () => {
   };
 
   const handlePurchase = () => {
+    // 检查是否是所有者
+    if (user?.id === domain.owner_id) {
+      console.log('您不能购买自己的域名');
+      return;
+    }
     console.log(`Purchasing ${domain.name}`);
   };
 
   const handleOffer = () => {
+    // 检查是否是所有者
+    if (user?.id === domain.owner_id) {
+      console.log('您不能对自己的域名报价');
+      return;
+    }
     setIsOfferModalOpen(true);
   };
 
@@ -86,23 +96,26 @@ export const DomainDetailPage = () => {
 
       </main>
 
-      <Dialog open={isOfferModalOpen} onOpenChange={setIsOfferModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>为 {domain.name} 提交报价</DialogTitle>
-            <DialogDescription>
-              您的报价将发送给域名所有者。如果他们感兴趣，将通过您提供的邮箱与您联系。
-            </DialogDescription>
-          </DialogHeader>
-          <DomainOfferForm
-            domain={domain.name}
-            domainId={domain.id}
-            sellerId={domain.owner_id}
-            onClose={() => setIsOfferModalOpen(false)}
-            isAuthenticated={!!user}
-          />
-        </DialogContent>
-      </Dialog>
+      {/* 只有非所有者才能看到报价对话框 */}
+      {user?.id !== domain.owner_id && (
+        <Dialog open={isOfferModalOpen} onOpenChange={setIsOfferModalOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>为 {domain.name} 提交报价</DialogTitle>
+              <DialogDescription>
+                您的报价将发送给域名所有者。如果他们感兴趣，将通过您提供的邮箱与您联系。
+              </DialogDescription>
+            </DialogHeader>
+            <DomainOfferForm
+              domain={domain.name}
+              domainId={domain.id}
+              sellerId={domain.owner_id}
+              onClose={() => setIsOfferModalOpen(false)}
+              isAuthenticated={!!user}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };

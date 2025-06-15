@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { toast } from "sonner";
@@ -20,6 +20,8 @@ import { useDomainVerification } from '@/hooks/verification/useDomainVerificatio
 export const DomainVerification = () => {
   const { domainId } = useParams<{ domainId: string }>();
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [accessDenied, setAccessDenied] = useState(false);
   const { 
     domain, 
     verification, 
@@ -35,6 +37,19 @@ export const DomainVerification = () => {
     }
   }, [domainId]);
 
+  // 检查用户权限
+  useEffect(() => {
+    if (domain && user) {
+      if (domain.owner_id !== user.id) {
+        setAccessDenied(true);
+        toast.error('您只能验证自己的域名');
+        setTimeout(() => {
+          navigate('/marketplace');
+        }, 2000);
+      }
+    }
+  }, [domain, user, navigate]);
+
   const renderContent = () => {
     if (isLoading) {
       return <LoadingSpinner />;
@@ -42,6 +57,16 @@ export const DomainVerification = () => {
 
     if (!domain) {
       return <DomainNotFound />;
+    }
+
+    if (accessDenied) {
+      return (
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">访问被拒绝</h2>
+          <p className="text-gray-600 mb-4">您只能验证自己的域名</p>
+          <p className="text-sm text-gray-500">正在跳转到市场页面...</p>
+        </div>
+      );
     }
 
     return (
@@ -53,7 +78,7 @@ export const DomainVerification = () => {
         {!verification && (
           <VerificationOptions onStartVerification={(method) => {
             if (domain.owner_id !== user?.id) {
-              toast.error('You can only verify domains you own');
+              toast.error('您只能验证自己的域名');
               return;
             }
             handleStartVerification(method);
