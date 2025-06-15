@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,7 +16,6 @@ import { User, Settings, ClipboardList, Home, Award, HelpCircle, Bell } from 'lu
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
-// 新增
 import { Badge } from "@/components/ui/badge";
 import { useNotifications } from '@/hooks/useNotifications';
 
@@ -27,28 +25,32 @@ export const UserCenter = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('domains');
   const [showHelp, setShowHelp] = useState(false);
+  const [loadTimeout, setLoadTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // 新增：获取未读通知数
   const { unreadCount, refreshNotifications } = useNotifications();
 
   useEffect(() => {
+    // 超时时间，防止死等
     if (isAuthLoading) {
       setIsLoading(true);
       return;
     }
-    if (!user) {
-      toast.error('请登录以访问您的账户');
-      navigate('/');
-      return;
-    }
-    setIsLoading(false);
-  }, [user, isAuthLoading, navigate]);
 
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-    window.history.replaceState({}, '', `/user-center?tab=${value}`);
-    if (value === 'notifications') refreshNotifications();
-  };
+    // 新增超时防护
+    if (!user) {
+      // 等待1.2秒，如果还是没 auth，自动回首页
+      const timer = setTimeout(() => {
+        toast.error('会话已失效，请重新登录');
+        navigate('/');
+      }, 1200);
+      setLoadTimeout(timer);
+      return () => clearTimeout(timer);
+    } else {
+      setIsLoading(false);
+      if (loadTimeout) clearTimeout(loadTimeout);
+    }
+  }, [user, isAuthLoading, navigate]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
