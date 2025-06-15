@@ -63,7 +63,6 @@ function App() {
             </ProtectedRoute>
           } 
         />
-        <Route path="/profile" element={<Profile />} />
         <Route path="/profile/:profileId" element={<UserProfilePage />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/contact" element={<ContactPage />} />

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -97,8 +96,8 @@ export const Navbar = ({ unreadCount = 0 }: { unreadCount?: number }) => {
             </TooltipProvider>
           ) : (
             <>
-              <Button variant="ghost" onClick={() => navigate('/profile')}>登录</Button>
-              <Button onClick={() => navigate('/profile')}>注册</Button>
+              <Button variant="ghost" onClick={() => navigate('/auth')}>登录</Button>
+              <Button onClick={() => navigate('/auth')}>注册</Button>
             </>
           )}
         </div>
