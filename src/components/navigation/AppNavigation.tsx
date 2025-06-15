@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   Home, 
   Search, 
@@ -28,9 +28,11 @@ interface AppNavigationProps {
 }
 
 export const AppNavigation: React.FC<AppNavigationProps> = ({ 
-  currentPath = '/',
   className 
 }) => {
+  const location = useLocation();
+  const currentPath = location.pathname;
+
   const navigationItems: NavigationItem[] = [
     {
       href: '/',
@@ -60,7 +62,7 @@ export const AppNavigation: React.FC<AppNavigationProps> = ({
 
   const quickActions = [
     {
-      href: '/marketplace?search=premium',
+      href: '/marketplace?filter=premium',
       label: '精品域名',
       icon: <Star className="h-4 w-4" />
     },
@@ -73,11 +75,6 @@ export const AppNavigation: React.FC<AppNavigationProps> = ({
       href: '/user-center?tab=transactions',
       label: '交易记录',
       icon: <DollarSign className="h-4 w-4" />
-    },
-    {
-      href: '/domain-verification',
-      label: '域名验证',
-      icon: <Shield className="h-4 w-4" />
     }
   ];
 
@@ -114,7 +111,7 @@ export const AppNavigation: React.FC<AppNavigationProps> = ({
       {/* 快速操作 */}
       <div>
         <h3 className="text-lg font-semibold mb-3">快速操作</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
           {quickActions.map((action) => (
             <Link
               key={action.href}
@@ -131,7 +128,7 @@ export const AppNavigation: React.FC<AppNavigationProps> = ({
       {/* 统计信息快捷方式 */}
       <div>
         <h3 className="text-lg font-semibold mb-3">数据分析</h3>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Link
             to="/user-center?tab=analytics"
             className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-muted/50 transition-colors"

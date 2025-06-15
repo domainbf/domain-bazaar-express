@@ -21,6 +21,10 @@
         {
           "key": "X-XSS-Protection",
           "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
         }
       ]
     },
@@ -46,5 +50,10 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "functions": {
+    "app/api/[...routes].ts": {
+      "maxDuration": 30
+    }
+  }
 }

@@ -22,8 +22,10 @@ const queryClient = new QueryClient({
 // Error handling for the entire application
 const handleGlobalError = (event: ErrorEvent) => {
   console.error("Global error caught:", event.error);
-  // You might want to log this error to an error tracking service
-  event.preventDefault(); // Prevents the default browser error handling
+  // Prevent default to avoid console spam in production
+  if (import.meta.env.PROD) {
+    event.preventDefault();
+  }
 };
 
 window.addEventListener('error', handleGlobalError);
@@ -31,8 +33,10 @@ window.addEventListener('error', handleGlobalError);
 // Unhandled promise rejection handling
 const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
   console.error("Unhandled promise rejection:", event.reason);
-  // You might want to log this error to an error tracking service
-  event.preventDefault(); // Prevents the default browser error handling
+  // Prevent default to avoid console spam in production
+  if (import.meta.env.PROD) {
+    event.preventDefault();
+  }
 };
 
 window.addEventListener('unhandledrejection', handleUnhandledRejection);

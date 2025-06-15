@@ -20,9 +20,10 @@ interface Domain {
 interface DomainTableProps {
   domains: Domain[];
   onDomainUpdate: () => void;
+  currentUserId?: string;
 }
 
-export const DomainTable = ({ domains, onDomainUpdate }: DomainTableProps) => {
+export const DomainTable = ({ domains, onDomainUpdate, currentUserId }: DomainTableProps) => {
   const renderDomainStatus = (status?: string) => {
     switch (status) {
       case 'available':
@@ -73,7 +74,7 @@ export const DomainTable = ({ domains, onDomainUpdate }: DomainTableProps) => {
               </td>
               <td className="py-3 px-4">
                 <div className="flex items-center gap-2">
-                  <Link to={`/domain/${domain.name}`} target="_blank">
+                  <Link to={`/domain/${domain.id}`} target="_blank">
                     <Button variant="ghost" size="sm">
                       <ExternalLink className="w-4 h-4" />
                     </Button>

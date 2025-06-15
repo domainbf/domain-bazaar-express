@@ -1,5 +1,5 @@
 
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { Toaster } from "sonner";
 import { useEffect } from 'react';
 import Index from './pages/Index';
@@ -67,7 +67,7 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/faq" element={<FAQPage />} />
-        {/* 通用404路由放最后 */}
+        {/* 404 页面必须放在最后 */}
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster position="top-right" />
