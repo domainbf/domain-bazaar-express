@@ -1,12 +1,13 @@
 
 {
+  "version": 2,
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },
     {
-      "source": "/((?!api/|assets/|_next/|favicon.ico|.*\\..*).*)",
+      "source": "/((?!api/|_next/|assets/|favicon.ico|.*\\..*).*)",
       "destination": "/index.html"
     }
   ],
