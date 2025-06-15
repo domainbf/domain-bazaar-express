@@ -33,6 +33,7 @@ const fetchDomainDetails = async (domainId: string | undefined) => {
     throw new Error('域名不存在或已被删除');
   }
   
+  // 使用单独的查询获取 analytics 数据，避免关系查询问题
   const { data: analyticsData, error: analyticsError } = await supabase
     .from('domain_analytics')
     .select('views, favorites, offers')

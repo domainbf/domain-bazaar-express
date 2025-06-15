@@ -1,3 +1,4 @@
+
 import { useCallback, useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/contexts/AuthContext';
@@ -55,6 +56,7 @@ export const useDomainsData = () => {
         return;
       }
 
+      // 使用单独的查询获取 analytics 数据，避免关系查询问题
       const domainIds = domainsData.map(d => d.id);
       const { data: analyticsData, error: analyticsError } = await supabase
         .from('domain_analytics')
@@ -84,6 +86,7 @@ export const useDomainsData = () => {
       
       setDomains(processedDomains as Domain[]);
 
+      // 为缺失 analytics 的域名创建记录
       const missingAnalytics = domainsData.filter(domain => !analyticsMap.has(domain.id));
       for (const domain of missingAnalytics) {
         await createAnalyticsRecord(domain.id);
