@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,18 +10,19 @@ const fetchDomainDetails = async (domainId: string | undefined) => {
 
   console.log('Fetching domain details for:', domainId);
 
-  // 根据域名或ID查询
-  let domainQuery;
+  // 判断 id 是不是 UUID 形式，分别查 id 或 name
+  let domainData;
+  let domainError;
   const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(domainId);
-  const selectQuery = '*, profiles(username, full_name, avatar_url)';
+  const selectQuery = '*, profiles(username, full_name, avatar_url)'; // 不涉及 domain_analytics
 
   if (isUUID) {
-    domainQuery = supabase.from('domain_listings').select(selectQuery).eq('id', domainId).maybeSingle();
+    // id 查询
+    ({ data: domainData, error: domainError } = await supabase.from('domain_listings').select(selectQuery).eq('id', domainId).maybeSingle());
   } else {
-    domainQuery = supabase.from('domain_listings').select(selectQuery).eq('name', domainId).maybeSingle();
+    // name 查询
+    ({ data: domainData, error: domainError } = await supabase.from('domain_listings').select(selectQuery).eq('name', domainId).maybeSingle());
   }
-
-  const { data: domainData, error: domainError } = await domainQuery;
 
   if (domainError) {
     console.error('Error fetching domain:', domainError);
@@ -32,8 +32,8 @@ const fetchDomainDetails = async (domainId: string | undefined) => {
   if (!domainData) {
     throw new Error('域名不存在或已被删除');
   }
-  
-  // 使用单独的查询获取 analytics 数据，避免关系查询问题
+
+  // 分开查 domain_analytics，杜绝任何 .select('*, domain_analytics(*)')
   const { data: analyticsData, error: analyticsError } = await supabase
     .from('domain_analytics')
     .select('views, favorites, offers')
@@ -63,7 +63,7 @@ const fetchDomainDetails = async (domainId: string | undefined) => {
     offers: Number(analytics?.offers) || 0,
   };
 
-  // 并行执行：更新浏览量、获取价格历史、获取相似域名
+  // 后续操作保持不变
   const updateViewsPromise = supabase
     .from('domain_analytics')
     .upsert({ domain_id: processedDomain.id, views: (processedDomain.views || 0) + 1 }, { onConflict: 'domain_id' });
@@ -74,7 +74,7 @@ const fetchDomainDetails = async (domainId: string | undefined) => {
     .eq('domain_id', processedDomain.id)
     .order('created_at', { ascending: true })
     .limit(50);
-  
+
   let similarDomainsQuery = supabase
     .from('domain_listings')
     .select('*')
