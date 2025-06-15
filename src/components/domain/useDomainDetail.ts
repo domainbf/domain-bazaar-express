@@ -100,11 +100,14 @@ const fetchDomainDetails = async (domainId: string | undefined) => {
     ]);
 
     // Update views count (fire and forget)
-    supabase
-      .from('domain_analytics')
-      .upsert({ domain_id: processedDomain.id, views: (processedDomain.views || 0) + 1 }, { onConflict: 'domain_id' })
-      .then(() => console.log('Views updated'))
-      .catch(err => console.error('Failed to update views:', err));
+    retrySupabaseOperation(async () => {
+      const { error } = await supabase
+        .from('domain_analytics')
+        .upsert({ domain_id: processedDomain.id, views: (processedDomain.views || 0) + 1 }, { onConflict: 'domain_id' });
+      
+      if (error) throw error;
+      console.log('Views updated');
+    }).catch(err => console.error('Failed to update views:', err));
 
     console.log('Domain details fetched successfully');
 

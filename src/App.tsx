@@ -17,16 +17,16 @@ import { lazy } from "react";
 
 const Index = lazy(() => import("./pages/Index"));
 const Marketplace = lazy(() => import("./pages/Marketplace").then(m => ({ default: m.Marketplace })));
-const Dashboard = lazy(() => import("./pages/Dashboard").then(m => ({ default: m.default || m })));
-const UserCenter = lazy(() => import("./pages/UserCenter").then(m => ({ default: m.default || m })));
-const AdminPanel = lazy(() => import("./pages/AdminPanel").then(m => ({ default: m.default || m })));
-const Profile = lazy(() => import("./pages/Profile").then(m => ({ default: m.default || m })));
-const UserProfile = lazy(() => import("./pages/UserProfile").then(m => ({ default: m.default || m })));
-const DomainVerification = lazy(() => import("./pages/DomainVerification").then(m => ({ default: m.default || m })));
-const ResetPassword = lazy(() => import("./pages/ResetPassword").then(m => ({ default: m.default || m })));
-const ContactPage = lazy(() => import("./pages/ContactPage").then(m => ({ default: m.default || m })));
-const FAQPage = lazy(() => import("./pages/FAQPage").then(m => ({ default: m.default || m })));
-const NotFound = lazy(() => import("./pages/NotFound").then(m => ({ default: m.default || m })));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const UserCenter = lazy(() => import("./pages/UserCenter"));
+const AdminPanel = lazy(() => import("./pages/AdminPanel"));
+const Profile = lazy(() => import("./pages/Profile"));
+const UserProfile = lazy(() => import("./pages/UserProfile"));
+const DomainVerification = lazy(() => import("./pages/DomainVerification"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const ContactPage = lazy(() => import("./pages/ContactPage"));
+const FAQPage = lazy(() => import("./pages/FAQPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Import domain detail component
 const DomainDetailPage = lazy(() => import("./components/domain/DomainDetailPage").then(m => ({ default: m.DomainDetailPage })));
