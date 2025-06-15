@@ -14,7 +14,6 @@ const fetchDomainDetails = async (domainId: string | undefined) => {
 
   try {
     // 根据域名或ID查询
-    let domainQuery;
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(domainId);
     const selectQuery = '*, profiles(username, full_name, avatar_url)';
 
@@ -69,17 +68,20 @@ const fetchDomainDetails = async (domainId: string | undefined) => {
       offers: Number(analytics?.offers) || 0,
     };
 
-    // 并行执行：更新浏览量、获取价格历史、获取相似域名
+    // 并行执行：获取价格历史、获取相似域名
     const [priceHistoryResult, similarDomainsResult] = await Promise.allSettled([
-      retrySupabaseOperation(() =>
-        supabase
+      retrySupabaseOperation(async () => {
+        const { data, error } = await supabase
           .from('domain_price_history')
           .select('*')
           .eq('domain_id', processedDomain.id)
           .order('created_at', { ascending: true })
-          .limit(50)
-      ),
-      retrySupabaseOperation(() => {
+          .limit(50);
+        
+        if (error) throw error;
+        return data;
+      }),
+      retrySupabaseOperation(async () => {
         let similarDomainsQuery = supabase
           .from('domain_listings')
           .select('*')
@@ -91,20 +93,25 @@ const fetchDomainDetails = async (domainId: string | undefined) => {
           similarDomainsQuery = similarDomainsQuery.eq('category', processedDomain.category);
         }
 
-        return similarDomainsQuery;
-      }),
-      // Update views count (fire and forget)
-      supabase
-        .from('domain_analytics')
-        .upsert({ domain_id: processedDomain.id, views: (processedDomain.views || 0) + 1 }, { onConflict: 'domain_id' })
+        const { data, error } = await similarDomainsQuery;
+        if (error) throw error;
+        return data;
+      })
     ]);
+
+    // Update views count (fire and forget)
+    supabase
+      .from('domain_analytics')
+      .upsert({ domain_id: processedDomain.id, views: (processedDomain.views || 0) + 1 }, { onConflict: 'domain_id' })
+      .then(() => console.log('Views updated'))
+      .catch(err => console.error('Failed to update views:', err));
 
     console.log('Domain details fetched successfully');
 
     return {
       domain: processedDomain,
-      priceHistory: priceHistoryResult.status === 'fulfilled' ? (priceHistoryResult.value?.data || []) : [],
-      similarDomains: similarDomainsResult.status === 'fulfilled' ? (similarDomainsResult.value?.data || []) : []
+      priceHistory: priceHistoryResult.status === 'fulfilled' ? (priceHistoryResult.value || []) : [],
+      similarDomains: similarDomainsResult.status === 'fulfilled' ? (similarDomainsResult.value || []) : []
     };
   } catch (error) {
     console.error('Error in fetchDomainDetails:', error);
