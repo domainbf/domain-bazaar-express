@@ -1,7 +1,15 @@
+
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { DomainVerification, VerificationCheckResult } from '@/types/domain';
 import { toast } from 'sonner';
+
+const generateToken = () => {
+  // Generate a more secure and unique token
+  const array = new Uint32Array(4);
+  crypto.getRandomValues(array);
+  return `domain-verification=${Array.from(array, dec => dec.toString(16).padStart(8, '0')).join('')}`;
+};
 
 export const useVerificationProcess = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -9,18 +17,59 @@ export const useVerificationProcess = () => {
   const startVerification = async (domainId: string, domainName: string, verificationMethod: string): Promise<DomainVerification | null> => {
     setIsLoading(true);
     try {
+      const token = generateToken();
+      let verification_data: Record<string, any> = {};
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + 7); // Verification expires in 7 days
+
+      switch (verificationMethod) {
+        case 'dns':
+          verification_data = {
+            token,
+            recordType: 'TXT',
+            recordName: `_domainverify.${domainName}`,
+            recordValue: token,
+          };
+          break;
+        case 'file':
+          verification_data = {
+            token,
+            fileLocation: '/.well-known/domain-verification.txt',
+            fileContent: token,
+          };
+          break;
+        case 'html':
+          verification_data = {
+            token,
+            metaName: 'domain-verification',
+          };
+          break;
+        case 'whois':
+          verification_data = {
+            token,
+            tokenValue: token,
+          };
+          break;
+        case 'email':
+          verification_data = {
+            token,
+            adminEmail: `admin@${domainName}`, // This is a guess, real implementation might need more logic
+          };
+          break;
+        default:
+          toast.error('不支持的验证方法');
+          return null;
+      }
+
       const { data, error } = await supabase
         .from('domain_verifications')
         .insert({
           domain_id: domainId,
           verification_method: verificationMethod,
           status: 'pending',
-          verification_type: 'ownership',
-          verification_data: {
-            domain: domainName,
-            method: verificationMethod,
-            timestamp: new Date().toISOString()
-          }
+          verification_type: verificationMethod, // More specific type
+          verification_data: verification_data,
+          expiry_date: expiryDate.toISOString(),
         })
         .select('*')
         .single();

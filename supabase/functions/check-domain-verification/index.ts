@@ -26,12 +26,10 @@ serve(async (req) => {
       )
     }
     
-    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
     const supabase = createClient(supabaseUrl, supabaseKey)
     
-    // Get verification data
     const { data: verification, error: verificationError } = await supabase
       .from('domain_verifications')
       .select('verification_method, verification_data')
@@ -48,7 +46,6 @@ serve(async (req) => {
       )
     }
     
-    // Get domain data
     const { data: domain, error: domainError } = await supabase
       .from('domain_listings')
       .select('name')
@@ -68,106 +65,91 @@ serve(async (req) => {
     let verified = false
     let message = 'Verification failed. Please try again.'
     
-    // Based on verification method, check verification
+    const token = verification.verification_data?.token;
+
     switch (verification.verification_method) {
       case 'dns':
-        // Check DNS verification
+        const recordName = verification.verification_data.recordName;
+        const recordValue = verification.verification_data.recordValue;
         try {
-          // This is a simplified implementation. In a real-world scenario, 
-          // you would use a DNS lookup service to verify DNS records
-          const token = verification.verification_data?.token || 'missing-token'
-          const dnsResponse = await fetch(`https://dns-api.org/TXT/${domain.name}`)
-          const dnsData = await dnsResponse.json()
-          
-          if (Array.isArray(dnsData) && dnsData.some(record => record.value.includes(token))) {
-            verified = true
-            message = 'DNS verification successful'
+          const dnsRecords = await Deno.resolveDns(recordName, "TXT");
+          const txtValues = dnsRecords.flat();
+          if (txtValues.includes(recordValue)) {
+            verified = true;
+            message = 'DNS verification successful.';
           } else {
-            message = 'DNS verification failed. TXT record not found or does not match.'
+            message = `DNS verification failed. TXT record for '${recordName}' not found or value does not match. Expected to find a TXT record with value "${recordValue}".`;
           }
         } catch (error) {
-          console.error('DNS verification error:', error)
-          message = 'Error checking DNS verification. Please try again.'
+          console.error('DNS verification error:', error);
+          if (error.name === 'NotFound') {
+            message = `DNS verification failed. Could not find any DNS records for '${recordName}'. Please ensure the record is created correctly.`;
+          } else {
+            message = `An error occurred during DNS check. Please try again later. Error: ${error.message}`;
+          }
         }
         break
         
       case 'file':
-        // Check file verification
+        const fileLocation = verification.verification_data.fileLocation;
+        const fileContent = verification.verification_data.fileContent;
+        const urlToFetch = `https://${domain.name}${fileLocation}`;
         try {
-          const filePath = verification.verification_data?.filePath || ''
-          const token = verification.verification_data?.token || ''
-          
-          const fileResponse = await fetch(`https://${domain.name}/${filePath}`, {
-            method: 'GET',
-            headers: { 'Cache-Control': 'no-cache' }
-          })
-          
-          if (fileResponse.ok) {
-            const fileContent = await fileResponse.text()
-            if (fileContent.trim() === token) {
-              verified = true
-              message = 'File verification successful'
+          const response = await fetch(urlToFetch, { headers: { 'Cache-Control': 'no-cache' } });
+          if (response.ok) {
+            const text = await response.text();
+            if (text.trim() === fileContent) {
+              verified = true;
+              message = 'File verification successful.';
             } else {
-              message = 'Verification file content does not match the expected token'
+              message = `File content mismatch. We found content, but it did not match the expected verification token. Please check the file content.`;
             }
           } else {
-            message = `Verification file not found. Please make sure you've uploaded it to: ${filePath}`
+            message = `Verification file not found at ${urlToFetch}. Server responded with status ${response.status}. Please check the file path and that your domain is accessible.`;
           }
         } catch (error) {
-          console.error('File verification error:', error)
-          message = 'Error checking file verification. Please try again.'
+          console.error('File verification error:', error);
+          message = `Could not connect to ${urlToFetch} to verify the file. Please ensure your domain is accessible and DNS is configured correctly.`;
         }
         break
         
       case 'html':
-        // Check HTML meta tag verification
+        const metaName = verification.verification_data.metaName;
+        const metaToken = verification.verification_data.token;
+        const homeUrl = `https://${domain.name}`;
         try {
-          const token = verification.verification_data?.token || ''
-          const metaName = verification.verification_data?.metaName || 'domain-verification'
-          
-          const htmlResponse = await fetch(`https://${domain.name}`, {
-            method: 'GET',
-            headers: { 'Cache-Control': 'no-cache' }
-          })
-          
-          if (htmlResponse.ok) {
-            const htmlContent = await htmlResponse.text()
-            const metaTagRegex = new RegExp(`<meta\\s+name=["']${metaName}["']\\s+content=["']${token}["']`, 'i')
-            
-            if (metaTagRegex.test(htmlContent)) {
-              verified = true
-              message = 'HTML verification successful'
+          const response = await fetch(homeUrl, { headers: { 'Cache-Control': 'no-cache' } });
+          if (response.ok) {
+            const html = await response.text();
+            const metaTagRegex = new RegExp(`<meta[^>]+name=["']${metaName}["'][^>]+content=["']([^"']+)["'][^>]*>`, 'i');
+            const match = html.match(metaTagRegex);
+            if (match && match[1] === metaToken) {
+              verified = true;
+              message = 'HTML tag verification successful.';
             } else {
-              message = 'Meta tag not found or does not match the expected token'
+              message = `HTML meta tag not found on your homepage, or its content does not match. Please ensure the tag <meta name="${metaName}" content="${metaToken}"> is present in the <head> section.`;
             }
           } else {
-            message = 'Could not access the website. Please make sure the site is accessible.'
+            message = `Could not access your homepage at ${homeUrl}. Server responded with status ${response.status}.`;
           }
         } catch (error) {
-          console.error('HTML verification error:', error)
-          message = 'Error checking HTML verification. Please try again.'
+          console.error('HTML verification error:', error);
+          message = `Could not connect to ${homeUrl} to check the HTML tag. Please ensure your domain is accessible.`;
         }
         break
-        
+      
+      case 'whois':
+        message = 'WHOIS verification is not automatically checked. An administrator will review it manually.';
+        break;
+
       case 'email':
-        // Email verification is handled separately with a token click
-        // This is a simplified implementation for testing
-        const emailToken = verification.verification_data?.token || ''
-        const requestToken = verification.verification_data?.requestToken || ''
-        
-        if (emailToken && requestToken && emailToken === requestToken) {
-          verified = true
-          message = 'Email verification successful'
-        } else {
-          message = 'Email verification token is invalid or expired'
-        }
+        message = 'Email verification is confirmed by clicking the link in the email. If you have clicked it, please refresh the status.';
         break
         
       default:
-        message = 'Unsupported verification method'
+        message = 'Unsupported verification method for automatic check.'
     }
     
-    // If verification is successful, update domain verification status
     if (verified) {
       await supabase
         .from('domain_verifications')

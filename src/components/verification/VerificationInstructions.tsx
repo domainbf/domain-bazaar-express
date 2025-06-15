@@ -1,4 +1,3 @@
-
 import { DomainVerification } from '@/types/domain';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -214,7 +213,7 @@ export const VerificationInstructions = ({
               </div>
             </div>
           </div>
-        ) : (
+        ) : verification.verification_type === 'html' ? (
           <div className="space-y-4">
             <p>在您的网站HTML页面中添加Meta标签：</p>
             <div className={`${isMobile ? 'overflow-x-auto' : ''} bg-gray-50 p-4 rounded-md space-y-3`}>
@@ -222,9 +221,9 @@ export const VerificationInstructions = ({
                 <p className="text-sm font-medium">Meta标签:</p>
                 <div className="flex items-center mt-1">
                   <p className="text-sm font-mono bg-gray-100 p-1 rounded flex-1 overflow-x-auto">
-                    {verification.verification_data.metaTagContent}
+                    {`<meta name="${verification.verification_data.metaName}" content="${verification.verification_data.token}">`}
                   </p>
-                  <CopyButton value={verification.verification_data.metaTagContent} />
+                  <CopyButton value={`<meta name="${verification.verification_data.metaName}" content="${verification.verification_data.token}">`} />
                 </div>
               </div>
               <div>
@@ -235,6 +234,13 @@ export const VerificationInstructions = ({
               </div>
             </div>
           </div>
+        ) : (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              未知的验证类型: {verification.verification_type}
+            </AlertDescription>
+          </Alert>
         )}
       </CardContent>
       <CardFooter className={`${isMobile ? 'flex-col space-y-2' : verification.verification_type === 'email' ? 'grid grid-cols-3 gap-2' : 'flex justify-between'}`}>
@@ -259,8 +265,9 @@ export const VerificationInstructions = ({
         <Button 
           onClick={onCheck}
           className={isMobile ? "w-full" : ""}
+          disabled={verification.verification_type === 'whois'}
         >
-          检查验证
+          {verification.verification_type === 'whois' ? '等待管理员审核' : '检查验证'}
         </Button>
       </CardFooter>
     </Card>
