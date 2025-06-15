@@ -1,4 +1,3 @@
-
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from "sonner";
 import { useEffect } from 'react';
@@ -17,6 +16,7 @@ import { initializeAdminUser } from './utils/adminInitialization';
 import NotFound from './pages/NotFound';
 import { ContactPage } from './pages/ContactPage';
 import { FAQPage } from './pages/FAQPage';
+import AuthPage from './pages/AuthPage';
 
 function App() {
   useEffect(() => {
@@ -28,6 +28,7 @@ function App() {
     <>
       <Routes>
         <Route path="/" element={<Index />} />
+        <Route path="/auth" element={<AuthPage />} />
         <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/domain/:domainId" element={<DomainDetailPage />} />
         <Route 

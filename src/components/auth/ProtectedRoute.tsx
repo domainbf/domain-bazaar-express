@@ -19,15 +19,15 @@ export const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRoutePr
     const checkAccess = () => {
       // 等待认证状态加载完成
       if (isLoading) return;
-      
+
       setIsChecking(true);
-      
+
       try {
         // 检查用户是否已登录
         if (!user) {
-          console.log('User not authenticated, redirecting to home');
+          console.log('User not authenticated, redirecting to /auth');
           toast.error('请先登录以访问此页面');
-          navigate('/', { replace: true });
+          navigate('/auth', { replace: true }); // 重点修正为 /auth
           return;
         }
 
@@ -43,7 +43,7 @@ export const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRoutePr
       } catch (error) {
         console.error('Access check failed:', error);
         toast.error('验证权限时发生错误');
-        navigate('/', { replace: true });
+        navigate('/auth', { replace: true }); // 错误时也统一跳 /auth
       } finally {
         // 添加一个小的延迟以确保状态更新
         setTimeout(() => {
