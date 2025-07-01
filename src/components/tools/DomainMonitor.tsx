@@ -58,10 +58,13 @@ export const DomainMonitor = () => {
       // 模拟域名状态检查
       await new Promise(resolve => setTimeout(resolve, 1500));
       
+      const statusOptions: ('available' | 'registered')[] = ['available', 'registered'];
+      const randomStatus = statusOptions[Math.floor(Math.random() * statusOptions.length)];
+      
       const newMonitoredDomain: MonitoredDomain = {
         id: Date.now().toString(),
         domain: newDomain.toLowerCase(),
-        status: Math.random() > 0.5 ? 'available' : 'registered',
+        status: randomStatus,
         lastChecked: new Date().toISOString(),
         notifications: true
       };
@@ -91,10 +94,13 @@ export const DomainMonitor = () => {
   };
 
   const checkDomainStatus = async (id: string) => {
+    const statusOptions: ('available' | 'registered')[] = ['available', 'registered'];
+    const randomStatus = statusOptions[Math.floor(Math.random() * statusOptions.length)];
+    
     const updatedDomains = domains.map(d => 
       d.id === id ? { 
         ...d, 
-        status: Math.random() > 0.5 ? 'available' : 'registered',
+        status: randomStatus,
         lastChecked: new Date().toISOString() 
       } : d
     );
