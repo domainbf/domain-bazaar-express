@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast"
 import { LogOut, Settings, User, Bell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import logo from '/placeholder.svg';
 
 // 新增：支持 unreadCount 传参
 export const Navbar = ({ unreadCount = 0 }: { unreadCount?: number }) => {
@@ -36,13 +36,16 @@ export const Navbar = ({ unreadCount = 0 }: { unreadCount?: number }) => {
     }
   };
 
-  // 修改“通知”入口，带角标
   return (
     <nav className="w-full bg-white shadow-sm">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center font-semibold text-2xl">
-          <img src={logo} alt="Logo" className="h-8 w-auto mr-2" />
-          域名交易平台
+        <Link to="/" className="flex items-center">
+          <img 
+            src="/lovable-uploads/4eedb5e2-a1c2-44e9-bb45-e827a79555ce.png" 
+            alt="NIC.BN" 
+            className="h-10 w-auto"
+            style={{ maxHeight: '40px', width: 'auto' }}
+          />
         </Link>
         <div className="flex items-center space-x-2">
           {user ? (

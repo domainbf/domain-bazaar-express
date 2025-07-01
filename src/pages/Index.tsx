@@ -1,11 +1,13 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { DomainCard } from '@/components/DomainCard';
-import { Search, User, ClipboardList, ArrowRight, Bell } from 'lucide-react';
+import { Search, User, ClipboardList, ArrowRight, Bell, TrendingUp, Calculator, Eye } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/Navbar';
+import { HeroSection } from '@/components/sections/HeroSection';
+import { DomainEstimator } from '@/components/tools/DomainEstimator';
+import { DomainMonitor } from '@/components/tools/DomainMonitor';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthModal } from '@/components/AuthModal';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +15,7 @@ import { Domain } from '@/types/domain';
 import { toast } from 'sonner';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTranslation } from 'react-i18next';
 
 const Index = () => {
@@ -22,6 +25,7 @@ const Index = () => {
   const [domains, setDomains] = useState<Domain[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('marketplace');
   const { user, profile, isLoading: authLoading } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -168,35 +172,11 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
       
       {/* Hero Section */}
-      <header className="pt-16 pb-20 md:py-24 bg-gray-900 text-white">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 text-center">
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 md:mb-8 leading-tight text-white">
-            {t('homePage.title')}
-          </h1>
-          <p className="text-base md:text-xl text-white mb-8 md:mb-12 max-w-3xl mx-auto px-2 font-semibold">
-            {t('homePage.subtitle')}
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center px-2">
-            <Link to="/marketplace" className="w-full sm:w-auto">
-              <Button className="w-full sm:w-auto bg-white text-gray-900 hover:bg-gray-100 px-6 py-2 md:px-8 md:py-6 text-base md:text-lg font-bold">
-                {t('homePage.browseDomains')}
-              </Button>
-            </Link>
-            <Button 
-              variant="outline" 
-              className="w-full sm:w-auto border-gray-400 border-2 bg-transparent text-white hover:bg-gray-700 px-6 py-2 md:px-8 md:py-6 text-base md:text-lg font-bold"
-              onClick={handleSellDomains}
-            >
-              {t('homePage.sellDomains')}
-            </Button>
-          </div>
-        </div>
-      </header>
+      <HeroSection />
 
       {/* User Dashboard Section - Show when logged in */}
       {user && !authLoading && (
@@ -282,118 +262,147 @@ const Index = () => {
         </section>
       )}
 
-      {/* Filter Section */}
+      {/* 主要内容区域 - 使用标签页 */}
       <section className="py-12 md:py-16 bg-white">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-8 md:mb-10">{t('homePage.featuredDomains')}</h2>
-          
-          {/* Filter buttons */}
-          <div className="overflow-x-auto pb-4 mb-8">
-            <div className="flex gap-2 md:gap-3 md:flex-wrap md:justify-center min-w-max px-4">
-              <Button
-                variant={filter === 'all' ? 'default' : 'outline'}
-                onClick={() => setFilter('all')}
-                className={filter === 'all' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
-                size="sm"
-              >
-                {t('common.all')}
-              </Button>
-              <Button
-                variant={filter === 'premium' ? 'default' : 'outline'}
-                onClick={() => setFilter('premium')}
-                className={filter === 'premium' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
-                size="sm"
-              >
-                {t('domains.categories.premium')}
-              </Button>
-              <Button
-                variant={filter === 'short' ? 'default' : 'outline'}
-                onClick={() => setFilter('short')}
-                className={filter === 'short' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
-                size="sm"
-              >
-                {t('domains.categories.short')}
-              </Button>
-              <Button
-                variant={filter === 'dev' ? 'default' : 'outline'}
-                onClick={() => setFilter('dev')}
-                className={filter === 'dev' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
-                size="sm"
-              >
-                {t('domains.categories.tech')}
-              </Button>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="flex justify-center mb-8">
+              <TabsList className="grid grid-cols-3 w-full max-w-md">
+                <TabsTrigger value="marketplace" className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4" />
+                  域名市场
+                </TabsTrigger>
+                <TabsTrigger value="estimator" className="flex items-center gap-2">
+                  <Calculator className="w-4 h-4" />
+                  价值评估
+                </TabsTrigger>
+                <TabsTrigger value="monitor" className="flex items-center gap-2">
+                  <Eye className="w-4 h-4" />
+                  域名监控
+                </TabsTrigger>
+              </TabsList>
             </div>
-          </div>
 
-          <div className="max-w-md mx-auto mb-10">
-            <div className="relative">
-              <Input
-                type="text"
-                placeholder={t('marketplace.searchPlaceholder')}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-10 md:h-12 pl-12 pr-4 bg-white border-gray-500 focus:border-gray-900 text-gray-900 font-medium"
-              />
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-700 w-5 h-5" />
-            </div>
-          </div>
-
-          {/* Domain Cards Grid */}
-          {error ? (
-            <div className="text-center py-16 bg-red-50 rounded-lg border border-red-200 mb-12">
-              <h3 className="text-2xl font-medium text-red-600 mb-4">加载失败</h3>
-              <p className="text-red-500 mb-4">{error}</p>
-              <Button onClick={handleRetry} className="bg-red-600 hover:bg-red-700">
-                重新加载
-              </Button>
-            </div>
-          ) : isLoading ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <LoadingSpinner size="lg" text="正在加载精选域名..." />
-            </div>
-          ) : filteredDomains.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-8 px-2 md:px-0">
-                {filteredDomains.map((domain) => (
-                  <DomainCard 
-                    key={domain.id} 
-                    domain={domain.name} 
-                    price={domain.price}
-                    highlight={domain.highlight || false}
-                    description={domain.description || ''}
-                    category={domain.category || ''}
-                    domainId={domain.id}
-                    sellerId={domain.owner_id || ''}
-                  />
-                ))}
-              </div>
+            <TabsContent value="marketplace">
+              <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-8 md:mb-10">{t('homePage.featuredDomains')}</h2>
               
-              <div className="text-center">
-                <Link to="/marketplace">
-                  <Button className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3">
-                    查看更多域名
+              {/* Filter buttons */}
+              <div className="overflow-x-auto pb-4 mb-8">
+                <div className="flex gap-2 md:gap-3 md:flex-wrap md:justify-center min-w-max px-4">
+                  <Button
+                    variant={filter === 'all' ? 'default' : 'outline'}
+                    onClick={() => setFilter('all')}
+                    className={filter === 'all' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
+                    size="sm"
+                  >
+                    {t('common.all')}
                   </Button>
-                </Link>
+                  <Button
+                    variant={filter === 'premium' ? 'default' : 'outline'}
+                    onClick={() => setFilter('premium')}
+                    className={filter === 'premium' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
+                    size="sm"
+                  >
+                    {t('domains.categories.premium')}
+                  </Button>
+                  <Button
+                    variant={filter === 'short' ? 'default' : 'outline'}
+                    onClick={() => setFilter('short')}
+                    className={filter === 'short' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
+                    size="sm"
+                  >
+                    {t('domains.categories.short')}
+                  </Button>
+                  <Button
+                    variant={filter === 'dev' ? 'default' : 'outline'}
+                    onClick={() => setFilter('dev')}
+                    className={filter === 'dev' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
+                    size="sm"
+                  >
+                    {t('domains.categories.tech')}
+                  </Button>
+                </div>
               </div>
-            </>
-          ) : (
-            <div className="text-center py-16 bg-gray-50 rounded-lg border border-gray-200 mb-12">
-              <h3 className="text-2xl font-medium text-gray-600 mb-4">
-                {domains.length === 0 ? '暂无域名' : t('marketplace.noDomainsFound')}
-              </h3>
-              <p className="text-gray-500 mb-4">
-                {domains.length === 0 ? '看起来还没有域名添加到平台中' : t('homePage.tryAdjustingFilters')}
-              </p>
-              <div className="space-x-4">
-                <Button onClick={handleSellDomains} className="bg-gray-900">
-                  {t('homePage.addYourDomain')}
-                </Button>
-                <Button variant="outline" onClick={handleRetry}>
-                  刷新页面
-                </Button>
+
+              <div className="max-w-md mx-auto mb-10">
+                <div className="relative">
+                  <Input
+                    type="text"
+                    placeholder={t('marketplace.searchPlaceholder')}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full h-10 md:h-12 pl-12 pr-4 bg-white border-gray-500 focus:border-gray-900 text-gray-900 font-medium"
+                  />
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-700 w-5 h-5" />
+                </div>
               </div>
-            </div>
-          )}
+
+              {/* Domain Cards Grid */}
+              {error ? (
+                <div className="text-center py-16 bg-red-50 rounded-lg border border-red-200 mb-12">
+                  <h3 className="text-2xl font-medium text-red-600 mb-4">加载失败</h3>
+                  <p className="text-red-500 mb-4">{error}</p>
+                  <Button onClick={handleRetry} className="bg-red-600 hover:bg-red-700">
+                    重新加载
+                  </Button>
+                </div>
+              ) : isLoading ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <LoadingSpinner size="lg" text="正在加载精选域名..." />
+                </div>
+              ) : filteredDomains.length > 0 ? (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-8 px-2 md:px-0">
+                    {filteredDomains.map((domain) => (
+                      <DomainCard 
+                        key={domain.id} 
+                        domain={domain.name} 
+                        price={domain.price}
+                        highlight={domain.highlight || false}
+                        description={domain.description || ''}
+                        category={domain.category || ''}
+                        domainId={domain.id}
+                        sellerId={domain.owner_id || ''}
+                      />
+                    ))}
+                  </div>
+                  
+                  <div className="text-center">
+                    <Link to="/marketplace">
+                      <Button className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3">
+                        查看更多域名
+                      </Button>
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-16 bg-gray-50 rounded-lg border border-gray-200 mb-12">
+                  <h3 className="text-2xl font-medium text-gray-600 mb-4">
+                    {domains.length === 0 ? '暂无域名' : t('marketplace.noDomainsFound')}
+                  </h3>
+                  <p className="text-gray-500 mb-4">
+                    {domains.length === 0 ? '看起来还没有域名添加到平台中' : t('homePage.tryAdjustingFilters')}
+                  </p>
+                  <div className="space-x-4">
+                    <Button onClick={handleSellDomains} className="bg-gray-900">
+                      {t('homePage.addYourDomain')}
+                    </Button>
+                    <Button variant="outline" onClick={handleRetry}>
+                      刷新页面
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="estimator">
+              <DomainEstimator />
+            </TabsContent>
+
+            <TabsContent value="monitor">
+              <DomainMonitor />
+            </TabsContent>
+          </Tabs>
         </div>
       </section>
 
