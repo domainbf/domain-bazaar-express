@@ -161,7 +161,7 @@ export const AdminPanel = () => {
           </TabsList>
           
           <TabsContent value="dashboard">
-            <AdminDashboard stats={stats} isLoading={isLoading} onRefresh={loadAdminStats} />
+            <AdminDashboard />
           </TabsContent>
           
           <TabsContent value="verifications">
