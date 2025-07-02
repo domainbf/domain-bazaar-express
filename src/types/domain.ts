@@ -107,14 +107,53 @@ export interface Notification {
   user_id: string;
   title: string;
   message: string;
-  type: 'offer' | 'verification' | 'system' | 'transaction';
+  type: 'offer' | 'verification' | 'system' | 'transaction' | 'monitoring';
   is_read: boolean;
   created_at: string;
   related_id?: string;
   action_url?: string;
 }
 
-// 新增类型定义
+// 新增监控相关类型
+export interface DomainMonitoring {
+  id: string;
+  user_id: string;
+  domain_name: string;
+  status: 'available' | 'registered' | 'expired' | 'monitoring' | 'error';
+  last_checked: string;
+  check_interval: number;
+  notifications_enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DomainMonitoringHistory {
+  id: string;
+  monitoring_id: string;
+  status_before?: string;
+  status_after?: string;
+  checked_at: string;
+  response_time?: number;
+  error_message?: string;
+}
+
+export interface DomainValuation {
+  id: string;
+  domain_name: string;
+  estimated_value: number;
+  factors: {
+    length: number;
+    extension: number;
+    keywords: number;
+    brandability: number;
+    seo?: number;
+  };
+  category: 'premium' | 'standard' | 'basic';
+  created_at: string;
+  expires_at: string;
+}
+
+// 保持原有类型定义
 export interface DomainPriceHistory {
   id: string;
   domain_id: string;

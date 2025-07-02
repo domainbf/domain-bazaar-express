@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
 import { Domain } from '@/types/domain';
 import { useTranslation } from 'react-i18next';
+import { useAppCache } from '@/hooks/useAppCache';
 
 export const useDomainsData = () => {
   const { user } = useAuth();
@@ -12,7 +13,6 @@ export const useDomainsData = () => {
   const [domains, setDomains] = useState<Domain[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [hasLoaded, setHasLoaded] = useState(false);
 
   const createAnalyticsRecord = async (domainId: string) => {
     try {
@@ -31,104 +31,117 @@ export const useDomainsData = () => {
     }
   };
 
-  const loadDomains = useCallback(async (showLoadingState = true) => {
-    if (!user) {
-      setIsLoading(false);
-      setDomains([]);
-      setHasLoaded(true);
-      return;
+  // 缓存域名数据获取函数
+  const fetchDomainsData = useCallback(async (): Promise<Domain[]> => {
+    if (!user) return [];
+
+    console.log('Loading domains for user:', user.id);
+    
+    const { data: domainsData, error: domainsError } = await supabase
+      .from('domain_listings')
+      .select('*')
+      .eq('owner_id', user.id);
+    
+    if (domainsError) throw domainsError;
+    
+    if (!domainsData || domainsData.length === 0) {
+      console.log('No domains found for user');
+      return [];
+    }
+
+    console.log('Found domains:', domainsData.length);
+
+    // 获取分析数据
+    const domainIds = domainsData.map(d => d.id);
+    const { data: analyticsData, error: analyticsError } = await supabase
+      .from('domain_analytics')
+      .select('*')
+      .in('domain_id', domainIds);
+    
+    if (analyticsError) {
+      console.error("Error fetching analytics data", analyticsError);
+    }
+
+    const analyticsMap = new Map();
+    if (analyticsData) {
+      analyticsData.forEach(item => {
+        analyticsMap.set(item.domain_id, item);
+      });
     }
     
+    const processedDomains = domainsData.map(domain => {
+      const analytics = analyticsMap.get(domain.id);
+      return {
+        ...domain,
+        views: analytics?.views || 0,
+        favorites: analytics?.favorites || 0,
+        offers: analytics?.offers || 0,
+      };
+    });
+
+    // 为缺失 analytics 的域名创建记录
+    const missingAnalytics = domainsData.filter(domain => !analyticsMap.has(domain.id));
+    for (const domain of missingAnalytics) {
+      await createAnalyticsRecord(domain.id);
+    }
+
+    console.log('Domains loaded successfully');
+    return processedDomains as Domain[];
+  }, [user]);
+
+  // 使用缓存钩子
+  const {
+    data: cachedDomains,
+    loading: cacheLoading,
+    error: cacheError,
+    refresh: refreshCache,
+    clearCache
+  } = useAppCache(
+    `domains_${user?.id || 'anonymous'}`,
+    fetchDomainsData,
+    { ttl: 2 * 60 * 1000 } // 2分钟缓存
+  );
+
+  // 同步缓存数据到本地状态
+  useEffect(() => {
+    if (cachedDomains) {
+      setDomains(cachedDomains);
+    }
+    setIsLoading(cacheLoading);
+  }, [cachedDomains, cacheLoading]);
+
+  // 处理错误
+  useEffect(() => {
+    if (cacheError) {
+      console.error('Error loading domains:', cacheError);
+      toast.error(cacheError.message || t('domains.loadError', '加载域名失败'));
+    }
+  }, [cacheError, t]);
+
+  const loadDomains = useCallback(async (showLoadingState = true) => {
+    if (showLoadingState) {
+      setIsLoading(true);
+    } else {
+      setIsRefreshing(true);
+    }
+
     try {
-      if (showLoadingState) {
-        setIsLoading(true);
-      } else {
-        setIsRefreshing(true);
-      }
-
-      console.log('Loading domains for user:', user.id);
-      
-      const { data: domainsData, error: domainsError } = await supabase
-        .from('domain_listings')
-        .select('*')
-        .eq('owner_id', user.id);
-      
-      if (domainsError) throw domainsError;
-      
-      if (!domainsData || domainsData.length === 0) {
-        console.log('No domains found for user');
-        setDomains([]);
-        return;
-      }
-
-      console.log('Found domains:', domainsData.length);
-
-      // 使用单独的查询获取 analytics 数据，避免关系查询问题
-      const domainIds = domainsData.map(d => d.id);
-      const { data: analyticsData, error: analyticsError } = await supabase
-        .from('domain_analytics')
-        .select('*')
-        .in('domain_id', domainIds);
-      
-      if (analyticsError) {
-        console.error("Error fetching analytics data", analyticsError);
-      }
-
-      const analyticsMap = new Map();
-      if (analyticsData) {
-        analyticsData.forEach(item => {
-          analyticsMap.set(item.domain_id, item);
-        });
-      }
-      
-      const processedDomains = domainsData.map(domain => {
-        const analytics = analyticsMap.get(domain.id);
-        return {
-          ...domain,
-          views: analytics?.views || 0,
-          favorites: analytics?.favorites || 0,
-          offers: analytics?.offers || 0,
-        };
-      });
-      
-      setDomains(processedDomains as Domain[]);
-
-      // 为缺失 analytics 的域名创建记录
-      const missingAnalytics = domainsData.filter(domain => !analyticsMap.has(domain.id));
-      for (const domain of missingAnalytics) {
-        await createAnalyticsRecord(domain.id);
-      }
-
-      console.log('Domains loaded successfully');
-    } catch (error: any) {
-      console.error('Error loading domains:', error);
-      toast.error(error.message || t('domains.loadError', '加载域名失败'));
-      setDomains([]);
+      await refreshCache();
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
-      setHasLoaded(true);
     }
-  }, [user, t]);
+  }, [refreshCache]);
 
-  // Initial load only once when user is available
-  useEffect(() => {
-    if (user && !hasLoaded) {
-      console.log('Initializing domain load for user:', user.id);
-      loadDomains();
-    } else if (!user) {
-      // 如果没有用户，直接设置为已加载状态，避免无限等待
-      setIsLoading(false);
-      setHasLoaded(true);
-      setDomains([]);
+  const refreshDomains = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      clearCache(); // 清除缓存强制刷新
+      await refreshCache();
+    } finally {
+      setIsRefreshing(false);
     }
-  }, [user, hasLoaded, loadDomains]);
-
-  // Refresh function without showing full loading state
-  const refreshDomains = useCallback(() => {
-    setHasLoaded(false);
-    return loadDomains(false);
-  }, [loadDomains]);
+  }, [refreshCache, clearCache]);
 
   return {
     domains,

@@ -257,6 +257,80 @@ export type Database = {
         }
         Relationships: []
       }
+      domain_monitoring: {
+        Row: {
+          check_interval: number | null
+          created_at: string | null
+          domain_name: string
+          id: string
+          last_checked: string | null
+          notifications_enabled: boolean | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          check_interval?: number | null
+          created_at?: string | null
+          domain_name: string
+          id?: string
+          last_checked?: string | null
+          notifications_enabled?: boolean | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          check_interval?: number | null
+          created_at?: string | null
+          domain_name?: string
+          id?: string
+          last_checked?: string | null
+          notifications_enabled?: boolean | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      domain_monitoring_history: {
+        Row: {
+          checked_at: string | null
+          error_message: string | null
+          id: string
+          monitoring_id: string
+          response_time: number | null
+          status_after: string | null
+          status_before: string | null
+        }
+        Insert: {
+          checked_at?: string | null
+          error_message?: string | null
+          id?: string
+          monitoring_id: string
+          response_time?: number | null
+          status_after?: string | null
+          status_before?: string | null
+        }
+        Update: {
+          checked_at?: string | null
+          error_message?: string | null
+          id?: string
+          monitoring_id?: string
+          response_time?: number | null
+          status_after?: string | null
+          status_before?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "domain_monitoring_history_monitoring_id_fkey"
+            columns: ["monitoring_id"]
+            isOneToOne: false
+            referencedRelation: "domain_monitoring"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       domain_offers: {
         Row: {
           amount: number
@@ -420,6 +494,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      domain_valuations: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          domain_name: string
+          estimated_value: number
+          expires_at: string | null
+          factors: Json | null
+          id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          domain_name: string
+          estimated_value: number
+          expires_at?: string | null
+          factors?: Json | null
+          id?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          domain_name?: string
+          estimated_value?: number
+          expires_at?: string | null
+          factors?: Json | null
+          id?: string
+        }
+        Relationships: []
       }
       domain_verifications: {
         Row: {
@@ -1157,6 +1261,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_valuations: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_user_notifications: {
         Args: { user_id_param: string }
         Returns: {

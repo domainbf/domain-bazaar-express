@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { DomainActions } from './DomainActions';
 import { DomainFilters } from './domain/DomainFilters';
@@ -18,33 +18,22 @@ export const DomainManagement = () => {
   const { domains, isLoading, isRefreshing, loadDomains, refreshDomains } = useDomainsData();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
-  const [error, setError] = useState<string | null>(null);
-  const [hasInitialized, setHasInitialized] = useState(false);
 
-  // 防止无限加载的超时机制
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    
-    if (isLoading && !hasInitialized) {
-      timeoutId = setTimeout(() => {
-        if (isLoading) {
-          console.log('Domain loading timeout, forcing stop...');
-          setError('加载超时，请刷新页面重试');
-          setHasInitialized(true);
-        }
-      }, 10000); // 10秒超时
-    }
-
-    if (!isLoading && !hasInitialized) {
-      setHasInitialized(true);
-    }
-
-    return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    };
-  }, [isLoading, hasInitialized]);
+  // 使用 useMemo 优化域名过滤性能
+  const filteredDomains = useMemo(() => {
+    return domains
+      .filter(domain => 
+        domain.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (domain.description && domain.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+      .filter(domain => {
+        if (activeTab === 'all') return true;
+        if (activeTab === 'available') return domain.status === 'available';
+        if (activeTab === 'pending') return domain.status === 'pending';
+        if (activeTab === 'sold') return domain.status === 'sold';
+        return true;
+      });
+  }, [domains, searchQuery, activeTab]);
 
   // 认证检查
   if (isAuthLoading) {
@@ -71,51 +60,14 @@ export const DomainManagement = () => {
     );
   }
 
-  const filterDomains = useCallback(() => {
-    return domains
-      .filter(domain => 
-        domain.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (domain.description && domain.description.toLowerCase().includes(searchQuery.toLowerCase()))
-      )
-      .filter(domain => {
-        if (activeTab === 'all') return true;
-        if (activeTab === 'available') return domain.status === 'available';
-        if (activeTab === 'pending') return domain.status === 'pending';
-        if (activeTab === 'sold') return domain.status === 'sold';
-        return true;
-      });
-  }, [domains, searchQuery, activeTab]);
-
-  const filteredDomains = filterDomains();
-
-  const handleRefresh = () => {
-    setError(null);
-    setHasInitialized(false);
-    refreshDomains();
-  };
-
-  // 错误状态显示
-  if (error) {
-    return (
-      <div className="flex flex-col items-center py-10">
-        <Alert variant="destructive" className="mb-4">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-        <Button variant="outline" onClick={handleRefresh}>
-          重新加载
-        </Button>
-      </div>
-    );
-  }
-
   // 初始加载状态
-  if (isLoading && !hasInitialized) {
+  if (isLoading && domains.length === 0) {
     return (
       <div className="flex flex-col items-center py-10">
         <LoadingSpinner />
         <div className="mt-4 text-gray-600 text-center">
           <div>正在加载域名数据...</div>
-          <div className="text-sm text-gray-500 mt-2">首次加载可能需要几秒钟</div>
+          <div className="text-sm text-gray-500 mt-2">数据已缓存，后续加载会更快</div>
         </div>
       </div>
     );
@@ -129,7 +81,7 @@ export const DomainManagement = () => {
           <Button 
             variant="outline" 
             size="sm"
-            onClick={handleRefresh}
+            onClick={refreshDomains}
             disabled={isRefreshing}
             className="flex items-center gap-1"
           >
