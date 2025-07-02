@@ -9,16 +9,10 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useAppCache } from '@/hooks/useAppCache';
+import { Tables } from '@/integrations/supabase/types';
 
-interface MonitoredDomain {
-  id: string;
-  domain_name: string;
-  status: 'available' | 'registered' | 'expired' | 'monitoring' | 'error';
-  last_checked: string;
-  notifications_enabled: boolean;
-  check_interval: number;
-  created_at: string;
-}
+// Use the database type directly
+type MonitoredDomain = Tables<'domain_monitoring'>;
 
 export const DomainMonitor = () => {
   const { user } = useAuth();
@@ -189,7 +183,7 @@ export const DomainMonitor = () => {
       setDomains(prev => prev.map(d => 
         d.id === id ? { 
           ...d, 
-          status: status as any,
+          status: status,
           last_checked: new Date().toISOString()
         } : d
       ));
@@ -299,7 +293,7 @@ export const DomainMonitor = () => {
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-600">
-                      最后检查: {new Date(domain.last_checked).toLocaleString()}
+                      最后检查: {domain.last_checked ? new Date(domain.last_checked).toLocaleString() : '未检查'}
                     </p>
                   </div>
                   
