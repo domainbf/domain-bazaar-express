@@ -41,7 +41,7 @@ export const Navbar = ({ unreadCount = 0 }: { unreadCount?: number }) => {
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center">
           <img 
-            src="/lovable-uploads/36cf345c-5264-48c5-a18e-5df7942a0240.png" 
+            src="/lovable-uploads/nic.png" 
             alt="NIC.BN" 
             className="h-8 w-auto"
           />
