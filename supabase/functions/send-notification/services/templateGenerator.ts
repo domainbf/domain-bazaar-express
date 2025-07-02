@@ -9,36 +9,39 @@ import { getDomainPurchasedHtml } from '../templates/domainPurchased.ts';
 export function generateEmailContent(type: string, data: any, baseUrl: string): { subject: string; body: string } {
   let subject = "";
   let body = "";
+  
+  // Use nic.bn as the primary domain
+  const primaryUrl = "https://nic.bn";
 
   switch (type) {
     case "email_verification":
       subject = "🎉 欢迎加入 NIC.BN - 请验证您的邮箱";
-      body = getEmailVerificationHtml(data, baseUrl);
+      body = getEmailVerificationHtml(data, primaryUrl);
       break;
 
     case "password_reset":
       subject = "🔐 重置您的 NIC.BN 账户密码";
-      body = getPasswordResetHtml(data, baseUrl);
+      body = getPasswordResetHtml(data, primaryUrl);
       break;
 
     case "new_offer":
       subject = `💰 新的域名报价：${data.domain} - 买家出价 $${data.amount.toLocaleString()}`;
-      body = getNewOfferHtml(data, baseUrl);
+      body = getNewOfferHtml(data, primaryUrl);
       break;
 
     case "offer_response":
       subject = `📬 您的域名报价有回复：${data.domain}`;
-      body = getOfferResponseHtml(data, baseUrl);
+      body = getOfferResponseHtml(data, primaryUrl);
       break;
 
     case "domain_sold":
       subject = `✅ 恭喜！您的域名 ${data.domain} 已成功售出`;
-      body = getDomainSoldHtml(data, baseUrl);
+      body = getDomainSoldHtml(data, primaryUrl);
       break;
 
     case "domain_purchased":
       subject = `🎉 域名购买成功：${data.domain}`;
-      body = getDomainPurchasedHtml(data, baseUrl);
+      body = getDomainPurchasedHtml(data, primaryUrl);
       break;
 
     default:

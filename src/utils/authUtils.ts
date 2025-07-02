@@ -20,8 +20,8 @@ export const signInWithEmailPassword = async (email: string, password: string) =
 
 export const signUpWithEmailPassword = async (email: string, password: string, options?: { metadata?: { [key: string]: any }, redirectTo?: string }) => {
   try {
-    // Use the current domain for redirect
-    const redirectUrl = `${window.location.origin}/auth/callback`;
+    // Use nic.bn domain for redirect
+    const redirectUrl = `https://nic.bn/auth/callback`;
     
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -104,7 +104,7 @@ export const handleAuthError = (error: any, action: string) => {
     errorMessage = '请先验证您的邮箱，然后再尝试登录。验证邮件已重新发送。';
     // Try to resend verification email
     if (error.email) {
-      sendVerificationEmail(error.email, `${window.location.origin}/auth/verify`)
+      sendVerificationEmail(error.email, `https://nic.bn/auth/verify`)
         .then(() => toast.info('✉️ 验证邮件已重新发送，请检查您的邮箱'));
     }
   } else if (errorMessage.includes('Invalid login credentials')) {
@@ -123,8 +123,8 @@ export const handleAuthError = (error: any, action: string) => {
 
 export const resetUserPassword = async (email: string) => {
   try {
-    // Use current domain for reset URL
-    const resetPasswordURL = `${window.location.origin}/reset-password`;
+    // Use nic.bn domain for reset URL
+    const resetPasswordURL = `https://nic.bn/reset-password`;
     
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: resetPasswordURL,

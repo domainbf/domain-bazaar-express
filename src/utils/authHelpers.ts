@@ -103,7 +103,7 @@ export const handleAuthError = (error: any, action: string) => {
     errorMessage = '请先验证您的邮箱，然后再尝试登录。';
     // 尝试重新发送验证邮件
     if (error.email) {
-      sendVerificationEmail(error.email, `${window.location.origin}/`)
+      sendVerificationEmail(error.email, `https://nic.bn/`)
         .then(() => toast.info('✉️ 验证邮件已重新发送，请检查您的邮箱'));
     }
   } else if (errorMessage.includes('Invalid login credentials')) {

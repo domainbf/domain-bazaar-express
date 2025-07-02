@@ -61,13 +61,13 @@ export const getEmailVerificationHtml = (data: { name: string; verificationUrl: 
       
       <div class="footer">
         <div class="social-links">
-          <a href="#">帮助中心</a> | 
-          <a href="#">服务条款</a> | 
-          <a href="#">隐私政策</a>
+          <a href="https://nic.bn/help">帮助中心</a> | 
+          <a href="https://nic.bn/terms">服务条款</a> | 
+          <a href="https://nic.bn/privacy">隐私政策</a>
         </div>
         <p>© ${new Date().getFullYear()} NIC.BN Ltd. 版权所有</p>
         <p style="margin-top: 8px; font-size: 12px;">
-          您收到此邮件是因为您在 <a href="${baseUrl}" style="color: #1f2937;">NIC.BN</a> 注册了账户
+          您收到此邮件是因为您在 <a href="https://nic.bn" style="color: #1f2937;">NIC.BN</a> 注册了账户
         </p>
       </div>
     </div>

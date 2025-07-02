@@ -1,12 +1,15 @@
 
 export function getUserEmailHtml(domain: string, offer: string, message: string | undefined, dashboardUrl: string): string {
+  // Use nic.bn as the primary domain
+  const primaryDashboardUrl = dashboardUrl.includes('nic.bn') ? dashboardUrl : `https://nic.bn/user-center`;
+  
   return `
       <!DOCTYPE html>
       <html lang="zh-CN">
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>您的域名报价已收到</title>
+          <title>您的域名报价已收到 - NIC.BN</title>
           <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body { 
@@ -164,15 +167,19 @@ export function getUserEmailHtml(domain: string, offer: string, message: string 
               <p>💡 <strong>建议：</strong>如您创建了账户，可以随时在用户中心查看所有报价记录和状态更新。</p>
               
               <div style="text-align: center;">
-                <a href="${dashboardUrl}" class="button">🔍 查看用户中心</a>
+                <a href="${primaryDashboardUrl}" class="button">🔍 查看用户中心</a>
               </div>
               
               <p style="margin-top: 30px;">如果您有任何问题，请回复此邮件或联系我们的客服团队。</p>
               <p>祝您交易成功！<br><strong>NIC.BN 团队</strong></p>
             </div>
             <div class="footer">
+              <div style="margin-bottom: 12px;">
+                <a href="https://nic.bn/help" style="color: #1f2937; text-decoration: none;">帮助中心</a> | 
+                <a href="https://nic.bn/contact" style="color: #1f2937; text-decoration: none;">联系客服</a>
+              </div>
               <p>© ${new Date().getFullYear()} NIC.BN Ltd. - 保留所有权利</p>
-              <p>您收到此邮件是因为您在 NIC.BN 平台上提交了域名报价</p>
+              <p>您收到此邮件是因为您在 <a href="https://nic.bn" style="color: #1f2937;">NIC.BN</a> 平台上提交了域名报价</p>
             </div>
           </div>
         </body>
