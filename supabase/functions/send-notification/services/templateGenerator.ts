@@ -10,7 +10,7 @@ export function generateEmailContent(type: string, data: any, baseUrl: string): 
   let subject = "";
   let body = "";
   
-  // Use nic.bn as the primary domain
+  // 统一使用 nic.bn 作为主域名
   const primaryUrl = "https://nic.bn";
 
   switch (type) {
@@ -25,7 +25,7 @@ export function generateEmailContent(type: string, data: any, baseUrl: string): 
       break;
 
     case "new_offer":
-      subject = `💰 新的域名报价：${data.domain} - 买家出价 $${data.amount.toLocaleString()}`;
+      subject = `💰 新的域名报价：${data.domain} - 买家出价 ¥${data.amount.toLocaleString()}`;
       body = getNewOfferHtml(data, primaryUrl);
       break;
 
