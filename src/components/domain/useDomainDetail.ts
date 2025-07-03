@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,7 +15,7 @@ const fetchDomainDetails = async (domainId: string | undefined) => {
   let domainData;
   let domainError;
   const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(domainId);
-  const selectQuery = '*, profiles(username, full_name, avatar_url)'; // 不涉及 domain_analytics
+  const selectQuery = '*, profiles(username, full_name, avatar_url)';
 
   if (isUUID) {
     // id 查询
@@ -33,7 +34,7 @@ const fetchDomainDetails = async (domainId: string | undefined) => {
     throw new Error('域名不存在或已被删除');
   }
 
-  // 分开查 domain_analytics，杜绝任何 .select('*, domain_analytics(*)')
+  // 单独查询 domain_analytics，确保使用正确的外键关系
   const { data: analyticsData, error: analyticsError } = await supabase
     .from('domain_analytics')
     .select('views, favorites, offers')
@@ -63,7 +64,7 @@ const fetchDomainDetails = async (domainId: string | undefined) => {
     offers: Number(analytics?.offers) || 0,
   };
 
-  // 后续操作保持不变
+  // 并行执行其他查询
   const updateViewsPromise = supabase
     .from('domain_analytics')
     .upsert({ domain_id: processedDomain.id, views: (processedDomain.views || 0) + 1 }, { onConflict: 'domain_id' });

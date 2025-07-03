@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Domain, SearchFilters, SearchSuggestion } from '@/types/domain';
@@ -126,6 +127,7 @@ export const useEnhancedSearch = () => {
         return;
       }
 
+      // 单独查询 analytics 数据，使用正确的外键关系
       const domainIds = data.map(d => d.id);
       const { data: analyticsData, error: analyticsError } = await supabase
         .from('domain_analytics')
