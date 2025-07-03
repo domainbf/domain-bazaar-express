@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { useTranslationHelper } from '@/hooks/useTranslationHelper';
 import { 
   User, 
   Mail, 
@@ -26,6 +27,7 @@ import { Separator } from "@/components/ui/separator";
 
 export const ProfileSettings = () => {
   const { user, profile, updateProfile, refreshProfile } = useAuth();
+  const { t } = useTranslationHelper();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     full_name: profile?.full_name || '',
@@ -110,17 +112,17 @@ export const ProfileSettings = () => {
   };
 
   const getVerificationStatus = () => {
-    if (!profile) return { status: 'pending', text: '未验证', color: 'bg-gray-100 text-gray-800' };
+    if (!profile) return { status: 'pending', text: '未认证', color: 'bg-gray-100 text-gray-800' };
     
     switch (profile.verification_status) {
       case 'verified':
-        return { status: 'verified', text: '已验证', color: 'bg-green-100 text-green-800' };
+        return { status: 'verified', text: '已认证', color: 'bg-green-100 text-green-800' };
       case 'pending':
-        return { status: 'pending', text: '待验证', color: 'bg-yellow-100 text-yellow-800' };
+        return { status: 'pending', text: '待认证', color: 'bg-yellow-100 text-yellow-800' };
       case 'rejected':
-        return { status: 'rejected', text: '验证失败', color: 'bg-red-100 text-red-800' };
+        return { status: 'rejected', text: '认证失败', color: 'bg-red-100 text-red-800' };
       default:
-        return { status: 'pending', text: '未验证', color: 'bg-gray-100 text-gray-800' };
+        return { status: 'pending', text: '未认证', color: 'bg-gray-100 text-gray-800' };
     }
   };
 

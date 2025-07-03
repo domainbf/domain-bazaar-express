@@ -149,6 +149,20 @@ export const AuthForm = ({
     }
   };
 
+  // 修复忘记密码按钮点击事件
+  const handleForgotPasswordClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onForgotPassword();
+  };
+
+  // 修复模式切换按钮点击事件
+  const handleModeChange = (e: React.MouseEvent, newMode: 'signin' | 'signup') => {
+    e.preventDefault();
+    e.stopPropagation();
+    onChangeMode(newMode);
+  };
+
   const getPasswordStrength = (password: string) => {
     let strength = 0;
     if (password.length >= 8) strength++;
@@ -275,7 +289,7 @@ export const AuthForm = ({
       {mode === 'signup' && (
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-            <Lock className="w-4 h-4" /> 确认密码 <span className="text-red-500">*</span>
+            <Lock className="w-4 w-4" /> 确认密码 <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <Input
@@ -301,8 +315,8 @@ export const AuthForm = ({
         <div className="text-right">
           <button 
             type="button"
-            onClick={onForgotPassword}
-            className="text-sm text-black hover:underline transition-colors"
+            onClick={handleForgotPasswordClick}
+            className="text-sm text-black hover:underline transition-colors cursor-pointer"
           >
             忘记密码?
           </button>
@@ -329,8 +343,8 @@ export const AuthForm = ({
           还没有账户?{' '}
           <button 
             type="button"
-            onClick={() => onChangeMode('signup')}
-            className="text-black font-medium hover:underline transition-colors"
+            onClick={(e) => handleModeChange(e, 'signup')}
+            className="text-black font-medium hover:underline transition-colors cursor-pointer"
           >
             注册
           </button>
@@ -340,8 +354,8 @@ export const AuthForm = ({
           已有账户?{' '}
           <button 
             type="button"
-            onClick={() => onChangeMode('signin')}
-            className="text-black font-medium hover:underline transition-colors"
+            onClick={(e) => handleModeChange(e, 'signin')}
+            className="text-black font-medium hover:underline transition-colors cursor-pointer"
           >
             登录
           </button>
