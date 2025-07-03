@@ -1,4 +1,5 @@
 
+
 export const zh = {
   // 通用翻译
   common: {
@@ -50,7 +51,6 @@ export const zh = {
     upload: '上传',
     view: '查看',
     preview: '预览',
-    print: '打印',
     share: '分享',
     copy: '复制',
     paste: '粘贴',
@@ -132,7 +132,6 @@ export const zh = {
     restore: '恢复',
     history: '历史',
     log: '日志',
-    report: '报告',
     analytics: '分析',
     statistics: '统计',
     chart: '图表',
@@ -167,7 +166,6 @@ export const zh = {
     unsubscribe: '取消订阅',
     block: '屏蔽',
     unblock: '取消屏蔽',
-    report: '举报',
     flag: '标记',
     tag: '标签',
     label: '标签',
@@ -181,7 +179,6 @@ export const zh = {
     folder: '文件夹',
     link: '链接',
     shortcut: '快捷方式',
-    bookmark: '书签',
     calendar: '日历',
     clock: '时钟',
     timer: '计时器',
@@ -230,7 +227,6 @@ export const zh = {
     advertisement: '广告',
     promotion: '促销',
     sale: '销售',
-    discount: '折扣',
     coupon: '优惠券',
     voucher: '代金券',
     gift: '礼品',
@@ -277,7 +273,6 @@ export const zh = {
     example: '示例',
     sample: '样本',
     template: '模板',
-    theme: '主题',
     style: '样式',
     design: '设计',
     layout: '布局'
@@ -381,7 +376,7 @@ export const zh = {
       addToFavorites: '加入收藏',
       share: '分享',
       contact: '联系卖家',
-      report: '举报'
+      reportDomain: '举报'
     }
   },
 
@@ -473,3 +468,4 @@ export const zh = {
     }
   }
 };
+
