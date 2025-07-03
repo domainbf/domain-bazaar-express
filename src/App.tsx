@@ -1,3 +1,4 @@
+
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from "sonner";
 import { useEffect } from 'react';
@@ -29,6 +30,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/auth/*" element={<AuthPage />} />
         <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/domain/:domainId" element={<DomainDetailPage />} />
         <Route 
@@ -48,7 +50,23 @@ function App() {
           } 
         />
         <Route 
+          path="/user-center/*" 
+          element={
+            <ProtectedRoute>
+              <UserCenter />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
           path="/admin" 
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminPanel />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin/*" 
           element={
             <ProtectedRoute adminOnly={true}>
               <AdminPanel />
@@ -73,6 +91,7 @@ function App() {
         />
         <Route path="/profile/:profileId" element={<UserProfilePage />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/reset-password/*" element={<ResetPassword />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/faq" element={<FAQPage />} />
         {/* 404 页面必须放在最后 */}
