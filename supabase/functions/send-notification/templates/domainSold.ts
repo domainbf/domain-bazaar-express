@@ -1,7 +1,7 @@
 
 import { emailStyles } from "./emailStyles.ts";
 
-export const getDomainSoldHtml = (data: { domain: string; amount: number; buyer: string }, baseUrl: string) => `
+export const getDomainSoldHtml = (data: any, baseUrl: string) => `
 <!DOCTYPE html>
 <html lang="zh-CN">
   <head>
@@ -13,72 +13,76 @@ export const getDomainSoldHtml = (data: { domain: string; amount: number; buyer:
   <body>
     <div class="email-container">
       <div class="header">
-        <div class="logo">🌐 NIC.BN</div>
+        <div class="logo">NIC.BN</div>
         <div class="tagline">专业域名交易平台</div>
       </div>
       
       <div class="content">
-        <h1 class="title">🎊 恭喜！域名售出成功</h1>
-        <p class="subtitle">您的域名交易已顺利完成</p>
+        <h1 class="title">🎉 恭喜！您的域名已成功售出</h1>
+        <p class="subtitle">交易已完成，款项即将到账</p>
         
-        <div class="info-card" style="text-align: center; border-left-color: #10b981;">
-          <div class="domain-name">${data.domain}</div>
-          <div class="price-display">$${data.amount.toLocaleString()}</div>
-          <span class="status-badge status-success">交易完成</span>
+        <div class="domain-name">${data.domain}</div>
+        <div class="price-display">¥${data.amount.toLocaleString()}</div>
+        
+        <p style="margin-bottom: 32px;">
+          恭喜您！您的域名 <strong>${data.domain}</strong> 已成功以 <strong>¥${data.amount.toLocaleString()}</strong> 的价格售出。
+        </p>
+        
+        <div class="info-card">
+          <h3>📋 交易详情</h3>
+          <table class="details-table">
+            <tr>
+              <td>域名</td>
+              <td>${data.domain}</td>
+            </tr>
+            <tr>
+              <td>售价</td>
+              <td>¥${data.amount.toLocaleString()}</td>
+            </tr>
+            <tr>
+              <td>交易时间</td>
+              <td>${new Date().toLocaleString('zh-CN')}</td>
+            </tr>
+            <tr>
+              <td>交易状态</td>
+              <td><span class="status-badge status-success">已完成</span></td>
+            </tr>
+          </table>
         </div>
-        
-        <table class="details-table">
-          <tr>
-            <td>🌐 售出域名</td>
-            <td><strong>${data.domain}</strong></td>
-          </tr>
-          <tr>
-            <td>💰 成交金额</td>
-            <td><strong style="color: #10b981; font-size: 18px;">$${data.amount.toLocaleString()}</strong></td>
-          </tr>
-          <tr>
-            <td>🛒 买家</td>
-            <td>${data.buyer}</td>
-          </tr>
-          <tr>
-            <td>📅 交易时间</td>
-            <td>${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}</td>
-          </tr>
-        </table>
         
         <div style="text-align: center; margin: 40px 0;">
           <a href="${baseUrl}/user-center?tab=transactions" class="button">
-            📊 查看交易详情
+            查看交易记录
           </a>
         </div>
         
         <div class="highlight-box">
-          <h3 style="margin-bottom: 12px; color: #92400e;">💡 后续事项：</h3>
-          <ul style="margin: 0; padding-left: 20px; color: #92400e;">
-            <li>资金将在 1-3 个工作日内到账</li>
-            <li>域名转移将在 24-48 小时内完成</li>
-            <li>交易记录可在用户中心查看</li>
-            <li>如有问题请及时联系客服</li>
-          </ul>
+          <p><strong>💰 款项处理</strong></p>
+          <p>交易款项将在1-3个工作日内转入您的账户，请留意查收。如有疑问，请随时联系客服。</p>
         </div>
         
         <div class="divider"></div>
         
-        <p style="color: #6b7280;">感谢您选择 NIC.BN 平台！我们期待为您提供更多优质的域名交易服务。</p>
+        <p style="color: #6b7280; font-size: 14px; text-align: center;">
+          感谢您选择 NIC.BN 进行域名交易，期待与您的下次合作！
+        </p>
         
-        <p style="margin-top: 32px;">
-          再次恭喜！<br>
-          <strong style="color: #1f2937;">NIC.BN 交易团队</strong>
+        <p style="margin-top: 32px; text-align: center; color: #4b5563;">
+          祝您生意兴隆<br>
+          <strong style="color: #1f2937;">NIC.BN 团队</strong>
         </p>
       </div>
       
       <div class="footer">
         <div class="social-links">
-          <a href="#">继续出售</a> | 
-          <a href="#">推荐奖励</a> | 
-          <a href="#">客服支持</a>
+          <a href="${baseUrl}/user-center">用户中心</a>
+          <a href="${baseUrl}/help">帮助中心</a>
+          <a href="${baseUrl}/contact">联系我们</a>
         </div>
         <p>© ${new Date().getFullYear()} NIC.BN Ltd. 版权所有</p>
+        <p style="margin-top: 8px; font-size: 12px;">
+          您收到此邮件是因为您在 <a href="${baseUrl}">NIC.BN</a> 的域名交易已完成
+        </p>
       </div>
     </div>
   </body>
