@@ -13,7 +13,7 @@ export async function sendEmail(
   // 这里实际已忽略 _resend，统一走 sendMailWithResend
   try {
     await sendMailWithResend(recipient, subject, body, {
-      from: "域名交易平台 <noreply@sale.nic.bn>",
+      from: "NIC.BN 域名交易平台 <noreply@nic.bn>",
     });
     console.log(`Successfully sent email to ${recipient}`);
   } catch (error: any) {

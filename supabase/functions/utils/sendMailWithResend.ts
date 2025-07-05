@@ -16,7 +16,7 @@ export async function sendMailWithResend(
   opts?: { from?: string }
 ) {
   const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-  const fromEmail = opts?.from || "域名交易平台 <noreply@sale.nic.bn>";
+  const fromEmail = opts?.from || "NIC.BN 域名交易平台 <noreply@nic.bn>";
 
   const resp = await resend.emails.send({
     from: fromEmail,
