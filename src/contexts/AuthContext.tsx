@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, [setProfile]);
 
-  // 优化认证状态处理
+  // 优化认证状态处理 - 减少阻塞
   const setData = useCallback(async (session: Session | null) => {
     try {
       if (session?.user) {
@@ -78,19 +78,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(session.user);
         setSession(session);
         
-        // 安全地检查管理员状态
+        // 快速设置管理员状态
         const isAdminUser = Boolean(session.user.app_metadata?.is_admin);
         setIsAdmin(isAdminUser);
         console.log('Admin status:', isAdminUser);
         
-        // 异步获取用户资料，不阻塞主流程
+        // 异步加载用户资料，不阻塞主流程
         setTimeout(async () => {
           try {
             const { data: profileData, error } = await supabase
               .from('profiles')
               .select('*')
               .eq('id', session.user.id)
-              .single();
+              .maybeSingle(); // 使用 maybeSingle 避免错误
             
             if (!error && profileData) {
               setProfile(profileData);
@@ -102,7 +102,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           } catch (profileError) {
             console.error('Error fetching profile:', profileError);
           }
-        }, 100);
+        }, 0);
       } else {
         console.log('No session, clearing user data');
         setUser(null);
@@ -112,11 +112,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     } catch (error) {
       console.error('Error in setData:', error);
+    } finally {
+      // 确保加载状态及时清除
+      setIsLoading(false);
     }
   }, [createDefaultProfile]);
 
   useEffect(() => {
     let mounted = true;
+    let sessionCheckTimer: NodeJS.Timeout;
 
     // 设置认证状态监听器
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -127,24 +131,31 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         
         // 快速处理认证状态变化
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          setTimeout(async () => {
-            if (mounted) {
-              await setData(session);
-              setIsLoading(false);
-            }
-          }, 0);
+          await setData(session);
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+          setSession(null);
+          setProfile(null);
+          setIsAdmin(false);
+          setIsLoading(false);
         } else {
           await setData(session);
-          setIsLoading(false);
         }
       }
     );
 
-    // 检查现有会话
+    // 检查现有会话 - 添加超时保护
     const getInitialSession = async () => {
       try {
         console.log('Getting initial session...');
-        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        // 设置5秒超时
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session check timeout')), 5000)
+        );
+
+        const { data: { session }, error } = await Promise.race([sessionPromise, timeoutPromise]) as any;
         
         if (error) {
           console.error('Error getting session:', error);
@@ -154,7 +165,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         
         if (mounted) {
           await setData(session);
-          setIsLoading(false);
         }
       } catch (error) {
         console.error('Error in getInitialSession:', error);
@@ -164,10 +174,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     };
 
-    getInitialSession();
+    // 延迟检查会话，避免阻塞首屏
+    sessionCheckTimer = setTimeout(getInitialSession, 100);
 
     return () => {
       mounted = false;
+      if (sessionCheckTimer) clearTimeout(sessionCheckTimer);
       subscription.unsubscribe();
     };
   }, [setData]);
@@ -180,7 +192,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
         
       if (!error && data) {
         setProfile(data);
@@ -249,7 +261,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       const result = await signUpWithEmailPassword(email, password, { 
         metadata,
-        redirectTo: `${window.location.origin}/`
+        redirectTo: `https://nic.bn/`
       });
       
       if (result.success) {
@@ -284,16 +296,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       if (result.success) {
         toast.success('退出成功');
-        navigate('/', { replace: true });
+        // 使用 replace 避免返回按钮问题
+        window.location.replace('https://nic.bn/');
       } else {
         console.error('Logout failed:', result.error);
         toast.error('退出失败，请重试');
-        navigate('/', { replace: true });
+        window.location.replace('https://nic.bn/');
       }
     } catch (error: any) {
       console.error('Logout error:', error);
       toast.error(error.message || '退出失败');
-      navigate('/', { replace: true });
+      window.location.replace('https://nic.bn/');
     }
   };
 

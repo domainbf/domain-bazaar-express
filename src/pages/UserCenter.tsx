@@ -20,9 +20,16 @@ export const UserCenter = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('domains');
   const [showHelp, setShowHelp] = useState(false);
+  const [pageReady, setPageReady] = useState(false);
 
-  // 新增：获取未读通知数
+  // 获取未读通知数
   const { unreadCount, refreshNotifications } = useNotifications();
+
+  useEffect(() => {
+    // 快速设置页面就绪状态
+    const timer = setTimeout(() => setPageReady(true), 200);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     // 如果认证已结束并且没有 user，则直接跳 auth 页
@@ -42,16 +49,39 @@ export const UserCenter = () => {
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
+    // 使用 replaceState 避免历史记录积累
     window.history.replaceState({}, '', `/user-center?tab=${value}`);
     if (value === 'notifications') refreshNotifications();
   };
 
-  if (isAuthLoading || !user) {
-    // 统一 loading，认证异常直接跳转
+  // 快速加载检查
+  if (isAuthLoading || !pageReady) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center">
+      <div className="min-h-screen bg-white flex flex-col">
         <Navbar />
-        <LoadingSpinner size="lg" text="正在加载用户中心..." />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <LoadingSpinner size="lg" />
+            <p className="mt-4 text-gray-600">正在加载用户中心...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-4">需要登录</h2>
+            <p className="text-gray-600 mb-4">请登录后访问用户中心</p>
+            <Button onClick={() => navigate('/auth')}>
+              前往登录
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -70,7 +100,7 @@ export const UserCenter = () => {
           
           <div className="flex items-center gap-3">
             <Button 
-              onClick={() => navigate('/')}
+              onClick={() => window.location.href = 'https://nic.bn/'}
               variant="outline" 
               className="flex items-center gap-1"
               size="sm"
@@ -118,7 +148,6 @@ export const UserCenter = () => {
             <TabsTrigger value="notifications" className="flex items-center gap-1 relative data-[state=active]:bg-black data-[state=active]:text-white">
               <Bell className="w-4 h-4" />
               通知中心
-              {/* 新增未读角标 */}
               {unreadCount > 0 && (
                 <Badge className="bg-blue-500 absolute -top-2 -right-4 px-2 py-0.5 text-xs font-bold min-w-[1.5rem] flex items-center justify-center">
                   {unreadCount > 99 ? '99+' : unreadCount}
@@ -151,4 +180,3 @@ export const UserCenter = () => {
     </div>
   );
 };
-
