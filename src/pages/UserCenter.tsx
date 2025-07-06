@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -20,19 +20,14 @@ export const UserCenter = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('domains');
   const [showHelp, setShowHelp] = useState(false);
-  const [pageReady, setPageReady] = useState(false);
 
-  // 获取未读通知数
   const { unreadCount, refreshNotifications } = useNotifications();
 
-  useEffect(() => {
-    // 快速设置页面就绪状态
-    const timer = setTimeout(() => setPageReady(true), 200);
-    return () => clearTimeout(timer);
-  }, []);
+  const displayName = useMemo(() => {
+    return profile?.full_name || user?.email?.split('@')[0] || '用户';
+  }, [profile?.full_name, user?.email]);
 
   useEffect(() => {
-    // 如果认证已结束并且没有 user，则直接跳 auth 页
     if (!isAuthLoading && !user) {
       toast.error('会话已失效，请重新登录');
       navigate('/auth', { replace: true });
@@ -49,13 +44,11 @@ export const UserCenter = () => {
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    // 使用 replaceState 避免历史记录积累
     window.history.replaceState({}, '', `/user-center?tab=${value}`);
     if (value === 'notifications') refreshNotifications();
   };
 
-  // 快速加载检查
-  if (isAuthLoading || !pageReady) {
+  if (isAuthLoading) {
     return (
       <div className="min-h-screen bg-white flex flex-col">
         <Navbar />
@@ -93,9 +86,7 @@ export const UserCenter = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-black">用户中心</h1>
-            <p className="text-gray-600">
-              欢迎回来, {profile?.full_name || user?.email?.split('@')[0] || '用户'}
-            </p>
+            <p className="text-gray-600">欢迎回来, {displayName}</p>
           </div>
           
           <div className="flex items-center gap-3">

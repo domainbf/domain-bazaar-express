@@ -20,35 +20,28 @@ export const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRoutePr
     let timeoutId: NodeJS.Timeout;
     
     const checkAccess = () => {
-      // 快速检查认证状态
       if (isLoading) {
-        // 设置超时保护，避免无限加载
         timeoutId = setTimeout(() => {
           console.warn('Auth loading timeout, redirecting to auth page');
           setIsChecking(false);
           navigate('/auth', { replace: true, state: { from: location } });
-        }, 10000); // 10秒超时
+        }, 5000);
         return;
       }
 
       try {
-        // 检查用户是否已登录
         if (!user) {
-          console.log('User not authenticated, redirecting to /auth');
           toast.error('请先登录以访问此页面');
           navigate('/auth', { replace: true, state: { from: location } });
           return;
         }
 
-        // 检查管理员权限（如果需要）
         if (adminOnly && !isAdmin) {
-          console.log('User is not admin, redirecting to dashboard');
           toast.error('您没有访问此页面的权限');
           navigate('/dashboard', { replace: true });
           return;
         }
 
-        console.log('Access granted for user:', user.email);
         setIsChecking(false);
       } catch (error) {
         console.error('Access check failed:', error);
@@ -64,22 +57,17 @@ export const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRoutePr
     };
   }, [user, isLoading, isAdmin, adminOnly, navigate, location]);
 
-  // 显示加载状态
   if (isLoading || isChecking) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <LoadingSpinner size="lg" />
           <p className="mt-4 text-muted-foreground">正在验证权限...</p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            如果长时间未响应，请刷新页面重试
-          </p>
         </div>
       </div>
     );
   }
 
-  // 如果用户未登录或没有权限，不渲染子组件
   if (!user || (adminOnly && !isAdmin)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">

@@ -7,38 +7,35 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import App from './App.tsx'
 import './index.css'
 import { AuthProvider } from './contexts/AuthContext.tsx'
-import './i18n' // Import i18n first for translations to be available
+import './i18n'
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
     },
   },
 });
 
-// Error handling for the entire application
+// 全局错误处理
 const handleGlobalError = (event: ErrorEvent) => {
   console.error("Global error caught:", event.error);
-  // Prevent default to avoid console spam in production
-  if (import.meta.env.PROD) {
-    event.preventDefault();
+  if (import.meta.env.DEV) {
+    console.trace();
+  }
+};
+
+const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+  console.error("Unhandled promise rejection:", event.reason);
+  if (import.meta.env.DEV) {
+    console.trace();
   }
 };
 
 window.addEventListener('error', handleGlobalError);
-
-// Unhandled promise rejection handling
-const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-  console.error("Unhandled promise rejection:", event.reason);
-  // Prevent default to avoid console spam in production
-  if (import.meta.env.PROD) {
-    event.preventDefault();
-  }
-};
-
 window.addEventListener('unhandledrejection', handleUnhandledRejection);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

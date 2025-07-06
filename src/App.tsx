@@ -20,7 +20,6 @@ import { ContactPage } from './pages/ContactPage';
 import { FAQPage } from './pages/FAQPage';
 import AuthPage from './pages/AuthPage';
 
-// 错误回退组件
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -52,11 +51,12 @@ function App() {
   const [appReady, setAppReady] = useState(false);
 
   useEffect(() => {
-    // 初始化应用
     const initApp = async () => {
       try {
-        // 初始化管理员用户
-        await initializeAdminUser().catch(console.error);
+        await initializeAdminUser().catch(() => {
+          // 静默处理初始化错误，不影响应用启动
+          console.warn('Admin user initialization failed, continuing...');
+        });
       } catch (error) {
         console.error('App initialization error:', error);
       } finally {
@@ -64,8 +64,7 @@ function App() {
       }
     };
 
-    // 延迟初始化，避免阻塞首屏
-    const timer = setTimeout(initApp, 100);
+    const timer = setTimeout(initApp, 50);
     
     return () => clearTimeout(timer);
   }, []);
@@ -153,7 +152,6 @@ function App() {
         <Route path="/reset-password/*" element={<ResetPassword />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/faq" element={<FAQPage />} />
-        {/* 404 页面必须放在最后 */}
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster position="top-right" />

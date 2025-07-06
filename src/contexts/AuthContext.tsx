@@ -1,3 +1,4 @@
+
 import { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from '@supabase/supabase-js';
@@ -23,13 +24,9 @@ interface AuthContextType {
   isAuthenticating?: boolean;
 }
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: AuthProviderProps) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   
   const [user, setUser] = useState<User | null>(null);
@@ -53,8 +50,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (error) {
         console.error('Error creating default profile:', error);
       } else {
-        console.log('Default profile created successfully');
-        // 重新获取 profile
         const { data: newProfile } = await supabase
           .from('profiles')
           .select('*')
@@ -68,20 +63,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch (error) {
       console.error('Error in createDefaultProfile:', error);
     }
-  }, [setProfile]);
+  }, []);
 
-  // 优化认证状态处理 - 减少阻塞
+  // 优化认证状态处理
   const setData = useCallback(async (session: Session | null) => {
     try {
       if (session?.user) {
-        console.log('Setting user data:', session.user.email);
         setUser(session.user);
         setSession(session);
         
         // 快速设置管理员状态
         const isAdminUser = Boolean(session.user.app_metadata?.is_admin);
         setIsAdmin(isAdminUser);
-        console.log('Admin status:', isAdminUser);
         
         // 异步加载用户资料，不阻塞主流程
         setTimeout(async () => {
@@ -90,13 +83,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               .from('profiles')
               .select('*')
               .eq('id', session.user.id)
-              .maybeSingle(); // 使用 maybeSingle 避免错误
+              .maybeSingle();
             
             if (!error && profileData) {
               setProfile(profileData);
-              console.log('Profile loaded:', profileData.username || profileData.full_name);
             } else if (error && error.code === 'PGRST116') {
-              // 创建默认 profile 如果不存在
               await createDefaultProfile(session.user.id, session.user.email);
             }
           } catch (profileError) {
@@ -104,7 +95,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           }
         }, 0);
       } else {
-        console.log('No session, clearing user data');
         setUser(null);
         setSession(null);
         setProfile(null);
@@ -113,7 +103,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch (error) {
       console.error('Error in setData:', error);
     } finally {
-      // 确保加载状态及时清除
       setIsLoading(false);
     }
   }, [createDefaultProfile]);
@@ -122,14 +111,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     let mounted = true;
     let sessionCheckTimer: NodeJS.Timeout;
 
-    // 设置认证状态监听器
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
         
-        console.log('Auth state change:', event, !!session?.user);
-        
-        // 快速处理认证状态变化
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           await setData(session);
         } else if (event === 'SIGNED_OUT') {
@@ -144,15 +129,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     );
 
-    // 检查现有会话 - 添加超时保护
     const getInitialSession = async () => {
       try {
-        console.log('Getting initial session...');
-        
-        // 设置5秒超时
         const sessionPromise = supabase.auth.getSession();
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session check timeout')), 5000)
+          setTimeout(() => reject(new Error('Session check timeout')), 3000)
         );
 
         const { data: { session }, error } = await Promise.race([sessionPromise, timeoutPromise]) as any;
@@ -174,8 +155,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     };
 
-    // 延迟检查会话，避免阻塞首屏
-    sessionCheckTimer = setTimeout(getInitialSession, 100);
+    sessionCheckTimer = setTimeout(getInitialSession, 50);
 
     return () => {
       mounted = false;
@@ -196,9 +176,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         
       if (!error && data) {
         setProfile(data);
-        console.log('Profile refreshed successfully');
-      } else if (error) {
-        console.error('Error refreshing profile:', error);
       }
     } catch (error) {
       console.error('Error refreshing profile:', error);
@@ -211,15 +188,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const { data: { session }, error } = await supabase.auth.getSession();
       
-      if (error) {
-        console.error('Error checking session:', error);
-        return false;
-      }
+      if (error) return false;
       
       const currentIsAdmin = Boolean(session?.user?.app_metadata?.is_admin);
       setIsAdmin(currentIsAdmin);
       
-      console.log('Admin status checked:', currentIsAdmin);
       return currentIsAdmin;
     } catch (error) {
       console.error('Error checking admin status:', error);
@@ -230,18 +203,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const signIn = async (email: string, password: string) => {
     try {
       setIsAuthenticating(true);
-      console.log('Starting sign in process for:', email);
       
       const result = await signInWithEmailPassword(email, password);
       
       if (result.success && result.data?.session) {
-        console.log('Sign in successful');
         await setData(result.data.session);
         toast.success('登录成功');
         return true;
       } else {
         const errorMsg = result.error?.message || '登录失败';
-        console.error('Sign in failed:', errorMsg);
         toast.error(errorMsg);
         return false;
       }
@@ -257,7 +227,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const signUp = async (email: string, password: string, metadata?: { [key: string]: any }) => {
     try {
       setIsAuthenticating(true);
-      console.log('Starting sign up process for:', email);
       
       const result = await signUpWithEmailPassword(email, password, { 
         metadata,
@@ -269,7 +238,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         return true;
       } else {
         const errorMsg = result.error?.message || '注册失败';
-        console.error('Sign up failed:', errorMsg);
         toast.error(errorMsg);
         return false;
       }
@@ -284,9 +252,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const logOut = async () => {
     try {
-      console.log('Starting logout process...');
-      
-      // 立即清理本地状态
       setUser(null);
       setSession(null);
       setProfile(null);
@@ -296,16 +261,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       if (result.success) {
         toast.success('退出成功');
-        // 使用 replace 避免返回按钮问题
         window.location.replace('https://nic.bn/');
       } else {
         console.error('Logout failed:', result.error);
-        toast.error('退出失败，请重试');
         window.location.replace('https://nic.bn/');
       }
     } catch (error: any) {
       console.error('Logout error:', error);
-      toast.error(error.message || '退出失败');
       window.location.replace('https://nic.bn/');
     }
   };
@@ -316,8 +278,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     if (!user) return false;
     
     try {
-      console.log('Updating profile for user:', user.id);
-      
       const profileData: Record<string, any> = {
         updated_at: new Date().toISOString()
       };
@@ -346,7 +306,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setProfile((prev) => prev ? { ...prev, ...profileData } : null);
       
       toast.success('个人资料更新成功');
-      console.log('Profile updated successfully');
       return true;
     } catch (error: any) {
       console.error('Profile update error:', error);
@@ -358,7 +317,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const resetPassword = async (email: string) => {
     try {
       setIsAuthenticating(true);
-      console.log('Requesting password reset for:', email);
 
       const result = await resetUserPassword(email);
 
@@ -367,7 +325,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         return true;
       } else {
         const errorMsg = '发送重置密码邮件失败';
-        console.error('Password reset failed:', errorMsg);
         toast.error(errorMsg);
         return false;
       }
