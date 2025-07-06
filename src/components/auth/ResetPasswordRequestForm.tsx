@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Mail } from 'lucide-react';
-import { useAuth } from "@/contexts/AuthContext";
+import { resetUserPassword } from "@/utils/authUtils";
+import { toast } from 'sonner';
 
 interface ResetPasswordRequestFormProps {
   onCancel: () => void;
@@ -14,7 +15,6 @@ export const ResetPasswordRequestForm = ({ onCancel, onSuccess }: ResetPasswordR
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const { resetPassword } = useAuth();
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,11 +22,13 @@ export const ResetPasswordRequestForm = ({ onCancel, onSuccess }: ResetPasswordR
     setErrorMessage('');
 
     try {
-      await resetPassword(email);
+      await resetUserPassword(email);
+      toast.success('密码重置邮件已发送，请检查您的邮箱');
       onSuccess();
     } catch (error: any) {
-      console.error('Password reset error:', error);
-      setErrorMessage(error.message || 'Error sending password reset email');
+      console.error('密码重置错误:', error);
+      setErrorMessage(error.message || '发送密码重置邮件失败');
+      toast.error(error.message || '发送密码重置邮件失败');
     } finally {
       setIsLoading(false);
     }
@@ -42,7 +44,7 @@ export const ResetPasswordRequestForm = ({ onCancel, onSuccess }: ResetPasswordR
       
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-          <Mail className="w-4 h-4" /> Email
+          <Mail className="w-4 h-4" /> 邮箱地址
         </label>
         <Input
           type="email"
@@ -50,7 +52,7 @@ export const ResetPasswordRequestForm = ({ onCancel, onSuccess }: ResetPasswordR
           onChange={(e) => setEmail(e.target.value)}
           required
           className="bg-white border-gray-300 focus:border-black transition-colors"
-          placeholder="you@example.com"
+          placeholder="your@email.com"
         />
       </div>
       
@@ -62,10 +64,10 @@ export const ResetPasswordRequestForm = ({ onCancel, onSuccess }: ResetPasswordR
         {isLoading ? (
           <span className="flex items-center gap-2">
             <Loader2 className="animate-spin w-4 h-4" />
-            Sending...
+            发送中...
           </span>
         ) : (
-          "Send Reset Instructions"
+          "发送重置邮件"
         )}
       </Button>
       
@@ -75,7 +77,7 @@ export const ResetPasswordRequestForm = ({ onCancel, onSuccess }: ResetPasswordR
           onClick={onCancel}
           className="text-black font-medium hover:underline"
         >
-          Back to login
+          返回登录
         </button>
       </p>
     </form>

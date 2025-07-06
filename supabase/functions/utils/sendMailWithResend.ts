@@ -2,12 +2,7 @@
 import { Resend } from "https://esm.sh/resend@4.1.2";
 
 /**
- * 用统一的 Resend 服务发送邮件，所有后端 Edge Function 复用。
- * @param to 收件人邮箱
- * @param subject 邮件标题
- * @param html 邮件内容
- * @returns 邮件发送结果
- * @throws 失败时抛出详细错误
+ * 统一的 Resend 邮件发送服务，使用已验证的 nic.bn 域名
  */
 export async function sendMailWithResend(
   to: string | string[],
@@ -16,21 +11,30 @@ export async function sendMailWithResend(
   opts?: { from?: string }
 ) {
   const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+  
+  // 使用已验证的 nic.bn 域名发送邮件
   const fromEmail = opts?.from || "NIC.BN 域名交易平台 <noreply@nic.bn>";
 
-  const resp = await resend.emails.send({
-    from: fromEmail,
-    to: Array.isArray(to) ? to : [to],
-    subject,
-    html,
-  });
+  try {
+    const resp = await resend.emails.send({
+      from: fromEmail,
+      to: Array.isArray(to) ? to : [to],
+      subject,
+      html,
+    });
 
-  if (resp.error) {
-    let msg =
-      typeof resp.error === "object" && resp.error.message
+    if (resp.error) {
+      console.error('Resend API error:', resp.error);
+      let msg = typeof resp.error === "object" && resp.error.message
         ? resp.error.message
         : JSON.stringify(resp.error);
-    throw new Error(`发送邮件失败: ${msg}`);
+      throw new Error(`发送邮件失败: ${msg}`);
+    }
+    
+    console.log(`邮件发送成功，ID: ${resp.data?.id}`);
+    return resp;
+  } catch (error: any) {
+    console.error('邮件发送失败:', error);
+    throw new Error(`邮件发送失败: ${error.message}`);
   }
-  return resp;
 }

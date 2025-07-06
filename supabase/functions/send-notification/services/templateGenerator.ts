@@ -45,7 +45,7 @@ export function generateEmailContent(type: string, data: any, baseUrl: string): 
       break;
 
     default:
-      throw new Error(`Unknown notification type: ${type}`);
+      throw new Error(`未知的通知类型: ${type}`);
   }
 
   return { subject, body };

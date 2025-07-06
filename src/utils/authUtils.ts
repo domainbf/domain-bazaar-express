@@ -1,4 +1,3 @@
-
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -20,7 +19,7 @@ export const signInWithEmailPassword = async (email: string, password: string) =
 
 export const signUpWithEmailPassword = async (email: string, password: string, options?: { metadata?: { [key: string]: any }, redirectTo?: string }) => {
   try {
-    // 统一使用 nic.bn 域名进行重定向
+    // 统一使用 nic.bn 域名进行重定向，但不依赖 Supabase 发送邮件
     const redirectUrl = `https://nic.bn/auth/callback`;
     
     const { data, error } = await supabase.auth.signUp({
@@ -33,6 +32,15 @@ export const signUpWithEmailPassword = async (email: string, password: string, o
     });
     
     if (error) throw error;
+    
+    // 注册成功后，通过我们的自定义函数发送验证邮件
+    if (data.user && !data.user.email_confirmed_at) {
+      await sendVerificationEmail(
+        email, 
+        `https://nic.bn/auth/verify?token=${data.user.id}`,
+        options?.metadata?.full_name || email.split('@')[0]
+      );
+    }
     
     return { success: true, data };
   } catch (error: any) {
@@ -70,7 +78,7 @@ export const fetchUserProfile = async (userId: string) => {
 
 export const sendVerificationEmail = async (email: string, verificationUrl: string, fullName?: string) => {
   try {
-    console.log('Sending verification email via send-notification function');
+    console.log('通过 send-notification 函数发送验证邮件');
     const { data, error } = await supabase.functions.invoke('send-notification', {
       body: {
         type: 'email_verification',
@@ -83,14 +91,14 @@ export const sendVerificationEmail = async (email: string, verificationUrl: stri
     });
     
     if (error) {
-      console.error('Error invoking send-notification function:', error);
+      console.error('调用 send-notification 函数失败:', error);
       throw error;
     }
     
-    console.log('Verification email response:', data);
+    console.log('验证邮件发送成功:', data);
     return true;
   } catch (error) {
-    console.error('Error sending verification email:', error);
+    console.error('发送验证邮件失败:', error);
     return false;
   }
 };
@@ -123,19 +131,24 @@ export const handleAuthError = (error: any, action: string) => {
 
 export const resetUserPassword = async (email: string) => {
   try {
-    // 统一使用 nic.bn 域名进行密码重置
-    const resetPasswordURL = `https://nic.bn/reset-password`;
-    
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: resetPasswordURL,
+    // 使用自定义通知函数发送密码重置邮件
+    const { data, error } = await supabase.functions.invoke('send-notification', {
+      body: {
+        type: 'password_reset',
+        recipient: email,
+        data: {
+          token: crypto.randomUUID(), // 生成临时令牌
+          resetUrl: `https://nic.bn/reset-password`
+        }
+      }
     });
     
     if (error) throw error;
     
     return { success: true };
   } catch (error: any) {
-    console.error('Reset password error:', error);
-    throw new Error(error.message || 'Failed to send reset password email');
+    console.error('重置密码邮件发送失败:', error);
+    throw new Error(error.message || '发送重置密码邮件失败');
   }
 };
 
