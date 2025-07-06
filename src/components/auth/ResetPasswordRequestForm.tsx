@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Mail } from 'lucide-react';
+import { Loader2, Mail, AlertCircle } from 'lucide-react';
 import { resetUserPassword } from "@/utils/authUtils";
 import { toast } from 'sonner';
 
@@ -21,14 +21,41 @@ export const ResetPasswordRequestForm = ({ onCancel, onSuccess }: ResetPasswordR
     setIsLoading(true);
     setErrorMessage('');
 
+    // 基本验证
+    if (!email || !email.includes('@')) {
+      setErrorMessage('请输入有效的邮箱地址');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      await resetUserPassword(email);
-      toast.success('密码重置邮件已发送，请检查您的邮箱');
-      onSuccess();
+      console.log('开始重置密码请求:', email);
+      
+      const result = await resetUserPassword(email);
+      
+      if (result.success) {
+        toast.success('密码重置邮件已发送，请检查您的邮箱');
+        onSuccess();
+      } else {
+        throw new Error('重置密码失败');
+      }
     } catch (error: any) {
       console.error('密码重置错误:', error);
-      setErrorMessage(error.message || '发送密码重置邮件失败');
-      toast.error(error.message || '发送密码重置邮件失败');
+      
+      let friendlyMessage = '发送密码重置邮件失败';
+      
+      if (error.message.includes('Edge Function returned a non-2xx status code')) {
+        friendlyMessage = '服务暂时不可用，请稍后重试';
+      } else if (error.message.includes('network') || error.message.includes('fetch')) {
+        friendlyMessage = '网络连接错误，请检查网络设置';
+      } else if (error.message.includes('User not found')) {
+        friendlyMessage = '该邮箱地址未注册，请检查邮箱地址';
+      } else if (error.message) {
+        friendlyMessage = error.message;
+      }
+      
+      setErrorMessage(friendlyMessage);
+      toast.error(friendlyMessage);
     } finally {
       setIsLoading(false);
     }
@@ -37,8 +64,9 @@ export const ResetPasswordRequestForm = ({ onCancel, onSuccess }: ResetPasswordR
   return (
     <form onSubmit={handleResetPassword} className="space-y-4 mt-4">
       {errorMessage && (
-        <div className="bg-red-50 text-red-700 px-4 py-3 rounded-md text-sm mb-4">
-          {errorMessage}
+        <div className="bg-red-50 border border-red-200 p-3 rounded-md flex items-start mb-4">
+          <AlertCircle className="w-5 h-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
+          <p className="text-red-700 text-sm">{errorMessage}</p>
         </div>
       )}
       
@@ -49,17 +77,21 @@ export const ResetPasswordRequestForm = ({ onCancel, onSuccess }: ResetPasswordR
         <Input
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setErrorMessage('');
+          }}
           required
           className="bg-white border-gray-300 focus:border-black transition-colors"
           placeholder="your@email.com"
+          disabled={isLoading}
         />
       </div>
       
       <Button 
         type="submit"
         disabled={isLoading || !email}
-        className="w-full bg-black text-white hover:bg-gray-800 transition-colors"
+        className="w-full bg-black text-white hover:bg-gray-800 transition-colors disabled:opacity-50"
       >
         {isLoading ? (
           <span className="flex items-center gap-2">
@@ -75,7 +107,8 @@ export const ResetPasswordRequestForm = ({ onCancel, onSuccess }: ResetPasswordR
         <button 
           type="button"
           onClick={onCancel}
-          className="text-black font-medium hover:underline"
+          className="text-black font-medium hover:underline disabled:opacity-50"
+          disabled={isLoading}
         >
           返回登录
         </button>

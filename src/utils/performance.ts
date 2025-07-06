@@ -4,7 +4,7 @@ export const performance = {
   // 测量页面加载时间
   measurePageLoad: () => {
     if (typeof window !== 'undefined' && window.performance) {
-      const navigationTiming = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+      const navigationTiming = window.performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
       return {
         domContentLoaded: navigationTiming.domContentLoadedEventEnd - navigationTiming.domContentLoadedEventStart,
         loadComplete: navigationTiming.loadEventEnd - navigationTiming.loadEventStart,

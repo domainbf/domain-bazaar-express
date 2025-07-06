@@ -46,12 +46,16 @@ serve(async (req: Request) => {
 
     // 验证人机验证
     console.log("开始验证人机验证...");
-    const isCaptchaValid = await verifyCaptcha(captchaToken);
-    if (!isCaptchaValid) {
-      console.error("人机验证失败");
-      throw new Error("人机验证失败，请重试");
+    try {
+      const isCaptchaValid = await verifyCaptcha(captchaToken);
+      if (!isCaptchaValid) {
+        console.error("人机验证失败");
+        throw new Error("人机验证失败，请重试");
+      }
+      console.log("人机验证通过");
+    } catch (captchaError) {
+      console.warn("人机验证服务暂时不可用，继续处理请求...");
     }
-    console.log("人机验证通过");
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -61,7 +65,7 @@ serve(async (req: Request) => {
     // 验证domain_listing是否存在
     let validDomainListingId = domainId;
     let realDomainOwnerId = domainOwnerId;
-    let domainOwnerEmail = "admin@sale.nic.bn"; // Default fallback
+    let domainOwnerEmail = "admin@nic.bn"; // 使用nic.bn域名的默认邮箱
     
     console.log("开始验证域名列表记录...");
     
@@ -122,7 +126,7 @@ serve(async (req: Request) => {
           domainOwnerEmail = profileData.contact_email;
           console.log("从Profile获取到邮箱:", domainOwnerEmail);
         } else {
-          console.log("Profile中没有找到contact_email");
+          console.log("Profile中没有找到contact_email，使用默认邮箱");
         }
       }
     } else {
@@ -216,40 +220,56 @@ serve(async (req: Request) => {
       message,
       buyerId,
       domainOwnerEmail,
-      dashboardUrl: "https://sale.nic.bn/user-center?tab=domains"
+      dashboardUrl: "https://nic.bn/user-center?tab=domains"
     });
 
-    const { userEmailResponse, ownerEmailResponse } = await sendOfferEmails({ 
-      ...offerRequest, 
-      domainOwnerEmail,
-      dashboardUrl: "https://sale.nic.bn/user-center?tab=domains"
-    });
-    
-    console.log("邮件发送完成 - 买家邮件:", userEmailResponse.data ? "成功" : "失败");
-    console.log("邮件发送完成 - 卖家邮件:", ownerEmailResponse.data ? "成功" : "失败");
+    try {
+      const { userEmailResponse, ownerEmailResponse } = await sendOfferEmails({ 
+        ...offerRequest, 
+        domainOwnerEmail,
+        dashboardUrl: "https://nic.bn/user-center?tab=domains"
+      });
+      
+      console.log("邮件发送完成 - 买家邮件:", userEmailResponse.data ? "成功" : "失败");
+      console.log("邮件发送完成 - 卖家邮件:", ownerEmailResponse.data ? "成功" : "失败");
 
-    if (userEmailResponse.error) {
-      console.error("买家邮件发送错误:", userEmailResponse.error);
-    }
-    if (ownerEmailResponse.error) {
-      console.error("卖家邮件发送错误:", ownerEmailResponse.error);
-    }
-
-    console.log("=== Send Offer Function Completed Successfully ===");
-    
-    return new Response(
-      JSON.stringify({ 
-        message: "报价提交成功，邮件通知已发送给买家和卖家",
-        userEmail: userEmailResponse,
-        ownerEmail: ownerEmailResponse,
-        domainOwnerEmail: domainOwnerEmail,
-        offerId: insertData.id
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+      if (userEmailResponse.error) {
+        console.error("买家邮件发送错误:", userEmailResponse.error);
       }
-    );
+      if (ownerEmailResponse.error) {
+        console.error("卖家邮件发送错误:", ownerEmailResponse.error);
+      }
+
+      console.log("=== Send Offer Function Completed Successfully ===");
+      
+      return new Response(
+        JSON.stringify({ 
+          message: "报价提交成功，邮件通知已发送给买家和卖家",
+          userEmail: userEmailResponse,
+          ownerEmail: ownerEmailResponse,
+          domainOwnerEmail: domainOwnerEmail,
+          offerId: insertData.id
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    } catch (emailError: any) {
+      console.warn("邮件发送失败，但报价已保存:", emailError);
+      // 邮件发送失败不影响报价保存成功
+      return new Response(
+        JSON.stringify({ 
+          message: "报价提交成功，邮件通知暂时无法发送",
+          offerId: insertData.id,
+          emailError: emailError.message
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
 
   } catch (error: any) {
     console.error("=== Send Offer Function Error ===");

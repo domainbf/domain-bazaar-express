@@ -3,7 +3,7 @@ import { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Mail, Send, Loader2, ShieldCheck } from 'lucide-react';
+import { Mail, Send, Loader2, ShieldCheck, AlertCircle } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import HCaptcha from '@hcaptcha/react-hcaptcha';
 
@@ -27,14 +27,30 @@ export const DomainOfferForm = ({
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const captchaRef = useRef<HCaptcha>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     
     // Validate captcha
     if (!captchaToken) {
+      setError('请完成人机验证');
       toast.error('请完成人机验证');
+      return;
+    }
+    
+    // 基本验证
+    if (!offer || parseFloat(offer) <= 0) {
+      setError('请输入有效的报价金额');
+      toast.error('请输入有效的报价金额');
+      return;
+    }
+    
+    if (!email || !email.includes('@')) {
+      setError('请输入有效的邮箱地址');
+      toast.error('请输入有效的邮箱地址');
       return;
     }
     
@@ -48,7 +64,7 @@ export const DomainOfferForm = ({
       };
       
       if (!domainId || !sellerId) {
-        console.log("Fetching domain information for:", domain);
+        console.log("获取域名信息:", domain);
         // Fetch domain information based on domain name
         const { data: domainData, error: domainError } = await supabase
           .from('domain_listings')
@@ -57,12 +73,12 @@ export const DomainOfferForm = ({
           .maybeSingle();
           
         if (domainError) {
-          console.error("Error fetching domain info:", domainError);
+          console.error("查询域名信息错误:", domainError);
           throw new Error('查询域名信息时出错，请稍后重试');
         }
         
         if (!domainData) {
-          console.error("Domain not found:", domain);
+          console.error("未找到域名:", domain);
           throw new Error('未找到该域名信息，请确认域名是否正确');
         }
         
@@ -71,7 +87,7 @@ export const DomainOfferForm = ({
           sellerId: domainData.owner_id
         };
         
-        console.log("Found domain info:", domainInfo);
+        console.log("找到域名信息:", domainInfo);
       }
       
       // Check if we have the domain information
@@ -82,7 +98,8 @@ export const DomainOfferForm = ({
       const { data: { session } } = await supabase.auth.getSession();
         
       // Send offer via the separate edge function
-      const { error: offerError } = await supabase.functions.invoke('send-offer', {
+      console.log("发送报价请求...");
+      const { data, error: offerError } = await supabase.functions.invoke('send-offer', {
         body: {
           domain: domain,
           offer: offer,
@@ -96,11 +113,22 @@ export const DomainOfferForm = ({
       });
 
       if (offerError) {
-        console.error('Error submitting offer:', offerError);
-        throw new Error(offerError.message || '提交报价失败，请稍后重试');
+        console.error('提交报价错误:', offerError);
+        
+        // 处理具体的错误类型
+        if (offerError.message.includes('Edge Function returned a non-2xx status code')) {
+          throw new Error('服务暂时不可用，请稍后重试');
+        } else if (offerError.message.includes('network') || offerError.message.includes('fetch')) {
+          throw new Error('网络连接错误，请检查网络设置');
+        } else {
+          throw new Error(offerError.message || '提交报价失败，请稍后重试');
+        }
       }
 
+      console.log('报价提交成功:', data);
       toast.success('您的报价已成功提交！');
+      
+      // 清空表单
       setOffer('');
       setEmail('');
       setMessage('');
@@ -109,9 +137,12 @@ export const DomainOfferForm = ({
         captchaRef.current.resetCaptcha();
       }
       onClose();
+      
     } catch (error: any) {
-      console.error('Error submitting offer:', error);
-      toast.error(error.message || '提交报价失败');
+      console.error('报价提交失败:', error);
+      const errorMessage = error.message || '提交报价失败';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -119,6 +150,12 @@ export const DomainOfferForm = ({
 
   const handleCaptchaVerify = (token: string) => {
     setCaptchaToken(token);
+    setError(null);
+  };
+
+  const handleCaptchaError = () => {
+    setCaptchaToken(null);
+    setError('人机验证失败，请重试');
   };
 
   return (
@@ -130,6 +167,14 @@ export const DomainOfferForm = ({
           </p>
         </div>
       )}
+      
+      {error && (
+        <div className="bg-red-50 border border-red-200 p-3 rounded-md mb-4 flex items-start">
+          <AlertCircle className="w-5 h-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
+          <p className="text-red-800 text-sm">{error}</p>
+        </div>
+      )}
+      
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-700">您的报价</label>
         <div className="relative">
@@ -138,13 +183,17 @@ export const DomainOfferForm = ({
             type="number"
             placeholder="1000"
             value={offer}
-            onChange={(e) => setOffer(e.target.value)}
+            onChange={(e) => {
+              setOffer(e.target.value);
+              setError(null);
+            }}
             required
             min="1"
             className="pl-8 bg-white border-gray-300 focus:border-black transition-colors"
           />
         </div>
       </div>
+      
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-700">联系邮箱</label>
         <div className="relative">
@@ -153,27 +202,32 @@ export const DomainOfferForm = ({
             type="email"
             placeholder="your@email.com"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setError(null);
+            }}
             required
             className="pl-10 bg-white border-gray-300 focus:border-black transition-colors"
           />
         </div>
       </div>
+      
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-700">留言（可选）</label>
         <textarea
           placeholder="添加关于您报价的任何详细信息..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          className="w-full bg-white border border-gray-300 rounded-md p-2 text-black"
+          className="w-full bg-white border border-gray-300 rounded-md p-2 text-black resize-none"
           rows={3}
         />
       </div>
       
       <div className="my-4 flex justify-center">
         <HCaptcha
-          sitekey="10000000-ffff-ffff-ffff-000000000001" // Replace with your actual hCaptcha site key in production
+          sitekey="10000000-ffff-ffff-ffff-000000000001"
           onVerify={handleCaptchaVerify}
+          onError={handleCaptchaError}
           ref={captchaRef}
           size="normal"
         />
@@ -182,7 +236,7 @@ export const DomainOfferForm = ({
       <Button 
         type="submit"
         disabled={isLoading || !captchaToken}
-        className="w-full bg-black text-white hover:bg-gray-800 transition-colors"
+        className="w-full bg-black text-white hover:bg-gray-800 transition-colors disabled:opacity-50"
       >
         {isLoading ? (
           <span className="flex items-center gap-2">
