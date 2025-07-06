@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Mail, AlertCircle } from 'lucide-react';
-import { resetUserPassword } from "@/utils/authUtils";
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface ResetPasswordRequestFormProps {
@@ -29,27 +29,32 @@ export const ResetPasswordRequestForm = ({ onCancel, onSuccess }: ResetPasswordR
     }
 
     try {
-      console.log('开始重置密码请求:', email);
+      console.log('开始发送密码重置邮件:', email);
       
-      const result = await resetUserPassword(email);
+      // 使用 Supabase 内置的密码重置功能
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
       
-      if (result.success) {
-        toast.success('密码重置邮件已发送，请检查您的邮箱');
-        onSuccess();
-      } else {
-        throw new Error('重置密码失败');
+      if (error) {
+        console.error('密码重置错误:', error);
+        throw error;
       }
+      
+      toast.success('密码重置邮件已发送，请检查您的邮箱');
+      onSuccess();
+      
     } catch (error: any) {
-      console.error('密码重置错误:', error);
+      console.error('密码重置请求失败:', error);
       
       let friendlyMessage = '发送密码重置邮件失败';
       
-      if (error.message.includes('Edge Function returned a non-2xx status code')) {
-        friendlyMessage = '服务暂时不可用，请稍后重试';
-      } else if (error.message.includes('network') || error.message.includes('fetch')) {
-        friendlyMessage = '网络连接错误，请检查网络设置';
-      } else if (error.message.includes('User not found')) {
-        friendlyMessage = '该邮箱地址未注册，请检查邮箱地址';
+      if (error.message?.includes('Email not confirmed')) {
+        friendlyMessage = '请先验证您的邮箱地址';
+      } else if (error.message?.includes('User not found')) {
+        friendlyMessage = '该邮箱地址未注册';
+      } else if (error.message?.includes('rate limit')) {
+        friendlyMessage = '请求过于频繁，请稍后重试';
       } else if (error.message) {
         friendlyMessage = error.message;
       }

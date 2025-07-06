@@ -2,7 +2,7 @@
 import { Resend } from "https://esm.sh/resend@4.1.2";
 
 /**
- * 统一的 Resend 邮件发送服务，使用已验证的 nic.bn 域名
+ * 统一的 Resend 邮件发送服务
  */
 export async function sendMailWithResend(
   to: string | string[],
@@ -10,9 +10,15 @@ export async function sendMailWithResend(
   html: string,
   opts?: { from?: string }
 ) {
-  const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+  const resendApiKey = Deno.env.get("RESEND_API_KEY");
   
-  // 使用已验证的 nic.bn 域名发送邮件，如果API密钥有问题则使用测试域名
+  if (!resendApiKey) {
+    throw new Error("RESEND_API_KEY 环境变量未设置");
+  }
+
+  const resend = new Resend(resendApiKey);
+  
+  // 使用测试域名发送邮件
   const fromEmail = opts?.from || "NIC.BN 域名交易平台 <onboarding@resend.dev>";
 
   try {
@@ -20,50 +26,54 @@ export async function sendMailWithResend(
     console.log(`发件人: ${fromEmail}`);
     console.log(`邮件主题: ${subject}`);
     
+    // 确保收件人格式正确
+    const recipients = Array.isArray(to) ? to : [to];
+    
+    // 验证邮箱格式
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    for (const email of recipients) {
+      if (!emailRegex.test(email)) {
+        throw new Error(`无效的邮箱地址: ${email}`);
+      }
+    }
+    
     const resp = await resend.emails.send({
       from: fromEmail,
-      to: Array.isArray(to) ? to : [to],
+      to: recipients,
       subject,
       html,
     });
 
     if (resp.error) {
-      console.error('Resend API error:', resp.error);
+      console.error('Resend API 错误:', resp.error);
       
-      // 如果是域名验证错误，尝试使用默认域名重新发送
-      if (resp.error.message && resp.error.message.includes('domain is not verified')) {
-        console.log('域名未验证，使用默认域名重新发送...');
-        const fallbackResp = await resend.emails.send({
-          from: "NIC.BN 域名交易平台 <onboarding@resend.dev>",
-          to: Array.isArray(to) ? to : [to],
-          subject,
-          html,
-        });
-        
-        if (fallbackResp.error) {
-          throw new Error(`邮件发送失败: ${fallbackResp.error.message}`);
-        }
-        
-        console.log(`邮件发送成功(使用默认域名)，ID: ${fallbackResp.data?.id}`);
-        return fallbackResp;
+      let errorMessage = "邮件发送失败";
+      if (typeof resp.error === "object" && resp.error.message) {
+        errorMessage = resp.error.message;
+      } else if (typeof resp.error === "string") {
+        errorMessage = resp.error;
       }
       
-      let msg = typeof resp.error === "object" && resp.error.message
-        ? resp.error.message
-        : JSON.stringify(resp.error);
-      throw new Error(`邮件发送失败: ${msg}`);
+      throw new Error(errorMessage);
     }
     
     console.log(`邮件发送成功，ID: ${resp.data?.id}`);
     return resp;
+    
   } catch (error: any) {
     console.error('邮件发送失败:', error);
     
-    // 如果是网络错误或API错误，提供更友好的错误信息
-    if (error.message.includes('fetch')) {
-      throw new Error('网络连接错误，请检查网络设置');
+    // 提供更友好的错误信息
+    let friendlyMessage = error.message || "邮件发送失败";
+    
+    if (error.message?.includes('fetch')) {
+      friendlyMessage = '网络连接错误，请检查网络设置';
+    } else if (error.message?.includes('Invalid API key')) {
+      friendlyMessage = 'API 密钥配置错误';
+    } else if (error.message?.includes('domain is not verified')) {
+      friendlyMessage = '发件域名未验证，请联系管理员';
     }
     
-    throw new Error(`邮件发送失败: ${error.message}`);
+    throw new Error(friendlyMessage);
   }
 }
