@@ -18,8 +18,8 @@ export async function sendMailWithResend(
 
   const resend = new Resend(resendApiKey);
   
-  // 使用测试域名发送邮件
-  const fromEmail = opts?.from || "NIC.BN 域名交易平台 <onboarding@resend.dev>";
+  // 优先使用 nic.bn 域名，如果失败则使用测试域名
+  const fromEmail = opts?.from || "NIC.BN 域名交易平台 <noreply@nic.bn>";
 
   try {
     console.log(`准备发送邮件到: ${Array.isArray(to) ? to.join(', ') : to}`);
@@ -46,6 +46,26 @@ export async function sendMailWithResend(
 
     if (resp.error) {
       console.error('Resend API 错误:', resp.error);
+      
+      // 如果是域名验证错误，尝试使用测试域名重新发送
+      if (resp.error.message?.includes('domain is not verified') && fromEmail.includes('nic.bn')) {
+        console.log('nic.bn 域名未验证，尝试使用测试域名重新发送...');
+        const fallbackEmail = "NIC.BN 域名交易平台 <onboarding@resend.dev>";
+        
+        const fallbackResp = await resend.emails.send({
+          from: fallbackEmail,
+          to: recipients,
+          subject,
+          html,
+        });
+        
+        if (fallbackResp.error) {
+          throw new Error(fallbackResp.error.message || "邮件发送失败");
+        }
+        
+        console.log(`邮件发送成功（使用备用域名），ID: ${fallbackResp.data?.id}`);
+        return fallbackResp;
+      }
       
       let errorMessage = "邮件发送失败";
       if (typeof resp.error === "object" && resp.error.message) {
