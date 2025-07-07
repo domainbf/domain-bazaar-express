@@ -20,15 +20,43 @@ serve(async (req) => {
     console.log("Request URL:", req.url);
     
     if (req.method !== "POST") {
-      throw new Error("Method not allowed");
+      console.log("Method not allowed:", req.method);
+      return new Response(
+        JSON.stringify({ 
+          error: "Method not allowed",
+          success: false
+        }),
+        {
+          status: 405,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      );
     }
 
     let requestData: OfferRequest;
     try {
-      requestData = await req.json();
+      const body = await req.text();
+      console.log("Raw request body:", body);
+      requestData = JSON.parse(body);
+      console.log("Parsed request data:", requestData);
     } catch (parseError) {
       console.error("JSON parsing error:", parseError);
-      throw new Error("Invalid JSON in request body");
+      return new Response(
+        JSON.stringify({ 
+          error: "Invalid JSON in request body",
+          success: false
+        }),
+        {
+          status: 400,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      );
     }
 
     const { domain, offer, email, message, buyerId, captchaToken } = requestData;
@@ -37,7 +65,20 @@ serve(async (req) => {
 
     // 验证必需参数
     if (!domain || !offer || !email) {
-      throw new Error("缺少必需的参数：域名、报价金额或邮箱地址");
+      console.log("Missing required parameters:", { domain, offer, email });
+      return new Response(
+        JSON.stringify({ 
+          error: "缺少必需的参数：域名、报价金额或邮箱地址",
+          success: false
+        }),
+        {
+          status: 400,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      );
     }
 
     // 验证 CAPTCHA
@@ -56,10 +97,28 @@ serve(async (req) => {
       }
     }
 
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    // 初始化 Supabase 客户端
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error("Missing Supabase environment variables");
+      return new Response(
+        JSON.stringify({ 
+          error: "服务配置错误",
+          success: false
+        }),
+        {
+          status: 500,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
+
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     // 查找域名和所有者信息
     console.log("查找域名信息:", domain);
@@ -68,11 +127,40 @@ serve(async (req) => {
       .select("id, name, owner_id, price")
       .eq("name", domain)
       .eq("status", "available")
-      .single();
+      .maybeSingle();
 
-    if (domainError || !domainData) {
+    if (domainError) {
       console.error("域名查找失败:", domainError);
-      throw new Error(`域名 ${domain} 不存在或不可售`);
+      return new Response(
+        JSON.stringify({ 
+          error: "查询域名信息时出错",
+          success: false
+        }),
+        {
+          status: 500,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
+
+    if (!domainData) {
+      console.error("域名不存在:", domain);
+      return new Response(
+        JSON.stringify({ 
+          error: `域名 ${domain} 不存在或不可售`,
+          success: false
+        }),
+        {
+          status: 404,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      );
     }
 
     console.log("找到域名:", domainData);
@@ -82,11 +170,40 @@ serve(async (req) => {
       .from("profiles")
       .select("contact_email, full_name")
       .eq("id", domainData.owner_id)
-      .single();
+      .maybeSingle();
 
-    if (ownerError || !ownerProfile?.contact_email) {
+    if (ownerError) {
       console.error("所有者信息获取失败:", ownerError);
-      throw new Error("无法获取域名所有者联系信息");
+      return new Response(
+        JSON.stringify({ 
+          error: "无法获取域名所有者联系信息",
+          success: false
+        }),
+        {
+          status: 500,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
+
+    if (!ownerProfile?.contact_email) {
+      console.error("所有者邮箱不存在");
+      return new Response(
+        JSON.stringify({ 
+          error: "域名所有者未设置联系邮箱",
+          success: false
+        }),
+        {
+          status: 400,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      );
     }
 
     console.log("域名所有者邮箱:", ownerProfile.contact_email);
@@ -120,7 +237,19 @@ serve(async (req) => {
       console.log("邮件发送成功");
     } catch (emailError: any) {
       console.error("邮件发送失败:", emailError);
-      throw new Error(`邮件发送失败: ${emailError.message}`);
+      return new Response(
+        JSON.stringify({ 
+          error: `邮件发送失败: ${emailError.message}`,
+          success: false
+        }),
+        {
+          status: 500,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      );
     }
 
     console.log(`报价处理成功: ${domain} - ¥${offer}`);

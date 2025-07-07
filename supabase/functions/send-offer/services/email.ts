@@ -21,7 +21,7 @@ export async function sendOfferEmails({
   const userEmailHtml = getUserEmailHtml(domain, offer, message, finalDashboardUrl);
   const ownerEmailHtml = getOwnerEmailHtml(domain, offer, email, message, buyerId, finalDashboardUrl);
 
-  const from = "NIC.BN 域名交易平台 <noreply@nic.bn>";
+  const from = "NIC.BN 域名交易平台 <sale@nic.bn>";
 
   // The new utility will throw a detailed error on failure, which is caught by the main function.
   const userEmailResponse = await sendMailWithResend(
