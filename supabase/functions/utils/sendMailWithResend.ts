@@ -18,8 +18,8 @@ export async function sendMailWithResend(
 
   const resend = new Resend(resendApiKey);
   
-  // 使用 sale.nic.bn 域名发送邮件
-  const fromEmail = opts?.from || "NIC.BN 域名交易平台 <sale@nic.bn>";
+  // 使用已验证的 sale.nic.bn 域名发送邮件
+  const fromEmail = opts?.from || "NIC.BN 域名交易平台 <noreply@sale.nic.bn>";
 
   try {
     console.log(`准备发送邮件到: ${Array.isArray(to) ? to.join(', ') : to}`);
