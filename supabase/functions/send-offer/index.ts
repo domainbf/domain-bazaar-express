@@ -9,14 +9,28 @@ import { saveOfferToDatabase } from "./services/db.ts";
 import { verifyCaptcha } from "./services/captcha.ts";
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     console.log("=== Send Offer Function Started ===");
+    console.log("Request method:", req.method);
+    console.log("Request URL:", req.url);
     
-    const requestData: OfferRequest = await req.json();
+    if (req.method !== "POST") {
+      throw new Error("Method not allowed");
+    }
+
+    let requestData: OfferRequest;
+    try {
+      requestData = await req.json();
+    } catch (parseError) {
+      console.error("JSON parsing error:", parseError);
+      throw new Error("Invalid JSON in request body");
+    }
+
     const { domain, offer, email, message, buyerId, captchaToken } = requestData;
 
     console.log("收到报价请求:", { domain, offer, email, buyerId });
@@ -32,9 +46,10 @@ serve(async (req) => {
         console.log("验证 CAPTCHA...");
         const captchaValid = await verifyCaptcha(captchaToken);
         if (!captchaValid) {
-          throw new Error("CAPTCHA 验证失败，请重试");
+          console.warn("CAPTCHA 验证失败");
+        } else {
+          console.log("CAPTCHA 验证成功");
         }
-        console.log("CAPTCHA 验证成功");
       } catch (captchaError: any) {
         console.warn("CAPTCHA 验证失败:", captchaError.message);
         // 不阻止流程，但记录错误
@@ -134,7 +149,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: error.message || "报价提交失败",
-        details: error.stack
+        success: false
       }),
       {
         status: 500,

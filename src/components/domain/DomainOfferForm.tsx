@@ -99,48 +99,66 @@ export const DomainOfferForm = ({
         
       // Send offer via the separate edge function
       console.log("发送报价请求...");
-      const { data, error: offerError } = await supabase.functions.invoke('send-offer', {
-        body: {
-          domain: domain,
-          offer: offer,
-          email: email,
-          message: message,
-          buyerId: session?.user.id,
-          domainId: domainInfo.domainId,
-          domainOwnerId: domainInfo.sellerId,
-          captchaToken: captchaToken
-        }
-      });
-
-      if (offerError) {
-        console.error('提交报价错误:', offerError);
-        
-        // 处理具体的错误类型
-        if (offerError.message.includes('Edge Function returned a non-2xx status code')) {
-          throw new Error('服务暂时不可用，请稍后重试');
-        } else if (offerError.message.includes('network') || offerError.message.includes('fetch')) {
-          throw new Error('网络连接错误，请检查网络设置');
-        } else {
-          throw new Error(offerError.message || '提交报价失败，请稍后重试');
-        }
-      }
-
-      console.log('报价提交成功:', data);
-      toast.success('您的报价已成功提交！');
       
-      // 清空表单
-      setOffer('');
-      setEmail('');
-      setMessage('');
-      setCaptchaToken(null);
-      if (captchaRef.current) {
-        captchaRef.current.resetCaptcha();
+      const requestBody = {
+        domain: domain,
+        offer: offer,
+        email: email,
+        message: message,
+        buyerId: session?.user.id,
+        domainId: domainInfo.domainId,
+        domainOwnerId: domainInfo.sellerId,
+        captchaToken: captchaToken
+      };
+
+      console.log("报价请求数据:", requestBody);
+
+      try {
+        const { data, error: offerError } = await supabase.functions.invoke('send-offer', {
+          body: requestBody,
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+
+        if (offerError) {
+          console.error('Edge Function 调用错误:', offerError);
+          
+          // 处理具体的错误类型
+          if (offerError.message?.includes('Load failed') || offerError.message?.includes('Failed to send a request to the Edge Function')) {
+            throw new Error('服务暂时不可用，请稍后重试。如果问题持续存在，请联系技术支持。');
+          } else if (offerError.message?.includes('network') || offerError.message?.includes('fetch')) {
+            throw new Error('网络连接错误，请检查网络设置后重试');
+          } else {
+            throw new Error(offerError.message || '提交报价失败，请稍后重试');
+          }
+        }
+
+        if (data && !data.success) {
+          throw new Error(data.error || '报价提交失败');
+        }
+
+        console.log('报价提交成功:', data);
+        toast.success('您的报价已成功提交！买家和卖家都将收到邮件通知。');
+        
+        // 清空表单
+        setOffer('');
+        setEmail('');
+        setMessage('');
+        setCaptchaToken(null);
+        if (captchaRef.current) {
+          captchaRef.current.resetCaptcha();
+        }
+        onClose();
+
+      } catch (functionError: any) {
+        console.error('Function 调用失败:', functionError);
+        throw functionError;
       }
-      onClose();
       
     } catch (error: any) {
       console.error('报价提交失败:', error);
-      const errorMessage = error.message || '提交报价失败';
+      const errorMessage = error.message || '提交报价失败，请稍后重试';
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
