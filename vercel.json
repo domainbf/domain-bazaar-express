@@ -45,7 +45,8 @@
       ]
     },
     {
-      "source": "/(.*\\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))",
+      // 修复后的正则表达式
+      "source": "/.*\\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$",
       "headers": [
         {
           "key": "Cache-Control",
