@@ -1,4 +1,3 @@
-
 import { Resend } from "https://esm.sh/resend@4.1.2";
 
 /**
@@ -18,7 +17,7 @@ export async function sendMailWithResend(
 
   const resend = new Resend(resendApiKey);
   
-  // 使用已验证的 sale.nic.bn 域名发送邮件
+  // 使用已验证的域名 sale.nic.bn 发送邮件
   const fromEmail = opts?.from || "NIC.BN 域名交易平台 <noreply@sale.nic.bn>";
 
   try {

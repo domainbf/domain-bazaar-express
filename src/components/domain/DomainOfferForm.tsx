@@ -28,7 +28,6 @@ export const DomainOfferForm = ({
   const [isLoading, setIsLoading] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const captchaRef = useRef<HCaptcha>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -142,9 +141,6 @@ export const DomainOfferForm = ({
         console.log('报价提交成功:', data);
         toast.success('您的报价已成功提交！买家和卖家都将收到邮件通知。');
         
-        // 标记为已提交，但不立即关闭对话框
-        setIsSubmitted(true);
-        
         // 清空表单
         setOffer('');
         setEmail('');
@@ -153,6 +149,7 @@ export const DomainOfferForm = ({
         if (captchaRef.current) {
           captchaRef.current.resetCaptcha();
         }
+        onClose();
 
       } catch (functionError: any) {
         console.error('Function 调用失败:', functionError);
@@ -178,45 +175,6 @@ export const DomainOfferForm = ({
     setCaptchaToken(null);
     setError('人机验证失败，请重试');
   };
-
-  // 如果已提交成功，显示成功界面
-  if (isSubmitted) {
-    return (
-      <div className="text-center py-8">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Send className="w-8 h-8 text-green-600" />
-        </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">报价提交成功！</h3>
-        <p className="text-gray-600 mb-6">
-          您的报价已发送给域名所有者，同时您也会收到一封确认邮件。
-        </p>
-        <div className="space-y-3">
-          <Button 
-            onClick={() => {
-              setIsSubmitted(false);
-              setOffer('');
-              setEmail('');
-              setMessage('');
-              setCaptchaToken(null);
-              if (captchaRef.current) {
-                captchaRef.current.resetCaptcha();
-              }
-            }}
-            variant="outline"
-            className="w-full"
-          >
-            提交新报价
-          </Button>
-          <Button 
-            onClick={onClose}
-            className="w-full bg-black text-white hover:bg-gray-800"
-          >
-            关闭
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 mt-4">
