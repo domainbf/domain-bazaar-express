@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Domain } from '@/types/domain';
 import { toast } from 'sonner';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { fallbackDomains } from '@/data/availableDomains';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTranslation } from 'react-i18next';
@@ -38,33 +39,72 @@ const Index = () => {
     try {
       console.log('Loading domains for homepage...');
       
-      const { data: listingsData, error: listingsError } = await supabase
-        .from('domain_listings')
-        .select(`
-          id,
-          name,
-          price,
-          category,
-          description,
-          status,
-          highlight,
-          owner_id,
-          created_at,
-          is_verified,
-          verification_status
-        `)
-        .eq('status', 'available')
-        .order('created_at', { ascending: false })
-        .limit(12);
+      // 添加重试机制和更好的错误处理
+      let retryCount = 0;
+      const maxRetries = 3;
+      let listingsData = null;
       
-      if (listingsError) {
-        console.error('Error loading domain listings:', listingsError);
-        throw new Error(`加载域名列表失败: ${listingsError.message}`);
+      while (retryCount < maxRetries) {
+        try {
+          const { data, error: listingsError } = await supabase
+            .from('domain_listings')
+            .select(`
+              id,
+              name,
+              price,
+              category,
+              description,
+              status,
+              highlight,
+              owner_id,
+              created_at,
+              is_verified,
+              verification_status
+            `)
+            .eq('status', 'available')
+            .order('created_at', { ascending: false })
+            .limit(12);
+          
+          if (listingsError) {
+            throw listingsError;
+          }
+          
+          listingsData = data;
+          break;
+        } catch (error: any) {
+          retryCount++;
+          console.error(`Attempt ${retryCount} failed:`, error);
+          
+          if (retryCount >= maxRetries) {
+            // 如果数据库连接失败，使用本地备用数据
+            console.warn('Database connection failed, using fallback data');
+            const fallbackData = fallbackDomains.map((domain, index) => ({
+              id: `fallback-${index}`,
+              name: domain.name,
+              price: parseInt(domain.price),
+              category: domain.category,
+              description: domain.description || '',
+              status: 'available',
+              highlight: domain.highlight,
+              owner_id: '',
+              created_at: new Date().toISOString(),
+              is_verified: true,
+              verification_status: 'verified'
+            }));
+            listingsData = fallbackData;
+            break;
+          }
+          
+          // 等待后重试
+          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+        }
       }
 
       if (!listingsData || listingsData.length === 0) {
-        console.log('No domains found in database');
+        console.log('No domains found in database, using fallback approach');
+        // 设置空数组但不返回，继续处理
         setDomains([]);
+        setIsLoading(false);
         return;
       }
       
@@ -122,9 +162,21 @@ const Index = () => {
       
     } catch (error: any) {
       console.error('Error loading domains:', error);
-      const errorMessage = error.message || '加载域名列表失败，请刷新页面重试';
+      let errorMessage = '域名加载遇到问题';
+      
+      // 根据错误类型提供更友好的提示
+      if (error.message?.includes('upstream connect error') || error.message?.includes('503')) {
+        errorMessage = '服务暂时不可用，请稍后重试';
+      } else if (error.message?.includes('timeout')) {
+        errorMessage = '网络连接超时，请检查网络后重试';
+      } else if (error.message?.includes('Failed to fetch')) {
+        errorMessage = '网络连接问题，请检查网络设置';
+      } else {
+        errorMessage = error.message || '加载域名列表失败，请刷新页面重试';
+      }
+      
       setError(errorMessage);
-      toast.error(errorMessage);
+      console.warn('Domain loading failed, user can still browse other features');
       setDomains([]);
     } finally {
       setIsLoading(false);
@@ -339,16 +391,36 @@ const Index = () => {
 
               {/* Domain Cards Grid */}
               {error ? (
-                <div className="text-center py-16 bg-red-50 rounded-lg border border-red-200 mb-12">
-                  <h3 className="text-2xl font-medium text-red-600 mb-4">加载失败</h3>
-                  <p className="text-red-500 mb-4">{error}</p>
-                  <Button onClick={handleRetry} className="bg-red-600 hover:bg-red-700">
-                    重新加载
-                  </Button>
+                <div className="text-center py-16 bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl border border-red-200 mb-12">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-semibold text-red-700 mb-2">加载遇到问题</h3>
+                  <p className="text-red-600 mb-6 max-w-md mx-auto leading-relaxed">{error}</p>
+                  <div className="space-x-4">
+                    <Button onClick={handleRetry} className="bg-red-600 hover:bg-red-700 text-white px-6 py-2">
+                      重新加载
+                    </Button>
+                    <Button variant="outline" onClick={() => window.location.reload()} className="border-red-300 text-red-600 hover:bg-red-50">
+                      刷新页面
+                    </Button>
+                  </div>
                 </div>
               ) : isLoading ? (
-                <div className="flex flex-col items-center justify-center py-20">
-                  <LoadingSpinner size="lg" text="正在加载精选域名..." />
+                <div className="flex flex-col items-center justify-center py-20 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl border border-blue-100">
+                  <div className="relative">
+                    <div className="w-20 h-20 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
+                    <div className="absolute inset-0 w-20 h-20 border-4 border-transparent rounded-full animate-spin border-r-purple-500" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+                  </div>
+                  <h3 className="mt-6 text-xl font-semibold text-gray-800">正在加载域名</h3>
+                  <p className="mt-2 text-gray-600">为您精选最优质的域名...</p>
+                  <div className="mt-4 flex space-x-1">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 bg-teal-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                  </div>
                 </div>
               ) : filteredDomains.length > 0 ? (
                 <>
