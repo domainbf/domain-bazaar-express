@@ -114,24 +114,14 @@ export const DomainOfferForm = ({
       console.log("报价请求数据:", requestBody);
 
       try {
+        // 使用supabase.functions.invoke方法调用edge function
         const { data, error: offerError } = await supabase.functions.invoke('send-offer', {
-          body: requestBody,
-          headers: {
-            'Content-Type': 'application/json',
-          }
+          body: requestBody
         });
 
         if (offerError) {
           console.error('Edge Function 调用错误:', offerError);
-          
-          // 处理具体的错误类型
-          if (offerError.message?.includes('Load failed') || offerError.message?.includes('Failed to send a request to the Edge Function')) {
-            throw new Error('服务暂时不可用，请稍后重试。如果问题持续存在，请联系技术支持。');
-          } else if (offerError.message?.includes('network') || offerError.message?.includes('fetch')) {
-            throw new Error('网络连接错误，请检查网络设置后重试');
-          } else {
-            throw new Error(offerError.message || '提交报价失败，请稍后重试');
-          }
+          throw new Error(offerError.message || '报价提交失败，请稍后重试');
         }
 
         if (data && !data.success) {

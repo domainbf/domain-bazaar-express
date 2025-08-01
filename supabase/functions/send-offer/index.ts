@@ -39,14 +39,33 @@ serve(async (req) => {
     let requestData: OfferRequest;
     try {
       const body = await req.text();
+      console.log("Raw request body length:", body.length);
       console.log("Raw request body:", body);
+      
+      if (!body || body.trim() === '') {
+        console.error("Empty request body received");
+        return new Response(
+          JSON.stringify({ 
+            error: "请求体为空，请检查请求参数",
+            success: false
+          }),
+          {
+            status: 400,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      }
+      
       requestData = JSON.parse(body);
       console.log("Parsed request data:", requestData);
     } catch (parseError) {
       console.error("JSON parsing error:", parseError);
       return new Response(
         JSON.stringify({ 
-          error: "Invalid JSON in request body",
+          error: "请求格式错误，请检查数据格式",
           success: false
         }),
         {

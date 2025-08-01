@@ -13,7 +13,10 @@ export async function sendOfferEmails({
   dashboardUrl,
   domainOwnerEmail,
 }: OfferRequest & { domainOwnerEmail: string }) {
-  // Use nic.bn as the primary domain for dashboard URL
+  console.log("开始发送报价邮件...");
+  console.log("发送参数:", { domain, offer, email, domainOwnerEmail });
+  
+  // 使用 nic.bn 作为主域名
   const finalDashboardUrl = dashboardUrl && dashboardUrl.includes('nic.bn') 
     ? dashboardUrl 
     : "https://nic.bn/user-center?tab=domains";
@@ -24,20 +27,32 @@ export async function sendOfferEmails({
   // 使用已验证的 sale.nic.bn 域名
   const from = "NIC.BN 域名交易平台 <noreply@sale.nic.bn>";
 
-  // The new utility will throw a detailed error on failure, which is caught by the main function.
-  const userEmailResponse = await sendMailWithResend(
-    email,
-    `✅ 您对 ${domain} 的报价已收到 - ¥${offer}`,
-    userEmailHtml,
-    { from }
-  );
+  try {
+    // 发送给买家的确认邮件
+    console.log("发送买家确认邮件到:", email);
+    const userEmailResponse = await sendMailWithResend(
+      email,
+      `✅ 您对 ${domain} 的报价已收到 - ¥${offer}`,
+      userEmailHtml,
+      { from }
+    );
+    console.log("买家邮件发送成功:", userEmailResponse.data?.id);
 
-  const ownerEmailResponse = await sendMailWithResend(
-    domainOwnerEmail,
-    `💰 ${domain} 收到新报价：¥${offer}`,
-    ownerEmailHtml,
-    { from }
-  );
+    // 发送给卖家的通知邮件
+    console.log("发送卖家通知邮件到:", domainOwnerEmail);
+    const ownerEmailResponse = await sendMailWithResend(
+      domainOwnerEmail,
+      `💰 ${domain} 收到新报价：¥${offer}`,
+      ownerEmailHtml,
+      { from }
+    );
+    console.log("卖家邮件发送成功:", ownerEmailResponse.data?.id);
 
-  return { userEmailResponse, ownerEmailResponse };
+    console.log("所有报价邮件发送完成");
+    return { userEmailResponse, ownerEmailResponse };
+    
+  } catch (error: any) {
+    console.error("报价邮件发送失败:", error);
+    throw new Error(`邮件发送失败: ${error.message}`);
+  }
 }
