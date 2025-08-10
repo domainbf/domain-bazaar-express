@@ -143,6 +143,31 @@ export const useDomainsData = () => {
     }
   }, [refreshCache, clearCache]);
 
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`domain_listings_owner_${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'domain_listings',
+          filter: `owner_id=eq.${user.id}`,
+        },
+        () => {
+          // 实时刷新缓存数据
+          refreshCache();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, refreshCache]);
+
   return {
     domains,
     isLoading,

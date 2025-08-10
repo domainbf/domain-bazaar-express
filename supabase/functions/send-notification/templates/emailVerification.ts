@@ -29,6 +29,9 @@ export const getEmailVerificationHtml = (data: { verificationUrl: string, name: 
           <a href="${data.verificationUrl}" class="button">
             验证邮箱地址
           </a>
+          <p style="margin-top: 12px; color: #6b7280; font-size: 12px;">如果按钮无法点击，请复制此链接到浏览器打开：<br />
+            <span style="word-break: break-all; color: #1f2937;">${data.verificationUrl}</span>
+          </p>
         </div>
         
         <div class="info-card">

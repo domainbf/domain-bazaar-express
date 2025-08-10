@@ -60,6 +60,9 @@ export const getOfferResponseHtml = (data: any, baseUrl: string) => `
           <a href="${baseUrl}/user-center?tab=transactions" class="button">
             查看详情
           </a>
+          <p style="margin-top: 12px; color: #6b7280; font-size: 12px;">如果按钮无法点击，请复制此链接到浏览器打开：<br />
+            <span style="word-break: break-all; color: #1f2937;">${baseUrl}/user-center?tab=transactions</span>
+          </p>
         </div>
         
         <div class="divider"></div>

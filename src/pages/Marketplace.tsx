@@ -152,6 +152,29 @@ export const Marketplace = () => {
     return () => clearTimeout(timer);
   }, [loadDomains]);
 
+  // 订阅公开可用域名的实时变化（新增/更新/删除）
+  useEffect(() => {
+    const channel = supabase
+      .channel('domain_listings_public')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'domain_listings',
+          filter: 'status=eq.available',
+        },
+        () => {
+          loadDomains();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [loadDomains]);
+
   // 使用 memoized 过滤以提高性能
   const filteredDomains = useMemo(() => {
     let result = [...domains];
