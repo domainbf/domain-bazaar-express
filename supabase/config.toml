@@ -1,5 +1,4 @@
-
-project_id = "your-project-id"
+project_id = "trqxaizkwuizuhlfmdup"
 
 [api]
 enabled = true
@@ -37,3 +36,7 @@ verify_jwt = true
 
 [functions.resend-verification]
 verify_jwt = true
+
+# Public keepalive function (used by weekly cron)
+[functions.keepalive]
+verify_jwt = false
