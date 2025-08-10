@@ -184,48 +184,22 @@ serve(async (req) => {
 
     console.log("找到域名:", domainData);
 
-    // 获取域名所有者的邮箱
+    // 获取域名所有者的邮箱（缺失则继续流程，仅跳过卖家邮件）
     const { data: ownerProfile, error: ownerError } = await supabaseAdmin
       .from("profiles")
       .select("contact_email, full_name")
       .eq("id", domainData.owner_id)
       .maybeSingle();
 
+    let ownerEmail: string | null = null;
     if (ownerError) {
-      console.error("所有者信息获取失败:", ownerError);
-      return new Response(
-        JSON.stringify({ 
-          error: "无法获取域名所有者联系信息",
-          success: false
-        }),
-        {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      console.warn("所有者信息获取失败，继续仅发送买家邮件:", ownerError);
+    } else if (!ownerProfile?.contact_email) {
+      console.warn("所有者邮箱不存在，继续仅发送买家邮件");
+    } else {
+      ownerEmail = ownerProfile.contact_email;
+      console.log("域名所有者邮箱:", ownerEmail);
     }
-
-    if (!ownerProfile?.contact_email) {
-      console.error("所有者邮箱不存在");
-      return new Response(
-        JSON.stringify({ 
-          error: "域名所有者未设置联系邮箱",
-          success: false
-        }),
-        {
-          status: 400,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-    }
-
-    console.log("域名所有者邮箱:", ownerProfile.contact_email);
 
     try {
       // 保存报价到数据库
@@ -251,7 +225,7 @@ serve(async (req) => {
         message: message || "",
         buyerId: buyerId || null,
         dashboardUrl: "https://nic.bn/user-center?tab=transactions",
-        domainOwnerEmail: ownerProfile.contact_email,
+        domainOwnerEmail: ownerEmail || undefined,
       });
       console.log("邮件发送成功");
     } catch (emailError: any) {

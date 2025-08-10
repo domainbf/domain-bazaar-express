@@ -12,7 +12,7 @@ export async function sendOfferEmails({
   buyerId,
   dashboardUrl,
   domainOwnerEmail,
-}: OfferRequest & { domainOwnerEmail: string }) {
+}: OfferRequest & { domainOwnerEmail?: string | null }) {
   console.log("开始发送报价邮件...");
   console.log("发送参数:", { domain, offer, email, domainOwnerEmail });
   
@@ -38,15 +38,19 @@ export async function sendOfferEmails({
     );
     console.log("买家邮件发送成功:", userEmailResponse.data?.id);
 
-    // 发送给卖家的通知邮件
-    console.log("发送卖家通知邮件到:", domainOwnerEmail);
-    const ownerEmailResponse = await sendMailWithResend(
-      domainOwnerEmail,
-      `💰 ${domain} 收到新报价：¥${offer}`,
-      ownerEmailHtml,
-      { from }
-    );
-    console.log("卖家邮件发送成功:", ownerEmailResponse.data?.id);
+    let ownerEmailResponse: any = null;
+    if (domainOwnerEmail) {
+      console.log("发送卖家通知邮件到:", domainOwnerEmail);
+      ownerEmailResponse = await sendMailWithResend(
+        domainOwnerEmail,
+        `💰 ${domain} 收到新报价：¥${offer}`,
+        ownerEmailHtml,
+        { from }
+      );
+      console.log("卖家邮件发送成功:", ownerEmailResponse.data?.id);
+    } else {
+      console.warn("卖家邮箱缺失，已跳过卖家通知邮件");
+    }
 
     console.log("所有报价邮件发送完成");
     return { userEmailResponse, ownerEmailResponse };
