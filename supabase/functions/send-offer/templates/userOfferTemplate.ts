@@ -130,6 +130,7 @@ export function getUserEmailHtml(domain: string, offer: string, message: string 
             </div>
             <div class="content">
               <h2>🎉 您的报价已提交成功</h2>
+              <p style="margin-top: 4px; color:#6b7280;">Your offer has been submitted successfully.</p>
               <p>感谢您对 <span class="domain-name">${domain}</span> 的兴趣。我们已收到您的报价，并已转发给域名所有者。</p>
               
               <div class="offer-card">
@@ -167,7 +168,7 @@ export function getUserEmailHtml(domain: string, offer: string, message: string 
               <p>💡 <strong>建议：</strong>如您创建了账户，可以随时在用户中心查看所有报价记录和状态更新。</p>
               
               <div style="text-align: center;">
-                <a href="${primaryDashboardUrl}" class="button">🔍 查看用户中心</a>
+                <a href="${primaryDashboardUrl}" class="button">🔍 查看用户中心 / View dashboard</a>
               </div>
               
               <p style="margin-top: 30px;">如果您有任何问题，请回复此邮件或联系我们的客服团队。</p>

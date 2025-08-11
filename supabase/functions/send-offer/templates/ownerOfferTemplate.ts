@@ -133,6 +133,7 @@ export function getOwnerEmailHtml(domain: string, offer: string, email: string, 
             <div class="header">
               <div class="logo">🌐 NIC.BN</div>
               <h1>新的域名报价</h1>
+              <p style="margin-top: 4px; color:#e5e7eb;">New domain offer received</p>
             </div>
             <div class="content">
               <h2>🚀 恭喜！您收到了新的域名报价</h2>
@@ -185,7 +186,7 @@ export function getOwnerEmailHtml(domain: string, offer: string, email: string, 
               <p>您可以通过控制面板快速回应此报价，接受、拒绝或提出反报价：</p>
               
               <div class="actions">
-                <a href="${primaryDashboardUrl}" class="button">💼 立即查看和回复</a>
+                <a href="${primaryDashboardUrl}" class="button">💼 立即查看和回复 / View and respond</a>
               </div>
               
               <p>感谢您选择我们的域名交易平台。如需任何协助，我们的客服团队随时为您服务！</p>

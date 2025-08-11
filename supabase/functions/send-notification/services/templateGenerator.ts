@@ -15,32 +15,32 @@ export function generateEmailContent(type: string, data: any, baseUrl: string): 
 
   switch (type) {
     case "email_verification":
-      subject = "🎉 欢迎加入 NIC.BN - 请验证您的邮箱";
+      subject = "🎉 欢迎加入 NIC.BN - 请验证您的邮箱 | Welcome to NIC.BN – Verify your email";
       body = getEmailVerificationHtml(data, primaryUrl);
       break;
 
     case "password_reset":
-      subject = "🔐 重置您的 NIC.BN 账户密码";
+      subject = "🔐 重置您的 NIC.BN 账户密码 | Reset your NIC.BN password";
       body = getPasswordResetHtml(data, primaryUrl);
       break;
 
     case "new_offer":
-      subject = `💰 新的域名报价：${data.domain} - 买家出价 ¥${data.amount.toLocaleString()}`;
+      subject = `💰 新的域名报价：${data.domain} - 买家出价 ¥${data.amount.toLocaleString()} | New offer for ${data.domain}`;
       body = getNewOfferHtml(data, primaryUrl);
       break;
 
     case "offer_response":
-      subject = `📬 您的域名报价有回复：${data.domain}`;
+      subject = `📬 您的域名报价有回复：${data.domain} | Your domain offer has a response`;
       body = getOfferResponseHtml(data, primaryUrl);
       break;
 
     case "domain_sold":
-      subject = `✅ 恭喜！您的域名 ${data.domain} 已成功售出`;
+      subject = `✅ 恭喜！您的域名 ${data.domain} 已成功售出 | Domain sold: ${data.domain}`;
       body = getDomainSoldHtml(data, primaryUrl);
       break;
 
     case "domain_purchased":
-      subject = `🎉 域名购买成功：${data.domain}`;
+      subject = `🎉 域名购买成功：${data.domain} | Purchase successful: ${data.domain}`;
       body = getDomainPurchasedHtml(data, primaryUrl);
       break;
 

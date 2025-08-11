@@ -20,6 +20,8 @@ export const getNewOfferHtml = (data: any, baseUrl: string) => `
       <div class="content">
         <h1 class="title">💰 您收到新的域名报价</h1>
         <p class="subtitle">有买家对您的域名感兴趣</p>
+        <p class="subtitle" style="margin-top:4px; color:#6b7280;">You have a new domain offer</p>
+        <p style="margin: 8px 0 0 0; color: #6b7280;">A buyer is interested in your domain.</p>
         
         <div class="domain-name">${data.domain}</div>
         <div class="price-display">¥${data.amount.toLocaleString()}</div>
@@ -37,7 +39,7 @@ export const getNewOfferHtml = (data: any, baseUrl: string) => `
         
         <div style="text-align: center; margin: 40px 0;">
           <a href="${baseUrl}/user-center?tab=transactions" class="button">
-            查看报价详情
+            查看报价详情 / View offer details
           </a>
           <p style="margin-top: 12px; color: #6b7280; font-size: 12px;">如果按钮无法点击，请复制此链接到浏览器打开：<br />
             <span style="word-break: break-all; color: #1f2937;">${baseUrl}/user-center?tab=transactions</span>
@@ -66,15 +68,16 @@ export const getNewOfferHtml = (data: any, baseUrl: string) => `
           </table>
         </div>
         
-        <div class="divider"></div>
-        
         <p style="color: #6b7280; font-size: 14px; text-align: center;">
           请尽快回复报价，良好的沟通有助于促成交易。
         </p>
-        
+        <p style="color: #6b7280; font-size: 14px; text-align: center;">
+          Please respond promptly. Clear communication helps close the deal.
+        </p>
         <p style="margin-top: 32px; text-align: center; color: #4b5563;">
           祝您交易顺利<br>
-          <strong style="color: #1f2937;">NIC.BN 团队</strong>
+          <strong style="color: #1f2937;">NIC.BN 团队</strong><br/>
+          <span style="color:#6b7280">Good luck with your deal,<br/>NIC.BN Team</span>
         </p>
       </div>
       

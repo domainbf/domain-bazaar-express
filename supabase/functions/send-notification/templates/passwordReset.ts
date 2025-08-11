@@ -20,6 +20,8 @@ export const getPasswordResetHtml = (data: { token: string }, baseUrl: string) =
       <div class="content">
         <h1 class="title">🔐 重置您的密码</h1>
         <p class="subtitle">我们收到了您的密码重置请求</p>
+        <p class="subtitle" style="margin-top:4px; color:#6b7280;">Reset your password</p>
+        <p style="margin: 8px 0 0 0; color: #6b7280;">We received your password reset request.</p>
         
         <p style="margin-bottom: 32px;">
           为了保护您的账户安全，请点击下方按钮设置新密码。此链接将在 30 分钟后过期。
@@ -27,7 +29,7 @@ export const getPasswordResetHtml = (data: { token: string }, baseUrl: string) =
         
         <div style="text-align: center; margin: 40px 0;">
           <a href="${baseUrl}/reset-password?token=${data.token}" class="button">
-            重置密码
+            重置密码 / Reset password
           </a>
           <p style="margin-top: 12px; color: #6b7280; font-size: 12px;">如果按钮无法点击，请复制此链接到浏览器打开：<br />
             <span style="word-break: break-all; color: #1f2937;">${baseUrl}/reset-password?token=${data.token}</span>
@@ -66,10 +68,13 @@ export const getPasswordResetHtml = (data: { token: string }, baseUrl: string) =
         <p style="color: #6b7280; font-size: 14px; text-align: center;">
           如需帮助，请访问我们的 <a href="${baseUrl}/help" style="color: #1f2937;">帮助中心</a> 或联系客服团队。
         </p>
-        
+        <p style="color: #6b7280; font-size: 14px; text-align: center;">
+          For help, visit our <a href="${baseUrl}/help" style="color: #1f2937;">Help Center</a> or contact support.
+        </p>
         <p style="margin-top: 32px; text-align: center; color: #4b5563;">
           此致<br>
-          <strong style="color: #1f2937;">NIC.BN 安全团队</strong>
+          <strong style="color: #1f2937;">NIC.BN 安全团队</strong><br/>
+          <span style="color:#6b7280">Best regards,<br/>NIC.BN Security Team</span>
         </p>
       </div>
       

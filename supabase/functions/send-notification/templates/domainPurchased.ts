@@ -20,6 +20,8 @@ export const getDomainPurchasedHtml = (data: any, baseUrl: string) => `
       <div class="content">
         <h1 class="title">🎉 域名购买成功</h1>
         <p class="subtitle">您已成功购买域名</p>
+        <p class="subtitle" style="margin-top:4px; color:#6b7280;">Your domain purchase was successful</p>
+        <p style="margin: 8px 0 0 0; color: #6b7280;">You have successfully purchased the domain.</p>
         
         <div class="domain-name">${data.domain}</div>
         <div class="price-display">¥${data.amount.toLocaleString()}</div>
@@ -52,7 +54,7 @@ export const getDomainPurchasedHtml = (data: any, baseUrl: string) => `
         
         <div style="text-align: center; margin: 40px 0;">
           <a href="${baseUrl}/user-center?tab=transactions" class="button">
-            查看交易记录
+            查看交易记录 / View transactions
           </a>
           <p style="margin-top: 12px; color: #6b7280; font-size: 12px;">如果按钮无法点击，请复制此链接到浏览器打开：<br />
             <span style="word-break: break-all; color: #1f2937;">${baseUrl}/user-center?tab=transactions</span>
@@ -69,10 +71,13 @@ export const getDomainPurchasedHtml = (data: any, baseUrl: string) => `
         <p style="color: #6b7280; font-size: 14px; text-align: center;">
           感谢您选择 NIC.BN 进行域名购买，祝您使用愉快！
         </p>
-        
+        <p style="color: #6b7280; font-size: 14px; text-align: center;">
+          Thank you for choosing NIC.BN. Enjoy your new domain!
+        </p>
         <p style="margin-top: 32px; text-align: center; color: #4b5563;">
           此致<br>
-          <strong style="color: #1f2937;">NIC.BN 团队</strong>
+          <strong style="color: #1f2937;">NIC.BN 团队</strong><br/>
+          <span style="color:#6b7280">Best regards,<br/>NIC.BN Team</span>
         </p>
       </div>
       

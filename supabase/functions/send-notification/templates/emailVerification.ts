@@ -20,6 +20,8 @@ export const getEmailVerificationHtml = (data: { verificationUrl: string, name: 
       <div class="content">
         <h1 class="title">🎉 欢迎加入 NIC.BN</h1>
         <p class="subtitle">感谢您注册我们的域名交易平台</p>
+        <p class="subtitle" style="margin-top:4px; color:#6b7280;">Welcome to NIC.BN</p>
+        <p style="margin: 8px 0 0 0; color: #6b7280;">Thanks for signing up. Please verify your email to get started.</p>
         
         <p style="margin-bottom: 32px;">
           您好 <strong>${data.name}</strong>，欢迎加入 NIC.BN！请点击下方按钮验证您的邮箱地址，开始您的域名交易之旅。
@@ -27,7 +29,7 @@ export const getEmailVerificationHtml = (data: { verificationUrl: string, name: 
         
         <div style="text-align: center; margin: 40px 0;">
           <a href="${data.verificationUrl}" class="button">
-            验证邮箱地址
+            验证邮箱地址 / Verify email
           </a>
           <p style="margin-top: 12px; color: #6b7280; font-size: 12px;">如果按钮无法点击，请复制此链接到浏览器打开：<br />
             <span style="word-break: break-all; color: #1f2937;">${data.verificationUrl}</span>
@@ -62,10 +64,14 @@ export const getEmailVerificationHtml = (data: { verificationUrl: string, name: 
           验证完成后，您就可以开始浏览和购买心仪的域名了！如需帮助，请访问我们的 
           <a href="${baseUrl}/help" style="color: #1f2937;">帮助中心</a>。
         </p>
-        
+        <p style="color: #6b7280; font-size: 14px; text-align: center;">
+          After verification, you can browse and purchase your favorite domains. For help, visit our 
+          <a href="${baseUrl}/help" style="color: #1f2937;">Help Center</a>.
+        </p>
         <p style="margin-top: 32px; text-align: center; color: #4b5563;">
           期待与您的合作<br>
-          <strong style="color: #1f2937;">NIC.BN 团队</strong>
+          <strong style="color: #1f2937;">NIC.BN 团队</strong><br/>
+          <span style="color:#6b7280">Best regards,<br/>NIC.BN Team</span>
         </p>
       </div>
       
