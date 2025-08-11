@@ -105,7 +105,27 @@ export const zh = {
     searchPlaceholder: '搜索域名...',
     loadError: '加载域名失败',
     noDomainsFound: '未找到域名',
-    resultsFound: '找到 {{count}} 个结果'
+    resultsFound: '找到 {{count}} 个结果',
+    filters: {
+      all: '全部',
+      premium: '精品',
+      short: '短域名',
+      business: '商业',
+      tech: '技术',
+      dev: '开发',
+      finance: '金融',
+      education: '教育',
+      health: '健康',
+      entertainment: '娱乐',
+      verifiedOnly: '仅显示已验证'
+    },
+    price: {
+      minLabel: '最低价格 ($)',
+      maxLabel: '最高价格 ($)',
+      minPlaceholder: '最低',
+      maxPlaceholder: '最高',
+      reset: '重置'
+    }
   },
 
   // 域名相关

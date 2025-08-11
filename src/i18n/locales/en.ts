@@ -130,6 +130,13 @@ export const en = {
       health: 'Health',
       entertainment: 'Entertainment'
     },
+    price: {
+      minLabel: 'Min Price ($)',
+      maxLabel: 'Max Price ($)',
+      minPlaceholder: 'Min',
+      maxPlaceholder: 'Max',
+      reset: 'Reset'
+    },
     sort: {
       newest: 'Newest First',
       oldest: 'Oldest First',

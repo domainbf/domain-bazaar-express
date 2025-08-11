@@ -1,6 +1,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Search } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface SearchBarProps {
   searchQuery: string;
@@ -8,12 +9,13 @@ interface SearchBarProps {
 }
 
 export const SearchBar = ({ searchQuery, setSearchQuery }: SearchBarProps) => {
+  const { t } = useTranslation();
   return (
     <div className="max-w-md mx-auto">
       <div className="relative">
         <Input
           type="text"
-          placeholder="Search domains..."
+          placeholder={t('marketplace.searchPlaceholder')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full h-12 pl-12 pr-4 bg-white border-gray-300 focus:border-black"
