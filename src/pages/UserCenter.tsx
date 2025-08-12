@@ -82,10 +82,10 @@ export const UserCenter = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar unreadCount={unreadCount} />
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8 overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-black">用户中心</h1>
+            <h1 className="text-3xl font-bold text-black break-words">用户中心</h1>
             <p className="text-gray-600">欢迎回来, {displayName}</p>
           </div>
           
