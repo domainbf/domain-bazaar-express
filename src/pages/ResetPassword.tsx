@@ -23,24 +23,26 @@ export const ResetPassword = () => {
       const hash = location.hash;
       
       if (hash && hash.includes('type=recovery')) {
-        // Extract the access token from URL fragment
-        try {
-          // The URL fragment looks like: #access_token=eyJhbGc...&type=recovery
-          const accessToken = hash.split('&')[0].split('=')[1];
-          
-          if (!accessToken) {
-            throw new Error('找不到重置令牌');
-          }
-          
-          // Set the new session with the recovery token
-          await supabase.auth.getSession(); // Makes sure to get the current session
-          setResetToken(accessToken);
-          
-        } catch (error: any) {
-          console.error('处理密码恢复令牌时出错:', error);
-          toast.error('无效的密码重置链接，请重新请求重置密码');
-          navigate('/auth');
+        // 解析 URL 哈希参数
+        const hashParams = new URLSearchParams(hash.replace(/^#/, ''));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        
+        if (!accessToken) {
+          throw new Error('找不到重置令牌');
         }
+        
+        // 建立恢复会话，确保后续更新密码立即生效
+        if (accessToken && refreshToken) {
+          await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+        }
+        
+        // 清理 URL 中的哈希，防止泄露
+        window.history.replaceState({}, '', window.location.pathname + window.location.search);
+        setResetToken(accessToken);
       }
       
       setIsLoading(false);

@@ -74,7 +74,7 @@ export const resetUserPassword = async (email: string) => {
     
     // 使用 Supabase 内置的密码重置功能
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `https://nic.bn/reset-password`,
     });
     
     if (error) {

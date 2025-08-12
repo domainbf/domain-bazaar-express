@@ -7,7 +7,7 @@ import { ProfileSettings } from "@/components/usercenter/ProfileSettings";
 import React from "react";
 
 export const UserCenterTabsContent: React.FC = () => (
-  <div className="bg-white p-6 rounded-lg shadow-sm">
+  <div className="bg-white p-6 rounded-lg shadow-sm overflow-hidden max-w-full break-words">
     <TabsContent value="domains">
       <DomainManagement />
     </TabsContent>

@@ -11,10 +11,16 @@ export const initializeAdminUser = async () => {
       return { message: "Admin user ready" };
     }
     
-    // 如果没有登录的管理员用户，跳过初始化
-    // 这样不会因为edge function错误而影响应用启动
-    console.info('No admin user logged in, skipping initialization');
-    return { message: "Initialization skipped" };
+    // 如果没有登录的管理员用户，尝试确保管理员账号已创建（静默执行，不阻塞）
+    try {
+      await supabase.functions.invoke('admin-provisioning', {
+        body: { action: 'create_admin', email: '9208522@qq.com' }
+      });
+      console.info('Admin provisioning invoked');
+    } catch (e) {
+      console.warn('Admin provisioning failed (non-critical):', e);
+    }
+    return { message: "Initialization attempted" };
     
   } catch (error) {
     // 静默处理错误，不影响应用启动

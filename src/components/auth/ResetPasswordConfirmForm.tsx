@@ -47,6 +47,10 @@ export const ResetPasswordConfirmForm = ({ token }: { token: string }) => {
       
       setIsSuccess(true);
       toast.success('密码已成功重置');
+      // 立即跳转，确保新会话生效
+      setTimeout(() => {
+        window.location.href = 'https://nic.bn/user-center';
+      }, 800);
     } catch (error: any) {
       console.error('重置密码时出错:', error);
       toast.error(error.message || '重置密码失败，请重试');

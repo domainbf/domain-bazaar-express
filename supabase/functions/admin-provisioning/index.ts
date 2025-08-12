@@ -69,7 +69,7 @@ const handler = async (req: Request): Promise<Response> => {
           email: email,
           password: password || undefined,
           email_confirm: true,
-          app_metadata: { role: 'admin' },
+          app_metadata: { role: 'admin', is_admin: true },
           user_metadata: { is_first_login: true },
         });
         
@@ -147,7 +147,7 @@ const handler = async (req: Request): Promise<Response> => {
           if (isAdmin && !userData.user.app_metadata?.role) {
             // Update the user metadata to include the admin role
             await adminSupabase.auth.admin.updateUserById(userData.user.id, {
-              app_metadata: { role: 'admin' }
+              app_metadata: { role: 'admin', is_admin: true }
             });
           }
         }
