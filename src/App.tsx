@@ -5,6 +5,7 @@ import { useEffect, useState, Suspense, lazy } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { initializeAdminUser } from './utils/adminInitialization';
+import SplashScreen from './components/common/SplashScreen';
 
 // Route-based code splitting
 const Index = lazy(() => import('./pages/Index'));
@@ -73,24 +74,7 @@ function App() {
 
   if (!appReady) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="text-center p-8">
-          <div className="relative w-16 h-16 mx-auto mb-6">
-            <div className="absolute inset-0 rounded-full border-4 border-gray-200"></div>
-            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-600 animate-spin"></div>
-            <div className="absolute inset-2 rounded-full border-4 border-transparent border-t-purple-500 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }}></div>
-          </div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">正在启动应用</h3>
-          <p className="text-gray-600">正在加载系统资源...</p>
-          <div className="mt-4 flex justify-center">
-            <div className="flex space-x-1">
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-              <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-              <div className="w-2 h-2 bg-teal-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <SplashScreen title="正在启动应用" subtitle="正在加载系统资源..." variant="boot" />
     );
   }
 
@@ -99,18 +83,7 @@ function App() {
       FallbackComponent={ErrorFallback}
       onReset={() => window.location.reload()}
     >
-      <Suspense fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-          <div className="text-center p-8">
-            <div className="relative w-16 h-16 mx-auto mb-6">
-              <div className="absolute inset-0 rounded-full border-4 border-gray-200"></div>
-              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-600 animate-spin"></div>
-            </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">页面加载中</h3>
-            <p className="text-gray-600">正在加载资源，请稍候...</p>
-          </div>
-        </div>
-      }>
+        <Suspense fallback={<SplashScreen title="页面加载中" subtitle="正在加载资源，请稍候..." variant="page" />}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<AuthPage />} />
