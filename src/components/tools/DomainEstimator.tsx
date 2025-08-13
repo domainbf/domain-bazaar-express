@@ -28,91 +28,112 @@ export const DomainEstimator = () => {
   const [domain, setDomain] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<EstimationResult | null>(null);
+  const [comparables, setComparables] = useState<{ name: string; price: number }[]>([]);
 
-  // 高级域名评估算法
+  // 高级域名评估算法（以USD为主）
   const evaluateDomain = async (domainName: string): Promise<EstimationResult> => {
     const cleanDomain = domainName.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '');
-    const parts = cleanDomain.split('.');
-    const name = parts[0];
-    const extension = parts[parts.length - 1] || 'com';
+    const parts = cleanDomain.split('.')
+    const name = parts[0]
+    const extension = parts[parts.length - 1] || 'com'
 
-    // 长度评分 (越短越好)
-    const lengthScore = Math.min(100, Math.max(20, 100 - (name.length - 3) * 8));
+    // 长度评分 (越短越好，2-4位溢价更高)
+    const lengthScoreBase = name.length <= 2 ? 100 : name.length <= 4 ? 95 : name.length <= 6 ? 90 : name.length <= 10 ? 75 : 55
 
     // 后缀评分
     const extensionScores: { [key: string]: number } = {
-      'com': 100, 'net': 85, 'org': 80, 'cn': 90, 'io': 75,
-      'co': 70, 'app': 65, 'tech': 60, 'online': 45, 'site': 40
-    };
-    const extensionScore = extensionScores[extension] || 30;
+      'com': 100, 'net': 85, 'org': 80, 'cn': 90, 'io': 80, 'ai': 85,
+      'co': 75, 'app': 70, 'tech': 65, 'online': 50, 'site': 45
+    }
+    const extensionScore = extensionScores[extension] || 35
 
-    // 关键词评分 (检查是否包含热门关键词)
+    // 关键词评分（热门行业加权）
     const hotKeywords = [
-      'ai', 'tech', 'web', 'app', 'pay', 'shop', 'store', 'buy', 'sell',
-      'crypto', 'blockchain', 'nft', 'cloud', 'data', 'smart', 'digital',
-      'mobile', 'social', 'game', 'finance', 'health', 'education'
-    ];
-    const keywordMatches = hotKeywords.filter(kw => name.includes(kw));
-    const keywordScore = Math.min(100, 50 + keywordMatches.length * 15);
+      'ai','tech','web','app','pay','shop','store','buy','sell','market','trade',
+      'crypto','blockchain','nft','cloud','data','smart','digital','mobile','social','game',
+      'finance','health','med','edu','edu','travel','bank','card','seo','ads'
+    ]
+    const keywordMatches = hotKeywords.filter(kw => name.includes(kw))
+    const keywordScore = Math.min(100, 50 + keywordMatches.length * 18)
 
-    // 品牌化评分 (是否容易记忆和发音)
-    const hasNumbers = /\d/.test(name);
-    const hasHyphens = /-/.test(name);
-    const isPronounceable = !/[^a-z0-9]/.test(name) && name.length <= 12;
-    const brandabilityScore = Math.min(100, 
-      70 + 
-      (isPronounceable ? 15 : 0) + 
-      (hasNumbers ? -10 : 10) + 
-      (hasHyphens ? -15 : 5)
-    );
+    // 品牌化评分
+    const hasNumbers = /\d/.test(name)
+    const hasHyphens = /-/.test(name)
+    const isPronounceable = !/[^a-z0-9]/.test(name) && name.length <= 12
+    const repeatedChars = /(.)\1{2,}/.test(name) ? -10 : 0
+    const brandabilityScore = Math.max(40, Math.min(100,
+      70 + (isPronounceable ? 15 : 0) + (hasNumbers ? -10 : 10) + (hasHyphens ? -15 : 5) + repeatedChars
+    ))
 
-    // SEO评分 (搜索引擎优化潜力)
-    const commonWords = ['the', 'and', 'for', 'are', 'but', 'not', 'you', 'all'];
-    const hasCommonWords = commonWords.some(word => name.includes(word));
-    const seoScore = Math.min(100,
-      60 + 
-      (keywordMatches.length * 10) +
-      (name.length <= 15 ? 10 : 0) +
-      (hasCommonWords ? -5 : 5)
-    );
+    // SEO评分
+    const commonWords = ['the','and','for','are','but','not','you','all']
+    const hasCommonWords = commonWords.some(word => name.includes(word))
+    const seoScore = Math.min(100, 60 + (keywordMatches.length * 10) + (name.length <= 15 ? 10 : 0) + (hasCommonWords ? -5 : 5))
 
     const factors = {
-      length: Math.round(lengthScore),
+      length: Math.round(lengthScoreBase),
       extension: Math.round(extensionScore),
       keywords: Math.round(keywordScore),
       brandability: Math.round(brandabilityScore),
       seo: Math.round(seoScore)
-    };
+    }
 
-    const averageScore = Object.values(factors).reduce((sum, score) => sum + score, 0) / 5;
-    const baseValue = Math.round(averageScore * 50 + Math.random() * 100); // 添加一些随机性
+    // 基准估值（USD）
+    let baseUSD = 800 + factors.length * 15 + factors.extension * 10 + factors.keywords * 8 + factors.brandability * 10 + factors.seo * 6
 
-    // 确定类别
-    let category: 'premium' | 'standard' | 'basic';
-    if (averageScore >= 85) category = 'premium';
-    else if (averageScore >= 65) category = 'standard';
-    else category = 'basic';
+    // 短字符溢价
+    if (name.length <= 4) baseUSD *= name.length === 2 ? 6 : name.length === 3 ? 3 : 1.7
 
-    // 生成建议
-    const suggestions = [];
-    if (factors.length < 70) suggestions.push('域名较长，考虑使用更短的变体');
-    if (factors.extension < 80) suggestions.push('考虑使用.com或.cn等主流后缀');
-    if (factors.keywords < 70) suggestions.push('包含行业关键词可提升价值');
-    if (factors.brandability < 70) suggestions.push('提高域名的易记性和品牌化程度');
-    if (factors.seo < 70) suggestions.push('优化SEO相关因素');
-    if (suggestions.length === 0) suggestions.push('域名质量良好，具有不错的投资价值');
+    // TLD溢价
+    if (extension === 'com') baseUSD *= 1.6
+    if (['ai','io'].includes(extension)) baseUSD *= 1.2
 
-    const confidence = Math.min(95, Math.max(60, averageScore));
+    // 查询相似域名以校准估值
+    try {
+      const keyword = keywordMatches[0] || name.slice(0, Math.min(4, name.length))
+      const { data } = await supabase
+        .from('domain_listings')
+        .select('name, price')
+        .ilike('name', `%${keyword}%`)
+        .limit(5)
+
+      const comps = (data || []).map(d => ({ name: d.name as string, price: Number(d.price) }))
+      setComparables(comps)
+      if (comps.length) {
+        const avg = comps.reduce((s, d) => s + d.price, 0) / comps.length
+        // 市场校准，向市场均价靠近
+        baseUSD = Math.round((baseUSD * 0.6) + (avg * 0.4))
+      }
+    } catch {}
+
+    // 分类
+    const avgScore = (factors.length + factors.extension + factors.keywords + factors.brandability + factors.seo) / 5
+    let category: 'premium' | 'standard' | 'basic'
+    if (avgScore >= 85 || baseUSD >= 25000) category = 'premium'
+    else if (avgScore >= 65 || baseUSD >= 5000) category = 'standard'
+    else category = 'basic'
+
+    // 建议
+    const suggestions: string[] = []
+    if (factors.length < 70) suggestions.push('域名较长，考虑更短变体（≤10字符更佳）')
+    if (factors.extension < 80) suggestions.push('考虑使用 .com / .cn 等主流后缀以提升成交概率')
+    if (factors.keywords < 70) suggestions.push('可加入行业强相关关键词提升商业价值')
+    if (factors.brandability < 70) suggestions.push('提升易记性与读写性，避免连字符与重复字符')
+    if (factors.seo < 70) suggestions.push('可围绕核心关键词优化内容与外链，提升权重')
+    if (suggestions.length === 0) suggestions.push('域名质量较好，建议结合市场需求灵活定价')
+
+    const confidence = Math.min(95, Math.max(55, Math.round(avgScore)))
 
     return {
       domain: cleanDomain,
-      estimatedValue: baseValue,
+      estimatedValue: Math.max(300, Math.round(baseUSD)),
       factors,
       category,
       suggestions,
-      confidence: Math.round(confidence)
-    };
+      confidence
+    }
   };
+
 
   // 缓存域名估值结果
   const cacheEstimation = async (estimation: EstimationResult) => {
@@ -244,12 +265,12 @@ export const DomainEstimator = () => {
               <div className="text-center p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">{result.domain}</h3>
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <span className="text-3xl font-bold text-green-600">¥{result.estimatedValue.toLocaleString()}</span>
+                  <span className="text-3xl font-bold text-green-600">${result.estimatedValue.toLocaleString('en-US')}</span>
                   <Badge className={getCategoryColor(result.category)}>
                     {getCategoryText(result.category)}
                   </Badge>
                 </div>
-                <p className="text-gray-600">估算价值 (置信度: {result.confidence}%)</p>
+                <p className="text-gray-600">估算价值（USD）(置信度: {result.confidence}%)</p>
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -288,6 +309,25 @@ export const DomainEstimator = () => {
                     </li>
                   ))}
                 </ul>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  相似域名（市场参考）
+                </h4>
+                {comparables.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">暂无相似域名参考</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {comparables.map((d, i) => (
+                      <li key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <span className="font-medium text-gray-900">{d.name}</span>
+                        <span className="text-green-700 font-semibold">${d.price.toLocaleString('en-US')}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
               <div className="text-center">

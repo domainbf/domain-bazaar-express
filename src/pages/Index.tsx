@@ -27,6 +27,7 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('marketplace');
+  const [myDomainsCount, setMyDomainsCount] = useState(0);
   const { user, profile, isLoading: authLoading } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -195,6 +196,37 @@ const Index = () => {
     loadDomains();
   }, []); // 移除所有依赖项，防止无限循环
 
+  // 实时统计我的域名数量，修复首页与管理页面数量不一致
+  useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    const fetchCount = async () => {
+      if (!user?.id) { setMyDomainsCount(0); return; }
+      const { count, error } = await supabase
+        .from('domain_listings')
+        .select('*', { count: 'exact', head: true })
+        .eq('owner_id', user.id);
+      if (!error && typeof count === 'number') {
+        setMyDomainsCount(count || 0);
+      }
+    };
+
+    fetchCount();
+
+    if (user?.id) {
+      channel = supabase
+        .channel(`domain_count_${user.id}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'domain_listings', filter: `owner_id=eq.${user.id}` },
+          () => fetchCount()
+        )
+        .subscribe();
+    }
+
+    return () => { if (channel) supabase.removeChannel(channel); };
+  }, [user?.id]);
+
   // 优化的过滤逻辑
   const filteredDomains = domains
     .filter(domain => {
@@ -250,7 +282,7 @@ const Index = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-bold">{profile?.domains_count || 0}</p>
+                  <p className="text-3xl font-bold">{myDomainsCount}</p>
                   <p className="text-sm text-gray-500">{t('homePage.activeDomains')}</p>
                 </CardContent>
                 <CardFooter>
