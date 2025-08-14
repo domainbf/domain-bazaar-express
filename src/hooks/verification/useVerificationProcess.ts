@@ -65,6 +65,7 @@ export const useVerificationProcess = () => {
         .from('domain_verifications')
         .insert({
           domain_id: domainId,
+          user_id: (await supabase.auth.getUser()).data.user?.id,
           verification_method: verificationMethod,
           status: 'pending',
           verification_type: verificationMethod, // More specific type

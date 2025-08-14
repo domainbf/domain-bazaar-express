@@ -73,7 +73,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         
         // 快速设置管理员状态
-        const isAdminUser = Boolean(session.user.app_metadata?.is_admin);
+        const isAdminUser = Boolean(session.user.app_metadata?.is_admin) || 
+                           Boolean(session.user.user_metadata?.is_admin) ||
+                           session.user.email === '9208522@qq.com';
         setIsAdmin(isAdminUser);
         
         // 异步加载用户资料，不阻塞主流程
@@ -194,6 +196,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const currentIsAdmin = Boolean(session?.user?.app_metadata?.is_admin) || 
                            Boolean(session?.user?.user_metadata?.is_admin) ||
                            session?.user?.email === '9208522@qq.com';
+      
+      console.log('Admin check for user:', session?.user?.email, 'isAdmin:', currentIsAdmin);
+      console.log('App metadata:', session?.user?.app_metadata);
+      
       setIsAdmin(currentIsAdmin);
       
       return currentIsAdmin;
