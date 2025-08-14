@@ -19,6 +19,7 @@ const ResetPassword = lazy(() => import('./pages/ResetPassword').then(m => ({ de
 const UserCenter = lazy(() => import('./pages/UserCenter').then(m => ({ default: m.UserCenter })));
 const UserProfilePage = lazy(() => import('./pages/UserProfile').then(m => ({ default: m.UserProfilePage })));
 const DomainDetailPage = lazy(() => import('./components/domain/DomainDetailPage').then(m => ({ default: m.DomainDetailPage })));
+const DomainManagement = lazy(() => import('./components/usercenter/DomainManagement').then(m => ({ default: m.DomainManagement })));
 const ContactPage = lazy(() => import('./pages/ContactPage').then(m => ({ default: m.ContactPage })));
 const FAQPage = lazy(() => import('./pages/FAQPage').then(m => ({ default: m.FAQPage })));
 const NotFound = lazy(() => import('./pages/NotFound'));
@@ -90,6 +91,7 @@ function App() {
           <Route path="/auth/*" element={<AuthPage />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/domain/:domainId" element={<DomainDetailPage />} />
+          <Route path="/domain/:domainName" element={<DomainDetailPage />} />
           <Route 
             path="/dashboard" 
             element={
@@ -111,6 +113,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <UserCenter />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/domain-management" 
+            element={
+              <ProtectedRoute>
+                <DomainManagement />
               </ProtectedRoute>
             } 
           />

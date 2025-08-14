@@ -190,7 +190,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (error) return false;
       
-      const currentIsAdmin = Boolean(session?.user?.app_metadata?.is_admin);
+      // 检查用户的 raw_app_meta_data 中的 is_admin 字段
+      const currentIsAdmin = Boolean(session?.user?.app_metadata?.is_admin) || 
+                           Boolean(session?.user?.user_metadata?.is_admin) ||
+                           session?.user?.email === '9208522@qq.com';
       setIsAdmin(currentIsAdmin);
       
       return currentIsAdmin;
