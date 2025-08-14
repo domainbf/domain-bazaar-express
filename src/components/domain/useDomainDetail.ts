@@ -15,14 +15,13 @@ const fetchDomainDetails = async (domainId: string | undefined) => {
   let domainData;
   let domainError;
   const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(domainId);
-  const selectQuery = '*, profiles(username, full_name, avatar_url)';
 
   if (isUUID) {
     // id 查询
-    ({ data: domainData, error: domainError } = await supabase.from('domain_listings').select(selectQuery).eq('id', domainId).maybeSingle());
+    ({ data: domainData, error: domainError } = await supabase.from('domain_listings').select('*').eq('id', domainId).maybeSingle());
   } else {
     // name 查询
-    ({ data: domainData, error: domainError } = await supabase.from('domain_listings').select(selectQuery).eq('name', domainId).maybeSingle());
+    ({ data: domainData, error: domainError } = await supabase.from('domain_listings').select('*').eq('name', domainId).maybeSingle());
   }
 
   if (domainError) {
