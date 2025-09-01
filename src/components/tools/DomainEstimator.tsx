@@ -12,6 +12,7 @@ import { useAppCache } from '@/hooks/useAppCache';
 interface EstimationResult {
   domain: string;
   estimatedValue: number;
+  description?: string; // AI-generated description
   factors: {
     length: number;
     extension: number;
@@ -30,8 +31,76 @@ export const DomainEstimator = () => {
   const [result, setResult] = useState<EstimationResult | null>(null);
   const [comparables, setComparables] = useState<{ name: string; price: number }[]>([]);
 
-  // 高级域名评估算法（以USD为主）
+  // 使用AI增强的域名评估算法
   const evaluateDomain = async (domainName: string): Promise<EstimationResult> => {
+    try {
+      // 调用AI评估Edge Function
+      const response = await fetch('/functions/v1/domain-ai-evaluation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ domain: domainName })
+      });
+
+      if (!response.ok) {
+        throw new Error('AI评估服务暂不可用，使用本地算法');
+      }
+
+      const aiResult = await response.json();
+      
+      // 查询相似域名
+      const cleanDomain = domainName.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '');
+      const parts = cleanDomain.split('.');
+      const name = parts[0];
+      
+      try {
+        const keyword = name.slice(0, Math.min(4, name.length));
+        const { data } = await supabase
+          .from('domain_listings')
+          .select('name, price')
+          .ilike('name', `%${keyword}%`)
+          .limit(5);
+
+        const comps = (data || []).map(d => ({ name: d.name as string, price: Number(d.price) }));
+        setComparables(comps);
+      } catch {}
+
+      // 分类
+      const avgScore = (aiResult.factors.length + aiResult.factors.extension + aiResult.factors.keywords + aiResult.factors.brandability + aiResult.factors.seo) / 5;
+      let category: 'premium' | 'standard' | 'basic';
+      if (avgScore >= 85 || aiResult.estimatedPrice >= 25000) category = 'premium';
+      else if (avgScore >= 65 || aiResult.estimatedPrice >= 5000) category = 'standard';
+      else category = 'basic';
+
+      // 建议
+      const suggestions: string[] = [];
+      if (aiResult.factors.length < 70) suggestions.push('域名较长，考虑更短变体（≤10字符更佳）');
+      if (aiResult.factors.extension < 80) suggestions.push('考虑使用 .com / .cn 等主流后缀以提升成交概率');
+      if (aiResult.factors.keywords < 70) suggestions.push('可加入行业强相关关键词提升商业价值');
+      if (aiResult.factors.brandability < 70) suggestions.push('提升易记性与读写性，避免连字符与重复字符');
+      if (aiResult.factors.seo < 70) suggestions.push('可围绕核心关键词优化内容与外链，提升权重');
+      if (suggestions.length === 0) suggestions.push('域名质量较好，建议结合市场需求灵活定价');
+
+      return {
+        domain: aiResult.domain,
+        estimatedValue: aiResult.estimatedPrice,
+        description: aiResult.description, // AI生成的描述
+        factors: aiResult.factors,
+        category,
+        suggestions,
+        confidence: aiResult.confidence
+      };
+
+    } catch (error) {
+      console.error('AI评估失败，使用备用算法:', error);
+      // 备用算法（原始算法）
+      return await evaluateDomainFallback(domainName);
+    }
+  };
+
+  // 备用域名评估算法
+  const evaluateDomainFallback = async (domainName: string): Promise<EstimationResult> => {
     const cleanDomain = domainName.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '');
     const parts = cleanDomain.split('.')
     const name = parts[0]
@@ -271,6 +340,12 @@ export const DomainEstimator = () => {
                   </Badge>
                 </div>
                 <p className="text-gray-600">估算价值（USD）(置信度: {result.confidence}%)</p>
+                {result.description && (
+                  <div className="mt-4 p-4 bg-white/70 rounded-lg">
+                    <p className="text-sm text-gray-700 font-medium">AI专业评估</p>
+                    <p className="text-gray-800 mt-1">{result.description}</p>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
