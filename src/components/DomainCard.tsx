@@ -89,7 +89,7 @@ export const DomainCard = ({
         </h3>
         
         {price !== undefined && (
-          <span className="text-xl font-bold text-gray-900">${typeof price === 'number' ? price.toLocaleString() : price}</span>
+          <span className="text-xl font-bold text-gray-900">{typeof price === 'number' ? `$${price.toLocaleString()}` : price}</span>
         )}
         
         {category && (

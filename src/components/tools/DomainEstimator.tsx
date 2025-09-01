@@ -35,7 +35,7 @@ export const DomainEstimator = () => {
   const evaluateDomain = async (domainName: string): Promise<EstimationResult> => {
     try {
       // 调用AI评估Edge Function
-      const response = await fetch('/functions/v1/domain-ai-evaluation', {
+      const response = await fetch('https://trqxaizkwuizuhlfmdup.supabase.co/functions/v1/domain-ai-evaluation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

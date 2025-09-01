@@ -41,7 +41,7 @@ export const DomainListings = ({ domains, isLoading, isMobile }: DomainListingsP
 
       <div className={`grid ${isMobile ? 'grid-cols-1 gap-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'}`}>
         {domains.map((domain) => (
-          <Link key={domain.id} to={`/domain/${domain.id}`}>
+          <Link key={domain.id} to={`/domains/${domain.name}`}>
             <Card className="h-full border hover:shadow-md transition-shadow">
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">

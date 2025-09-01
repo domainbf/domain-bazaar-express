@@ -74,7 +74,7 @@ export const DomainTable = ({ domains, onDomainUpdate, currentUserId }: DomainTa
               </td>
               <td className="py-3 px-4">
                 <div className="flex items-center gap-2">
-                  <Link to={`/domain/${domain.id}`} target="_blank">
+                  <Link to={`/domains/${domain.name}`} target="_blank">
                     <Button variant="ghost" size="sm">
                       <ExternalLink className="w-4 h-4" />
                     </Button>

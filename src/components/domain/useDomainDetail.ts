@@ -4,24 +4,24 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Domain } from "@/types/domain";
 
-const fetchDomainDetails = async (domainId: string | undefined) => {
-  if (!domainId) {
+const fetchDomainDetails = async (identifier: string | undefined) => {
+  if (!identifier) {
     return null;
   }
 
-  console.log('Fetching domain details for:', domainId);
+  console.log('Fetching domain details for:', identifier);
 
   // 判断 id 是不是 UUID 形式，分别查 id 或 name
   let domainData;
   let domainError;
-  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(domainId);
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(identifier);
 
   if (isUUID) {
     // id 查询
-    ({ data: domainData, error: domainError } = await supabase.from('domain_listings').select('*').eq('id', domainId).maybeSingle());
+    ({ data: domainData, error: domainError } = await supabase.from('domain_listings').select('*').eq('id', identifier).maybeSingle());
   } else {
     // name 查询
-    ({ data: domainData, error: domainError } = await supabase.from('domain_listings').select('*').eq('name', domainId).maybeSingle());
+    ({ data: domainData, error: domainError } = await supabase.from('domain_listings').select('*').eq('name', identifier).maybeSingle());
   }
 
   if (domainError) {
@@ -102,12 +102,15 @@ const fetchDomainDetails = async (domainId: string | undefined) => {
 };
 
 export function useDomainDetail() {
-  const { domainId } = useParams<{ domainId: string }>();
+  const { domainId, domainName } = useParams<{ domainId?: string; domainName?: string }>();
+
+  // 使用domainName优先，fallback到domainId
+  const identifier = domainName || domainId;
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['domainDetail', domainId],
-    queryFn: () => fetchDomainDetails(domainId),
-    enabled: !!domainId,
+    queryKey: ['domainDetail', identifier],
+    queryFn: () => fetchDomainDetails(identifier),
+    enabled: !!identifier,
     staleTime: 5 * 60 * 1000, // 5分钟缓存
     gcTime: 10 * 60 * 1000, // 10分钟垃圾回收
     retry: (failureCount, error) => {
