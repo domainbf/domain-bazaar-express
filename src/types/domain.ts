@@ -3,6 +3,7 @@ export interface Domain {
   id: string;
   name: string;
   price: number;
+  currency?: string;
   category?: string;
   description?: string;
   status?: string;

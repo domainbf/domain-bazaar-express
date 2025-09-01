@@ -48,7 +48,7 @@ export const DomainDetailSidebar: React.FC<Props> = ({
               disabled={domain.status !== "available"}
             >
               <DollarSign className="h-4 w-4 mr-2" />
-              立即购买 ¥{domain.price.toLocaleString()}
+              立即购买 {(domain as any).currency === 'CNY' ? '¥' : '$'}{domain.price.toLocaleString()}
             </Button>
 
             <Button

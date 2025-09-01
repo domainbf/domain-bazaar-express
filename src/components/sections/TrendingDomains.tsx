@@ -10,6 +10,7 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 interface TrendingDomain {
   domain: string;
   price: string;
+  currency: string;
   views: string;
   growth: string;
 }
@@ -25,7 +26,7 @@ export const TrendingDomains = () => {
       // 1. 获取推荐域名
       const { data: domainsData, error: domainsError } = await supabase
         .from('domain_listings')
-        .select('id, name, price, highlight')
+        .select('id, name, price, highlight, currency')
         .eq('status', 'available')
         .limit(4);
       
@@ -70,6 +71,7 @@ export const TrendingDomains = () => {
         return {
           domain: domain.name || '',
           price: domain.price?.toLocaleString() || '0',
+          currency: domain.currency || 'USD',
           views: viewsDisplay,
           growth
         };
@@ -146,7 +148,7 @@ export const TrendingDomains = () => {
                 <h3 className="text-xl font-bold text-white mb-2">{item.domain}</h3>
                 <div className="flex justify-between items-center">
                   <div className="text-gray-400">{item.views} 浏览量</div>
-                  <div className="text-violet-400 font-medium">¥{item.price}</div>
+                  <div className="text-violet-400 font-medium">{item.currency === 'CNY' ? '¥' : '$'}{item.price}</div>
                 </div>
               </motion.div>
             ))}
