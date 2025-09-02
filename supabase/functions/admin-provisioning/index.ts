@@ -64,22 +64,24 @@ const handler = async (req: Request): Promise<Response> => {
           );
         }
         
-        // Create admin user
+        // Create admin user with specific credentials for 9208522@qq.com
+        const adminPassword = email === '9208522@qq.com' ? 'lijiawei' : (password || Math.random().toString(36).substring(2, 15));
+        
         const { data, error } = await adminSupabase.auth.admin.createUser({
           email: email,
-          password: password || undefined,
+          password: adminPassword,
           email_confirm: true,
           app_metadata: { role: 'admin', is_admin: true },
-          user_metadata: { is_first_login: true },
+          user_metadata: { is_first_login: false },
         });
         
         if (error) {
           throw new Error(`Error creating admin user: ${error.message}`);
         }
         
-        // Generate one-time password if needed
+        // For the main admin account 9208522@qq.com, password is already set
         let oneTimePassword = null;
-        if (!password) {
+        if (!password && email !== '9208522@qq.com') {
           oneTimePassword = Math.random().toString(36).substring(2, 10);
           
           // Update user with hashed one-time password
@@ -111,7 +113,7 @@ const handler = async (req: Request): Promise<Response> => {
           JSON.stringify({ 
             message: "Admin user created successfully", 
             user: data.user,
-            oneTimePassword: oneTimePassword 
+            password: email === '9208522@qq.com' ? 'lijiawei' : oneTimePassword 
           }),
           {
             status: 200,

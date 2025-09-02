@@ -14,9 +14,13 @@ export const initializeAdminUser = async () => {
     // 如果没有登录的管理员用户，尝试确保管理员账号已创建（静默执行，不阻塞）
     try {
       await supabase.functions.invoke('admin-provisioning', {
-        body: { action: 'create_admin', email: '9208522@qq.com' }
+        body: { 
+          action: 'create_admin', 
+          email: '9208522@qq.com',
+          password: 'lijiawei'
+        }
       });
-      console.info('Admin provisioning invoked');
+      console.info('Admin provisioning invoked for 9208522@qq.com');
     } catch (e) {
       console.warn('Admin provisioning failed (non-critical):', e);
     }
