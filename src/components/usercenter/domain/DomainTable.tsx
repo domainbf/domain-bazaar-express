@@ -63,7 +63,7 @@ export const DomainTable = ({ domains, onDomainUpdate, currentUserId }: DomainTa
                   )}
                 </div>
               </td>
-              <td className="py-3 px-4">${domain.price.toLocaleString()}</td>
+              <td className="py-3 px-4">{(domain as any).currency === 'CNY' ? '¥' : '$'}{domain.price.toLocaleString()}</td>
               <td className="py-3 px-4 capitalize">{domain.category || 'standard'}</td>
               <td className="py-3 px-4">{renderDomainStatus(domain.status)}</td>
               <td className="py-3 px-4">

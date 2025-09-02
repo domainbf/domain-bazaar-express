@@ -71,7 +71,7 @@ export const DomainDetailHeader: React.FC<DomainDetailHeaderProps> = ({
         <DomainShareButtons domainName={domain.name} />
       </Suspense>
       <div className="text-right">
-        <div className="text-3xl font-bold text-primary">¥{domain.price.toLocaleString()}</div>
+        <div className="text-3xl font-bold text-primary">{(domain as any).currency === 'CNY' ? '¥' : '$'}{domain.price.toLocaleString()}</div>
         <div className="text-sm text-muted-foreground">一口价</div>
       </div>
     </div>
