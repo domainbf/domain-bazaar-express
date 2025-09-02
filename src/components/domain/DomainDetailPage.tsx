@@ -6,9 +6,10 @@ import { DomainDetailMainContent } from "@/components/domain/DomainDetailMainCon
 import { DomainDetailSidebar } from "@/components/domain/DomainDetailSidebar";
 import { DomainShareButtons } from "@/components/domain/DomainShareButtons";
 import { useDomainDetail } from "@/components/domain/useDomainDetail";
+import { useDomainAnalytics } from "@/hooks/useDomainAnalytics";
 import { DomainValuationTool } from "@/components/domain/DomainValuationTool";
 import NotFound from "@/pages/NotFound";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -21,9 +22,16 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export const DomainDetailPage = () => {
   const { domain, similarDomains, priceHistory, isLoading, error } = useDomainDetail();
-  const [isFavorited, setIsFavorited] = useState(false);
+  const { analytics, isFavorited, recordView, toggleFavorite } = useDomainAnalytics(domain?.id || '');
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const { user } = useAuth();
+
+  // Record view when domain loads
+  useEffect(() => {
+    if (domain?.id) {
+      recordView();
+    }
+  }, [domain?.id, recordView]);
 
   if (isLoading) {
     return (
@@ -41,7 +49,7 @@ export const DomainDetailPage = () => {
   }
 
   const handleToggleFavorite = () => {
-    setIsFavorited(!isFavorited);
+    toggleFavorite();
   };
 
   const handlePurchase = () => {
@@ -67,7 +75,12 @@ export const DomainDetailPage = () => {
       <Navbar />
       <main className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <DomainDetailHeader 
-          domain={domain} 
+          domain={{
+            ...domain,
+            views: analytics?.views || 0,
+            favorites: analytics?.favorites || 0,
+            offers: analytics?.offers || 0
+          }} 
           isFavorited={isFavorited} 
           onToggleFavorite={handleToggleFavorite} 
         />

@@ -21,9 +21,9 @@ export const useDomainAnalytics = (domainId: string) => {
         .from('domain_analytics')
         .select('*')
         .eq('domain_id', domainId)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error loading analytics:', error);
         return;
       }
@@ -31,14 +31,16 @@ export const useDomainAnalytics = (domainId: string) => {
       if (data) {
         setAnalytics(data);
       } else {
-        // Create analytics record if it doesn't exist
-        const { data: newAnalytics } = await supabase
+        // Create analytics record if it doesn't exist using upsert
+        const { data: newAnalytics, error: insertError } = await supabase
           .from('domain_analytics')
-          .insert({ domain_id: domainId, views: 0, favorites: 0, offers: 0 })
+          .upsert({ domain_id: domainId, views: 0, favorites: 0, offers: 0 }, { onConflict: 'domain_id' })
           .select()
           .single();
         
-        if (newAnalytics) {
+        if (insertError) {
+          console.error('Error creating analytics:', insertError);
+        } else if (newAnalytics) {
           setAnalytics(newAnalytics);
         }
       }
@@ -68,39 +70,34 @@ export const useDomainAnalytics = (domainId: string) => {
     return trends;
   };
 
-  // Record a view - 使用直接的数据库更新而不是不存在的函数
+  // Record a view - 使用 upsert 来避免冲突
   const recordView = async () => {
     try {
-      // 首先尝试获取现有的分析记录
-      const { data: existingAnalytics } = await supabase
+      // 使用 upsert 来处理浏览量增加
+      const { data: currentAnalytics } = await supabase
         .from('domain_analytics')
-        .select('*')
+        .select('views')
         .eq('domain_id', domainId)
-        .single();
+        .maybeSingle();
 
-      if (existingAnalytics) {
-        // 如果记录存在，更新浏览量
-        await supabase
-          .from('domain_analytics')
-          .update({ 
-            views: (existingAnalytics.views || 0) + 1,
-            last_updated: new Date().toISOString()
-          })
-          .eq('domain_id', domainId);
+      const currentViews = currentAnalytics?.views || 0;
+      
+      const { error } = await supabase
+        .from('domain_analytics')
+        .upsert({ 
+          domain_id: domainId, 
+          views: currentViews + 1,
+          favorites: 0,
+          offers: 0,
+          last_updated: new Date().toISOString()
+        }, { onConflict: 'domain_id' });
+
+      if (error) {
+        console.error('Error recording view:', error);
       } else {
-        // 如果记录不存在，创建新记录
-        await supabase
-          .from('domain_analytics')
-          .insert({ 
-            domain_id: domainId, 
-            views: 1,
-            favorites: 0,
-            offers: 0
-          });
+        // Update local state
+        setAnalytics(prev => prev ? { ...prev, views: currentViews + 1 } : null);
       }
-
-      // Reload analytics
-      await loadAnalytics();
     } catch (error) {
       console.error('Error recording view:', error);
     }
@@ -135,16 +132,22 @@ export const useDomainAnalytics = (domainId: string) => {
 
       // Update analytics
       const newFavoriteCount = (analytics?.favorites || 0) + (isFavorited ? -1 : 1);
-      await supabase
+      const { error } = await supabase
         .from('domain_analytics')
         .upsert({ 
           domain_id: domainId, 
           views: analytics?.views || 0,
           favorites: newFavoriteCount,
-          offers: analytics?.offers || 0
-        });
+          offers: analytics?.offers || 0,
+          last_updated: new Date().toISOString()
+        }, { onConflict: 'domain_id' });
 
-      await loadAnalytics();
+      if (error) {
+        console.error('Error updating analytics:', error);
+      } else {
+        // Update local state immediately
+        setAnalytics(prev => prev ? { ...prev, favorites: newFavoriteCount } : null);
+      }
     } catch (error) {
       console.error('Error toggling favorite:', error);
     }

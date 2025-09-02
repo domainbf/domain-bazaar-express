@@ -117,7 +117,7 @@ export type Database = {
           {
             foreignKeyName: "domain_analytics_domain_id_fkey"
             columns: ["domain_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "domain_listings"
             referencedColumns: ["id"]
           },
