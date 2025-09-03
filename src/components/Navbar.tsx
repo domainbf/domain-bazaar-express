@@ -187,8 +187,23 @@ export const Navbar = ({ unreadCount = 0 }: NavbarProps) => {
           <img 
             src="/lovable-uploads/nic.png" 
             alt="NIC.BN" 
-            className="h-8 w-auto"
+            className="h-10 w-auto" 
+            onError={(e) => {
+              // 如果图片加载失败，显示文字logo
+              const target = e.currentTarget;
+              const nextElement = target.nextElementSibling as HTMLElement;
+              target.style.display = 'none';
+              if (nextElement) {
+                nextElement.style.display = 'block';
+              }
+            }}
           />
+          <span 
+            className="text-2xl font-bold text-gray-900"
+            style={{ display: 'none' }}
+          >
+            NIC.BN
+          </span>
         </Link>
 
         {/* Desktop Navigation */}
