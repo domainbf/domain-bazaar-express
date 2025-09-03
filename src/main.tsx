@@ -15,8 +15,8 @@ const queryClient = new QueryClient({
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000,
-      gcTime: 10 * 60 * 1000,
+      staleTime: 10 * 60 * 1000, // 增加缓存时间
+      gcTime: 30 * 60 * 1000, // 增加垃圾回收时间
     },
   },
 });

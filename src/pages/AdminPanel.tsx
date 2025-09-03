@@ -8,8 +8,9 @@ import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { PendingVerifications } from '@/components/admin/PendingVerifications';
 import { AllDomainListings } from '@/components/admin/AllDomainListings';
 import { UserManagement } from '@/components/admin/UserManagement';
+import { ContentManagement } from '@/components/admin/ContentManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Settings, RefreshCw } from 'lucide-react';
+import { Shield, Settings, RefreshCw, FileText } from 'lucide-react';
 import { SiteSettings } from '@/components/admin/SiteSettings';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -157,6 +158,7 @@ export const AdminPanel = () => {
             <TabsTrigger value="verifications">待验证域名</TabsTrigger>
             <TabsTrigger value="domains">所有域名</TabsTrigger>
             <TabsTrigger value="users">用户管理</TabsTrigger>
+            <TabsTrigger value="content">内容管理</TabsTrigger>
             <TabsTrigger value="settings">网站设置</TabsTrigger>
           </TabsList>
           
@@ -174,6 +176,10 @@ export const AdminPanel = () => {
           
           <TabsContent value="users">
             <UserManagement />
+          </TabsContent>
+          
+          <TabsContent value="content">
+            <ContentManagement />
           </TabsContent>
           
           <TabsContent value="settings">

@@ -22,6 +22,7 @@ export const SiteSettings = () => {
   const [settings, setSettings] = useState<SiteSetting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [newSetting, setNewSetting] = useState({ key: '', value: '', description: '', section: 'general', type: 'text' });
 
   useEffect(() => {
     loadSettings();
@@ -76,6 +77,47 @@ export const SiteSettings = () => {
     }
   };
 
+  const addNewSetting = async () => {
+    if (!newSetting.key.trim()) {
+      toast.error('请输入设置键名');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .insert([newSetting])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setSettings([...settings, data]);
+      setNewSetting({ key: '', value: '', description: '', section: 'general', type: 'text' });
+      toast.success('新设置项已添加');
+    } catch (error: any) {
+      console.error('添加设置项时出错:', error);
+      toast.error(error.message || '添加设置项失败');
+    }
+  };
+
+  const deleteSetting = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('site_settings')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setSettings(settings.filter(s => s.id !== id));
+      toast.success('设置项已删除');
+    } catch (error: any) {
+      console.error('删除设置项时出错:', error);
+      toast.error(error.message || '删除设置项失败');
+    }
+  };
+
   const getSettingsBySection = (section: string) => {
     return settings.filter(setting => setting.section === section);
   };
@@ -125,18 +167,70 @@ export const SiteSettings = () => {
         </TabsList>
         
         <TabsContent value="general">
-          <div className="grid grid-cols-1 gap-6">
-            {getSettingsBySection('general').length === 0 ? (
-              <p className="text-gray-500 text-center py-8">尚未设置任何常规设置</p>
-            ) : (
-              getSettingsBySection('general').map(setting => (
-                <SettingCard 
-                  key={setting.id}
-                  setting={setting}
-                  onChange={(value) => handleSettingChange(setting.id, value)}
-                />
-              ))
-            )}
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>添加新设置</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">设置键名</label>
+                    <Input
+                      value={newSetting.key}
+                      onChange={(e) => setNewSetting({...newSetting, key: e.target.value})}
+                      placeholder="例如: site_title"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">设置值</label>
+                    <Input
+                      value={newSetting.value}
+                      onChange={(e) => setNewSetting({...newSetting, value: e.target.value})}
+                      placeholder="设置值"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">描述</label>
+                    <Input
+                      value={newSetting.description}
+                      onChange={(e) => setNewSetting({...newSetting, description: e.target.value})}
+                      placeholder="设置描述"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">类型</label>
+                    <select
+                      value={newSetting.type}
+                      onChange={(e) => setNewSetting({...newSetting, type: e.target.value})}
+                      className="w-full p-2 border rounded"
+                    >
+                      <option value="text">文本</option>
+                      <option value="textarea">长文本</option>
+                      <option value="boolean">布尔值</option>
+                    </select>
+                  </div>
+                </div>
+                <Button onClick={addNewSetting} className="w-full">
+                  添加设置项
+                </Button>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 gap-6">
+              {getSettingsBySection('general').length === 0 ? (
+                <p className="text-gray-500 text-center py-8">尚未设置任何常规设置</p>
+              ) : (
+                getSettingsBySection('general').map(setting => (
+                  <SettingCard 
+                    key={setting.id}
+                    setting={setting}
+                    onChange={(value) => handleSettingChange(setting.id, value)}
+                    onDelete={() => deleteSetting(setting.id)}
+                  />
+                ))
+              )}
+            </div>
           </div>
         </TabsContent>
         
@@ -196,9 +290,10 @@ export const SiteSettings = () => {
 interface SettingCardProps {
   setting: SiteSetting;
   onChange: (value: string) => void;
+  onDelete?: () => void;
 }
 
-const SettingCard = ({ setting, onChange }: SettingCardProps) => {
+const SettingCard = ({ setting, onChange, onDelete }: SettingCardProps) => {
   const renderSettingInput = () => {
     switch (setting.type) {
       case 'textarea':
@@ -241,8 +336,13 @@ const SettingCard = ({ setting, onChange }: SettingCardProps) => {
   return (
     <Card className="w-full shadow-sm border border-gray-200">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-medium flex items-center gap-2">
+        <CardTitle className="text-lg font-medium flex items-center justify-between">
           {setting.key}
+          {onDelete && (
+            <Button variant="destructive" size="sm" onClick={onDelete}>
+              删除
+            </Button>
+          )}
         </CardTitle>
         {setting.description && (
           <CardDescription>{setting.description}</CardDescription>
