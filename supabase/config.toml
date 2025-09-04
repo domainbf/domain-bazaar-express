@@ -40,3 +40,7 @@ verify_jwt = true
 # Public keepalive function (used by weekly cron)
 [functions.keepalive]
 verify_jwt = false
+
+# Auth email webhook (handles password reset, email verification, etc.)
+[functions.auth-send-email]
+verify_jwt = false
