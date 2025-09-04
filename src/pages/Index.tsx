@@ -387,18 +387,14 @@ const Index = () => {
                   </div>
                 </div>
               ) : isLoading ? (
-                <div className="flex flex-col items-center justify-center py-20 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl border border-blue-100">
-                  <div className="relative">
-                    <div className="w-20 h-20 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
-                    <div className="absolute inset-0 w-20 h-20 border-4 border-transparent rounded-full animate-spin border-r-purple-500" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
-                  </div>
-                  <h3 className="mt-6 text-xl font-semibold text-gray-800">正在加载域名</h3>
-                  <p className="mt-2 text-gray-600">为您精选最优质的域名...</p>
-                  <div className="mt-4 flex space-x-1">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                    <div className="w-2 h-2 bg-teal-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                  </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-8 px-2 md:px-0">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="bg-gray-200 rounded-lg h-48 mb-4"></div>
+                      <div className="bg-gray-200 h-4 rounded mb-2"></div>
+                      <div className="bg-gray-200 h-3 rounded w-2/3"></div>
+                    </div>
+                  ))}
                 </div>
               ) : filteredDomains.length > 0 ? (
                 <>

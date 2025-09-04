@@ -52,39 +52,21 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
 }
 
 function App() {
-  const [appReady, setAppReady] = useState(false);
+  const [appReady, setAppReady] = useState(true); // 直接设置为true，移除启动页面
 
   useEffect(() => {
-    const initApp = async () => {
-      try {
-        await initializeAdminUser().catch(() => {
-          // 静默处理初始化错误，不影响应用启动
-          console.warn('Admin user initialization failed, continuing...');
-        });
-      } catch (error) {
-        console.error('App initialization error:', error);
-      } finally {
-        setAppReady(true);
-      }
-    };
-
-    const timer = setTimeout(initApp, 50);
-    
-    return () => clearTimeout(timer);
+    // 异步初始化，不阻塞UI渲染
+    initializeAdminUser().catch(() => {
+      console.warn('Admin user initialization failed, continuing...');
+    });
   }, []);
-
-  if (!appReady) {
-    return (
-      <SplashScreen title="正在启动应用" subtitle="正在加载系统资源..." variant="boot" />
-    );
-  }
 
   return (
     <ErrorBoundary
       FallbackComponent={ErrorFallback}
       onReset={() => window.location.reload()}
     >
-        <Suspense fallback={<SplashScreen title="页面加载中" subtitle="正在加载资源，请稍候..." variant="page" />}>
+        <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<AuthPage />} />

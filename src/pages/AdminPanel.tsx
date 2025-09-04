@@ -12,6 +12,7 @@ import { ContentManagement } from '@/components/admin/ContentManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, Settings, RefreshCw, FileText } from 'lucide-react';
 import { SiteSettings } from '@/components/admin/SiteSettings';
+import { HomeContentManagement } from '@/components/admin/HomeContentManagement';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -158,6 +159,7 @@ export const AdminPanel = () => {
             <TabsTrigger value="verifications">待验证域名</TabsTrigger>
             <TabsTrigger value="domains">所有域名</TabsTrigger>
             <TabsTrigger value="users">用户管理</TabsTrigger>
+            <TabsTrigger value="homepage">首页管理</TabsTrigger>
             <TabsTrigger value="content">内容管理</TabsTrigger>
             <TabsTrigger value="settings">网站设置</TabsTrigger>
           </TabsList>
@@ -174,13 +176,17 @@ export const AdminPanel = () => {
             <AllDomainListings />
           </TabsContent>
           
-          <TabsContent value="users">
-            <UserManagement />
-          </TabsContent>
-          
-          <TabsContent value="content">
-            <ContentManagement />
-          </TabsContent>
+            <TabsContent value="users">
+              <UserManagement />
+            </TabsContent>
+            
+            <TabsContent value="homepage">
+              <HomeContentManagement />
+            </TabsContent>
+            
+            <TabsContent value="content">
+              <ContentManagement />
+            </TabsContent>
           
           <TabsContent value="settings">
             <SiteSettings />

@@ -12,6 +12,7 @@ export interface UserProfile {
   created_at: string;
   avatar_url?: string;
   total_sales?: number;
+  bio?: string;
 }
 
 export const useUserActions = () => {
