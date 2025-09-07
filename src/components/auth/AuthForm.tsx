@@ -2,10 +2,11 @@
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Mail, Lock, User, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Loader2, Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle, ShieldCheck } from 'lucide-react';
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface AuthFormProps {
   mode: 'signin' | 'signup';
@@ -189,178 +190,227 @@ export const AuthForm = ({
   const strengthInfo = getPasswordStrengthText(passwordStrength);
 
   return (
-    <form onSubmit={handleAuth} className="space-y-4 mt-4">
-      {errorMessage && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{errorMessage}</AlertDescription>
-        </Alert>
-      )}
-      
-      {showVerificationMessage && (
-        <Alert>
-          <Mail className="h-4 w-4" />
-          <AlertDescription>
-            <div className="space-y-2">
-              <p>验证邮件已发送到 <strong>{email}</strong></p>
-              <p className="text-sm text-gray-600">
-                请查收邮件并点击验证链接完成{mode === 'signup' ? '注册' : '登录'}
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleResendVerification}
-                disabled={isResendingVerification}
-                className="mt-2"
-              >
-                {isResendingVerification ? (
-                  <>
-                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                    发送中...
-                  </>
-                ) : (
-                  '重新发送验证邮件'
-                )}
-              </Button>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
-      
+    <div className="space-y-6">
+      {/* 安全提示卡片 */}
       {mode === 'signup' && (
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-            <User className="w-4 h-4" /> 姓名 <span className="text-red-500">*</span>
-          </label>
-          <Input
-            type="text"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            className="bg-white border-gray-300 focus:border-black transition-colors"
-            placeholder="请输入您的姓名"
-            required
-          />
-        </div>
+        <Card className="border-l-4 border-l-blue-500 bg-blue-50">
+          <CardContent className="p-4">
+            <div className="flex items-start space-x-3">
+              <ShieldCheck className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div className="space-y-1">
+                <h4 className="text-sm font-semibold text-blue-900">安全注册</h4>
+                <p className="text-xs text-blue-700">我们使用企业级加密技术保护您的信息安全</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
+
+      <form onSubmit={handleAuth} className="space-y-5">
+        {errorMessage && (
+          <Alert variant="destructive" className="border-red-200 bg-red-50">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="text-red-800">{errorMessage}</AlertDescription>
+          </Alert>
+        )}
+        
+        {showVerificationMessage && (
+          <Alert className="border-green-200 bg-green-50">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription>
+              <div className="space-y-3">
+                <div>
+                  <p className="font-medium text-green-800">验证邮件已发送</p>
+                  <p className="text-sm text-green-700 mt-1">
+                    验证邮件已发送至 <span className="font-medium">{email}</span>
+                  </p>
+                </div>
+                <div className="bg-white border border-green-200 rounded-md p-3">
+                  <p className="text-xs text-gray-600 mb-2">
+                    📧 请检查您的邮箱（包括垃圾邮件文件夹）并点击验证链接完成{mode === 'signup' ? '注册' : '登录'}
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleResendVerification}
+                    disabled={isResendingVerification}
+                    className="border-green-300 text-green-700 hover:bg-green-50"
+                  >
+                    {isResendingVerification ? (
+                      <>
+                        <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                        发送中...
+                      </>
+                    ) : (
+                      '重新发送验证邮件'
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
       
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-          <Mail className="w-4 h-4" /> 邮箱 <span className="text-red-500">*</span>
-        </label>
-        <Input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="bg-white border-gray-300 focus:border-black transition-colors"
-          placeholder="your@example.com"
-          required
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-          <Lock className="w-4 h-4" /> 密码 <span className="text-red-500">*</span>
-        </label>
-        <div className="relative">
-          <Input
-            type={showPassword ? "text" : "password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="bg-white border-gray-300 focus:border-black transition-colors pr-10"
-            placeholder={mode === 'signup' ? "至少6个字符" : "您的密码"}
-            required
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-          >
-            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </button>
-        </div>
-        {mode === 'signup' && password && (
-          <div className="text-xs">
-            密码强度: <span className={strengthInfo.color}>{strengthInfo.text}</span>
+        {mode === 'signup' && (
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+              <User className="w-4 h-4 text-blue-600" /> 
+              姓名 
+              <span className="text-red-500">*</span>
+            </label>
+            <Input
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="h-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
+              placeholder="请输入您的真实姓名"
+              required
+            />
           </div>
         )}
-      </div>
-
-      {mode === 'signup' && (
+      
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-            <Lock className="w-4 w-4" /> 确认密码 <span className="text-red-500">*</span>
+          <label className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+            <Mail className="w-4 h-4 text-blue-600" /> 
+            邮箱地址 
+            <span className="text-red-500">*</span>
+          </label>
+          <Input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="h-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
+            placeholder="请输入您的邮箱地址"
+            required
+          />
+        </div>
+      
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+            <Lock className="w-4 h-4 text-blue-600" /> 
+            密码 
+            <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <Input
-              type={showConfirmPassword ? "text" : "password"}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="bg-white border-gray-300 focus:border-black transition-colors pr-10"
-              placeholder="再次输入密码"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="h-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 pr-12"
+              placeholder={mode === 'signup' ? "至少6个字符，建议包含大小写字母和数字" : "请输入您的密码"}
               required
             />
             <button
               type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-600 transition-colors"
             >
-              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
+          {mode === 'signup' && password && (
+            <div className="flex items-center justify-between text-xs">
+              <span>密码强度: <span className={strengthInfo.color + " font-medium"}>{strengthInfo.text}</span></span>
+              <div className="flex space-x-1">
+                {[...Array(5)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      i < passwordStrength ? strengthInfo.color.replace('text-', 'bg-') : 'bg-gray-200'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-      )}
-      
-      {mode === 'signin' && (
-        <div className="text-right">
-          <button 
-            type="button"
-            onClick={handleForgotPasswordClick}
-            className="text-sm text-black hover:underline transition-colors cursor-pointer"
-          >
-            忘记密码?
-          </button>
-        </div>
-      )}
-      
-      <Button 
-        type="submit"
-        disabled={isAuthenticating}
-        className="w-full bg-black text-white hover:bg-gray-800 transition-colors"
-      >
-        {isAuthenticating ? (
-          <span className="flex items-center gap-2">
-            <Loader2 className="animate-spin w-4 h-4" />
-            {mode === 'signin' ? '登录中...' : '创建账户中...'}
-          </span>
-        ) : (
-          mode === 'signin' ? '登录' : '注册'
+
+        {mode === 'signup' && (
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+              <Lock className="w-4 h-4 text-blue-600" /> 
+              确认密码 
+              <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <Input
+                type={showConfirmPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="h-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 pr-12"
+                placeholder="请再次输入密码进行确认"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-600 transition-colors"
+              >
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
         )}
-      </Button>
       
-      {mode === 'signin' ? (
-        <p className="text-center text-sm text-gray-600">
-          还没有账户?{' '}
-          <button 
-            type="button"
-            onClick={(e) => handleModeChange(e, 'signup')}
-            className="text-black font-medium hover:underline transition-colors cursor-pointer"
+        {mode === 'signin' && (
+          <div className="text-right">
+            <button 
+              type="button"
+              onClick={handleForgotPasswordClick}
+              className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer font-medium"
+            >
+              忘记密码？
+            </button>
+          </div>
+        )}
+        
+        <div className="pt-2">
+          <Button 
+            type="submit"
+            disabled={isAuthenticating}
+            className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium text-base shadow-lg hover:shadow-xl"
           >
-            注册
-          </button>
-        </p>
-      ) : (
-        <p className="text-center text-sm text-gray-600">
-          已有账户?{' '}
-          <button 
-            type="button"
-            onClick={(e) => handleModeChange(e, 'signin')}
-            className="text-black font-medium hover:underline transition-colors cursor-pointer"
-          >
-            登录
-          </button>
-        </p>
-      )}
-    </form>
+            {isAuthenticating ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="animate-spin w-5 h-5" />
+                {mode === 'signin' ? '正在登录...' : '正在创建账户...'}
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                {mode === 'signin' ? '立即登录' : '创建账户'}
+                <CheckCircle className="w-4 h-4" />
+              </span>
+            )}
+          </Button>
+        </div>
+      
+        <div className="text-center pt-4 border-t border-gray-200">
+          {mode === 'signin' ? (
+            <p className="text-sm text-gray-600">
+              还没有账户？{' '}
+              <button 
+                type="button"
+                onClick={(e) => handleModeChange(e, 'signup')}
+                className="text-blue-600 font-semibold hover:text-blue-800 transition-colors cursor-pointer"
+              >
+                立即注册
+              </button>
+            </p>
+          ) : (
+            <p className="text-sm text-gray-600">
+              已有账户？{' '}
+              <button 
+                type="button"
+                onClick={(e) => handleModeChange(e, 'signin')}
+                className="text-blue-600 font-semibold hover:text-blue-800 transition-colors cursor-pointer"
+              >
+                直接登录
+              </button>
+            </p>
+          )}
+        </div>
+      </form>
+    </div>
   );
 };

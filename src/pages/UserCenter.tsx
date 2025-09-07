@@ -8,12 +8,14 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserCenterHelpCard } from '@/components/usercenter/UserCenterHelpCard';
 import { UserCenterStatsGrid } from '@/components/usercenter/UserCenterStatsGrid';
 import { UserCenterTabsContent } from '@/components/usercenter/UserCenterTabsContent';
+import { UserCenterLayout } from '@/components/usercenter/UserCenterLayout';
 import { Button } from "@/components/ui/button";
-import { Home, HelpCircle, Settings, ClipboardList, User, Bell } from 'lucide-react';
+import { Home, HelpCircle, Settings, ClipboardList, User, Bell, MessageSquare, FileQuestion } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Badge } from "@/components/ui/badge";
 import { useNotifications } from '@/hooks/useNotifications';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { Card, CardContent } from "@/components/ui/card";
 
 export const UserCenter = () => {
   const { user, profile, isLoading: isAuthLoading } = useAuth();
@@ -82,19 +84,15 @@ export const UserCenter = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar unreadCount={unreadCount} />
-      <div className="max-w-6xl mx-auto px-4 py-8 overflow-hidden">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-black break-words">用户中心</h1>
-            <p className="text-gray-600">欢迎回来, {displayName}</p>
-          </div>
-          
+      
+      <UserCenterLayout profile={profile} user={user}>
+        {/* 快捷操作区域 */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
             <Button 
               onClick={() => window.location.href = 'https://nic.bn/'}
               variant="outline" 
-              className="flex items-center gap-1"
-              size="sm"
+              className="flex items-center gap-2"
             >
               <Home className="w-4 h-4" />
               返回首页
@@ -103,71 +101,105 @@ export const UserCenter = () => {
             {profile?.is_admin && (
               <Button 
                 onClick={() => navigate('/admin')}
-                variant="default"
-                className="flex items-center gap-1"
-                size="sm"
+                className="flex items-center gap-2 bg-red-600 hover:bg-red-700"
               >
                 <Settings className="w-4 h-4" />
                 管理员面板
               </Button>
             )}
-            
+          </div>
+          
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
-              size="icon"
               onClick={() => setShowHelp(!showHelp)}
-              className="rounded-full"
+              className="flex items-center gap-2"
             >
               <HelpCircle className="h-4 w-4" />
+              帮助中心
             </Button>
           </div>
         </div>
 
         <UserCenterHelpCard open={showHelp} onClose={() => setShowHelp(false)} />
+        
+        {/* 统计数据网格 */}
         <UserCenterStatsGrid profile={profile} user={user} />
 
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="mb-6 bg-white border">
-            <TabsTrigger value="domains" className="flex items-center gap-1 data-[state=active]:bg-black data-[state=active]:text-white">
-              <ClipboardList className="w-4 h-4" />
-              我的域名
-            </TabsTrigger>
-            <TabsTrigger value="transactions" className="flex items-center gap-1 data-[state=active]:bg-black data-[state=active]:text-white">
-              <ClipboardList className="w-4 h-4" />
-              交易记录
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-1 relative data-[state=active]:bg-black data-[state=active]:text-white">
-              <Bell className="w-4 h-4" />
-              通知中心
-              {unreadCount > 0 && (
-                <Badge className="bg-blue-500 absolute -top-2 -right-4 px-2 py-0.5 text-xs font-bold min-w-[1.5rem] flex items-center justify-center">
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="profile" className="flex items-center gap-1 data-[state=active]:bg-black data-[state=active]:text-white">
-              <User className="w-4 h-4" />
-              个人资料设置
-            </TabsTrigger>
-          </TabsList>
-          <UserCenterTabsContent />
-        </Tabs>
+        {/* 主要功能标签页 */}
+        <Card className="shadow-sm">
+          <CardContent className="p-0">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+              <div className="border-b border-gray-200 bg-white rounded-t-lg">
+                <TabsList className="grid w-full grid-cols-4 bg-transparent h-auto p-0">
+                  <TabsTrigger 
+                    value="domains" 
+                    className="flex items-center gap-2 py-4 px-6 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:border-b-2 data-[state=active]:border-blue-700 rounded-none border-b-2 border-transparent hover:bg-gray-50 transition-all"
+                  >
+                    <ClipboardList className="w-4 h-4" />
+                    <span className="hidden sm:inline">我的域名</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="transactions" 
+                    className="flex items-center gap-2 py-4 px-6 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:border-b-2 data-[state=active]:border-blue-700 rounded-none border-b-2 border-transparent hover:bg-gray-50 transition-all"
+                  >
+                    <ClipboardList className="w-4 h-4" />
+                    <span className="hidden sm:inline">交易记录</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="notifications" 
+                    className="flex items-center gap-2 py-4 px-6 relative data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:border-b-2 data-[state=active]:border-blue-700 rounded-none border-b-2 border-transparent hover:bg-gray-50 transition-all"
+                  >
+                    <Bell className="w-4 h-4" />
+                    <span className="hidden sm:inline">通知中心</span>
+                    {unreadCount > 0 && (
+                      <Badge className="bg-red-500 text-white absolute -top-1 -right-1 px-1.5 py-0.5 text-xs font-bold min-w-[1.2rem] h-5 flex items-center justify-center rounded-full">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </Badge>
+                    )}
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="profile" 
+                    className="flex items-center gap-2 py-4 px-6 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:border-b-2 data-[state=active]:border-blue-700 rounded-none border-b-2 border-transparent hover:bg-gray-50 transition-all"
+                  >
+                    <User className="w-4 h-4" />
+                    <span className="hidden sm:inline">个人设置</span>
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              
+              <div className="p-6">
+                <UserCenterTabsContent />
+              </div>
+            </Tabs>
+          </CardContent>
+        </Card>
         
-        <div className="mt-8 bg-gray-100 rounded-lg p-6 text-center">
-          <h3 className="text-lg font-bold mb-2">需要帮助？</h3>
-          <p className="text-gray-600 mb-4">如果您有任何问题或需要支持，请联系我们的客户服务团队</p>
-          <Link to="/contact">
-            <Button variant="outline" className="mr-2">
-              联系客服
-            </Button>
-          </Link>
-          <Link to="/faq">
-            <Button variant="outline">
-              常见问题
-            </Button>
-          </Link>
-        </div>
-      </div>
+        {/* 帮助和支持区域 */}
+        <Card className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <CardContent className="p-6 text-center">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <MessageSquare className="w-5 h-5 text-blue-600" />
+              <h3 className="text-lg font-semibold text-blue-900">需要帮助？</h3>
+            </div>
+            <p className="text-blue-700 mb-4">我们的客户服务团队随时为您提供支持</p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link to="/contact">
+                <Button variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-100 flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4" />
+                  联系客服
+                </Button>
+              </Link>
+              <Link to="/faq">
+                <Button variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-100 flex items-center gap-2">
+                  <FileQuestion className="w-4 h-4" />
+                  常见问题
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </UserCenterLayout>
     </div>
   );
 };
