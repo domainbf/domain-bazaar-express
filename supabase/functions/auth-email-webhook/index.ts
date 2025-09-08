@@ -34,7 +34,7 @@ function getPasswordResetHtml(token: string, baseUrl: string): string {
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${baseUrl}/auth/confirm?token=${token}&type=recovery" 
+            <a href="${baseUrl}/reset-password#access_token=${token}&type=recovery" 
                style="display: inline-block; background: linear-gradient(135deg, #1f2937 0%, #374151 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; transition: all 0.3s ease;">
               立即重置密码 | Reset Password Now
             </a>
@@ -240,7 +240,7 @@ const handler = async (req: Request): Promise<Response> => {
     switch (email_action_type) {
       case 'recovery':
         subject = '🔐 重置您的 NIC.BN 账户密码 | Reset your NIC.BN password';
-        htmlContent = getPasswordResetHtml(token_hash, baseUrl);
+        htmlContent = getPasswordResetHtml(token, baseUrl);
         break;
       
       case 'signup':
