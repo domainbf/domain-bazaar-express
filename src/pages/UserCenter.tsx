@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
@@ -90,7 +89,7 @@ export const UserCenter = () => {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
             <Button 
-              onClick={() => window.location.href = 'https://nic.bn/'}
+              onClick={() => window.location.href = '/'}
               variant="outline" 
               className="flex items-center gap-2"
             >
@@ -203,3 +202,5 @@ export const UserCenter = () => {
     </div>
   );
 };
+
+export default UserCenter;
