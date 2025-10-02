@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { DomainActions } from '../DomainActions';
 import { Link } from 'react-router-dom';
 import { Eye, ExternalLink } from 'lucide-react';
+import { useIsMobile } from "@/hooks/use-mobile";
+import { DomainTableMobile } from './DomainTableMobile';
 
 interface Domain {
   id: string;
@@ -24,6 +26,8 @@ interface DomainTableProps {
 }
 
 export const DomainTable = ({ domains, onDomainUpdate, currentUserId }: DomainTableProps) => {
+  const isMobile = useIsMobile();
+  
   const renderDomainStatus = (status?: string) => {
     switch (status) {
       case 'available':
@@ -37,8 +41,12 @@ export const DomainTable = ({ domains, onDomainUpdate, currentUserId }: DomainTa
     }
   };
 
+  if (isMobile) {
+    return <DomainTableMobile domains={domains} onDomainUpdate={onDomainUpdate} currentUserId={currentUserId} />;
+  }
+
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-lg border">
       <table className="w-full border-collapse">
         <thead>
           <tr className="border-b">

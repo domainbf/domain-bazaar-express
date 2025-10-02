@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface UserCenterLayoutProps {
   profile: UserProfile | null;
@@ -23,6 +24,8 @@ interface UserCenterLayoutProps {
 }
 
 export const UserCenterLayout = ({ profile, user, children }: UserCenterLayoutProps) => {
+  const isMobile = useIsMobile();
+  
   const getVerificationBadge = () => {
     if (profile?.seller_verified) {
       return <Badge className="bg-green-100 text-green-800 text-xs">已认证卖家</Badge>;
@@ -46,23 +49,23 @@ export const UserCenterLayout = ({ profile, user, children }: UserCenterLayoutPr
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="max-w-7xl mx-auto px-4 py-4 md:py-6">
       {/* 用户信息头部 */}
-      <Card className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-none shadow-sm">
-        <CardContent className="p-6">
-          <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+      <Card className="mb-6 md:mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-none shadow-sm">
+        <CardContent className={isMobile ? "p-4" : "p-6"}>
+          <div className="flex flex-col lg:flex-row lg:items-center gap-4 md:gap-6">
             {/* 用户头像和基本信息 */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 md:gap-4">
               <div className="relative">
                 {profile?.avatar_url ? (
                   <img 
                     src={profile.avatar_url} 
                     alt="用户头像" 
-                    className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md"
+                    className={`${isMobile ? 'w-14 h-14' : 'w-16 h-16'} rounded-full object-cover border-2 border-white shadow-md`}
                   />
                 ) : (
-                  <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                    <UserCircle className="w-8 h-8" />
+                  <div className={`${isMobile ? 'w-14 h-14' : 'w-16 h-16'} rounded-full bg-blue-500 flex items-center justify-center text-white`}>
+                    <UserCircle className={isMobile ? 'w-7 h-7' : 'w-8 h-8'} />
                   </div>
                 )}
                 {profile?.verification_status === 'verified' && (
@@ -72,17 +75,17 @@ export const UserCenterLayout = ({ profile, user, children }: UserCenterLayoutPr
                 )}
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-1.5 md:space-y-2">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">
+                  <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-gray-900`}>
                     {profile?.full_name || user?.email?.split('@')[0] || '用户'}
                   </h1>
                   {profile?.username && (
-                    <p className="text-sm text-gray-600">@{profile.username}</p>
+                    <p className="text-xs md:text-sm text-gray-600">@{profile.username}</p>
                   )}
                 </div>
                 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5 md:gap-2">
                   {getVerificationBadge()}
                   {getMembershipLevel()}
                   {profile?.is_admin && (
@@ -93,7 +96,7 @@ export const UserCenterLayout = ({ profile, user, children }: UserCenterLayoutPr
             </div>
 
             {/* 用户详细信息 */}
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div className={`flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 ${isMobile ? 'text-xs' : 'text-sm'}`}>
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-gray-600">
                   <Mail className="w-4 h-4" />
