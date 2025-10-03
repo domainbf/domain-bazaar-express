@@ -536,11 +536,11 @@ export type Database = {
       domain_verifications: {
         Row: {
           created_at: string | null
-          domain_id: string | null
+          domain_id: string
           expiry_date: string | null
           id: string
           last_checked: string | null
-          status: string | null
+          status: string
           updated_at: string | null
           user_id: string | null
           verification_attempts: number | null
@@ -550,11 +550,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          domain_id?: string | null
+          domain_id: string
           expiry_date?: string | null
           id?: string
           last_checked?: string | null
-          status?: string | null
+          status?: string
           updated_at?: string | null
           user_id?: string | null
           verification_attempts?: number | null
@@ -564,11 +564,11 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
-          domain_id?: string | null
+          domain_id?: string
           expiry_date?: string | null
           id?: string
           last_checked?: string | null
-          status?: string | null
+          status?: string
           updated_at?: string | null
           user_id?: string | null
           verification_attempts?: number | null
@@ -581,7 +581,7 @@ export type Database = {
             foreignKeyName: "domain_verifications_domain_id_fkey"
             columns: ["domain_id"]
             isOneToOne: false
-            referencedRelation: "domains"
+            referencedRelation: "domain_listings"
             referencedColumns: ["id"]
           },
         ]
