@@ -1266,7 +1266,18 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      user_domain_stats: {
+        Row: {
+          available_domains: number | null
+          avg_views: number | null
+          owner_id: string | null
+          sold_domains: number | null
+          total_domains: number | null
+          total_value: number | null
+          verified_domains: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       cleanup_expired_valuations: {
@@ -1307,6 +1318,10 @@ export type Database = {
       mark_notification_as_read: {
         Args: { notification_id_param: string }
         Returns: undefined
+      }
+      transfer_domain_ownership: {
+        Args: { _domain_id: string; _new_owner_id: string }
+        Returns: boolean
       }
     }
     Enums: {

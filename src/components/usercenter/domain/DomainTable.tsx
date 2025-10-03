@@ -2,10 +2,12 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from "@/components/ui/button";
 import { DomainActions } from '../DomainActions';
+import { DomainStatusManager } from '../DomainStatusManager';
 import { Link } from 'react-router-dom';
-import { Eye, ExternalLink } from 'lucide-react';
+import { Eye, ExternalLink, Shield } from 'lucide-react';
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DomainTableMobile } from './DomainTableMobile';
+import { useNavigate } from "react-router-dom";
 
 interface Domain {
   id: string;
@@ -27,6 +29,7 @@ interface DomainTableProps {
 
 export const DomainTable = ({ domains, onDomainUpdate, currentUserId }: DomainTableProps) => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   
   const renderDomainStatus = (status?: string) => {
     switch (status) {
@@ -82,11 +85,23 @@ export const DomainTable = ({ domains, onDomainUpdate, currentUserId }: DomainTa
               </td>
               <td className="py-3 px-4">
                 <div className="flex items-center gap-2">
+                  {!domain.is_verified && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigate(`/domain-verification/${domain.id}`)}
+                      className="text-blue-600 hover:text-blue-700"
+                    >
+                      <Shield className="w-4 h-4 mr-1" />
+                      验证
+                    </Button>
+                  )}
                   <Link to={`/domains/${domain.name}`} target="_blank">
                     <Button variant="ghost" size="sm">
                       <ExternalLink className="w-4 h-4" />
                     </Button>
                   </Link>
+                  <DomainStatusManager domain={domain} onStatusChange={onDomainUpdate} />
                   <DomainActions 
                     domain={domain} 
                     mode="edit" 

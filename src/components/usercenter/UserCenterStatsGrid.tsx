@@ -11,10 +11,14 @@ import {
   Eye,
   Heart,
   MessageSquare,
-  Award
+  Award,
+  Package,
+  CheckCircle,
+  Shield
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface UserCenterStatsGridProps {
   profile: UserProfile | null;
@@ -33,6 +37,7 @@ interface UserStats {
 }
 
 export const UserCenterStatsGrid = ({ profile, user }: UserCenterStatsGridProps) => {
+  const isMobile = useIsMobile();
   const [stats, setStats] = useState<UserStats>({
     totalDomains: 0,
     totalValue: 0,
@@ -179,11 +184,11 @@ export const UserCenterStatsGrid = ({ profile, user }: UserCenterStatsGridProps)
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'} gap-3 md:gap-6 mb-6 md:mb-8`}>
         {[...Array(6)].map((_, i) => (
           <Card key={i} className="animate-pulse">
-            <CardContent className="p-6">
-              <div className="h-16 bg-gray-200 rounded"></div>
+            <CardContent className={isMobile ? "p-3" : "p-6"}>
+              <div className={isMobile ? "h-12 bg-gray-200 rounded" : "h-16 bg-gray-200 rounded"}></div>
             </CardContent>
           </Card>
         ))}
@@ -192,33 +197,35 @@ export const UserCenterStatsGrid = ({ profile, user }: UserCenterStatsGridProps)
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'} gap-3 md:gap-6 mb-6 md:mb-8`}>
       {statsCards.map((stat, index) => {
         const Icon = stat.icon;
         return (
           <Card key={index} className="hover:shadow-lg transition-shadow duration-200">
-            <CardContent className="p-6">
+            <CardContent className={isMobile ? "p-3" : "p-6"}>
               <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <h3 className="text-sm font-medium text-gray-600">{stat.title}</h3>
-                    {profile?.is_seller && index < 2 && (
+                <div className="space-y-1 md:space-y-2">
+                  <div className="flex items-center space-x-1 md:space-x-2">
+                    <h3 className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-600`}>{stat.title}</h3>
+                    {profile?.is_seller && index < 2 && !isMobile && (
                       <Badge variant="secondary" className="text-xs">
                         卖家
                       </Badge>
                     )}
                   </div>
-                  <div className="space-y-1">
-                    <p className={`text-2xl font-bold ${stat.color}`}>
+                  <div className="space-y-0.5 md:space-y-1">
+                    <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold ${stat.color}`}>
                       {stat.value}
                     </p>
-                    <p className="text-xs text-gray-500">
-                      {stat.description}
-                    </p>
+                    {!isMobile && (
+                      <p className="text-xs text-gray-500">
+                        {stat.description}
+                      </p>
+                    )}
                   </div>
                 </div>
-                <div className={`${stat.bgColor} p-3 rounded-full`}>
-                  <Icon className={`h-6 w-6 ${stat.color}`} />
+                <div className={`${stat.bgColor} ${isMobile ? 'p-2' : 'p-3'} rounded-full`}>
+                  <Icon className={`${isMobile ? 'h-4 w-4' : 'h-6 w-6'} ${stat.color}`} />
                 </div>
               </div>
             </CardContent>

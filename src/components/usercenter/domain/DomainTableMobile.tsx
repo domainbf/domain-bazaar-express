@@ -2,7 +2,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from "@/components/ui/button";
 import { DomainActions } from '../DomainActions';
-import { Link } from 'react-router-dom';
+import { DomainStatusManager } from '../DomainStatusManager';
+import { Link, useNavigate } from 'react-router-dom';
 import { Eye, ExternalLink, DollarSign, Tag, Shield } from 'lucide-react';
 
 interface Domain {
@@ -25,6 +26,8 @@ interface DomainTableMobileProps {
 }
 
 export const DomainTableMobile = ({ domains, onDomainUpdate }: DomainTableMobileProps) => {
+  const navigate = useNavigate();
+  
   const renderDomainStatus = (status?: string) => {
     switch (status) {
       case 'available':
@@ -87,13 +90,25 @@ export const DomainTableMobile = ({ domains, onDomainUpdate }: DomainTableMobile
             )}
 
             {/* 操作按钮 */}
-            <div className="flex items-center gap-2 pt-3 border-t">
+            <div className="flex flex-wrap items-center gap-2 pt-3 border-t">
+              {!domain.is_verified && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/domain-verification/${domain.id}`)}
+                  className="flex-1"
+                >
+                  <Shield className="w-4 h-4 mr-1" />
+                  验证
+                </Button>
+              )}
               <Link to={`/domains/${domain.name}`} target="_blank" className="flex-1">
                 <Button variant="outline" size="sm" className="w-full">
                   <ExternalLink className="w-4 h-4 mr-1" />
                   查看
                 </Button>
               </Link>
+              <DomainStatusManager domain={domain} onStatusChange={onDomainUpdate} />
               <DomainActions 
                 domain={domain} 
                 mode="edit" 
