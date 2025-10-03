@@ -22,14 +22,18 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom'],
+          vendor: ['react', 'react-dom', 'react-router-dom'],
           supabase: ['@supabase/supabase-js'],
-          ui: ['@radix-ui/react-tabs', '@radix-ui/react-dialog'],
+          query: ['@tanstack/react-query'],
+          ui: ['@radix-ui/react-tabs', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+          charts: ['recharts'],
+          i18n: ['i18next', 'react-i18next'],
         },
       },
     },
     target: 'esnext',
     minify: 'esbuild',
+    chunkSizeWarningLimit: 1000,
   },
   optimizeDeps: {
     include: ['react', 'react-dom', '@supabase/supabase-js'],

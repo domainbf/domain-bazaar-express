@@ -1,11 +1,12 @@
 
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from "sonner";
 import { useEffect, useState, Suspense, lazy } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { initializeAdminUser } from './utils/adminInitialization';
 import SplashScreen from './components/common/SplashScreen';
+import { LoadingSpinner } from './components/common/LoadingSpinner';
 
 // Route-based code splitting
 const Index = lazy(() => import('./pages/Index'));
@@ -51,14 +52,121 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
   );
 }
 
-function App() {
-  const [appReady, setAppReady] = useState(true); // 直接设置为true，移除启动页面
+// 优化的加载组件
+function RouteLoadingFallback() {
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <LoadingSpinner size="lg" text="加载中..." />
+    </div>
+  );
+}
 
+// 路由过渡包装器
+function AnimatedRoutes() {
+  const location = useLocation();
+
+  return (
+    <div className="animate-in fade-in duration-300">
+      <Routes location={location}>
+        <Route path="/" element={<Index />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/auth/*" element={<AuthPage />} />
+        <Route path="/marketplace" element={<Marketplace />} />
+        <Route path="/domain/:domainId" element={<DomainDetailPage />} />
+        <Route path="/domains/:domainName" element={<DomainDetailPage />} />
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/user-center" 
+          element={
+            <ProtectedRoute>
+              <UserCenter />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/user-center/*" 
+          element={
+            <ProtectedRoute>
+              <UserCenter />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/domain-management" 
+          element={
+            <ProtectedRoute>
+              <DomainManagement />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin" 
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminPanel />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin/*" 
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminPanel />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/domain-verification/:domainId" 
+          element={
+            <ProtectedRoute>
+              <DomainVerification />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/profile" 
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } 
+        />
+        <Route path="/profile/:profileId" element={<UserProfilePage />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/reset-password/*" element={<ResetPassword />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/faq" element={<FAQPage />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </div>
+  );
+}
+
+function App() {
   useEffect(() => {
     // 异步初始化，不阻塞UI渲染
     initializeAdminUser().catch(() => {
       console.warn('Admin user initialization failed, continuing...');
     });
+
+    // 预加载关键路由
+    const preloadRoutes = () => {
+      const timer = setTimeout(() => {
+        import('./pages/Marketplace');
+        import('./pages/Dashboard');
+        import('./components/domain/DomainDetailPage');
+      }, 2000);
+      return () => clearTimeout(timer);
+    };
+    
+    return preloadRoutes();
   }, []);
 
   return (
@@ -66,85 +174,8 @@ function App() {
       FallbackComponent={ErrorFallback}
       onReset={() => window.location.reload()}
     >
-        <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/auth/*" element={<AuthPage />} />
-          <Route path="/marketplace" element={<Marketplace />} />
-          <Route path="/domain/:domainId" element={<DomainDetailPage />} />
-          <Route path="/domains/:domainName" element={<DomainDetailPage />} />
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/user-center" 
-            element={
-              <ProtectedRoute>
-                <UserCenter />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/user-center/*" 
-            element={
-              <ProtectedRoute>
-                <UserCenter />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/domain-management" 
-            element={
-              <ProtectedRoute>
-                <DomainManagement />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin" 
-            element={
-              <ProtectedRoute adminOnly={true}>
-                <AdminPanel />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/*" 
-            element={
-              <ProtectedRoute adminOnly={true}>
-                <AdminPanel />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/domain-verification/:domainId" 
-            element={
-              <ProtectedRoute>
-                <DomainVerification />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/profile" 
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } 
-          />
-          <Route path="/profile/:profileId" element={<UserProfilePage />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/reset-password/*" element={<ResetPassword />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/faq" element={<FAQPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+      <Suspense fallback={<RouteLoadingFallback />}>
+        <AnimatedRoutes />
         <Toaster position="top-right" />
       </Suspense>
     </ErrorBoundary>
