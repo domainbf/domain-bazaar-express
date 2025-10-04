@@ -7,16 +7,13 @@ import { DomainOffer } from '@/types/domain';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { 
   TrendingUp, 
   DollarSign, 
-  ShoppingCart, 
-  Eye,
   ArrowUpRight,
   ArrowDownRight,
-  Calendar,
-  BarChart3
+  BarChart3,
+  RefreshCw
 } from 'lucide-react';
 import { ReceivedOffersTable } from '@/components/dashboard/ReceivedOffersTable';
 import { SentOffersTable } from '@/components/dashboard/SentOffersTable';
@@ -42,69 +39,82 @@ export const TransactionHistory = () => {
     monthlyGrowth: 0
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // 实时监听发出的报价状态变化
   useEffect(() => {
-    loadTransactions();
+    const channel = supabase
+      .channel('sent-offers-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'domain_offers'
+        },
+        (payload) => {
+          console.log('Sent offer updated:', payload);
+          loadTransactions();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const loadTransactions = async () => {
-    setIsLoading(true);
+    const refreshing = !isLoading;
+    if (refreshing) setIsRefreshing(true);
+    else setIsLoading(true);
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) throw new Error('User not authenticated');
+      if (!user) throw new Error('用户未登录');
 
-      // Load received offers (for domains user owns)
+      // Load received offers with domain names - 使用单次查询优化
       const { data: received, error: receivedError } = await supabase
         .from('domain_offers')
-        .select('*')
+        .select(`
+          *,
+          domain_listings (
+            name,
+            id
+          )
+        `)
         .eq('seller_id', user.id)
         .order('created_at', { ascending: false });
       
       if (receivedError) throw receivedError;
       
-      // Get domain names for received offers
-      const receivedWithDomains = await Promise.all(
-        (received || []).map(async (offer) => {
-          const { data: domain } = await supabase
-            .from('domain_listings')
-            .select('name')
-            .eq('id', offer.domain_id)
-            .single();
-          
-          return {
-            ...offer,
-            domain_name: domain?.name || 'Unknown domain'
-          };
-        })
-      );
+      const receivedWithDomains = (received || []).map(offer => ({
+        ...offer,
+        domain_name: offer.domain_listings?.name || '未知域名'
+      }));
       
       setReceivedOffers(receivedWithDomains);
 
-      // Load sent offers
+      // Load sent offers with domain names - 使用单次查询优化
       const { data: sent, error: sentError } = await supabase
         .from('domain_offers')
-        .select('*')
+        .select(`
+          *,
+          domain_listings (
+            name,
+            id
+          )
+        `)
         .eq('buyer_id', user.id)
         .order('created_at', { ascending: false });
       
       if (sentError) throw sentError;
       
-      // Get domain names for sent offers
-      const sentWithDomains = await Promise.all(
-        (sent || []).map(async (offer) => {
-          const { data: domain } = await supabase
-            .from('domain_listings')
-            .select('name')
-            .eq('id', offer.domain_id)
-            .single();
-          
-          return {
-            ...offer,
-            domain_name: domain?.name || 'Unknown domain'
-          };
-        })
-      );
+      const sentWithDomains = (sent || []).map(offer => ({
+        ...offer,
+        domain_name: offer.domain_listings?.name || '未知域名'
+      }));
       
       setSentOffers(sentWithDomains);
 
@@ -112,9 +122,10 @@ export const TransactionHistory = () => {
       calculateStats(receivedWithDomains, sentWithDomains);
     } catch (error: any) {
       console.error('Error loading transactions:', error);
-      toast.error(error.message || 'Failed to load transaction history');
+      toast.error(error.message || '加载交易记录失败');
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -158,63 +169,85 @@ export const TransactionHistory = () => {
 
   return (
     <div className="space-y-6">
+      {/* 头部带刷新按钮 */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">交易记录</h2>
+        <Button
+          onClick={loadTransactions}
+          disabled={isRefreshing}
+          variant="outline"
+          size="sm"
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+          刷新
+        </Button>
+      </div>
+
       {/* 统计概览卡片 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">收到报价</p>
-                <p className="text-2xl font-bold">{stats.totalReceived}</p>
+                <p className="text-3xl font-bold mt-1">{stats.totalReceived}</p>
               </div>
-              <ArrowDownRight className="h-8 w-8 text-green-600" />
+              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+                <ArrowDownRight className="h-6 w-6 text-green-600" />
+              </div>
             </div>
-            <div className="text-xs text-muted-foreground mt-2">
+            <div className="text-xs text-muted-foreground mt-3">
               总计收到的域名报价数量
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">发出报价</p>
-                <p className="text-2xl font-bold">{stats.totalSent}</p>
+                <p className="text-3xl font-bold mt-1">{stats.totalSent}</p>
               </div>
-              <ArrowUpRight className="h-8 w-8 text-blue-600" />
+              <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                <ArrowUpRight className="h-6 w-6 text-blue-600" />
+              </div>
             </div>
-            <div className="text-xs text-muted-foreground mt-2">
+            <div className="text-xs text-muted-foreground mt-3">
               总计发出的域名报价数量
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">总交易额</p>
-                <p className="text-2xl font-bold">¥{stats.totalValue.toLocaleString()}</p>
+                <p className="text-3xl font-bold mt-1">¥{stats.totalValue.toLocaleString()}</p>
               </div>
-              <DollarSign className="h-8 w-8 text-purple-600" />
+              <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
+                <DollarSign className="h-6 w-6 text-purple-600" />
+              </div>
             </div>
-            <div className="text-xs text-muted-foreground mt-2">
+            <div className="text-xs text-muted-foreground mt-3">
               所有交易的总金额
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">接受率</p>
-                <p className="text-2xl font-bold">{stats.acceptanceRate.toFixed(1)}%</p>
+                <p className="text-3xl font-bold mt-1">{stats.acceptanceRate.toFixed(1)}%</p>
               </div>
-              <BarChart3 className="h-8 w-8 text-orange-600" />
+              <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
+                <BarChart3 className="h-6 w-6 text-orange-600" />
+              </div>
             </div>
-            <div className="text-xs text-muted-foreground mt-2">
+            <div className="text-xs text-muted-foreground mt-3">
               报价接受成功率
             </div>
           </CardContent>
