@@ -10,6 +10,7 @@ import { useDomainAnalytics } from "@/hooks/useDomainAnalytics";
 import { DomainValuationTool } from "@/components/domain/DomainValuationTool";
 import NotFound from "@/pages/NotFound";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -19,12 +20,15 @@ import {
 } from "@/components/ui/dialog";
 import { DomainOfferForm } from "@/components/domain/DomainOfferForm";
 import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 export const DomainDetailPage = () => {
   const { domain, similarDomains, priceHistory, isLoading, error } = useDomainDetail();
   const { analytics, isFavorited, recordView, toggleFavorite } = useDomainAnalytics(domain?.id || '');
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   // Record view when domain loads
   useEffect(() => {
@@ -71,10 +75,20 @@ export const DomainDetailPage = () => {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-background min-h-screen">
       <Navbar />
-      <main className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <DomainDetailHeader 
+      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {/* 返回按钮 */}
+        <Button
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          className="mb-6 hover:bg-accent"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          返回
+        </Button>
+        
+        <DomainDetailHeader
           domain={{
             ...domain,
             views: analytics?.views || 0,
