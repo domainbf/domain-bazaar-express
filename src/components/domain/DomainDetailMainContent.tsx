@@ -6,6 +6,7 @@ import { Domain } from "@/types/domain";
 import { PriceHistoryChart } from "./PriceHistoryChart";
 import { DomainAnalytics } from "./DomainAnalytics";
 import { SimilarDomainsGrid } from "./SimilarDomainsGrid";
+import { DomainOwnerInfo } from "./DomainOwnerInfo";
 
 interface Props {
   domain: Domain;
@@ -19,6 +20,11 @@ export const DomainDetailMainContent: React.FC<Props> = ({
   similarDomains,
 }) => (
   <div className="lg:col-span-2 space-y-6">
+    {/* 域名所有者信息 */}
+    {domain.owner && (
+      <DomainOwnerInfo owner={domain.owner} />
+    )}
+
     {/* 域名描述 */}
     {domain.description && (
       <Card>

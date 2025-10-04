@@ -17,11 +17,43 @@ const fetchDomainDetails = async (identifier: string | undefined) => {
   const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(identifier);
 
   if (isUUID) {
-    // id 查询
-    ({ data: domainData, error: domainError } = await supabase.from('domain_listings').select('*').eq('id', identifier).maybeSingle());
+    // id 查询 - 包含所有者信息
+    ({ data: domainData, error: domainError } = await supabase
+      .from('domain_listings')
+      .select(`
+        *,
+        profiles:owner_id (
+          id,
+          username,
+          full_name,
+          avatar_url,
+          bio,
+          contact_email,
+          seller_rating,
+          seller_verified
+        )
+      `)
+      .eq('id', identifier)
+      .maybeSingle());
   } else {
-    // name 查询
-    ({ data: domainData, error: domainError } = await supabase.from('domain_listings').select('*').eq('name', identifier).maybeSingle());
+    // name 查询 - 包含所有者信息
+    ({ data: domainData, error: domainError } = await supabase
+      .from('domain_listings')
+      .select(`
+        *,
+        profiles:owner_id (
+          id,
+          username,
+          full_name,
+          avatar_url,
+          bio,
+          contact_email,
+          seller_rating,
+          seller_verified
+        )
+      `)
+      .eq('name', identifier)
+      .maybeSingle());
   }
 
   if (domainError) {
@@ -61,12 +93,35 @@ const fetchDomainDetails = async (identifier: string | undefined) => {
     views: Number(analytics?.views) || 0,
     favorites: Number(analytics?.favorites) || 0,
     offers: Number(analytics?.offers) || 0,
+    owner: domainData.profiles ? {
+      id: domainData.profiles.id,
+      username: domainData.profiles.username,
+      full_name: domainData.profiles.full_name,
+      avatar_url: domainData.profiles.avatar_url,
+      bio: domainData.profiles.bio,
+      contact_email: domainData.profiles.contact_email,
+      seller_rating: domainData.profiles.seller_rating,
+      seller_verified: domainData.profiles.seller_verified,
+    } : undefined,
   };
 
-  // 并行执行其他查询
+  // 增加浏览量 - 获取当前浏览量再增加
+  const { data: currentAnalytics } = await supabase
+    .from('domain_analytics')
+    .select('views, favorites, offers')
+    .eq('domain_id', processedDomain.id)
+    .maybeSingle();
+
+  const currentViews = currentAnalytics?.views || 0;
   const updateViewsPromise = supabase
     .from('domain_analytics')
-    .upsert({ domain_id: processedDomain.id, views: (processedDomain.views || 0) + 1 }, { onConflict: 'domain_id' });
+    .upsert({ 
+      domain_id: processedDomain.id, 
+      views: currentViews + 1,
+      favorites: currentAnalytics?.favorites || 0,
+      offers: currentAnalytics?.offers || 0,
+      last_updated: new Date().toISOString()
+    }, { onConflict: 'domain_id' });
 
   const priceHistoryPromise = supabase
     .from('domain_price_history')

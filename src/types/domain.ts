@@ -16,6 +16,16 @@ export interface Domain {
   favorites?: number;
   offers?: number;
   domain_analytics?: DomainAnalytics[];
+  owner?: {
+    id: string;
+    username?: string;
+    full_name?: string;
+    avatar_url?: string;
+    bio?: string;
+    contact_email?: string;
+    seller_rating?: number;
+    seller_verified?: boolean;
+  };
 }
 
 export interface DomainListing extends Domain {
