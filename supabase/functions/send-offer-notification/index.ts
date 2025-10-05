@@ -20,75 +20,175 @@ interface OfferNotificationRequest {
 function getBuyerConfirmationHtml(data: OfferNotificationRequest): string {
   return `
     <!DOCTYPE html>
-    <html>
+    <html lang="zh-CN">
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>报价提交成功 | Offer Submitted Successfully</title>
+      <title>报价提交成功 - NIC.BN</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Microsoft YaHei', sans-serif; 
+          line-height: 1.6; 
+          color: #111827; 
+          background: #f3f4f6;
+          padding: 20px;
+        }
+        .container { 
+          max-width: 600px; 
+          margin: 0 auto; 
+          background: #ffffff; 
+          border-radius: 8px; 
+          overflow: hidden; 
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .header { 
+          background: #111827; 
+          padding: 32px 24px; 
+          text-align: center; 
+        }
+        .header h1 { 
+          color: white; 
+          margin: 0; 
+          font-size: 22px; 
+          font-weight: 600; 
+        }
+        .content { 
+          padding: 32px 24px; 
+        }
+        .button { 
+          display: inline-block; 
+          background: #111827; 
+          color: white !important; 
+          text-decoration: none; 
+          padding: 12px 24px; 
+          border-radius: 6px; 
+          font-weight: 500; 
+          margin: 20px 0; 
+        }
+        .footer { 
+          text-align: center; 
+          padding: 24px; 
+          font-size: 13px; 
+          color: #6b7280; 
+          background: #f9fafb; 
+          border-top: 1px solid #e5e7eb;
+        }
+        .offer-card { 
+          background: #f9fafb; 
+          padding: 24px; 
+          border-radius: 6px; 
+          margin: 20px 0; 
+          border: 1px solid #e5e7eb;
+          text-align: center;
+        }
+        .price { 
+          font-size: 32px; 
+          font-weight: 700; 
+          color: #111827; 
+          margin: 16px 0;
+        }
+        .details { 
+          background: #ffffff; 
+          padding: 0; 
+          border-radius: 6px; 
+          margin: 20px 0;
+          border: 1px solid #e5e7eb;
+          overflow: hidden;
+        }
+        .details table { 
+          width: 100%; 
+          border-collapse: collapse; 
+        }
+        .details td, .details th { 
+          padding: 12px 16px; 
+          text-align: left; 
+          border-bottom: 1px solid #f3f4f6; 
+        }
+        .details tr:last-child td { border-bottom: none; }
+        .details th { 
+          background: #f9fafb; 
+          font-weight: 500; 
+          color: #6b7280; 
+          width: 30%;
+          font-size: 14px;
+        }
+        .details td {
+          color: #111827;
+          font-weight: 500;
+        }
+        .info-box { 
+          background: #f9fafb; 
+          padding: 16px; 
+          border-radius: 6px; 
+          border-left: 3px solid #111827; 
+          margin: 20px 0; 
+        }
+        .info-box ul {
+          margin: 8px 0;
+          padding-left: 20px;
+        }
+        .info-box li {
+          margin: 6px 0;
+          color: #374151;
+        }
+      </style>
     </head>
-    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; background-color: #f8fafc;">
-      <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 25px rgba(0,0,0,0.1);">
-        <!-- Header -->
-        <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 20px; text-align: center;">
-          <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">✅ 报价提交成功</h1>
-          <h2 style="color: #d1fae5; margin: 10px 0 0 0; font-size: 16px; font-weight: 400;">Offer Submitted Successfully</h2>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>✅ 报价提交成功</h1>
         </div>
-        
-        <!-- Content -->
-        <div style="padding: 40px 20px;">
-          <div style="text-align: center; margin-bottom: 30px;">
-            <h3 style="font-size: 20px; color: #1f2937; margin: 0 0 20px 0;">您的域名报价已成功发送！</h3>
-            <p style="font-size: 14px; color: #6b7280; margin: 0;">Your domain offer has been sent successfully!</p>
+        <div class="content">
+          <p style="font-size: 16px; margin-bottom: 20px;">您的域名报价已成功发送给卖家！</p>
+          
+          <div class="offer-card">
+            <div class="price">¥${data.offer.toLocaleString()}</div>
+            <p style="color: #6b7280; font-size: 14px;">报价金额</p>
           </div>
           
-          <div style="background: #f8fafc; border-radius: 8px; padding: 30px; margin: 30px 0;">
-            <h4 style="margin: 0 0 20px 0; color: #1f2937; font-size: 18px;">📋 报价详情 | Offer Details</h4>
-            <div style="margin: 15px 0;">
-              <strong style="color: #374151;">域名 | Domain:</strong> <span style="color: #1f2937; font-weight: 600;">${data.domain}</span>
-            </div>
-            <div style="margin: 15px 0;">
-              <strong style="color: #374151;">报价金额 | Offer Amount:</strong> <span style="color: #059669; font-weight: 600; font-size: 18px;">¥${data.offer.toLocaleString()}</span>
-            </div>
-            <div style="margin: 15px 0;">
-              <strong style="color: #374151;">联系邮箱 | Contact Email:</strong> <span style="color: #1f2937;">${data.email}</span>
-            </div>
-            ${data.message ? `
-            <div style="margin: 15px 0;">
-              <strong style="color: #374151;">留言 | Message:</strong>
-              <div style="background: white; padding: 15px; border-radius: 6px; margin-top: 8px; border-left: 4px solid #10b981;">
-                <p style="margin: 0; color: #374151; font-style: italic;">"${data.message}"</p>
-              </div>
-            </div>
-            ` : ''}
+          <div class="details">
+            <table>
+              <tr>
+                <th>域名</th>
+                <td><strong>${data.domain}</strong></td>
+              </tr>
+              <tr>
+                <th>报价金额</th>
+                <td style="font-size: 18px; font-weight: 700;">¥${data.offer.toLocaleString()}</td>
+              </tr>
+              <tr>
+                <th>联系邮箱</th>
+                <td>${data.email}</td>
+              </tr>
+              ${data.message ? `<tr>
+                <th>您的留言</th>
+                <td style="font-style: italic; color: #6b7280;">"${data.message}"</td>
+              </tr>` : ''}
+            </table>
           </div>
           
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${data.dashboardUrl}" 
-               style="display: inline-block; background: linear-gradient(135deg, #1f2937 0%, #374151 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
-              查看报价状态 | Check Offer Status
-            </a>
+          <div class="info-box">
+            <p style="margin: 0 0 8px 0;"><strong style="color: #111827;">📌 接下来</strong></p>
+            <ul>
+              <li>卖家将在 48小时 内回复您的报价</li>
+              <li>您可以随时在用户中心查看报价状态</li>
+              <li>收到回复后我们会第一时间通知您</li>
+            </ul>
           </div>
           
-          <div style="background: #fef3c7; border-radius: 8px; padding: 20px; margin: 30px 0;">
-            <h4 style="margin: 0 0 10px 0; color: #d97706; font-size: 16px;">📌 下一步 | Next Steps</h4>
-            <p style="margin: 0; font-size: 14px; color: #92400e;">域名所有者将会收到您的报价通知，我们会在有回复时第一时间通知您。</p>
-            <p style="margin: 5px 0 0 0; font-size: 14px; color: #92400e;">The domain owner will receive your offer notification, and we'll notify you as soon as there's a response.</p>
+          <div style="text-align: center; margin: 24px 0;">
+            <a href="${data.dashboardUrl}" class="button">查看我的报价</a>
           </div>
+          
+          <p style="margin-top: 24px; color: #374151;">感谢您使用 NIC.BN 域名交易平台！</p>
         </div>
-        
-        <!-- Footer -->
-        <div style="background: #f8fafc; padding: 30px 20px; text-align: center; border-top: 1px solid #e5e7eb;">
-          <p style="margin: 0 0 15px 0; font-size: 14px; color: #6b7280;">
-            此邮件由 <strong>NIC.BN 域名交易平台</strong> 发送<br>
-            This email was sent by <strong>NIC.BN Domain Trading Platform</strong>
-          </p>
-          <div style="margin: 15px 0;">
-            <a href="mailto:support@nic.bn" style="color: #1f2937; text-decoration: none; margin: 0 10px;">📧 联系我们 | Contact Us</a>
-            <a href="https://nic.bn" style="color: #1f2937; text-decoration: none; margin: 0 10px;">🌐 访问网站 | Visit Website</a>
+        <div class="footer">
+          <p>© ${new Date().getFullYear()} NIC.BN 域名交易平台</p>
+          <div style="margin-top: 12px;">
+            <a href="https://nic.bn/help" style="color: #6b7280; text-decoration: none; margin: 0 8px;">帮助中心</a>
+            <a href="https://nic.bn/contact" style="color: #6b7280; text-decoration: none; margin: 0 8px;">联系客服</a>
           </div>
-          <p style="margin: 15px 0 0 0; font-size: 12px; color: #9ca3af;">
-            © 2024 NIC.BN 域名交易平台. All rights reserved.
-          </p>
         </div>
       </div>
     </body>
@@ -100,79 +200,179 @@ function getBuyerConfirmationHtml(data: OfferNotificationRequest): string {
 function getOwnerNotificationHtml(data: OfferNotificationRequest): string {
   return `
     <!DOCTYPE html>
-    <html>
+    <html lang="zh-CN">
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>新的域名报价 | New Domain Offer</title>
+      <title>您收到了新域名报价 - NIC.BN</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Microsoft YaHei', sans-serif; 
+          line-height: 1.6; 
+          color: #111827; 
+          background: #f3f4f6;
+          padding: 20px;
+        }
+        .container { 
+          max-width: 600px; 
+          margin: 0 auto; 
+          background: #ffffff; 
+          border-radius: 8px; 
+          overflow: hidden; 
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .header { 
+          background: #111827; 
+          padding: 32px 24px; 
+          text-align: center; 
+        }
+        .header h1 { 
+          color: white; 
+          margin: 0; 
+          font-size: 22px; 
+          font-weight: 600; 
+        }
+        .content { 
+          padding: 32px 24px; 
+        }
+        .button { 
+          display: inline-block; 
+          background: #111827; 
+          color: white !important; 
+          text-decoration: none; 
+          padding: 12px 24px; 
+          border-radius: 6px; 
+          font-weight: 500; 
+          margin: 8px 4px; 
+        }
+        .button-secondary {
+          background: #6b7280;
+        }
+        .footer { 
+          text-align: center; 
+          padding: 24px; 
+          font-size: 13px; 
+          color: #6b7280; 
+          background: #f9fafb; 
+          border-top: 1px solid #e5e7eb;
+        }
+        .offer-card { 
+          background: #f9fafb; 
+          padding: 24px; 
+          border-radius: 6px; 
+          margin: 20px 0; 
+          border: 1px solid #e5e7eb;
+          text-align: center;
+        }
+        .price { 
+          font-size: 32px; 
+          font-weight: 700; 
+          color: #111827; 
+          margin: 16px 0;
+        }
+        .details { 
+          background: #ffffff; 
+          padding: 0; 
+          border-radius: 6px; 
+          margin: 20px 0;
+          border: 1px solid #e5e7eb;
+          overflow: hidden;
+        }
+        .details table { 
+          width: 100%; 
+          border-collapse: collapse; 
+        }
+        .details td, .details th { 
+          padding: 12px 16px; 
+          text-align: left; 
+          border-bottom: 1px solid #f3f4f6; 
+        }
+        .details tr:last-child td { border-bottom: none; }
+        .details th { 
+          background: #f9fafb; 
+          font-weight: 500; 
+          color: #6b7280; 
+          width: 30%;
+          font-size: 14px;
+        }
+        .details td {
+          color: #111827;
+          font-weight: 500;
+        }
+        .info-box { 
+          background: #f9fafb; 
+          padding: 16px; 
+          border-radius: 6px; 
+          border-left: 3px solid #111827; 
+          margin: 20px 0; 
+        }
+        .info-box ul {
+          margin: 8px 0;
+          padding-left: 20px;
+        }
+        .info-box li {
+          margin: 6px 0;
+          color: #374151;
+        }
+      </style>
     </head>
-    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; background-color: #f8fafc;">
-      <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 25px rgba(0,0,0,0.1);">
-        <!-- Header -->
-        <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 40px 20px; text-align: center;">
-          <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">💰 新的域名报价</h1>
-          <h2 style="color: #fed7aa; margin: 10px 0 0 0; font-size: 16px; font-weight: 400;">New Domain Offer Received</h2>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>💰 您收到了新的域名报价</h1>
         </div>
-        
-        <!-- Content -->
-        <div style="padding: 40px 20px;">
-          <div style="text-align: center; margin-bottom: 30px;">
-            <h3 style="font-size: 20px; color: #1f2937; margin: 0 0 20px 0;">您收到了一个新的域名购买报价！</h3>
-            <p style="font-size: 14px; color: #6b7280; margin: 0;">You have received a new domain purchase offer!</p>
+        <div class="content">
+          <p style="font-size: 16px; margin-bottom: 20px;">您的域名 <strong>${data.domain}</strong> 收到了一个新的购买报价。</p>
+          
+          <div class="offer-card">
+            <div class="price">¥${data.offer.toLocaleString()}</div>
+            <p style="color: #6b7280; font-size: 14px;">买家报价</p>
           </div>
           
-          <div style="background: #f8fafc; border-radius: 8px; padding: 30px; margin: 30px 0;">
-            <h4 style="margin: 0 0 20px 0; color: #1f2937; font-size: 18px;">📋 报价详情 | Offer Details</h4>
-            <div style="margin: 15px 0;">
-              <strong style="color: #374151;">域名 | Domain:</strong> <span style="color: #1f2937; font-weight: 600;">${data.domain}</span>
-            </div>
-            <div style="margin: 15px 0;">
-              <strong style="color: #374151;">报价金额 | Offer Amount:</strong> <span style="color: #d97706; font-weight: 600; font-size: 24px;">¥${data.offer.toLocaleString()}</span>
-            </div>
-            <div style="margin: 15px 0;">
-              <strong style="color: #374151;">买家邮箱 | Buyer Email:</strong> <span style="color: #1f2937;">${data.email}</span>
-            </div>
-            ${data.message ? `
-            <div style="margin: 15px 0;">
-              <strong style="color: #374151;">买家留言 | Buyer Message:</strong>
-              <div style="background: white; padding: 15px; border-radius: 6px; margin-top: 8px; border-left: 4px solid #f59e0b;">
-                <p style="margin: 0; color: #374151; font-style: italic;">"${data.message}"</p>
-              </div>
-            </div>
-            ` : ''}
+          <div class="details">
+            <table>
+              <tr>
+                <th>域名</th>
+                <td><strong>${data.domain}</strong></td>
+              </tr>
+              <tr>
+                <th>报价金额</th>
+                <td style="font-size: 18px; font-weight: 700;">¥${data.offer.toLocaleString()}</td>
+              </tr>
+              <tr>
+                <th>买家邮箱</th>
+                <td><a href="mailto:${data.email}" style="color: #111827; text-decoration: none;">${data.email}</a></td>
+              </tr>
+              ${data.message ? `<tr>
+                <th>买家留言</th>
+                <td style="font-style: italic; color: #6b7280;">"${data.message}"</td>
+              </tr>` : ''}
+            </table>
           </div>
           
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${data.dashboardUrl}" 
-               style="display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; margin: 0 10px 10px 0;">
-              立即回复报价 | Respond to Offer
-            </a>
-            <a href="mailto:${data.email}" 
-               style="display: inline-block; background: linear-gradient(135deg, #1f2937 0%, #374151 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; margin: 0 10px 10px 0;">
-              直接联系买家 | Contact Buyer
-            </a>
+          <div class="info-box">
+            <p style="margin: 0 0 8px 0;"><strong style="color: #111827;">📌 处理建议</strong></p>
+            <ul>
+              <li>快速回复可以提高成交机会</li>
+              <li>您可以接受报价、拒绝或提出反报价</li>
+              <li>建议在 48小时 内给予回复</li>
+            </ul>
           </div>
           
-          <div style="background: #dcfce7; border-radius: 8px; padding: 20px; margin: 30px 0;">
-            <h4 style="margin: 0 0 10px 0; color: #166534; font-size: 16px;">🎯 处理建议 | Recommendations</h4>
-            <p style="margin: 0; font-size: 14px; color: #166534;">建议尽快回复买家的报价，无论是接受、拒绝还是提出反报价，及时的沟通有助于促成交易。</p>
-            <p style="margin: 5px 0 0 0; font-size: 14px; color: #166534;">We recommend responding to the buyer's offer promptly, whether accepting, declining, or making a counter-offer.</p>
+          <div style="text-align: center; margin: 24px 0;">
+            <a href="${data.dashboardUrl}" class="button">查看并回复报价</a>
+            <a href="mailto:${data.email}" class="button button-secondary">直接联系买家</a>
           </div>
+          
+          <p style="margin-top: 24px; color: #374151;">感谢您使用 NIC.BN 域名交易平台！</p>
         </div>
-        
-        <!-- Footer -->
-        <div style="background: #f8fafc; padding: 30px 20px; text-align: center; border-top: 1px solid #e5e7eb;">
-          <p style="margin: 0 0 15px 0; font-size: 14px; color: #6b7280;">
-            此邮件由 <strong>NIC.BN 域名交易平台</strong> 发送<br>
-            This email was sent by <strong>NIC.BN Domain Trading Platform</strong>
-          </p>
-          <div style="margin: 15px 0;">
-            <a href="mailto:support@nic.bn" style="color: #1f2937; text-decoration: none; margin: 0 10px;">📧 联系我们 | Contact Us</a>
-            <a href="https://nic.bn" style="color: #1f2937; text-decoration: none; margin: 0 10px;">🌐 访问网站 | Visit Website</a>
+        <div class="footer">
+          <p>© ${new Date().getFullYear()} NIC.BN 域名交易平台</p>
+          <div style="margin-top: 12px;">
+            <a href="https://nic.bn/help" style="color: #6b7280; text-decoration: none; margin: 0 8px;">帮助中心</a>
+            <a href="https://nic.bn/contact" style="color: #6b7280; text-decoration: none; margin: 0 8px;">联系客服</a>
           </div>
-          <p style="margin: 15px 0 0 0; font-size: 12px; color: #9ca3af;">
-            © 2024 NIC.BN 域名交易平台. All rights reserved.
-          </p>
         </div>
       </div>
     </body>
@@ -205,7 +405,7 @@ const handler = async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         to: data.email,
-        subject: `✅ 报价提交成功：${data.domain} - ¥${data.offer.toLocaleString()} | Offer submitted successfully`,
+        subject: `报价提交成功：${data.domain} - ¥${data.offer.toLocaleString()}`,
         html: getBuyerConfirmationHtml(data),
         from: "NIC.BN 域名交易平台 <noreply@sale.nic.bn>"
       }),
@@ -225,7 +425,7 @@ const handler = async (req: Request): Promise<Response> => {
         },
         body: JSON.stringify({
           to: data.domainOwnerEmail,
-          subject: `💰 新的域名报价：${data.domain} - 买家出价 ¥${data.offer.toLocaleString()} | New offer for ${data.domain}`,
+          subject: `新的域名报价：${data.domain} - 买家出价 ¥${data.offer.toLocaleString()}`,
           html: getOwnerNotificationHtml(data),
           from: "NIC.BN 域名交易平台 <noreply@sale.nic.bn>"
         }),
