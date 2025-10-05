@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_roles: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       auction_bids: {
         Row: {
           amount: number
@@ -178,6 +202,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      domain_bulk_operations: {
+        Row: {
+          created_at: string
+          details: Json | null
+          domain_ids: string[]
+          id: string
+          operation_type: string
+          performed_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          domain_ids: string[]
+          id?: string
+          operation_type: string
+          performed_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          domain_ids?: string[]
+          id?: string
+          operation_type?: string
+          performed_by?: string | null
+        }
+        Relationships: []
       }
       domain_history: {
         Row: {
@@ -1310,6 +1361,10 @@ export type Database = {
           p_seller_id: string
         }
         Returns: undefined
+      }
+      is_admin: {
+        Args: { user_id: string }
+        Returns: boolean
       }
       mark_all_notifications_as_read: {
         Args: { user_id_param: string }

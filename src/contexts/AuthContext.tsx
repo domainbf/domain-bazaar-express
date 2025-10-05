@@ -72,11 +72,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session.user);
         setSession(session);
         
-        // 快速设置管理员状态
-        const isAdminUser = Boolean(session.user.app_metadata?.is_admin) || 
-                           Boolean(session.user.user_metadata?.is_admin) ||
-                           session.user.email === '9208522@qq.com';
-        setIsAdmin(isAdminUser);
+        // 异步检查管理员状态（使用数据库函数）
+        setTimeout(async () => {
+          try {
+            const { data: isAdminUser } = await supabase.rpc('is_admin', {
+              user_id: session.user.id
+            });
+            setIsAdmin(isAdminUser || false);
+          } catch (error) {
+            console.error('Error checking admin status:', error);
+            setIsAdmin(false);
+          }
+        }, 0);
         
         // 异步加载用户资料，不阻塞主流程
         setTimeout(async () => {
@@ -188,21 +195,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return false;
     
     try {
-      const { data: { session }, error } = await supabase.auth.getSession();
+      // 使用安全的数据库函数检查管理员状态
+      const { data, error } = await supabase.rpc('is_admin', {
+        user_id: user.id
+      });
       
-      if (error) return false;
+      if (error) {
+        console.error('Error checking admin status:', error);
+        return false;
+      }
       
-      // 检查用户的 raw_app_meta_data 中的 is_admin 字段
-      const currentIsAdmin = Boolean(session?.user?.app_metadata?.is_admin) || 
-                           Boolean(session?.user?.user_metadata?.is_admin) ||
-                           session?.user?.email === '9208522@qq.com';
+      const adminStatus = data || false;
+      console.log('Admin check for user:', user.email, 'isAdmin:', adminStatus);
       
-      console.log('Admin check for user:', session?.user?.email, 'isAdmin:', currentIsAdmin);
-      console.log('App metadata:', session?.user?.app_metadata);
-      
-      setIsAdmin(currentIsAdmin);
-      
-      return currentIsAdmin;
+      setIsAdmin(adminStatus);
+      return adminStatus;
     } catch (error) {
       console.error('Error checking admin status:', error);
       return false;

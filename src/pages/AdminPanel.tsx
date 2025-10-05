@@ -10,9 +10,10 @@ import { AllDomainListings } from '@/components/admin/AllDomainListings';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { ContentManagement } from '@/components/admin/ContentManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Settings, RefreshCw, FileText } from 'lucide-react';
+import { Shield, Settings, RefreshCw, FileText, Layers } from 'lucide-react';
 import { SiteSettings } from '@/components/admin/SiteSettings';
 import { HomeContentManagement } from '@/components/admin/HomeContentManagement';
+import { BulkDomainOperations } from '@/components/admin/BulkDomainOperations';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -154,10 +155,14 @@ export const AdminPanel = () => {
         </div>
         
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="mb-8">
+          <TabsList className="mb-8 flex-wrap h-auto">
             <TabsTrigger value="dashboard">仪表盘</TabsTrigger>
             <TabsTrigger value="verifications">待验证域名</TabsTrigger>
             <TabsTrigger value="domains">所有域名</TabsTrigger>
+            <TabsTrigger value="bulk" className="flex items-center gap-2">
+              <Layers className="w-4 h-4" />
+              批量操作
+            </TabsTrigger>
             <TabsTrigger value="users">用户管理</TabsTrigger>
             <TabsTrigger value="homepage">首页管理</TabsTrigger>
             <TabsTrigger value="content">内容管理</TabsTrigger>
@@ -176,9 +181,13 @@ export const AdminPanel = () => {
             <AllDomainListings />
           </TabsContent>
           
-            <TabsContent value="users">
-              <UserManagement />
-            </TabsContent>
+          <TabsContent value="bulk">
+            <BulkDomainOperations />
+          </TabsContent>
+          
+          <TabsContent value="users">
+            <UserManagement />
+          </TabsContent>
             
             <TabsContent value="homepage">
               <HomeContentManagement />
