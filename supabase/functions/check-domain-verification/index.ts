@@ -72,20 +72,22 @@ serve(async (req) => {
         const recordName = verification.verification_data.recordName;
         const recordValue = verification.verification_data.recordValue;
         try {
+          console.log(`Checking DNS TXT record: ${recordName} = ${recordValue}`);
           const dnsRecords = await Deno.resolveDns(recordName, "TXT");
+          console.log(`DNS records found:`, dnsRecords);
           const txtValues = dnsRecords.flat();
           if (txtValues.includes(recordValue)) {
             verified = true;
-            message = 'DNS verification successful.';
+            message = 'DNS 验证成功！域名所有权已确认。';
           } else {
-            message = `DNS verification failed. TXT record for '${recordName}' not found or value does not match. Expected to find a TXT record with value "${recordValue}".`;
+            message = `DNS 验证失败：找到了 '${recordName}' 的 TXT 记录，但值不匹配。\n\n期望值：${recordValue}\n实际值：${txtValues.join(', ')}\n\n请检查您的 DNS 记录设置是否正确。`;
           }
         } catch (error) {
           console.error('DNS verification error:', error);
           if (error.name === 'NotFound') {
-            message = `DNS verification failed. Could not find any DNS records for '${recordName}'. Please ensure the record is created correctly.`;
+            message = `DNS 验证失败：未找到 '${recordName}' 的 DNS 记录。\n\n可能原因：\n1. DNS 记录尚未添加\n2. DNS 记录添加后还未生效（通常需要3-10分钟）\n3. 主机记录填写错误（应为 '_domainverify' 而非完整域名）\n\n请确保：\n• 在DNS服务商添加 TXT 记录\n• 主机记录为：_domainverify\n• 记录值为：${recordValue}\n• 等待DNS生效后再次检查`;
           } else {
-            message = `An error occurred during DNS check. Please try again later. Error: ${error.message}`;
+            message = `DNS 检查过程出错，请稍后重试。\n\n错误信息：${error.message}\n\n如果问题持续，请联系技术支持。`;
           }
         }
         break
