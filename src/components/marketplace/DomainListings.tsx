@@ -30,65 +30,75 @@ export const DomainListings = ({ domains, isLoading, isMobile }: DomainListingsP
     );
   }
 
+  const getCategoryLabel = (category: string) => {
+    switch (category) {
+      case 'premium':
+        return 'Premium域名';
+      case 'short':
+        return 'Short域名';
+      case 'standard':
+        return 'Standard域名';
+      default:
+        return 'Standard域名';
+    }
+  };
+
   return (
-    <div>
+    <div className="space-y-4">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-foreground">
           可用域名 ({domains.length})
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+      <div className="space-y-4">
         {domains.map((domain) => (
           <Link 
             key={domain.id} 
-            to={`/domains/${domain.name}`}
-            className="group block h-full"
+            to={`/domain/${domain.id}`}
+            className="group block"
           >
-            <Card className="h-full border border-border bg-card hover:shadow-lg hover:border-primary/20 transition-all duration-300 flex flex-col">
-              <CardHeader className="pb-3 space-y-2">
-                <div className="flex justify-between items-start gap-2">
-                  <CardTitle className="text-xl font-bold text-primary group-hover:text-primary/80 transition-colors line-clamp-1">
+            <Card className="border border-border bg-card hover:shadow-md transition-all duration-200">
+              <CardContent className="p-6">
+                {/* 域名名称 */}
+                <div className="mb-3">
+                  <h3 className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors mb-2">
                     {domain.name}
-                  </CardTitle>
-                  {domain.is_verified && (
-                    <Badge variant="outline" className="border-green-500 text-green-600 shrink-0 flex items-center gap-1">
-                      <CheckCircle2 className="h-3 w-3" />
-                      已验证
-                    </Badge>
-                  )}
+                  </h3>
+                  
+                  {/* 类别标签 */}
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>{getCategoryLabel(domain.category || 'standard')}</span>
+                    {domain.is_verified && (
+                      <>
+                        <span>•</span>
+                        <span className="flex items-center gap-1 text-green-600">
+                          <CheckCircle2 className="h-3 w-3" />
+                          已验证
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
-                <CardDescription className="text-sm text-muted-foreground">
-                  {domain.category === 'premium' && (
-                    <span className="inline-flex items-center gap-1">
-                      <TrendingUp className="h-3 w-3" />
-                      Premium域名
-                    </span>
-                  )}
-                  {domain.category && domain.category !== 'premium' && (
-                    <span>{domain.category.charAt(0).toUpperCase() + domain.category.slice(1)}域名</span>
-                  )}
-                  {!domain.category && <span>标准域名</span>}
-                </CardDescription>
-              </CardHeader>
-              
-              <CardContent className="flex-1 pb-4">
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {domain.description || `${domain.name}是一个很好的域名选择。`}
+
+                {/* 描述 */}
+                <p className="text-sm text-muted-foreground line-clamp-2 mb-4 min-h-[2.5rem]">
+                  {domain.description || `${domain.name}是一个优质域名。`}
                 </p>
+
+                {/* 底部：价格和查看详情 */}
+                <div className="flex justify-between items-center pt-4 border-t border-border">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">售价</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      ${domain.price?.toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="text-primary group-hover:translate-x-1 transition-transform font-medium flex items-center gap-1">
+                    查看详情 →
+                  </div>
+                </div>
               </CardContent>
-              
-              <CardFooter className="pt-4 border-t border-border flex justify-between items-center">
-                <div className="flex flex-col">
-                  <span className="text-xs text-muted-foreground">售价</span>
-                  <span className="text-2xl font-bold text-foreground">
-                    ${domain.price?.toLocaleString()}
-                  </span>
-                </div>
-                <div className="text-primary group-hover:translate-x-1 transition-transform text-sm font-medium">
-                  查看详情 →
-                </div>
-              </CardFooter>
             </Card>
           </Link>
         ))}
