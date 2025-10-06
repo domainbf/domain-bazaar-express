@@ -102,7 +102,7 @@ export const DomainTableMobile = ({ domains, onDomainUpdate }: DomainTableMobile
                   验证
                 </Button>
               )}
-              <Link to={`/domains/${domain.name}`} target="_blank" className="flex-1">
+              <Link to={`/domain/${domain.id}`} target="_blank" className="flex-1">
                 <Button variant="outline" size="sm" className="w-full">
                   <ExternalLink className="w-4 h-4 mr-1" />
                   查看

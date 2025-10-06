@@ -96,7 +96,7 @@ export const DomainTable = ({ domains, onDomainUpdate, currentUserId }: DomainTa
                       验证
                     </Button>
                   )}
-                  <Link to={`/domains/${domain.name}`} target="_blank">
+                  <Link to={`/domain/${domain.id}`} target="_blank">
                     <Button variant="ghost" size="sm">
                       <ExternalLink className="w-4 h-4" />
                     </Button>
