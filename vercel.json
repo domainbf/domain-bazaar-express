@@ -4,11 +4,7 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    },
-    {
-      "source": "/((?!api/|_next/|_static/|assets/|favicon\\.ico|.*\\..*).*)",
+      "source": "/((?!_next/|_static/|assets/|favicon\\.ico|.*\\..*).*)",
       "destination": "/index.html"
     }
   ],
@@ -54,10 +50,5 @@
     }
   ],
   "cleanUrls": true,
-  "trailingSlash": false,
-  "functions": {
-    "src/pages/api/**/*.ts": {
-      "runtime": "nodejs18.x"
-    }
-  }
+  "trailingSlash": false
 }
