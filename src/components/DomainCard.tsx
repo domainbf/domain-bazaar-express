@@ -48,7 +48,7 @@ export const DomainCard = ({
         
         <CardContent className="p-6">
           {/* 域名名称 - 最突出 */}
-          <h3 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground mb-3 group-hover:text-primary transition-colors">
+          <h3 className="text-3xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
             {domain}
           </h3>
           
@@ -58,7 +58,7 @@ export const DomainCard = ({
             {isVerified && (
               <>
                 <span>•</span>
-                <span className="flex items-center gap-1 text-primary">
+                <span className="flex items-center gap-1 text-green-600">
                   <CheckCircle2 className="h-3 w-3" />
                   已验证
                 </span>
@@ -77,7 +77,7 @@ export const DomainCard = ({
           <div className="flex justify-between items-center pt-4 border-t border-border">
             <div>
               <p className="text-xs text-muted-foreground mb-1">售价</p>
-              <p className="text-3xl md:text-4xl font-bold text-foreground">
+              <p className="text-2xl font-bold text-foreground">
                 {typeof price === 'number' ? `$${price.toLocaleString()}` : price}
               </p>
             </div>
