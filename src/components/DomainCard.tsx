@@ -1,19 +1,20 @@
 
-import { Link } from 'react-router-dom';
-import { Card, CardContent } from "@/components/ui/card";
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { DomainOfferForm } from './domain/DomainOfferForm';
 import { Badge } from './ui/badge';
-import { CheckCircle2, ArrowRight } from 'lucide-react';
 
 interface DomainCardProps {
   domain: string;
   price?: number | string;
   highlight?: boolean;
   isSold?: boolean;
-  domainId: string;
+  domainId?: string;
   sellerId?: string;
   category?: string;
   description?: string;
-  isVerified?: boolean;
 }
 
 export const DomainCard = ({ 
@@ -22,71 +23,118 @@ export const DomainCard = ({
   highlight, 
   isSold = false, 
   domainId, 
+  sellerId,
   category,
-  description,
-  isVerified = false
+  description 
 }: DomainCardProps) => {
-  const getCategoryLabel = (cat?: string) => {
-    switch (cat) {
-      case 'premium': return 'Premium域名';
-      case 'short': return 'Short域名';
-      case 'standard': return 'Standard域名';
-      default: return 'Standard域名';
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [domainInfo, setDomainInfo] = useState<{id?: string; ownerId?: string}>({
+    id: domainId,
+    ownerId: sellerId
+  });
+
+  // Check if user is authenticated when dialog opens
+  const handleOpenDialog = async () => {
+    try {
+      // Check authentication
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+      
+      // If domain ID or seller ID is not provided, fetch it
+      if (!domainId || !sellerId) {
+        console.log('Fetching domain info for:', domain);
+        const { data: domainData, error } = await supabase
+          .from('domain_listings')
+          .select('id, owner_id')
+          .eq('name', domain)
+          .single();
+          
+        if (error) {
+          console.error('Error fetching domain info:', error);
+          throw error;
+        }
+          
+        if (domainData) {
+          console.log('Domain data fetched:', domainData);
+          setDomainInfo({
+            id: domainData.id,
+            ownerId: domainData.owner_id
+          });
+        }
+      }
+      
+      // Open dialog after setting data
+      setIsDialogOpen(true);
+    } catch (error) {
+      console.error('Error preparing offer dialog:', error);
+      // Still open dialog but might show error inside
+      setIsDialogOpen(true);
     }
   };
 
   return (
-    <Link to={`/domain/${domainId}`} className="block group">
-      <Card className={`border ${highlight ? 'border-primary border-2' : 'border-border'} bg-card hover:shadow-lg transition-all duration-200 relative overflow-hidden`}>
-        {highlight && (
-          <div className="absolute top-4 right-4 z-10">
-            <Badge className="bg-primary text-primary-foreground">
-              精选
-            </Badge>
-          </div>
+    <div className={`relative border rounded-lg p-6 hover:shadow-md transition-shadow ${highlight ? 'border-black border-2' : 'border-gray-200'}`}>
+      {highlight && (
+        <div className="absolute -top-3 right-4">
+          <Badge className="bg-black text-white">
+            {'精选' /* Using JSX expression to fix type error */}
+          </Badge>
+        </div>
+      )}
+      
+      <div className="flex flex-col items-center space-y-4">
+        <h3 className="text-2xl font-bold text-gray-900 text-center">
+          {domain}
+        </h3>
+        
+        {price !== undefined && (
+          <span className="text-xl font-bold text-gray-900">{typeof price === 'number' ? `$${price.toLocaleString()}` : price}</span>
         )}
         
-        <CardContent className="p-6">
-          {/* 域名名称 - 最突出 */}
-          <h3 className="text-3xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
-            {domain}
-          </h3>
-          
-          {/* 类别标签和验证状态 */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-            <span>{getCategoryLabel(category)}</span>
-            {isVerified && (
-              <>
-                <span>•</span>
-                <span className="flex items-center gap-1 text-green-600">
-                  <CheckCircle2 className="h-3 w-3" />
-                  已验证
-                </span>
-              </>
-            )}
-          </div>
-          
-          {/* 描述 */}
-          {description && (
-            <p className="text-sm text-muted-foreground line-clamp-2 mb-4 min-h-[2.5rem]">
-              {description}
-            </p>
-          )}
-          
-          {/* 底部：价格和查看详情 */}
-          <div className="flex justify-between items-center pt-4 border-t border-border">
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">售价</p>
-              <p className="text-2xl font-bold text-foreground">
-                {typeof price === 'number' ? `$${price.toLocaleString()}` : price}
-              </p>
-            </div>
-            <div className="flex items-center gap-1 text-primary group-hover:translate-x-1 transition-transform font-medium">
-              查看详情 <ArrowRight className="h-4 w-4" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
+        {category && (
+          <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-sm">
+            {category}
+          </span>
+        )}
+        
+        {description && (
+          <p className="text-sm text-gray-600 text-center line-clamp-2 mt-2">
+            {description}
+          </p>
+        )}
+        
+        {isSold ? (
+          <span className="px-4 py-2 rounded-full bg-gray-200 text-gray-700 font-semibold">
+            已售出
+          </span>
+        ) : (
+          <Dialog open={isDialogOpen} onOpenChange={(open) => !open && setIsDialogOpen(false)}>
+            <DialogTrigger asChild>
+              <Button 
+                className="w-full bg-black text-white hover:bg-gray-800 font-bold text-base shadow-md"
+                onClick={handleOpenDialog}
+              >
+                我要报价
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-white border-gray-200 max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-bold text-center text-gray-900">
+                  {domain} - 提交报价
+                </DialogTitle>
+              </DialogHeader>
+              <DomainOfferForm 
+                domain={domain}
+                domainId={domainInfo.id}
+                sellerId={domainInfo.ownerId}
+                onClose={() => setIsDialogOpen(false)}
+                isAuthenticated={isAuthenticated}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+    </div>
   );
 };

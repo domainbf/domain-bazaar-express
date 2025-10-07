@@ -408,7 +408,7 @@ const Index = () => {
                         description={domain.description || ''}
                         category={domain.category || ''}
                         domainId={domain.id}
-                        isVerified={domain.is_verified}
+                        sellerId={domain.owner_id || ''}
                       />
                     ))}
                   </div>
