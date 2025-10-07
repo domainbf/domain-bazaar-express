@@ -11,10 +11,13 @@ const fetchDomainDetails = async (identifier: string | undefined) => {
 
   console.log('Fetching domain details for:', identifier);
 
-  // 判断 id 是不是 UUID 形式，分别查 id 或 name
+  // 规范化标识，去除空格并保持大小写不敏感查询
+  const normalized = identifier.trim();
+
+  // 判断 id 是否为 UUID，分别按 id 或 name 查询
   let domainData;
   let domainError;
-  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(identifier);
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(normalized);
 
   if (isUUID) {
     // id 查询 - 包含所有者信息
@@ -36,7 +39,7 @@ const fetchDomainDetails = async (identifier: string | undefined) => {
       .eq('id', identifier)
       .maybeSingle());
   } else {
-    // name 查询 - 包含所有者信息
+    // 使用不区分大小写匹配域名
     ({ data: domainData, error: domainError } = await supabase
       .from('domain_listings')
       .select(`
@@ -52,7 +55,7 @@ const fetchDomainDetails = async (identifier: string | undefined) => {
           seller_verified
         )
       `)
-      .eq('name', identifier)
+      .ilike('name', normalized)
       .maybeSingle());
   }
 
