@@ -1,9 +1,9 @@
 
 import { Link } from 'react-router-dom';
 import { Domain } from '@/types/domain';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, TrendingUp } from 'lucide-react';
+import { Card, CardContent } from "@/components/ui/card";
+
+
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 export interface DomainListingsProps {
@@ -30,18 +30,6 @@ export const DomainListings = ({ domains, isLoading, isMobile }: DomainListingsP
     );
   }
 
-  const getCategoryLabel = (category: string) => {
-    switch (category) {
-      case 'premium':
-        return 'Premium域名';
-      case 'short':
-        return 'Short域名';
-      case 'standard':
-        return 'Standard域名';
-      default:
-        return 'Standard域名';
-    }
-  };
 
   return (
     <div className="space-y-4">
@@ -55,48 +43,24 @@ export const DomainListings = ({ domains, isLoading, isMobile }: DomainListingsP
         {domains.map((domain) => (
           <Link 
             key={domain.id} 
-            to={`/domain/${domain.id}`}
+            to={`/domain/${encodeURIComponent(domain.name)}`}
             className="group block"
           >
             <Card className="border border-border bg-card hover:shadow-md transition-all duration-200">
               <CardContent className="p-6">
-                {/* 域名名称 */}
-                <div className="mb-3">
-                  <h3 className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors mb-2">
+                <div className="flex flex-col items-center text-center gap-2">
+                  <h3 className="text-3xl font-bold text-foreground group-hover:text-primary transition-colors">
                     {domain.name}
                   </h3>
-                  
-                  {/* 类别标签 */}
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>{getCategoryLabel(domain.category || 'standard')}</span>
-                    {domain.is_verified && (
-                      <>
-                        <span>•</span>
-                        <span className="flex items-center gap-1 text-green-600">
-                          <CheckCircle2 className="h-3 w-3" />
-                          已验证
-                        </span>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* 描述 */}
-                <p className="text-sm text-muted-foreground line-clamp-2 mb-4 min-h-[2.5rem]">
-                  {domain.description || `${domain.name}是一个优质域名。`}
-                </p>
-
-                {/* 底部：价格和查看详情 */}
-                <div className="flex justify-between items-center pt-4 border-t border-border">
-                  <div>
+                  <div className="pt-2">
                     <p className="text-xs text-muted-foreground mb-1">售价</p>
-                    <p className="text-2xl font-bold text-foreground">
+                    <p className="text-3xl font-extrabold text-foreground">
                       ${domain.price?.toLocaleString()}
                     </p>
                   </div>
-                  <div className="text-primary group-hover:translate-x-1 transition-transform font-medium flex items-center gap-1">
-                    查看详情 →
-                  </div>
+                </div>
+                <div className="pt-4 text-center text-primary group-hover:translate-x-0 transition-transform font-medium">
+                  查看详情 →
                 </div>
               </CardContent>
             </Card>

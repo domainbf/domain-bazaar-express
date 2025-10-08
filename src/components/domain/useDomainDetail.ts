@@ -5,54 +5,28 @@ import { supabase } from "@/integrations/supabase/client";
 import { Domain } from "@/types/domain";
 
 const fetchDomainDetails = async (identifier: string | undefined) => {
-  if (!identifier) {
-    return null;
-  }
+  if (!identifier) return null;
 
-  console.log('Fetching domain details for:', identifier);
+  const normalized = decodeURIComponent(identifier).trim();
+  console.log('Fetching domain details for:', normalized);
 
-  // 判断 id 是不是 UUID 形式，分别查 id 或 name
-  let domainData;
-  let domainError;
-  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(identifier);
+  // 判断是否为 UUID；否则按名称不区分大小写精确匹配
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(normalized);
+
+  let domainData: any = null;
+  let domainError: any = null;
 
   if (isUUID) {
-    // id 查询 - 包含所有者信息
     ({ data: domainData, error: domainError } = await supabase
       .from('domain_listings')
-      .select(`
-        *,
-        profiles:owner_id (
-          id,
-          username,
-          full_name,
-          avatar_url,
-          bio,
-          contact_email,
-          seller_rating,
-          seller_verified
-        )
-      `)
-      .eq('id', identifier)
+      .select('*')
+      .eq('id', normalized)
       .maybeSingle());
   } else {
-    // name 查询 - 包含所有者信息
     ({ data: domainData, error: domainError } = await supabase
       .from('domain_listings')
-      .select(`
-        *,
-        profiles:owner_id (
-          id,
-          username,
-          full_name,
-          avatar_url,
-          bio,
-          contact_email,
-          seller_rating,
-          seller_verified
-        )
-      `)
-      .eq('name', identifier)
+      .select('*')
+      .ilike('name', normalized)
       .maybeSingle());
   }
 
@@ -65,17 +39,25 @@ const fetchDomainDetails = async (identifier: string | undefined) => {
     throw new Error('域名不存在或已被删除');
   }
 
-  // 单独查询 domain_analytics，确保使用正确的外键关系
+  // 单独查询拥有者资料（无外键时避免联表错误）
+  let profileData: any = null;
+  if (domainData.owner_id) {
+    const { data: pData, error: pErr } = await supabase
+      .from('profiles')
+      .select('id, username, full_name, avatar_url, bio, contact_email, seller_rating, seller_verified')
+      .eq('id', domainData.owner_id)
+      .maybeSingle();
+    if (pErr) console.warn('Fetching profile failed:', pErr.message);
+    profileData = pData || null;
+  }
+
+  // 查询 analytics
   const { data: analyticsData, error: analyticsError } = await supabase
     .from('domain_analytics')
     .select('views, favorites, offers')
     .eq('domain_id', domainData.id)
     .maybeSingle();
-
-  if (analyticsError) {
-    console.error("Error fetching domain analytics", analyticsError);
-  }
-
+  if (analyticsError) console.warn('Error fetching domain analytics', analyticsError);
   const analytics = analyticsData || { views: 0, favorites: 0, offers: 0 };
 
   const processedDomain: Domain = {
@@ -93,19 +75,21 @@ const fetchDomainDetails = async (identifier: string | undefined) => {
     views: Number(analytics?.views) || 0,
     favorites: Number(analytics?.favorites) || 0,
     offers: Number(analytics?.offers) || 0,
-    owner: domainData.profiles ? {
-      id: domainData.profiles.id,
-      username: domainData.profiles.username,
-      full_name: domainData.profiles.full_name,
-      avatar_url: domainData.profiles.avatar_url,
-      bio: domainData.profiles.bio,
-      contact_email: domainData.profiles.contact_email,
-      seller_rating: domainData.profiles.seller_rating,
-      seller_verified: domainData.profiles.seller_verified,
-    } : undefined,
+    owner: profileData
+      ? {
+          id: profileData.id,
+          username: profileData.username,
+          full_name: profileData.full_name,
+          avatar_url: profileData.avatar_url,
+          bio: profileData.bio,
+          contact_email: profileData.contact_email,
+          seller_rating: profileData.seller_rating,
+          seller_verified: profileData.seller_verified,
+        }
+      : undefined,
   };
 
-  // 增加浏览量 - 获取当前浏览量再增加
+  // 增加浏览量
   const { data: currentAnalytics } = await supabase
     .from('domain_analytics')
     .select('views, favorites, offers')
@@ -115,13 +99,16 @@ const fetchDomainDetails = async (identifier: string | undefined) => {
   const currentViews = currentAnalytics?.views || 0;
   const updateViewsPromise = supabase
     .from('domain_analytics')
-    .upsert({ 
-      domain_id: processedDomain.id, 
-      views: currentViews + 1,
-      favorites: currentAnalytics?.favorites || 0,
-      offers: currentAnalytics?.offers || 0,
-      last_updated: new Date().toISOString()
-    }, { onConflict: 'domain_id' });
+    .upsert(
+      {
+        domain_id: processedDomain.id,
+        views: currentViews + 1,
+        favorites: currentAnalytics?.favorites || 0,
+        offers: currentAnalytics?.offers || 0,
+        last_updated: new Date().toISOString(),
+      },
+      { onConflict: 'domain_id' }
+    );
 
   const priceHistoryPromise = supabase
     .from('domain_price_history')
@@ -148,11 +135,10 @@ const fetchDomainDetails = async (identifier: string | undefined) => {
   ]);
 
   console.log('Domain details fetched successfully');
-
   return {
     domain: processedDomain,
     priceHistory: priceHistoryResult.data || [],
-    similarDomains: similarDomainsResult.data || []
+    similarDomains: similarDomainsResult.data || [],
   };
 };
 

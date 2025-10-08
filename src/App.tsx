@@ -72,7 +72,7 @@ function AnimatedRoutes() {
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/auth/*" element={<AuthPage />} />
         <Route path="/marketplace" element={<Marketplace />} />
-        <Route path="/domain/:domainId" element={<DomainDetailPage />} />
+        <Route path="/domain/:domainName" element={<DomainDetailPage />} />
         <Route path="/domains/:domainName" element={<DomainDetailPage />} />
         <Route 
           path="/dashboard" 
