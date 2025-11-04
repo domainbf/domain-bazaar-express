@@ -52,3 +52,7 @@ verify_jwt = false
 # Send offer notification emails
 [functions.send-offer-notification]
 verify_jwt = false
+
+# Enhanced domain evaluation with AI
+[functions.domain-enhanced-evaluation]
+verify_jwt = false
