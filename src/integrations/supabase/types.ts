@@ -521,7 +521,7 @@ export type Database = {
           created_at: string | null
           domain_id: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           platform: string | null
           user_agent: string | null
           user_id: string | null
@@ -530,7 +530,7 @@ export type Database = {
           created_at?: string | null
           domain_id?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           platform?: string | null
           user_agent?: string | null
           user_id?: string | null
@@ -539,7 +539,7 @@ export type Database = {
           created_at?: string | null
           domain_id?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           platform?: string | null
           user_agent?: string | null
           user_id?: string | null
@@ -1220,7 +1220,7 @@ export type Database = {
           activity_type: string
           created_at: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           resource_id: string | null
           user_agent: string | null
@@ -1230,7 +1230,7 @@ export type Database = {
           activity_type: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           resource_id?: string | null
           user_agent?: string | null
@@ -1240,7 +1240,7 @@ export type Database = {
           activity_type?: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           resource_id?: string | null
           user_agent?: string | null
@@ -1331,10 +1331,7 @@ export type Database = {
       }
     }
     Functions: {
-      cleanup_expired_valuations: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      cleanup_expired_valuations: { Args: never; Returns: undefined }
       get_user_notifications: {
         Args: { user_id_param: string }
         Returns: {
@@ -1349,6 +1346,12 @@ export type Database = {
           updated_at: string
           user_id: string
         }[]
+        SetofOptions: {
+          from: "*"
+          to: "notifications"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       handle_new_offer: {
         Args: {
@@ -1362,10 +1365,7 @@ export type Database = {
         }
         Returns: undefined
       }
-      is_admin: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
+      is_admin: { Args: { user_id: string }; Returns: boolean }
       mark_all_notifications_as_read: {
         Args: { user_id_param: string }
         Returns: undefined

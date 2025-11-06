@@ -31,18 +31,27 @@ export const Dashboard = () => {
   const checkAuth = async () => {
     const { data } = await supabase.auth.getSession();
     if (!data.session) {
-      toast.error('Please sign in to access the dashboard');
-      navigate('/');
+      toast.error('请先登录以访问控制台');
+      navigate('/auth');
     }
   };
 
   const loadData = async () => {
     setIsLoading(true);
     try {
-      // Load user's domains
+      // 获取当前用户
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('请先登录');
+        navigate('/auth');
+        return;
+      }
+
+      // 仅加载当前用户的域名
       const { data: domains, error: domainsError } = await supabase
         .from('domain_listings')
         .select('*')
+        .eq('owner_id', user.id)
         .order('created_at', { ascending: false });
       
       if (domainsError) throw domainsError;
@@ -126,35 +135,34 @@ export const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <Navbar />
       
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-black">Dashboard</h1>
+          <h1 className="text-3xl font-bold">控制台</h1>
           <Button 
             id="add-domain-button"
             onClick={() => {
               setEditingDomain(null);
               setIsAddDomainOpen(true);
             }}
-            className="bg-black text-white hover:bg-gray-800"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Add Domain
+            添加域名
           </Button>
         </div>
 
         <Tabs defaultValue="domains" className="w-full">
           <TabsList className="mb-6">
-            <TabsTrigger value="domains" className="data-[state=active]:bg-black data-[state=active]:text-white">
-              My Domains
+            <TabsTrigger value="domains">
+              我的域名
             </TabsTrigger>
-            <TabsTrigger value="received" className="data-[state=active]:bg-black data-[state=active]:text-white">
-              Received Offers
+            <TabsTrigger value="received">
+              收到的报价
             </TabsTrigger>
-            <TabsTrigger value="sent" className="data-[state=active]:bg-black data-[state=active]:text-white">
-              Sent Offers
+            <TabsTrigger value="sent">
+              发出的报价
             </TabsTrigger>
           </TabsList>
 
@@ -181,10 +189,10 @@ export const Dashboard = () => {
 
       {/* Add/Edit Domain Dialog */}
       <Dialog open={isAddDomainOpen} onOpenChange={setIsAddDomainOpen}>
-        <DialogContent className="bg-white max-w-md">
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center text-black">
-              {editingDomain ? 'Edit Domain' : 'Add New Domain'}
+            <DialogTitle className="text-2xl font-bold text-center">
+              {editingDomain ? '编辑域名' : '添加新域名'}
             </DialogTitle>
           </DialogHeader>
           <DomainForm 

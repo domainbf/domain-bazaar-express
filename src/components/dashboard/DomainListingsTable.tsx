@@ -1,12 +1,15 @@
 
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Edit, Trash, CheckCircle, ExternalLink, Eye, ShieldCheck } from 'lucide-react';
+import { Edit, Trash, CheckCircle, ExternalLink, Eye, ShieldCheck, DollarSign, Tag } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { DomainListing } from "@/types/domain";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface DomainListingsTableProps {
   domains: DomainListing[];
@@ -29,6 +32,7 @@ export const DomainListingsTable = ({
 }: DomainListingsTableProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   
   const handleDeleteDomain = async (domainId: string) => {
     if (!confirm('您确定要删除这个域名吗？')) return;
@@ -89,11 +93,10 @@ export const DomainListingsTable = ({
 
   if (domains.length === 0) {
     return (
-      <div className="text-center py-12 bg-gray-50 rounded-lg">
-        <p className="text-gray-600 mb-4">您还没有列出任何域名</p>
+      <div className="text-center py-12 bg-muted/50 rounded-lg">
+        <p className="text-muted-foreground mb-4">您还没有列出任何域名</p>
         <Button 
           onClick={() => document.getElementById('add-domain-button')?.click()}
-          className="bg-black text-white hover:bg-gray-800"
         >
           添加您的第一个域名
         </Button>
@@ -101,16 +104,131 @@ export const DomainListingsTable = ({
     );
   }
 
+  // 移动端显示Card布局
+  if (isMobile) {
+    return (
+      <div className="space-y-4">
+        {domains.map((domain) => (
+          <Card key={domain.id} className="overflow-hidden">
+            <CardContent className="p-4">
+              {/* 域名名称 */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-lg truncate">{domain.name}</h3>
+                  {domain.highlight && (
+                    <Badge variant="secondary" className="mt-1 text-xs">精选</Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* 域名信息 */}
+              <div className="space-y-2 mb-3">
+                <div className="flex items-center text-sm">
+                  <DollarSign className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <span className="font-medium">¥{domain.price.toLocaleString()}</span>
+                </div>
+                
+                <div className="flex items-center text-sm">
+                  <Tag className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <span>
+                    {domain.category === 'standard' && '标准'}
+                    {domain.category === 'premium' && '高级'}
+                    {domain.category === 'short' && '短域名'} 
+                    {domain.category === 'dev' && '开发'}
+                    {domain.category === 'brandable' && '品牌'}
+                  </span>
+                </div>
+              </div>
+
+              {/* 状态标签 */}
+              <div className="flex flex-wrap gap-2 mb-3">
+                <Badge variant={domain.verification_status === 'verified' ? 'default' : 'secondary'} className="text-xs">
+                  {domain.verification_status === 'verified' && '已验证'}
+                  {domain.verification_status === 'pending' && '待验证'} 
+                  {(!domain.verification_status || domain.verification_status === 'none') && '未验证'}
+                </Badge>
+                <Badge 
+                  variant={domain.status === 'available' ? 'default' : 'secondary'}
+                  className="text-xs"
+                >
+                  {domain.status === 'available' && '在售中'}
+                  {domain.status === 'sold' && '已售出'}
+                  {domain.status === 'reserved' && '未上架'}
+                </Badge>
+              </div>
+
+              {/* 操作按钮 */}
+              {showActions && isOwner(domain) && (
+                <div className="flex flex-wrap items-center gap-2 pt-3 border-t">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => onEdit(domain)}
+                    className="flex-1"
+                  >
+                    <Edit className="w-4 h-4 mr-1" />
+                    编辑
+                  </Button>
+                  
+                  {domain.verification_status !== 'verified' ? (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => handleVerifyDomain(domain.id)}
+                      className="flex-1"
+                    >
+                      <ShieldCheck className="w-4 h-4 mr-1" />
+                      验证
+                    </Button>
+                  ) : (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => handleToggleStatus(domain)}
+                      className="flex-1"
+                    >
+                      {domain.status === 'available' ? '下架' : '上架'}
+                    </Button>
+                  )}
+                  
+                  {domain.status === 'available' && (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => handleViewInMarketplace(domain)}
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                    </Button>
+                  )}
+                  
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => handleDeleteDomain(domain.id as string)}
+                    className="text-destructive"
+                  >
+                    <Trash className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  // 桌面端显示表格布局
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-lg border">
       <table className="w-full border-collapse">
-        <thead>
-          <tr className="bg-gray-50">
-            <th className="text-left p-4 border-b">域名</th>
-            <th className="text-left p-4 border-b">价格</th>
-            <th className="text-left p-4 border-b">分类</th>
-            <th className="text-left p-4 border-b">状态</th>
-            {showActions && <th className="text-left p-4 border-b">操作</th>}
+        <thead className="bg-muted/50">
+          <tr className="border-b">
+            <th className="text-left p-3 md:p-4 font-medium whitespace-nowrap">域名</th>
+            <th className="text-left p-3 md:p-4 font-medium whitespace-nowrap">价格</th>
+            <th className="text-left p-3 md:p-4 font-medium whitespace-nowrap">分类</th>
+            <th className="text-left p-3 md:p-4 font-medium whitespace-nowrap">状态</th>
+            {showActions && <th className="text-left p-3 md:p-4 font-medium whitespace-nowrap">操作</th>}
           </tr>
         </thead>
         <tbody>
