@@ -328,29 +328,35 @@ export const ContactPage: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 gap-3">
-                  <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
-                    <Globe className="h-6 w-6 text-blue-500" />
-                    <div>
-                      <div className="font-medium">在线帮助中心</div>
-                      <div className="text-sm text-gray-600">查看常见问题</div>
+                  <a href="/faq" className="block">
+                    <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer">
+                      <Globe className="h-6 w-6 text-blue-500" />
+                      <div className="flex-1">
+                        <div className="font-medium">在线帮助中心</div>
+                        <div className="text-sm text-gray-600">查看常见问题</div>
+                      </div>
                     </div>
-                  </div>
+                  </a>
 
-                  <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
-                    <Users className="h-6 w-6 text-green-500" />
-                    <div>
-                      <div className="font-medium">用户社区</div>
-                      <div className="text-sm text-gray-600">与其他用户交流</div>
+                  <a href="/community" className="block">
+                    <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors cursor-pointer">
+                      <Users className="h-6 w-6 text-green-500" />
+                      <div className="flex-1">
+                        <div className="font-medium">用户社区</div>
+                        <div className="text-sm text-gray-600">与其他用户交流</div>
+                      </div>
                     </div>
-                  </div>
+                  </a>
 
-                  <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
-                    <Shield className="h-6 w-6 text-purple-500" />
-                    <div>
-                      <div className="font-medium">安全中心</div>
-                      <div className="text-sm text-gray-600">账户安全指引</div>
+                  <a href="/security-center" className="block">
+                    <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer">
+                      <Shield className="h-6 w-6 text-purple-500" />
+                      <div className="flex-1">
+                        <div className="font-medium">安全中心</div>
+                        <div className="text-sm text-gray-600">账户安全指引</div>
+                      </div>
                     </div>
-                  </div>
+                  </a>
                 </div>
               </CardContent>
             </Card>

@@ -23,6 +23,8 @@ const DomainDetailPage = lazy(() => import('./components/domain/DomainDetailPage
 const DomainManagement = lazy(() => import('./components/usercenter/DomainManagement').then(m => ({ default: m.DomainManagement })));
 const ContactPage = lazy(() => import('./pages/ContactPage').then(m => ({ default: m.ContactPage })));
 const FAQPage = lazy(() => import('./pages/FAQPage').then(m => ({ default: m.FAQPage })));
+const SecurityCenter = lazy(() => import('./pages/SecurityCenter'));
+const Community = lazy(() => import('./pages/Community'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
@@ -143,6 +145,8 @@ function AnimatedRoutes() {
         <Route path="/reset-password/*" element={<ResetPassword />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/faq" element={<FAQPage />} />
+        <Route path="/security-center" element={<SecurityCenter />} />
+        <Route path="/community" element={<Community />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
