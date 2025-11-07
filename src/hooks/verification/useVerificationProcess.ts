@@ -22,44 +22,18 @@ export const useVerificationProcess = () => {
       const expiryDate = new Date();
       expiryDate.setDate(expiryDate.getDate() + 7); // Verification expires in 7 days
 
-      switch (verificationMethod) {
-        case 'dns':
-          verification_data = {
-            token,
-            recordType: 'TXT',
-            recordName: `_domainverify.${domainName.toLowerCase()}`,
-            recordValue: token,
-          };
-          break;
-        case 'file':
-          verification_data = {
-            token,
-            fileLocation: '/.well-known/domain-verification.txt',
-            fileContent: token,
-          };
-          break;
-        case 'html':
-          verification_data = {
-            token,
-            metaName: 'domain-verification',
-          };
-          break;
-        case 'whois':
-          verification_data = {
-            token,
-            tokenValue: token,
-          };
-          break;
-        case 'email':
-          verification_data = {
-            token,
-            adminEmail: `admin@${domainName}`, // This is a guess, real implementation might need more logic
-          };
-          break;
-        default:
-          toast.error('不支持的验证方法');
-          return null;
+      // 只支持DNS验证
+      if (verificationMethod !== 'dns') {
+        toast.error('当前仅支持DNS TXT记录验证');
+        return null;
       }
+
+      verification_data = {
+        token,
+        recordType: 'TXT',
+        recordName: `_domainverify.${domainName.toLowerCase()}`,
+        recordValue: token,
+      };
 
       const { data, error } = await supabase
         .from('domain_verifications')

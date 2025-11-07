@@ -13,38 +13,10 @@ export const useVerificationMethods = () => {
     return [
       {
         id: 'dns',
-        name: 'DNS验证',
-        description: '通过添加TXT记录验证域名所有权',
+        name: 'DNS TXT记录验证',
+        description: '通过添加TXT记录验证域名所有权（推荐）',
         icon: 'Shield',
         recommended: true
-      },
-      {
-        id: 'file',
-        name: '文件验证',
-        description: '通过上传文件到Web服务器验证域名所有权',
-        icon: 'File',
-        recommended: false
-      },
-      {
-        id: 'html',
-        name: 'HTML标签验证',
-        description: '通过在网站中添加Meta标签验证域名所有权',
-        icon: 'Code',
-        recommended: false
-      },
-      {
-        id: 'whois',
-        name: 'WHOIS验证',
-        description: '通过WHOIS信息验证域名所有权',
-        icon: 'Database',
-        recommended: false
-      },
-      {
-        id: 'email',
-        name: '邮箱验证',
-        description: '通过域名管理员邮箱验证域名所有权',
-        icon: 'Mail',
-        recommended: false
       }
     ];
   };
