@@ -27,7 +27,7 @@ export const useVerificationProcess = () => {
           verification_data = {
             token,
             recordType: 'TXT',
-            recordName: `_domainverify.${domainName}`,
+            recordName: `_domainverify.${domainName.toLowerCase()}`,
             recordValue: token,
           };
           break;

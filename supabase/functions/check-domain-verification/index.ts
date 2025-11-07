@@ -69,26 +69,48 @@ serve(async (req) => {
 
     switch (verification.verification_method) {
       case 'dns':
-        const recordName = verification.verification_data.recordName;
-        const recordValue = verification.verification_data.recordValue;
         try {
-          console.log(`Checking DNS TXT record: ${recordName} = ${recordValue}`);
-          const dnsRecords = await Deno.resolveDns(recordName, "TXT");
-          console.log(`DNS records found:`, dnsRecords);
-          const txtValues = dnsRecords.flat();
-          if (txtValues.includes(recordValue)) {
-            verified = true;
-            message = 'DNS 验证成功！域名所有权已确认。';
+          const inputRecordName: string = String(verification.verification_data.recordName || '').trim()
+          const expectedValue: string = String(verification.verification_data.recordValue || verification.verification_data.token || '').trim()
+
+          // Normalize: lowercase, ensure fully qualified domain name to avoid resolver search suffixes
+          const normalized = inputRecordName.toLowerCase().replace(/\.$/, '')
+          const fqdn = `${normalized}.`
+
+          console.log(`Checking DNS TXT record (FQDN): ${fqdn} expecting value: ${expectedValue}`)
+
+          let txtValues: string[] = []
+          try {
+            const dnsRecords = await Deno.resolveDns(fqdn, 'TXT')
+            console.log('DNS records found (native):', dnsRecords)
+            txtValues = dnsRecords.flat()
+          } catch (nativeErr) {
+            console.warn('Native DNS resolve failed, falling back to DoH:', nativeErr)
+            // Fallback to DNS over HTTPS (Google Public DNS)
+            const dohUrl = `https://dns.google/resolve?name=${encodeURIComponent(normalized)}&type=TXT`;
+            const resp = await fetch(dohUrl, { headers: { 'Cache-Control': 'no-cache' } })
+            if (resp.ok) {
+              const json = await resp.json()
+              const answers = Array.isArray(json.Answer) ? json.Answer : []
+              txtValues = answers
+                .filter((a: any) => a.type === 16 && typeof a.data === 'string')
+                .map((a: any) => a.data.replace(/^\"|\"$/g, '')) // remove surrounding quotes
+            } else {
+              throw new Error(`DoH query failed with status ${resp.status}`)
+            }
+          }
+
+          if (txtValues.includes(expectedValue)) {
+            verified = true
+            message = 'DNS 验证成功！域名所有权已确认。'
+          } else if (txtValues.length > 0) {
+            message = `DNS 验证失败：找到了 '${normalized}' 的 TXT 记录，但值不匹配。\n\n期望值：${expectedValue}\n实际值：${txtValues.join(', ')}\n\n请检查您的 DNS 记录设置是否正确。`
           } else {
-            message = `DNS 验证失败：找到了 '${recordName}' 的 TXT 记录，但值不匹配。\n\n期望值：${recordValue}\n实际值：${txtValues.join(', ')}\n\n请检查您的 DNS 记录设置是否正确。`;
+            message = `DNS 验证失败：未找到 '${normalized}' 的 TXT 记录。\n\n可能原因：\n1. DNS 记录尚未添加\n2. DNS 记录添加后还未生效（通常需要3-10分钟，全球生效可达24-48小时）\n3. 主机记录填写错误（应为 '_domainverify' 而非完整域名）\n\n请确保：\n• 在 DNS 服务商添加 TXT 记录\n• 主机记录为：_domainverify\n• 记录名称为：_domainverify.${domain.name.toLowerCase()}\n• 记录值为：${expectedValue}\n• 等待 DNS 生效后再次检查`
           }
         } catch (error) {
-          console.error('DNS verification error:', error);
-          if (error.name === 'NotFound') {
-            message = `DNS 验证失败：未找到 '${recordName}' 的 DNS 记录。\n\n可能原因：\n1. DNS 记录尚未添加\n2. DNS 记录添加后还未生效（通常需要3-10分钟）\n3. 主机记录填写错误（应为 '_domainverify' 而非完整域名）\n\n请确保：\n• 在DNS服务商添加 TXT 记录\n• 主机记录为：_domainverify\n• 记录值为：${recordValue}\n• 等待DNS生效后再次检查`;
-          } else {
-            message = `DNS 检查过程出错，请稍后重试。\n\n错误信息：${error.message}\n\n如果问题持续，请联系技术支持。`;
-          }
+          console.error('DNS verification error:', error)
+          message = `DNS 检查过程出错，请稍后重试。\n\n错误信息：${(error as any).message}`
         }
         break
         
