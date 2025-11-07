@@ -6,6 +6,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { CopyButton } from "@/components/common/CopyButton";
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useVerificationProcess } from '@/hooks/verification/useVerificationProcess';
+import { DnsRecordChecker } from './DnsRecordChecker';
 
 interface VerificationInstructionsProps {
   verification: DomainVerification;
@@ -78,35 +79,123 @@ export const VerificationInstructions = ({
         
         {verification.verification_type === 'dns' ? (
           <div className="space-y-4">
-            <p>添加以下TXT记录到您域名的DNS设置：</p>
-            <div className={`${isMobile ? 'overflow-x-auto' : ''} bg-gray-50 p-4 rounded-md space-y-3`}>
-              <div>
-                <p className="text-sm font-medium">记录类型:</p>
-                <div className="flex items-center mt-1">
-                  <p className="text-sm font-mono bg-gray-100 p-1 rounded flex-1">TXT</p>
-                  <CopyButton value="TXT" />
+            <DnsRecordChecker 
+              recordName={verification.verification_data.recordName}
+              expectedValue={verification.verification_data.recordValue}
+              domainName={domainName}
+            />
+            
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+              <h4 className="font-semibold text-blue-900 mb-3">📋 DNS TXT记录设置指南</h4>
+              
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm font-medium text-blue-800 mb-2">请在您的DNS服务商添加以下TXT记录：</p>
+                  <div className="bg-white p-3 rounded-md space-y-2 border border-blue-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-600">记录类型:</span>
+                      <div className="flex items-center gap-2">
+                        <code className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">TXT</code>
+                        <CopyButton value="TXT" />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-600">主机记录:</span>
+                      <div className="flex items-center gap-2">
+                        <code className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">_domainverify</code>
+                        <CopyButton value="_domainverify" />
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs text-gray-600">完整记录名称:</span>
+                      <div className="flex items-center gap-2">
+                        <code className="text-xs font-mono bg-gray-100 px-2 py-1 rounded flex-1 break-all">
+                          {verification.verification_data.recordName}
+                        </code>
+                        <CopyButton value={verification.verification_data.recordName} />
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs text-gray-600">记录值:</span>
+                      <div className="flex items-center gap-2">
+                        <code className="text-xs font-mono bg-gray-100 px-2 py-1 rounded flex-1 break-all">
+                          {verification.verification_data.recordValue}
+                        </code>
+                        <CopyButton value={verification.verification_data.recordValue} />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium">记录名称:</p>
-                <div className="flex items-center mt-1">
-                  <p className="text-sm font-mono bg-gray-100 p-1 rounded flex-1 overflow-x-auto">
-                    {verification.verification_data.recordName}
-                  </p>
-                  <CopyButton value={verification.verification_data.recordName} />
+
+                <Alert className="bg-yellow-50 border-yellow-200">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                  <AlertDescription className="text-sm text-yellow-800">
+                    <strong>重要提示：</strong>
+                    <ul className="mt-2 space-y-1 list-disc list-inside">
+                      <li><strong>主机记录</strong>只需填写 <code className="bg-yellow-100 px-1 rounded">_domainverify</code></li>
+                      <li>不要填写完整域名（如 _domainverify.{domainName}）</li>
+                      <li>大多数DNS服务商会自动添加域名后缀</li>
+                      <li>有些服务商显示"主机记录"，有些显示"名称"或"Host"</li>
+                    </ul>
+                  </AlertDescription>
+                </Alert>
+
+                <div className="space-y-2">
+                  <h5 className="text-sm font-semibold text-blue-900">常见DNS服务商设置方法：</h5>
+                  <div className="space-y-2 text-xs text-gray-700">
+                    <div className="bg-white p-2 rounded border border-blue-100">
+                      <strong>阿里云/万网：</strong>
+                      <ul className="mt-1 ml-4 list-disc space-y-0.5">
+                        <li>记录类型选择：TXT</li>
+                        <li>主机记录填写：<code className="bg-gray-100 px-1">_domainverify</code></li>
+                        <li>记录值粘贴：验证码</li>
+                        <li>TTL默认即可（建议600秒）</li>
+                      </ul>
+                    </div>
+                    <div className="bg-white p-2 rounded border border-blue-100">
+                      <strong>腾讯云DNSPod：</strong>
+                      <ul className="mt-1 ml-4 list-disc space-y-0.5">
+                        <li>记录类型：TXT</li>
+                        <li>主机记录：<code className="bg-gray-100 px-1">_domainverify</code></li>
+                        <li>记录值：粘贴完整验证码</li>
+                        <li>TTL：600（或默认）</li>
+                      </ul>
+                    </div>
+                    <div className="bg-white p-2 rounded border border-blue-100">
+                      <strong>Cloudflare：</strong>
+                      <ul className="mt-1 ml-4 list-disc space-y-0.5">
+                        <li>Type: TXT</li>
+                        <li>Name: <code className="bg-gray-100 px-1">_domainverify</code></li>
+                        <li>Content: 粘贴验证码</li>
+                        <li>TTL: Auto（或自定义）</li>
+                      </ul>
+                    </div>
+                    <div className="bg-white p-2 rounded border border-blue-100">
+                      <strong>GoDaddy：</strong>
+                      <ul className="mt-1 ml-4 list-disc space-y-0.5">
+                        <li>Type: TXT</li>
+                        <li>Host: <code className="bg-gray-100 px-1">_domainverify</code></li>
+                        <li>TXT Value: 粘贴验证码</li>
+                        <li>TTL: 1 Hour（或默认）</li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium">记录值:</p>
-                <div className="flex items-center mt-1">
-                  <p className="text-sm font-mono bg-gray-100 p-1 rounded flex-1 overflow-x-auto">
-                    {verification.verification_data.recordValue}
-                  </p>
-                  <CopyButton value={verification.verification_data.recordValue} />
-                </div>
+
+                <Alert>
+                  <Database className="h-4 w-4" />
+                  <AlertDescription className="text-xs">
+                    <strong>⏱️ DNS生效时间：</strong>
+                    <ul className="mt-1 space-y-0.5 list-disc list-inside ml-2">
+                      <li>国内DNS服务商：通常3-10分钟</li>
+                      <li>国际DNS服务商：可能需要10-30分钟</li>
+                      <li>全球完全生效：最长24-48小时</li>
+                      <li>建议：添加记录后等待10分钟，然后使用上方的"DNS记录实时检查"工具验证</li>
+                    </ul>
+                  </AlertDescription>
+                </Alert>
               </div>
             </div>
-            <p className="text-sm text-gray-600">DNS更改可能需要24-48小时才能生效，但通常会更快。</p>
           </div>
         ) : verification.verification_type === 'file' ? (
           <div className="space-y-4">
