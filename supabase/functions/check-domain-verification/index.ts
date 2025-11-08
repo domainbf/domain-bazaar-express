@@ -14,7 +14,84 @@ serve(async (req) => {
   }
   
   try {
-    const { verificationId, domainId } = await req.json()
+    const { verificationId, domainId, recordName: directRecordName, expectedValue: directExpectedValue, checkOnly } = await req.json()
+    
+    // 支持直接DNS检查模式（不需要数据库记录）
+    if (checkOnly && directRecordName && directExpectedValue) {
+      console.log(`Direct DNS check mode for: ${directRecordName}`)
+      
+      const normalized = directRecordName.toLowerCase().replace(/\.$/, '')
+      const fqdn = `${normalized}.`
+      
+      let txtValues: string[] = []
+      let dnsServersChecked: any = {}
+      
+      // Method 1: Native Deno DNS
+      try {
+        const dnsRecords = await Deno.resolveDns(fqdn, 'TXT')
+        txtValues = dnsRecords.flat()
+        dnsServersChecked.native = { success: true, values: txtValues }
+      } catch (nativeErr) {
+        dnsServersChecked.native = { success: false, error: (nativeErr as any).message }
+      }
+      
+      // Method 2: Google Public DNS
+      try {
+        const googleDohUrl = `https://dns.google/resolve?name=${encodeURIComponent(normalized)}&type=TXT`
+        const googleResp = await fetch(googleDohUrl, { headers: { 'Cache-Control': 'no-cache' } })
+        if (googleResp.ok) {
+          const json = await googleResp.json()
+          const answers = Array.isArray(json.Answer) ? json.Answer : []
+          const googleValues = answers
+            .filter((a: any) => a.type === 16 && typeof a.data === 'string')
+            .map((a: any) => a.data.replace(/^\"|\"$/g, ''))
+          
+          googleValues.forEach(val => {
+            if (!txtValues.includes(val)) txtValues.push(val)
+          })
+          
+          dnsServersChecked.google = { success: true, values: googleValues }
+        }
+      } catch (googleErr) {
+        dnsServersChecked.google = { success: false, error: (googleErr as any).message }
+      }
+
+      // Method 3: Cloudflare DNS
+      try {
+        const cloudflareDohUrl = `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(normalized)}&type=TXT`
+        const cloudflareResp = await fetch(cloudflareDohUrl, { 
+          headers: { 
+            'Accept': 'application/dns-json',
+            'Cache-Control': 'no-cache' 
+          } 
+        })
+        if (cloudflareResp.ok) {
+          const json = await cloudflareResp.json()
+          const answers = Array.isArray(json.Answer) ? json.Answer : []
+          const cloudflareValues = answers
+            .filter((a: any) => a.type === 16 && typeof a.data === 'string')
+            .map((a: any) => a.data.replace(/^\"|\"$/g, ''))
+          
+          cloudflareValues.forEach(val => {
+            if (!txtValues.includes(val)) txtValues.push(val)
+          })
+          
+          dnsServersChecked.cloudflare = { success: true, values: cloudflareValues }
+        }
+      } catch (cloudflareErr) {
+        dnsServersChecked.cloudflare = { success: false, error: (cloudflareErr as any).message }
+      }
+
+      const verified = txtValues.includes(directExpectedValue)
+      const message = verified 
+        ? '✅ DNS TXT记录验证成功！' 
+        : `❌ 未找到匹配的TXT记录\n找到的值: ${txtValues.join(', ') || '无'}`
+      
+      return new Response(
+        JSON.stringify({ verified, message, dnsServers: dnsServersChecked }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
     
     if (!verificationId || !domainId) {
       return new Response(

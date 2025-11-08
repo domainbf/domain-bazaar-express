@@ -6,7 +6,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { CopyButton } from "@/components/common/CopyButton";
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useVerificationProcess } from '@/hooks/verification/useVerificationProcess';
-import { DnsRecordChecker } from './DnsRecordChecker';
+import { SimpleDnsChecker } from './SimpleDnsChecker';
 
 interface VerificationInstructionsProps {
   verification: DomainVerification;
@@ -79,7 +79,7 @@ export const VerificationInstructions = ({
         
         {verification.verification_type === 'dns' ? (
           <div className="space-y-4">
-            <DnsRecordChecker 
+            <SimpleDnsChecker 
               recordName={verification.verification_data.recordName}
               expectedValue={verification.verification_data.recordValue}
               domainName={domainName}

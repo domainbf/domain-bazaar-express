@@ -30,88 +30,50 @@ export const DnsRecordChecker = ({ recordName, expectedValue, domainName }: DnsR
     setResult(null);
 
     try {
-      let txtValues: string[] = [];
-      let googleResult: any = { found: false, values: [] };
-      let cloudflareResult: any = { found: false, values: [] };
-
-      // 检查Google DNS
-      try {
-        const googleResponse = await fetch(
-          `https://dns.google/resolve?name=${encodeURIComponent(recordName)}&type=TXT`,
-          { 
-            headers: { 'Cache-Control': 'no-cache' },
-            mode: 'cors'
-          }
-        );
-
-        if (googleResponse.ok) {
-          const data = await googleResponse.json();
-          const answers = Array.isArray(data.Answer) ? data.Answer : [];
-          const googleValues = answers
-            .filter((a: any) => a.type === 16 && typeof a.data === 'string')
-            .map((a: any) => a.data.replace(/^\"|\"$/g, ''));
-          
-          googleValues.forEach(val => {
-            if (!txtValues.includes(val)) txtValues.push(val);
-          });
-          
-          googleResult = {
-            found: googleValues.includes(expectedValue),
-            values: googleValues
-          };
-        }
-      } catch (err) {
-        console.warn('Google DNS查询失败:', err);
-        googleResult = { found: false, error: 'Google DNS查询失败' };
-      }
-
-      // 检查Cloudflare DNS
-      try {
-        const cfResponse = await fetch(
-          `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(recordName)}&type=TXT`,
-          { 
-            headers: { 
-              'Accept': 'application/dns-json',
-              'Cache-Control': 'no-cache'
-            },
-            mode: 'cors'
-          }
-        );
-        
-        if (cfResponse.ok) {
-          const cfData = await cfResponse.json();
-          const cfAnswers = Array.isArray(cfData.Answer) ? cfData.Answer : [];
-          const cfValues = cfAnswers
-            .filter((a: any) => a.type === 16 && typeof a.data === 'string')
-            .map((a: any) => a.data.replace(/^\"|\"$/g, ''));
-          
-          cfValues.forEach(val => {
-            if (!txtValues.includes(val)) txtValues.push(val);
-          });
-          
-          cloudflareResult = {
-            found: cfValues.includes(expectedValue),
-            values: cfValues
-          };
-        }
-      } catch (err) {
-        console.warn('Cloudflare DNS查询失败:', err);
-        cloudflareResult = { found: false, error: 'Cloudflare DNS查询失败' };
-      }
-
-      setResult({
-        found: txtValues.includes(expectedValue),
-        values: txtValues,
-        servers: {
-          google: googleResult,
-          cloudflare: cloudflareResult
+      // 直接调用后端Edge Function来检查DNS
+      const { data, error } = await supabase.functions.invoke('check-domain-verification', {
+        body: { 
+          verificationId: 'dns-check-only',
+          domainId: 'dns-check-only',
+          recordName: recordName,
+          expectedValue: expectedValue,
+          checkOnly: true
         }
       });
+
+      if (error) {
+        throw error;
+      }
+
+      // 解析返回的结果
+      if (data) {
+        const verified = data.verified || false;
+        const message = data.message || '';
+        
+        // 从消息中提取DNS服务器信息
+        const googleMatch = message.match(/Google DNS.*?([✓✗])/);
+        const cloudflareMatch = message.match(/Cloudflare DNS.*?([✓✗])/);
+        
+        setResult({
+          found: verified,
+          values: verified ? [expectedValue] : [],
+          servers: {
+            google: {
+              found: googleMatch ? googleMatch[1] === '✓' : false,
+              values: verified ? [expectedValue] : []
+            },
+            cloudflare: {
+              found: cloudflareMatch ? cloudflareMatch[1] === '✓' : false,
+              values: verified ? [expectedValue] : []
+            }
+          }
+        });
+      }
     } catch (error: any) {
       console.error('DNS查询错误:', error);
       setResult({
         found: false,
-        error: '网络连接失败，请检查您的网络连接后重试'
+        error: error.message || 'DNS查询服务暂时不可用，请稍后重试'
       });
     } finally {
       setChecking(false);
