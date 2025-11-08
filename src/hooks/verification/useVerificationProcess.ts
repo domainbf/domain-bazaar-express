@@ -109,12 +109,19 @@ export const useVerificationProcess = () => {
         toast.success('域名验证成功！');
         return true;
       } else {
-        // 优化失败反馈，附带详细提示
-        toast.error(
-          result?.message
-            ? `域名验证失败：${result.message}。请根据提示检查 DNS/文件/Meta/邮箱等设置后重试。`
-            : '域名验证失败，请确保您已正确设置验证信息'
-        );
+        // 简洁的失败提示
+        const errorMessage = result?.message || '域名验证失败，请确保您已正确设置验证信息';
+        
+        // 提取关键信息
+        if (errorMessage.includes('未找到') || errorMessage.includes('DNS验证失败')) {
+          toast.error('DNS记录未找到或值不匹配，请检查DNS设置');
+        } else if (errorMessage.includes('DNS 检查过程出错')) {
+          toast.error('DNS查询服务暂时不可用，请稍后重试');
+        } else {
+          // 显示简化的错误消息
+          const shortMessage = errorMessage.split('\n')[0]; // 只取第一行
+          toast.error(shortMessage.length > 100 ? '域名验证失败，请检查DNS TXT记录设置' : shortMessage);
+        }
         return false;
       }
     } catch (error: any) {

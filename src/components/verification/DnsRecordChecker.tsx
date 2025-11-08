@@ -30,41 +30,72 @@ export const DnsRecordChecker = ({ recordName, expectedValue, domainName }: DnsR
     setResult(null);
 
     try {
-      // 调用自定义的DNS检查函数
-      const response = await fetch(
-        `https://dns.google/resolve?name=${encodeURIComponent(recordName)}&type=TXT`,
-        { headers: { 'Cache-Control': 'no-cache' } }
-      );
+      let txtValues: string[] = [];
+      let googleResult: any = { found: false, values: [] };
+      let cloudflareResult: any = { found: false, values: [] };
 
-      if (!response.ok) {
-        throw new Error('DNS查询失败');
+      // 检查Google DNS
+      try {
+        const googleResponse = await fetch(
+          `https://dns.google/resolve?name=${encodeURIComponent(recordName)}&type=TXT`,
+          { 
+            headers: { 'Cache-Control': 'no-cache' },
+            mode: 'cors'
+          }
+        );
+
+        if (googleResponse.ok) {
+          const data = await googleResponse.json();
+          const answers = Array.isArray(data.Answer) ? data.Answer : [];
+          const googleValues = answers
+            .filter((a: any) => a.type === 16 && typeof a.data === 'string')
+            .map((a: any) => a.data.replace(/^\"|\"$/g, ''));
+          
+          googleValues.forEach(val => {
+            if (!txtValues.includes(val)) txtValues.push(val);
+          });
+          
+          googleResult = {
+            found: googleValues.includes(expectedValue),
+            values: googleValues
+          };
+        }
+      } catch (err) {
+        console.warn('Google DNS查询失败:', err);
+        googleResult = { found: false, error: 'Google DNS查询失败' };
       }
 
-      const data = await response.json();
-      const answers = Array.isArray(data.Answer) ? data.Answer : [];
-      const txtValues = answers
-        .filter((a: any) => a.type === 16 && typeof a.data === 'string')
-        .map((a: any) => a.data.replace(/^\"|\"$/g, ''));
-
-      // 同时检查Cloudflare DNS
-      let cloudflareResult;
+      // 检查Cloudflare DNS
       try {
         const cfResponse = await fetch(
           `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(recordName)}&type=TXT`,
-          { headers: { 'Accept': 'application/dns-json', 'Cache-Control': 'no-cache' } }
+          { 
+            headers: { 
+              'Accept': 'application/dns-json',
+              'Cache-Control': 'no-cache'
+            },
+            mode: 'cors'
+          }
         );
+        
         if (cfResponse.ok) {
           const cfData = await cfResponse.json();
           const cfAnswers = Array.isArray(cfData.Answer) ? cfData.Answer : [];
           const cfValues = cfAnswers
             .filter((a: any) => a.type === 16 && typeof a.data === 'string')
             .map((a: any) => a.data.replace(/^\"|\"$/g, ''));
+          
+          cfValues.forEach(val => {
+            if (!txtValues.includes(val)) txtValues.push(val);
+          });
+          
           cloudflareResult = {
-            found: cfValues.length > 0,
+            found: cfValues.includes(expectedValue),
             values: cfValues
           };
         }
       } catch (err) {
+        console.warn('Cloudflare DNS查询失败:', err);
         cloudflareResult = { found: false, error: 'Cloudflare DNS查询失败' };
       }
 
@@ -72,17 +103,15 @@ export const DnsRecordChecker = ({ recordName, expectedValue, domainName }: DnsR
         found: txtValues.includes(expectedValue),
         values: txtValues,
         servers: {
-          google: {
-            found: txtValues.includes(expectedValue),
-            values: txtValues
-          },
+          google: googleResult,
           cloudflare: cloudflareResult
         }
       });
     } catch (error: any) {
+      console.error('DNS查询错误:', error);
       setResult({
         found: false,
-        error: error.message || 'DNS查询失败'
+        error: '网络连接失败，请检查您的网络连接后重试'
       });
     } finally {
       setChecking(false);
