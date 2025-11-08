@@ -22,73 +22,89 @@ serve(async (req) => {
       
       const normalized = directRecordName.toLowerCase().replace(/\.$/, '')
       const fqdn = `${normalized}.`
-      
-      let txtValues: string[] = []
-      let dnsServersChecked: any = {}
-      
-      // Method 1: Native Deno DNS
-      try {
-        const dnsRecords = await Deno.resolveDns(fqdn, 'TXT')
-        txtValues = dnsRecords.flat()
-        dnsServersChecked.native = { success: true, values: txtValues }
-      } catch (nativeErr) {
-        dnsServersChecked.native = { success: false, error: (nativeErr as any).message }
-      }
-      
-      // Method 2: Google Public DNS
-      try {
-        const googleDohUrl = `https://dns.google/resolve?name=${encodeURIComponent(normalized)}&type=TXT`
-        const googleResp = await fetch(googleDohUrl, { headers: { 'Cache-Control': 'no-cache' } })
-        if (googleResp.ok) {
-          const json = await googleResp.json()
-          const answers = Array.isArray(json.Answer) ? json.Answer : []
-          const googleValues = answers
-            .filter((a: any) => a.type === 16 && typeof a.data === 'string')
-            .map((a: any) => a.data.replace(/^\"|\"$/g, ''))
-          
-          googleValues.forEach(val => {
-            if (!txtValues.includes(val)) txtValues.push(val)
-          })
-          
-          dnsServersChecked.google = { success: true, values: googleValues }
+
+      // Build candidate names to catch common misconfigurations
+      const baseDomain = normalized.replace(/^_domainverify\./, '')
+      const doubleAppended = `${normalized}.${baseDomain}` // e.g. _domainverify.example.com.example.com
+      const candidates = Array.from(new Set([normalized, baseDomain, doubleAppended]))
+
+      const txtValuesSet = new Set<string>()
+      const dnsServersChecked: Record<string, any> = {}
+
+      for (const name of candidates) {
+        const nameFqdn = `${name}.`
+        dnsServersChecked[name] = {}
+
+        // Method 1: Native Deno DNS
+        try {
+          const dnsRecords = await Deno.resolveDns(nameFqdn, 'TXT')
+          const values = dnsRecords.flat()
+          values.forEach(v => txtValuesSet.add(String(v).replace(/^\"|\"$/g, '')))
+          dnsServersChecked[name].native = { success: true, values }
+        } catch (nativeErr) {
+          dnsServersChecked[name].native = { success: false, error: (nativeErr as any).message }
         }
-      } catch (googleErr) {
-        dnsServersChecked.google = { success: false, error: (googleErr as any).message }
+
+        // Method 2: Google Public DNS
+        try {
+          const googleDohUrl = `https://dns.google/resolve?name=${encodeURIComponent(name)}&type=TXT`
+          const googleResp = await fetch(googleDohUrl, { headers: { 'Cache-Control': 'no-cache' } })
+          if (googleResp.ok) {
+            const json = await googleResp.json()
+            const answers = Array.isArray(json.Answer) ? json.Answer : []
+            const googleValues = answers
+              .filter((a: any) => a.type === 16 && typeof a.data === 'string')
+              .map((a: any) => a.data.replace(/^\"|\"$/g, ''))
+            googleValues.forEach(v => txtValuesSet.add(v))
+            dnsServersChecked[name].google = { success: true, values: googleValues }
+          } else {
+            throw new Error(`Google DoH status ${googleResp.status}`)
+          }
+        } catch (googleErr) {
+          dnsServersChecked[name].google = { success: false, error: (googleErr as any).message }
+        }
+
+        // Method 3: Cloudflare DNS
+        try {
+          const cloudflareDohUrl = `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(name)}&type=TXT`
+          const cloudflareResp = await fetch(cloudflareDohUrl, {
+            headers: {
+              'Accept': 'application/dns-json',
+              'Cache-Control': 'no-cache'
+            }
+          })
+          if (cloudflareResp.ok) {
+            const json = await cloudflareResp.json()
+            const answers = Array.isArray(json.Answer) ? json.Answer : []
+            const cloudflareValues = answers
+              .filter((a: any) => a.type === 16 && typeof a.data === 'string')
+              .map((a: any) => a.data.replace(/^\"|\"$/g, ''))
+            cloudflareValues.forEach(v => txtValuesSet.add(v))
+            dnsServersChecked[name].cloudflare = { success: true, values: cloudflareValues }
+          } else {
+            throw new Error(`Cloudflare DoH status ${cloudflareResp.status}`)
+          }
+        } catch (cloudflareErr) {
+          dnsServersChecked[name].cloudflare = { success: false, error: (cloudflareErr as any).message }
+        }
       }
 
-      // Method 3: Cloudflare DNS
-      try {
-        const cloudflareDohUrl = `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(normalized)}&type=TXT`
-        const cloudflareResp = await fetch(cloudflareDohUrl, { 
-          headers: { 
-            'Accept': 'application/dns-json',
-            'Cache-Control': 'no-cache' 
-          } 
-        })
-        if (cloudflareResp.ok) {
-          const json = await cloudflareResp.json()
-          const answers = Array.isArray(json.Answer) ? json.Answer : []
-          const cloudflareValues = answers
-            .filter((a: any) => a.type === 16 && typeof a.data === 'string')
-            .map((a: any) => a.data.replace(/^\"|\"$/g, ''))
-          
-          cloudflareValues.forEach(val => {
-            if (!txtValues.includes(val)) txtValues.push(val)
-          })
-          
-          dnsServersChecked.cloudflare = { success: true, values: cloudflareValues }
-        }
-      } catch (cloudflareErr) {
-        dnsServersChecked.cloudflare = { success: false, error: (cloudflareErr as any).message }
-      }
+      const txtValues = Array.from(txtValuesSet)
+      const norm = (s: string) => String(s).replace(/^\"|\"$/g, '').trim()
+      const expected = norm(directExpectedValue)
 
-      const verified = txtValues.includes(directExpectedValue)
-      const message = verified 
-        ? '✅ DNS TXT记录验证成功！' 
-        : `❌ 未找到匹配的TXT记录\n找到的值: ${txtValues.join(', ') || '无'}`
-      
+      // Match if exact OR value contains expected (case-insensitive) to handle providers quoting/splitting
+      const verified = txtValues.some(v => {
+        const nv = norm(v)
+        return nv === expected || nv.toLowerCase().includes(expected.toLowerCase())
+      })
+
+      const message = verified
+        ? '✅ DNS TXT记录验证成功！'
+        : `❌ 未找到匹配的TXT记录\n已检查名称: ${candidates.join(', ')}\n找到的值: ${txtValues.join(', ') || '无'}`
+
       return new Response(
-        JSON.stringify({ verified, message, dnsServers: dnsServersChecked }),
+        JSON.stringify({ verified, message, dnsServers: dnsServersChecked, checkedNames: candidates }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -157,111 +173,106 @@ serve(async (req) => {
       const inputRecordName: string = String(verification.verification_data.recordName || '').trim()
       const expectedValue: string = String(verification.verification_data.recordValue || verification.verification_data.token || '').trim()
 
-      // Normalize: lowercase, ensure fully qualified domain name to avoid resolver search suffixes
+      // Normalize and build candidate names
       const normalized = inputRecordName.toLowerCase().replace(/\.$/, '')
-      const fqdn = `${normalized}.`
+      const baseDomain = normalized.replace(/^_domainverify\./, '')
+      const doubleAppended = `${normalized}.${baseDomain}`
+      const candidates = Array.from(new Set([normalized, baseDomain, doubleAppended]))
 
-      console.log(`Checking DNS TXT record (FQDN): ${fqdn} expecting value: ${expectedValue}`)
+      console.log(`Checking DNS TXT candidates: ${candidates.join(', ')} expecting: ${expectedValue}`)
 
-      let txtValues: string[] = []
-      let dnsServersChecked: any = {}
-      
-      // Try multiple DNS resolution methods for better reliability
-      
-      // Method 1: Native Deno DNS
-      try {
-        const dnsRecords = await Deno.resolveDns(fqdn, 'TXT')
-        console.log('DNS records found (native):', dnsRecords)
-        txtValues = dnsRecords.flat()
-        dnsServersChecked.native = { success: true, values: txtValues }
-      } catch (nativeErr) {
-        console.warn('Native DNS resolve failed:', nativeErr)
-        dnsServersChecked.native = { success: false, error: (nativeErr as any).message }
-      }
-      
-      // Method 2: Google Public DNS (8.8.8.8)
-      try {
-        const googleDohUrl = `https://dns.google/resolve?name=${encodeURIComponent(normalized)}&type=TXT`;
-        const googleResp = await fetch(googleDohUrl, { headers: { 'Cache-Control': 'no-cache' } })
-        if (googleResp.ok) {
-          const json = await googleResp.json()
-          const answers = Array.isArray(json.Answer) ? json.Answer : []
-          const googleValues = answers
-            .filter((a: any) => a.type === 16 && typeof a.data === 'string')
-            .map((a: any) => a.data.replace(/^\"|\"$/g, ''))
-          
-          // Merge with existing values
-          googleValues.forEach(val => {
-            if (!txtValues.includes(val)) txtValues.push(val)
-          })
-          
-          dnsServersChecked.google = { success: true, values: googleValues }
-          console.log('Google DNS result:', googleValues)
-        } else {
-          throw new Error(`Google DoH query failed with status ${googleResp.status}`)
+      const txtValuesSet = new Set<string>()
+      const dnsServersChecked: Record<string, any> = {}
+
+      for (const name of candidates) {
+        dnsServersChecked[name] = {}
+        // Method 1: Native Deno DNS
+        try {
+          const dnsRecords = await Deno.resolveDns(`${name}.`, 'TXT')
+          const values = dnsRecords.flat()
+          values.forEach(v => txtValuesSet.add(String(v).replace(/^\"|\"$/g, '')))
+          dnsServersChecked[name].native = { success: true, values }
+        } catch (nativeErr) {
+          console.warn('Native DNS resolve failed:', nativeErr)
+          dnsServersChecked[name].native = { success: false, error: (nativeErr as any).message }
         }
-      } catch (googleErr) {
-        console.warn('Google DNS resolve failed:', googleErr)
-        dnsServersChecked.google = { success: false, error: (googleErr as any).message }
-      }
 
-      // Method 3: Cloudflare DNS (1.1.1.1)
-      try {
-        const cloudflareDohUrl = `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(normalized)}&type=TXT`;
-        const cloudflareResp = await fetch(cloudflareDohUrl, { 
-          headers: { 
-            'Accept': 'application/dns-json',
-            'Cache-Control': 'no-cache' 
-          } 
-        })
-        if (cloudflareResp.ok) {
-          const json = await cloudflareResp.json()
-          const answers = Array.isArray(json.Answer) ? json.Answer : []
-          const cloudflareValues = answers
-            .filter((a: any) => a.type === 16 && typeof a.data === 'string')
-            .map((a: any) => a.data.replace(/^\"|\"$/g, ''))
-          
-          // Merge with existing values
-          cloudflareValues.forEach(val => {
-            if (!txtValues.includes(val)) txtValues.push(val)
-          })
-          
-          dnsServersChecked.cloudflare = { success: true, values: cloudflareValues }
-          console.log('Cloudflare DNS result:', cloudflareValues)
-        } else {
-          throw new Error(`Cloudflare DoH query failed with status ${cloudflareResp.status}`)
+        // Method 2: Google DNS
+        try {
+          const googleDohUrl = `https://dns.google/resolve?name=${encodeURIComponent(name)}&type=TXT`
+          const googleResp = await fetch(googleDohUrl, { headers: { 'Cache-Control': 'no-cache' } })
+          if (googleResp.ok) {
+            const json = await googleResp.json()
+            const answers = Array.isArray(json.Answer) ? json.Answer : []
+            const googleValues = answers
+              .filter((a: any) => a.type === 16 && typeof a.data === 'string')
+              .map((a: any) => a.data.replace(/^\"|\"$/g, ''))
+            googleValues.forEach(v => txtValuesSet.add(v))
+            dnsServersChecked[name].google = { success: true, values: googleValues }
+            console.log('Google DNS result for', name, ':', googleValues)
+          } else {
+            throw new Error(`Google DoH query failed with status ${googleResp.status}`)
+          }
+        } catch (googleErr) {
+          console.warn('Google DNS resolve failed:', googleErr)
+          dnsServersChecked[name].google = { success: false, error: (googleErr as any).message }
         }
-      } catch (cloudflareErr) {
-        console.warn('Cloudflare DNS resolve failed:', cloudflareErr)
-        dnsServersChecked.cloudflare = { success: false, error: (cloudflareErr as any).message }
+
+        // Method 3: Cloudflare DNS
+        try {
+          const cloudflareDohUrl = `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(name)}&type=TXT`
+          const cloudflareResp = await fetch(cloudflareDohUrl, {
+            headers: {
+              'Accept': 'application/dns-json',
+              'Cache-Control': 'no-cache'
+            }
+          })
+          if (cloudflareResp.ok) {
+            const json = await cloudflareResp.json()
+            const answers = Array.isArray(json.Answer) ? json.Answer : []
+            const cloudflareValues = answers
+              .filter((a: any) => a.type === 16 && typeof a.data === 'string')
+              .map((a: any) => a.data.replace(/^\"|\"$/g, ''))
+            cloudflareValues.forEach(v => txtValuesSet.add(v))
+            dnsServersChecked[name].cloudflare = { success: true, values: cloudflareValues }
+            console.log('Cloudflare DNS result for', name, ':', cloudflareValues)
+          } else {
+            throw new Error(`Cloudflare DoH query failed with status ${cloudflareResp.status}`)
+          }
+        } catch (cloudflareErr) {
+          console.warn('Cloudflare DNS resolve failed:', cloudflareErr)
+          dnsServersChecked[name].cloudflare = { success: false, error: (cloudflareErr as any).message }
+        }
       }
 
-      console.log('All DNS servers checked:', dnsServersChecked)
+      const txtValues = Array.from(txtValuesSet)
+      console.log('All DNS servers checked (by name):', dnsServersChecked)
       console.log('Combined TXT values found:', txtValues)
 
-      if (txtValues.includes(expectedValue)) {
+      const norm = (s: string) => String(s).replace(/^\"|\"$/g, '').trim()
+      const expected = norm(expectedValue)
+
+      if (txtValues.some(v => {
+        const nv = norm(v)
+        return nv === expected || nv.toLowerCase().includes(expected.toLowerCase())
+      })) {
         verified = true
         message = '✅ DNS 验证成功！域名所有权已确认。'
       } else if (txtValues.length > 0) {
-        message = `❌ DNS 验证失败：找到了 '${normalized}' 的 TXT 记录，但值不匹配。\n\n📋 期望值：\n${expectedValue}\n\n📋 实际找到的值：\n${txtValues.map((v, i) => `${i + 1}. ${v}`).join('\n')}\n\n🔍 请检查您的 DNS 记录设置：\n• 确认记录值完全匹配（包括大小写和特殊字符）\n• 确认没有多余的空格或引号\n• 如果有多条TXT记录，请确保验证码的记录存在\n\n💡 提示：您可以删除错误的记录，重新添加正确的记录值。`
+        message = `❌ DNS 验证失败：找到了 '${candidates.join(' / ')}' 的 TXT 记录，但值不匹配。\n\n📋 期望值：\n${expected}\n\n📋 实际找到的值：\n${txtValues.map((v, i) => `${i + 1}. ${v}`).join('\n')}\n\n🔍 请检查：\n• 确保主机记录为 \"_domainverify\"（不要填写完整域名）\n• 如果复制了完整域名，实际生成为：${doubleAppended}，请更正\n• 可将记录添加在根域(${baseDomain})与 _domainverify 同时存在以加速传播` 
       } else {
-        // Build detailed diagnostic message
-        const serverStatus = []
-        if (dnsServersChecked.native) {
-          serverStatus.push(`• 本地DNS: ${dnsServersChecked.native.success ? '✓ 连接成功但未找到记录' : '✗ 查询失败'}`)
-        }
-        if (dnsServersChecked.google) {
-          serverStatus.push(`• Google DNS (8.8.8.8): ${dnsServersChecked.google.success ? '✓ 连接成功但未找到记录' : '✗ 查询失败'}`)
-        }
-        if (dnsServersChecked.cloudflare) {
-          serverStatus.push(`• Cloudflare DNS (1.1.1.1): ${dnsServersChecked.cloudflare.success ? '✓ 连接成功但未找到记录' : '✗ 查询失败'}`)
+        const serverStatusLines: string[] = []
+        for (const [name, status] of Object.entries(dnsServersChecked)) {
+          if (status.native) serverStatusLines.push(`• ${name} - 本地DNS: ${status.native.success ? '✓ 连接成功但未找到记录' : '✗ 查询失败'}`)
+          if (status.google) serverStatusLines.push(`• ${name} - Google DNS: ${status.google.success ? '✓ 连接成功但未找到记录' : '✗ 查询失败'}`)
+          if (status.cloudflare) serverStatusLines.push(`• ${name} - Cloudflare DNS: ${status.cloudflare.success ? '✓ 连接成功但未找到记录' : '✗ 查询失败'}`)
         }
 
-        message = `❌ DNS 验证失败：未找到 '${normalized}' 的 TXT 记录。\n\n🔍 DNS服务器查询结果：\n${serverStatus.join('\n')}\n\n📝 可能原因：\n1. DNS 记录尚未添加到您的DNS服务商\n2. DNS 记录已添加但还未生效（通常需要3-10分钟，全球完全生效可达24-48小时）\n3. 主机记录填写错误（应为 '_domainverify' 而非完整域名 '${normalized}'）\n4. 记录添加到了错误的域名或子域名\n\n✅ 请确保正确设置：\n━━━━━━━━━━━━━━━━━━━━\n记录类型：TXT\n主机记录：_domainverify\n完整记录名称：${normalized}\n记录值：${expectedValue}\n━━━━━━━━━━━━━━━━━━━━\n\n💡 操作建议：\n1. 登录您的DNS服务商（如阿里云、腾讯云、Cloudflare等）\n2. 检查是否已正确添加上述TXT记录\n3. 主机记录栏只需填写 "_domainverify"，不要包含域名\n4. 记录值要完整复制粘贴，不要有空格或换行\n5. 保存后等待3-10分钟让DNS生效\n6. 使用页面上的"DNS记录实时检查"工具验证设置\n\n⏱️ 如果您刚添加记录，请等待10分钟后再次尝试验证。`
+        message = `❌ DNS 验证失败：未找到候选名称 (${candidates.join(', ')}) 的 TXT 记录。\n\n🔍 DNS服务器查询结果：\n${serverStatusLines.join('\n')}`
       }
     } catch (error) {
       console.error('DNS verification error:', error)
-      message = `⚠️ DNS 检查过程出错，请稍后重试。\n\n错误详情：${(error as any).message}\n\n如果问题持续，请联系技术支持。`
+      message = `⚠️ DNS 检查过程出错，请稍后重试。\n\n错误详情：${(error as any).message}`
     }
     
     if (verified) {
