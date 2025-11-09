@@ -45,7 +45,16 @@ export const zh = {
     type: '类型',
     date: '日期',
     time: '时间',
-    viewAll: '查看全部'
+    viewAll: '查看全部',
+    copySuccess: '已复制到剪贴板',
+    copyFailed: '复制失败',
+    starting: '正在启动',
+    platformDescription: '域名交易与评估平台',
+  },
+  
+  // 认证
+  auth: {
+    welcome: '欢迎使用 NIC.BN',
   },
 
   // 导航
@@ -172,9 +181,25 @@ export const zh = {
     },
     status: {
       pending: '待处理',
-      verified: '已验证',
-      failed: '失败'
-    }
+      verified: '已验证域名',
+      failed: '失败',
+      verifiedDescription: '此域名已成功验证并在我们的市场中标记为可信域名。',
+      pendingDescription: '请完成以下验证步骤，以验证此域名的所有权。',
+      unverified: '未验证域名',
+      unverifiedDescription: '经过验证的域名在我们的市场中会获得更高的曝光率和信任度。',
+    },
+    success: {
+      title: '域名已验证',
+      description: '您的域名已成功验证为真实域名',
+      message: '您的域名 {{domainName}} 现已验证，并享有以下权益：',
+      benefits: {
+        visibility: '在市场搜索中获得更高的曝光率',
+        badge: '向潜在买家展示验证徽章',
+        trust: '提高信任度和可信度',
+        support: '获得优先支持服务',
+      },
+      returnToDashboard: '返回控制面板',
+    },
   },
 
   // 通知

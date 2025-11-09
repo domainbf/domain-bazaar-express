@@ -45,7 +45,16 @@ export const en = {
     type: 'Type',
     date: 'Date',
     time: 'Time',
-    viewAll: 'View All'
+    viewAll: 'View All',
+    copySuccess: 'Copied to clipboard',
+    copyFailed: 'Failed to copy',
+    starting: 'Starting',
+    platformDescription: 'Domain Trading & Valuation Platform',
+  },
+  
+  // Authentication
+  auth: {
+    welcome: 'Welcome to NIC.BN',
   },
 
   // Navigation
@@ -271,8 +280,24 @@ export const en = {
     },
     status: {
       pending: 'Pending',
-      verified: 'Verified',
-      failed: 'Failed'
+      verified: 'Domain Verified',
+      failed: 'Failed',
+      verifiedDescription: 'This domain has been successfully verified and is marked as trusted in our marketplace.',
+      pendingDescription: 'Please complete the following verification steps to verify ownership of this domain.',
+      unverified: 'Unverified Domain',
+      unverifiedDescription: 'Verified domains receive higher visibility and trust in our marketplace.',
+    },
+    success: {
+      title: 'Domain Verified',
+      description: 'Your domain has been successfully verified as authentic',
+      message: 'Your domain {{domainName}} is now verified and has the following benefits:',
+      benefits: {
+        visibility: 'Higher visibility in marketplace searches',
+        badge: 'Verification badge shown to potential buyers',
+        trust: 'Increased trust and credibility',
+        support: 'Priority support for your listings',
+      },
+      returnToDashboard: 'Return to Dashboard',
     },
     instructions: 'Please follow these steps to complete domain verification'
   },

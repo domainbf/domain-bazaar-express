@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from 'react-i18next';
 
 interface SplashScreenProps {
   title?: string;
@@ -8,10 +9,13 @@ interface SplashScreenProps {
 
 // 美观的全屏加载动效，使用设计系统语义色
 export const SplashScreen: React.FC<SplashScreenProps> = ({
-  title = "正在启动",
-  subtitle = "正在加载...",
+  title,
+  subtitle,
   variant = "boot",
 }) => {
+  const { t } = useTranslation();
+  const displayTitle = title || t('common.starting');
+  const displaySubtitle = subtitle || t('common.loading');
   return (
     <div className="min-h-screen w-full bg-background flex items-center justify-center">
       <div className="text-center">
@@ -21,7 +25,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
             NIC.BN
           </span>
           <span className="ml-2 px-2 py-0.5 text-xs rounded bg-muted text-muted-foreground">Beta</span>
-          <p className="mt-2 text-sm text-muted-foreground">域名交易与评估平台</p>
+          <p className="mt-2 text-sm text-muted-foreground">{t('common.platformDescription')}</p>
         </div>
 
         {/* 简化的加载动画 */}
@@ -35,10 +39,10 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
 
         {/* 简化的标题 */}
         <h3 className="text-lg font-medium text-foreground mb-1">
-          {title}
+          {displayTitle}
         </h3>
         <p className="text-sm text-muted-foreground">
-          {subtitle}
+          {displaySubtitle}
         </p>
       </div>
     </div>

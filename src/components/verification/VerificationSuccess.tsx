@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 interface VerificationSuccessProps {
   domainName: string;
@@ -10,29 +11,32 @@ interface VerificationSuccessProps {
 
 export const VerificationSuccess = ({ domainName }: VerificationSuccessProps) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   
   return (
     <Card className="mb-8 border-green-200">
       <CardHeader className="bg-green-50">
         <div className="flex items-center gap-2">
           <Check className="h-5 w-5 text-green-600" />
-          <CardTitle>Domain Verified</CardTitle>
+          <CardTitle>{t('verification.success.title')}</CardTitle>
         </div>
         <CardDescription>
-          Your domain has been successfully verified as authentic
+          {t('verification.success.description')}
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-6">
-        <p>Your domain {domainName} is now verified and has the following benefits:</p>
+        <p>{t('verification.success.message', { domainName })}</p>
         <ul className="list-disc pl-5 mt-2 space-y-1">
-          <li>Higher visibility in marketplace searches</li>
-          <li>Verification badge shown to potential buyers</li>
-          <li>Increased trust and credibility</li>
-          <li>Priority support for your listings</li>
+          <li>{t('verification.success.benefits.visibility')}</li>
+          <li>{t('verification.success.benefits.badge')}</li>
+          <li>{t('verification.success.benefits.trust')}</li>
+          <li>{t('verification.success.benefits.support')}</li>
         </ul>
       </CardContent>
       <CardFooter>
-        <Button variant="outline" onClick={() => navigate('/dashboard')}>Return to Dashboard</Button>
+        <Button variant="outline" onClick={() => navigate('/dashboard')}>
+          {t('verification.success.returnToDashboard')}
+        </Button>
       </CardFooter>
     </Card>
   );
