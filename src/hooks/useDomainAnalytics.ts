@@ -70,33 +70,31 @@ export const useDomainAnalytics = (domainId: string) => {
     return trends;
   };
 
-  // Record a view - 使用 upsert 来避免冲突
+  // Record a view - 使用会话去重，防止重复统计
   const recordView = async () => {
     try {
-      // 使用 upsert 来处理浏览量增加
-      const { data: currentAnalytics } = await supabase
-        .from('domain_analytics')
-        .select('views')
-        .eq('domain_id', domainId)
-        .maybeSingle();
-
-      const currentViews = currentAnalytics?.views || 0;
+      // 检查本次会话是否已经记录过该域名的浏览
+      const sessionKey = `domain_viewed_${domainId}`;
+      const hasViewed = sessionStorage.getItem(sessionKey);
       
-      const { error } = await supabase
-        .from('domain_analytics')
-        .upsert({ 
-          domain_id: domainId, 
-          views: currentViews + 1,
-          favorites: 0,
-          offers: 0,
-          last_updated: new Date().toISOString()
-        }, { onConflict: 'domain_id' });
+      if (hasViewed) {
+        console.log('Already viewed in this session');
+        return;
+      }
+
+      // 使用 RPC 函数进行原子操作，避免竞态条件
+      const { data, error } = await supabase.rpc('increment_domain_views', {
+        p_domain_id: domainId
+      });
 
       if (error) {
         console.error('Error recording view:', error);
       } else {
-        // Update local state
-        setAnalytics(prev => prev ? { ...prev, views: currentViews + 1 } : null);
+        // 标记本次会话已浏览
+        sessionStorage.setItem(sessionKey, 'true');
+        
+        // 重新加载统计数据
+        await loadAnalytics();
       }
     } catch (error) {
       console.error('Error recording view:', error);

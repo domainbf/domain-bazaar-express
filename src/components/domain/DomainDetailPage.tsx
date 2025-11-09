@@ -30,12 +30,13 @@ export const DomainDetailPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Record view when domain loads
+  // Record view when domain loads - 只记录一次
   useEffect(() => {
     if (domain?.id) {
       recordView();
     }
-  }, [domain?.id, recordView]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [domain?.id]);
 
   if (isLoading) {
     return (

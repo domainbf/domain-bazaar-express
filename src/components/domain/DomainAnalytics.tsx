@@ -25,10 +25,10 @@ export const DomainAnalytics = ({ domainId, createdAt }: DomainAnalyticsProps) =
   } = useDomainAnalytics(domainId);
   const isMobile = useIsMobile();
 
-  useEffect(() => {
-    recordView();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // 移除这里的recordView调用，统一在DomainDetailPage中处理
+  // useEffect(() => {
+  //   recordView();
+  // }, []);
   
   const daysSinceListing = () => {
     if (!createdAt) return 'N/A';
