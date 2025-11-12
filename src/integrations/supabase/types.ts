@@ -1365,6 +1365,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      increment_domain_views: {
+        Args: { p_domain_id: string }
+        Returns: undefined
+      }
       is_admin: { Args: { user_id: string }; Returns: boolean }
       mark_all_notifications_as_read: {
         Args: { user_id_param: string }
