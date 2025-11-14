@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -9,6 +8,9 @@ import { DomainListings } from '@/components/marketplace/DomainListings';
 import { Domain } from '@/types/domain';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTranslation } from 'react-i18next';
+import { BottomNavigation } from '@/components/mobile/BottomNavigation';
+import { SkeletonCardGrid } from '@/components/common/SkeletonCard';
+import { useNotifications } from '@/hooks/useNotifications';
 
 export const Marketplace = () => {
   const [domains, setDomains] = useState<Domain[]>([]);
@@ -20,6 +22,7 @@ export const Marketplace = () => {
   const [error, setError] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const { t } = useTranslation();
+  const { unreadCount } = useNotifications();
 
   // 优化的加载函数
   const loadDomains = useCallback(async () => {
@@ -223,74 +226,80 @@ export const Marketplace = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
+      <Navbar unreadCount={unreadCount} />
       
-      <MarketplaceHeader 
-        searchQuery={searchQuery} 
-        setSearchQuery={setSearchQuery} 
-        isMobile={isMobile}
-      />
+      <div className={isMobile ? 'pb-20' : ''}>
+        <MarketplaceHeader 
+          searchQuery={searchQuery} 
+          setSearchQuery={setSearchQuery} 
+          isMobile={isMobile}
+        />
 
-      <FilterSection 
-        filter={filter} 
-        setFilter={setFilter} 
-        priceRange={priceRange} 
-        setPriceRange={setPriceRange}
-        verifiedOnly={verifiedOnly}
-        setVerifiedOnly={setVerifiedOnly}
-        isMobile={isMobile}
-      />
+        <FilterSection 
+          filter={filter} 
+          setFilter={setFilter} 
+          priceRange={priceRange} 
+          setPriceRange={setPriceRange}
+          verifiedOnly={verifiedOnly}
+          setVerifiedOnly={setVerifiedOnly}
+          isMobile={isMobile}
+        />
 
-      <section className={`${isMobile ? 'py-6 px-2' : 'py-12'}`}>
-        <div className={`${isMobile ? 'px-2' : 'max-w-6xl mx-auto px-4'}`}>
-          {error ? (
-            <div className="text-center py-12">
-              <div className="text-red-500 mb-4">
-                <h3 className="text-lg font-semibold mb-2">加载失败</h3>
-                <p>{error}</p>
+        <section className={`${isMobile ? 'py-6 px-2' : 'py-12'}`}>
+          <div className={`${isMobile ? 'px-2' : 'max-w-6xl mx-auto px-4'}`}>
+            {error ? (
+              <div className="text-center py-12">
+                <div className="text-red-500 mb-4">
+                  <h3 className="text-lg font-semibold mb-2">加载失败</h3>
+                  <p>{error}</p>
+                </div>
+                <button 
+                  onClick={handleRetry}
+                  className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+                >
+                  重新加载
+                </button>
               </div>
-              <button 
-                onClick={handleRetry}
-                className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
-              >
-                重新加载
-              </button>
-            </div>
-          ) : (
-            <>
-              <DomainListings 
-                isLoading={isLoading} 
-                domains={filteredDomains}
-                isMobile={isMobile}
-              />
-              
-              {!isLoading && filteredDomains.length === 0 && domains.length === 0 && !error && (
-                <div className="text-center py-12">
-                  <h3 className="text-lg font-semibold mb-2">暂无域名列表</h3>
-                  <p className="text-muted-foreground mb-4">
-                    看起来还没有域名添加到市场中
-                  </p>
-                  <button 
-                    onClick={loadDomains}
-                    className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
-                  >
-                    重新加载
-                  </button>
-                </div>
-              )}
-              
-              {!isLoading && filteredDomains.length === 0 && domains.length > 0 && !error && (
-                <div className="text-center py-12">
-                  <h3 className="text-lg font-semibold mb-2">没有找到匹配的域名</h3>
-                  <p className="text-muted-foreground">
-                    请尝试调整搜索条件或筛选器
-                  </p>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </section>
+            ) : isLoading ? (
+              <SkeletonCardGrid count={isMobile ? 6 : 9} />
+            ) : (
+              <>
+                <DomainListings 
+                  isLoading={isLoading} 
+                  domains={filteredDomains}
+                  isMobile={isMobile}
+                />
+                
+                {!isLoading && filteredDomains.length === 0 && domains.length === 0 && !error && (
+                  <div className="text-center py-12">
+                    <h3 className="text-lg font-semibold mb-2">暂无域名列表</h3>
+                    <p className="text-muted-foreground mb-4">
+                      看起来还没有域名添加到市场中
+                    </p>
+                    <button 
+                      onClick={loadDomains}
+                      className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+                    >
+                      重新加载
+                    </button>
+                  </div>
+                )}
+                
+                {!isLoading && filteredDomains.length === 0 && domains.length > 0 && !error && (
+                  <div className="text-center py-12">
+                    <h3 className="text-lg font-semibold mb-2">没有找到匹配的域名</h3>
+                    <p className="text-muted-foreground">
+                      请尝试调整搜索条件或筛选器
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </section>
+      </div>
+
+      {isMobile && <BottomNavigation unreadCount={unreadCount} />}
     </div>
   );
 };
