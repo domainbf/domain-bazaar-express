@@ -359,5 +359,11 @@ export const en = {
       notFound: 'Content not found',
       serverError: 'Server error'
     }
+  },
+  
+  soldDomains: {
+    title: 'Successful Transactions',
+    soldFor: 'Sold For',
+    subtitle: 'These domains have been successfully sold'
   }
 };

@@ -251,5 +251,11 @@ export const zh = {
       notFound: '内容未找到',
       serverError: '服务器错误'
     }
+  },
+  
+  soldDomains: {
+    title: '成功交易案例',
+    soldFor: '成交价',
+    subtitle: '以上域名已成功交易完成'
   }
 };

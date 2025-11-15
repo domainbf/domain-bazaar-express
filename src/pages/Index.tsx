@@ -8,6 +8,7 @@ import { Navbar } from '@/components/Navbar';
 import { HeroSection } from '@/components/sections/HeroSection';
 import { DomainEstimator } from '@/components/tools/DomainEstimator';
 import { DomainMonitor } from '@/components/tools/DomainMonitor';
+import { SoldDomains } from '@/components/sections/SoldDomains';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthModal } from '@/components/AuthModal';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,7 +54,7 @@ const Index = () => {
           highlight,
           is_verified
         `)
-        .eq('status', 'available')
+        .in('status', ['available', 'reserved'])
         .order('highlight', { ascending: false })
         .order('is_verified', { ascending: false })
         .limit(9); // 减少到9个，提高加载速度
@@ -502,6 +503,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Sold Domains Section */}
+      <SoldDomains />
 
       {/* Call to Action */}
       <section className="py-16 md:py-20 bg-gray-900 text-white">
