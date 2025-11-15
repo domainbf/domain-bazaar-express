@@ -10,6 +10,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useTranslation } from 'react-i18next';
 import { BottomNavigation } from '@/components/mobile/BottomNavigation';
 import { SkeletonCardGrid } from '@/components/common/SkeletonCard';
+import { SoldDomains } from '@/components/sections/SoldDomains';
 import { useNotifications } from '@/hooks/useNotifications';
 
 export const Marketplace = () => {
@@ -164,8 +165,7 @@ export const Marketplace = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'domain_listings',
-          filter: 'status=eq.available',
+          table: 'domain_listings'
         },
         () => {
           loadDomains();
@@ -297,6 +297,8 @@ export const Marketplace = () => {
             )}
           </div>
         </section>
+
+        <SoldDomains />
       </div>
 
       {isMobile && <BottomNavigation unreadCount={unreadCount} />}
