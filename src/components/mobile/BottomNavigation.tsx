@@ -1,6 +1,5 @@
 import { Home, Search, User, Bell } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface BottomNavigationProps {
@@ -33,7 +32,7 @@ export const BottomNavigation = ({ unreadCount = 0 }: BottomNavigationProps) => 
       icon: Bell, 
       path: '/user-center?tab=notifications',
       authRequired: true,
-      badge: unreadCount 
+      showBadge: true
     },
     { 
       id: 'profile', 
@@ -72,15 +71,12 @@ export const BottomNavigation = ({ unreadCount = 0 }: BottomNavigationProps) => 
                 active ? 'text-primary' : 'text-gray-500'
               }`}
             >
-              <div className="relative">
+              <div className="relative flex items-center justify-center">
                 <Icon className={`w-6 h-6 ${active ? 'stroke-[2.5]' : 'stroke-2'}`} />
-                {item.badge && item.badge > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="absolute -top-2 -right-2 h-5 min-w-[20px] flex items-center justify-center px-1 text-xs"
-                  >
-                    {item.badge > 99 ? '99+' : item.badge}
-                  </Badge>
+                {item.showBadge && unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 h-4 min-w-[16px] flex items-center justify-center bg-destructive text-destructive-foreground text-[10px] font-medium rounded-full px-1">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
                 )}
               </div>
               <span className={`text-xs mt-1 ${active ? 'font-semibold' : 'font-normal'}`}>
