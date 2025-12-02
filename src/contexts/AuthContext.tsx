@@ -228,13 +228,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return true;
       } else {
         const errorMsg = result.error?.message || '登录失败';
-        toast.error(errorMsg);
-        return false;
+        throw new Error(errorMsg);
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      toast.error(error.message || '登录失败');
-      return false;
+      throw error;
     } finally {
       setIsAuthenticating(false);
     }
@@ -246,21 +244,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       const result = await signUpWithEmailPassword(email, password, { 
         metadata,
-        redirectTo: `https://nic.bn/`
+        redirectTo: `${window.location.origin}/`
       });
       
       if (result.success) {
-        toast.success('注册成功，请验证您的邮箱');
         return true;
       } else {
         const errorMsg = result.error?.message || '注册失败';
-        toast.error(errorMsg);
-        return false;
+        throw new Error(errorMsg);
       }
     } catch (error: any) {
       console.error('Signup error:', error);
-      toast.error(error.message || '注册失败');
-      return false;
+      throw error;
     } finally {
       setIsAuthenticating(false);
     }
@@ -277,14 +272,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (result.success) {
         toast.success('退出成功');
-        window.location.replace('https://nic.bn/');
+        window.location.replace('/');
       } else {
         console.error('Logout failed:', result.error);
-        window.location.replace('https://nic.bn/');
+        window.location.replace('/');
       }
     } catch (error: any) {
       console.error('Logout error:', error);
-      window.location.replace('https://nic.bn/');
+      window.location.replace('/');
     }
   };
 
