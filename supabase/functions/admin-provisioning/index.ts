@@ -103,6 +103,55 @@ const handler = async (req: Request): Promise<Response> => {
           }
         );
         
+      case "reset_admin_password":
+        // Only allow password reset for the main admin email
+        if (email !== '9208522@qq.com') {
+          return new Response(
+            JSON.stringify({ error: "Unauthorized" }),
+            {
+              status: 403,
+              headers: { "Content-Type": "application/json", ...corsHeaders },
+            }
+          );
+        }
+        
+        // Find the admin user
+        const { data: adminUsers, error: findError } = await adminSupabase.auth.admin.listUsers();
+        if (findError) throw new Error(`Error finding user: ${findError.message}`);
+        
+        const adminUser = adminUsers.users.find(u => u.email === email);
+        if (!adminUser) {
+          return new Response(
+            JSON.stringify({ error: "Admin user not found" }),
+            {
+              status: 404,
+              headers: { "Content-Type": "application/json", ...corsHeaders },
+            }
+          );
+        }
+        
+        // Reset password to the provided one
+        const newPassword = password || 'Admin@123456';
+        const { error: resetError } = await adminSupabase.auth.admin.updateUserById(
+          adminUser.id,
+          { password: newPassword }
+        );
+        
+        if (resetError) throw new Error(`Error resetting password: ${resetError.message}`);
+        
+        console.log(`Admin password reset for ${email}`);
+        
+        return new Response(
+          JSON.stringify({ 
+            message: "Admin password reset successfully",
+            email: email
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+
       case "verify_admin":
         // First try to get the current user from the token
         const { data: userData, error: userError } = await supabase.auth.getUser();
