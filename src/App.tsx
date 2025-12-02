@@ -1,11 +1,9 @@
 
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from "sonner";
-import { useEffect, useState, Suspense, lazy } from 'react';
+import { useEffect, Suspense, lazy } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
-import { initializeAdminUser } from './utils/adminInitialization';
-import SplashScreen from './components/common/SplashScreen';
 import { LoadingSpinner } from './components/common/LoadingSpinner';
 
 // Route-based code splitting
@@ -28,23 +26,27 @@ const Community = lazy(() => import('./pages/Community'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
+  const handleGoHome = () => {
+    window.location.href = '/';
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md w-full">
         <h2 className="text-2xl font-bold text-red-600 mb-4">页面加载出错</h2>
-        <p className="text-gray-600 mb-4">
-          抱歉，页面遇到了问题。请尝试刷新页面。
+        <p className="text-gray-600 mb-6">
+          抱歉，页面遇到了问题。请尝试刷新页面或返回首页。
         </p>
-        <div className="space-y-2">
+        <div className="space-y-3">
           <button
             onClick={resetErrorBoundary}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
           >
             重试
           </button>
           <button
-            onClick={() => window.location.href = 'https://nic.bn/'}
-            className="w-full px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+            onClick={handleGoHome}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           >
             返回首页
           </button>
@@ -155,22 +157,14 @@ function AnimatedRoutes() {
 
 function App() {
   useEffect(() => {
-    // 异步初始化，不阻塞UI渲染
-    initializeAdminUser().catch(() => {
-      console.warn('Admin user initialization failed, continuing...');
-    });
-
-    // 预加载关键路由
-    const preloadRoutes = () => {
-      const timer = setTimeout(() => {
-        import('./pages/Marketplace');
-        import('./pages/Dashboard');
-        import('./components/domain/DomainDetailPage');
-      }, 2000);
-      return () => clearTimeout(timer);
-    };
+    // 预加载关键路由（延迟执行以避免阻塞初始渲染）
+    const timer = setTimeout(() => {
+      import('./pages/Marketplace').catch(() => {});
+      import('./pages/Dashboard').catch(() => {});
+      import('./components/domain/DomainDetailPage').catch(() => {});
+    }, 3000);
     
-    return preloadRoutes();
+    return () => clearTimeout(timer);
   }, []);
 
   return (

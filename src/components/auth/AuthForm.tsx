@@ -141,11 +141,19 @@ export const AuthForm = ({
       }
     } catch (error: any) {
       console.error('Authentication error:', error);
-      if (error.message && error.message.includes('Email not confirmed')) {
+      const errorMsg = error?.message || '';
+      
+      if (errorMsg.includes('Email not confirmed')) {
         setShowVerificationMessage(true);
         setErrorMessage('请先验证您的邮箱，然后再尝试登录');
+      } else if (errorMsg.includes('Invalid login credentials') || errorMsg.includes('invalid_credentials')) {
+        setErrorMessage('邮箱或密码错误，请检查后重试');
+      } else if (errorMsg.includes('User not found')) {
+        setErrorMessage('该用户不存在，请先注册账户');
+      } else if (errorMsg.includes('Too many requests')) {
+        setErrorMessage('请求过于频繁，请稍后再试');
       } else {
-        setErrorMessage(error.message || '认证过程中发生错误');
+        setErrorMessage(errorMsg || '认证过程中发生错误，请稍后重试');
       }
     }
   };
