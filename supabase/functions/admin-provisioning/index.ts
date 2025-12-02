@@ -40,22 +40,32 @@ const handler = async (req: Request): Promise<Response> => {
 
     switch (action) {
       case "create_admin":
-        // Check if admin already exists with this email
+        // Check if user already exists with this email
         const { data: existingUsers, error: searchError } = await adminSupabase.auth.admin.listUsers();
         
         if (searchError) {
           throw new Error(`Error searching users: ${searchError.message}`);
         }
         
-        const adminExists = existingUsers.users.some(user => 
-          user.email === email && user.app_metadata?.role === 'admin'
-        );
+        const existingUser = existingUsers.users.find(user => user.email === email);
         
-        if (adminExists) {
+        // If user exists, ensure they have admin role and return success
+        if (existingUser) {
+          // Update user to have admin role if not already
+          if (existingUser.app_metadata?.role !== 'admin') {
+            await adminSupabase.auth.admin.updateUserById(existingUser.id, {
+              app_metadata: { role: 'admin', is_admin: true }
+            });
+            console.log(`Updated existing user ${email} to admin role`);
+          }
+          
           return new Response(
-            JSON.stringify({ message: "Admin user already exists" }),
+            JSON.stringify({ 
+              message: "Admin user already exists", 
+              user: existingUser 
+            }),
             {
-              status: 400,
+              status: 200,
               headers: {
                 "Content-Type": "application/json",
                 ...corsHeaders,
@@ -64,8 +74,8 @@ const handler = async (req: Request): Promise<Response> => {
           );
         }
         
-        // Create admin user with specific credentials for 9208522@qq.com
-        const adminPassword = email === '9208522@qq.com' ? 'lijiawei' : (password || Math.random().toString(36).substring(2, 15));
+        // Create new admin user
+        const adminPassword = password || Math.random().toString(36).substring(2, 15);
         
         const { data, error } = await adminSupabase.auth.admin.createUser({
           email: email,
@@ -79,41 +89,10 @@ const handler = async (req: Request): Promise<Response> => {
           throw new Error(`Error creating admin user: ${error.message}`);
         }
         
-        // For the main admin account 9208522@qq.com, password is already set
-        let oneTimePassword = null;
-        if (!password && email !== '9208522@qq.com') {
-          oneTimePassword = Math.random().toString(36).substring(2, 10);
-          
-          // Update user with hashed one-time password
-          const { error: updateError } = await adminSupabase.auth.admin.updateUserById(
-            data.user.id,
-            { password: oneTimePassword }
-          );
-          
-          if (updateError) {
-            throw new Error(`Error setting one-time password: ${updateError.message}`);
-          }
-
-          // Send one-time password via email
-          await fetch(`${SUPABASE_URL}/functions/v1/send-notification`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify({
-              type: "admin_login",
-              recipient: email,
-              data: { oneTimePassword }
-            }),
-          });
-        }
-        
         return new Response(
           JSON.stringify({ 
             message: "Admin user created successfully", 
-            user: data.user,
-            password: email === '9208522@qq.com' ? 'lijiawei' : oneTimePassword 
+            user: data.user
           }),
           {
             status: 200,
