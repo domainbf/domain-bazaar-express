@@ -29,16 +29,18 @@ export const SimilarDomainsGrid: React.FC<SimilarDomainsGridProps> = ({ domains 
           <CardContent className="p-4">
             <div className="space-y-3">
               <div>
-                <h3 className="font-semibold text-lg truncate">{domain.name}</h3>
-                <p className="text-sm text-muted-foreground line-clamp-2">
+                <h3 className="font-bold text-2xl md:text-3xl tracking-tight uppercase truncate">
+                  {domain.name}
+                </h3>
+                <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
                   {domain.description || '暂无描述'}
                 </p>
               </div>
               
               <div className="flex items-center justify-between">
-                <Badge variant="outline">{domain.category}</Badge>
+                <Badge variant="outline" className="text-xs">{domain.category}</Badge>
                 <div className="text-right">
-                  <div className="font-bold text-primary">
+                  <div className="font-bold text-lg text-primary">
                     ¥{domain.price.toLocaleString()}
                   </div>
                 </div>
@@ -58,7 +60,7 @@ export const SimilarDomainsGrid: React.FC<SimilarDomainsGridProps> = ({ domains 
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => navigate(`/domain/${domain.id}`)}
+                  onClick={() => navigate(`/domain/${domain.name}`)}
                 >
                   查看详情
                 </Button>
