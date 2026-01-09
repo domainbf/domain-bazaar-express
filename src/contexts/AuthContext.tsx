@@ -263,23 +263,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logOut = async () => {
     try {
+      // 先清除本地状态
       setUser(null);
       setSession(null);
       setProfile(null);
       setIsAdmin(false);
       
+      // 清除本地存储中的认证数据
+      localStorage.removeItem('supabase.auth.token');
+      sessionStorage.clear();
+      
+      // 调用Supabase登出
       const result = await authSignOut();
       
       if (result.success) {
         toast.success('退出成功');
-        window.location.replace('/');
       } else {
         console.error('Logout failed:', result.error);
-        window.location.replace('/');
       }
+      
+      // 使用navigate而不是window.location.replace来避免完全页面刷新
+      navigate('/', { replace: true });
     } catch (error: any) {
       console.error('Logout error:', error);
-      window.location.replace('/');
+      // 即使出错也重定向到首页
+      navigate('/', { replace: true });
     }
   };
 

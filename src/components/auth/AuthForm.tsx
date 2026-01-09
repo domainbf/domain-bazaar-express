@@ -198,23 +198,23 @@ export const AuthForm = ({
   const strengthInfo = getPasswordStrengthText(passwordStrength);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* 安全提示卡片 */}
       {mode === 'signup' && (
-        <Card className="border-l-4 border-l-blue-500 bg-blue-50">
+        <Card className="border-l-4 border-l-gray-900 bg-gray-50">
           <CardContent className="p-4">
             <div className="flex items-start space-x-3">
-              <ShieldCheck className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <ShieldCheck className="h-5 w-5 text-gray-900 mt-0.5 flex-shrink-0" />
               <div className="space-y-1">
-                <h4 className="text-sm font-semibold text-blue-900">安全注册</h4>
-                <p className="text-xs text-blue-700">我们使用企业级加密技术保护您的信息安全</p>
+                <h4 className="text-sm font-semibold text-gray-900">安全注册</h4>
+                <p className="text-xs text-gray-600">我们使用企业级加密技术保护您的信息安全</p>
               </div>
             </div>
           </CardContent>
         </Card>
       )}
 
-      <form onSubmit={handleAuth} className="space-y-5">
+      <form onSubmit={handleAuth} className="space-y-4">
         {errorMessage && (
           <Alert variant="destructive" className="border-red-200 bg-red-50">
             <AlertCircle className="h-4 w-4" />
@@ -263,7 +263,7 @@ export const AuthForm = ({
         {mode === 'signup' && (
           <div className="space-y-2">
             <label className="text-sm font-semibold text-gray-800 flex items-center gap-2">
-              <User className="w-4 h-4 text-blue-600" /> 
+              <User className="w-4 h-4 text-gray-600" /> 
               姓名 
               <span className="text-red-500">*</span>
             </label>
@@ -271,7 +271,7 @@ export const AuthForm = ({
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="h-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
+              className="h-11 bg-white border-gray-300 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 transition-all duration-200"
               placeholder="请输入您的真实姓名"
               required
             />
@@ -280,7 +280,7 @@ export const AuthForm = ({
       
         <div className="space-y-2">
           <label className="text-sm font-semibold text-gray-800 flex items-center gap-2">
-            <Mail className="w-4 h-4 text-blue-600" /> 
+            <Mail className="w-4 h-4 text-gray-600" /> 
             邮箱地址 
             <span className="text-red-500">*</span>
           </label>
@@ -288,7 +288,7 @@ export const AuthForm = ({
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="h-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
+            className="h-11 bg-white border-gray-300 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 transition-all duration-200"
             placeholder="请输入您的邮箱地址"
             required
           />
@@ -296,7 +296,7 @@ export const AuthForm = ({
       
         <div className="space-y-2">
           <label className="text-sm font-semibold text-gray-800 flex items-center gap-2">
-            <Lock className="w-4 h-4 text-blue-600" /> 
+            <Lock className="w-4 h-4 text-gray-600" /> 
             密码 
             <span className="text-red-500">*</span>
           </label>
@@ -305,14 +305,14 @@ export const AuthForm = ({
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="h-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 pr-12"
-              placeholder={mode === 'signup' ? "至少6个字符，建议包含大小写字母和数字" : "请输入您的密码"}
+              className="h-11 bg-white border-gray-300 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 transition-all duration-200 pr-12"
+              placeholder={mode === 'signup' ? "至少6个字符" : "请输入您的密码"}
               required
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-600 transition-colors"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-900 transition-colors"
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
@@ -325,7 +325,7 @@ export const AuthForm = ({
                   <div
                     key={i}
                     className={`w-1.5 h-1.5 rounded-full ${
-                      i < passwordStrength ? strengthInfo.color.replace('text-', 'bg-') : 'bg-gray-200'
+                      i < passwordStrength ? 'bg-gray-900' : 'bg-gray-200'
                     }`}
                   />
                 ))}
@@ -337,7 +337,7 @@ export const AuthForm = ({
         {mode === 'signup' && (
           <div className="space-y-2">
             <label className="text-sm font-semibold text-gray-800 flex items-center gap-2">
-              <Lock className="w-4 h-4 text-blue-600" /> 
+              <Lock className="w-4 h-4 text-gray-600" /> 
               确认密码 
               <span className="text-red-500">*</span>
             </label>
@@ -346,14 +346,14 @@ export const AuthForm = ({
                 type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="h-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 pr-12"
+                className="h-11 bg-white border-gray-300 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 transition-all duration-200 pr-12"
                 placeholder="请再次输入密码进行确认"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-600 transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-900 transition-colors"
               >
                 {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -366,7 +366,7 @@ export const AuthForm = ({
             <button 
               type="button"
               onClick={handleForgotPasswordClick}
-              className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer font-medium"
+              className="text-sm text-gray-600 hover:text-gray-900 hover:underline transition-colors cursor-pointer font-medium"
             >
               忘记密码？
             </button>
@@ -377,7 +377,7 @@ export const AuthForm = ({
           <Button 
             type="submit"
             disabled={isAuthenticating}
-            className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium text-base shadow-lg hover:shadow-xl"
+            className="w-full h-12 bg-gray-900 text-white hover:bg-gray-800 transition-all duration-200 font-medium text-base"
           >
             {isAuthenticating ? (
               <span className="flex items-center gap-2">
@@ -387,7 +387,6 @@ export const AuthForm = ({
             ) : (
               <span className="flex items-center gap-2">
                 {mode === 'signin' ? '立即登录' : '创建账户'}
-                <CheckCircle className="w-4 h-4" />
               </span>
             )}
           </Button>
@@ -400,7 +399,7 @@ export const AuthForm = ({
               <button 
                 type="button"
                 onClick={(e) => handleModeChange(e, 'signup')}
-                className="text-blue-600 font-semibold hover:text-blue-800 transition-colors cursor-pointer"
+                className="text-gray-900 font-semibold hover:underline transition-colors cursor-pointer"
               >
                 立即注册
               </button>
@@ -411,7 +410,7 @@ export const AuthForm = ({
               <button 
                 type="button"
                 onClick={(e) => handleModeChange(e, 'signin')}
-                className="text-blue-600 font-semibold hover:text-blue-800 transition-colors cursor-pointer"
+                className="text-gray-900 font-semibold hover:underline transition-colors cursor-pointer"
               >
                 直接登录
               </button>
