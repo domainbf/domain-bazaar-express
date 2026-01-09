@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useTranslationHelper } from '@/hooks/useTranslationHelper';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   User, 
   Mail, 
@@ -19,7 +20,9 @@ import {
   Save,
   Shield,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Loader2,
+  Upload
 } from 'lucide-react';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -29,6 +32,9 @@ export const ProfileSettings = () => {
   const { user, profile, updateProfile, refreshProfile } = useAuth();
   const { t } = useTranslationHelper();
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const [formData, setFormData] = useState({
     full_name: profile?.full_name || '',
     username: profile?.username || '',
@@ -44,6 +50,83 @@ export const ProfileSettings = () => {
     is_seller: profile?.is_seller || false,
     preferred_payment_methods: profile?.preferred_payment_methods || ['paypal', 'bank_transfer']
   });
+
+  // 头像上传配置
+  const MAX_FILE_SIZE = 500 * 1024; // 500KB 限制
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // 验证文件类型
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      toast.error('仅支持 JPG、PNG、GIF、WebP 格式的图片');
+      return;
+    }
+
+    // 验证文件大小
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(`图片大小不能超过 ${MAX_FILE_SIZE / 1024}KB，当前大小为 ${Math.round(file.size / 1024)}KB`);
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    
+    try {
+      // 生成唯一文件名
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user?.id}-${Date.now()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      // 上传到 Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) {
+        // 如果 bucket 不存在，提示用户
+        if (uploadError.message.includes('not found') || uploadError.message.includes('Bucket')) {
+          toast.error('头像存储功能正在配置中，请稍后再试');
+          console.error('Storage bucket "avatars" may not exist:', uploadError);
+        } else {
+          throw uploadError;
+        }
+        return;
+      }
+
+      // 获取公共URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // 更新表单数据
+      setFormData(prev => ({ ...prev, avatar_url: publicUrl }));
+      
+      // 立即保存到数据库
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
+        .eq('id', user?.id);
+
+      if (updateError) throw updateError;
+
+      toast.success('头像上传成功');
+      await refreshProfile();
+    } catch (error: any) {
+      console.error('Avatar upload error:', error);
+      toast.error(`头像上传失败: ${error.message}`);
+    } finally {
+      setIsUploadingAvatar(false);
+      // 清空文件输入
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -151,17 +234,29 @@ export const ProfileSettings = () => {
                   {formData.full_name ? formData.full_name.charAt(0).toUpperCase() : 'U'}
                 </AvatarFallback>
               </Avatar>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleAvatarUpload}
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                className="hidden"
+              />
               <Button
                 size="sm"
                 variant="outline"
                 className="absolute -bottom-2 -right-2 rounded-full p-2"
-                onClick={() => toast.info('头像上传功能即将推出')}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingAvatar}
               >
-                <Camera className="h-4 w-4" />
+                {isUploadingAvatar ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Camera className="h-4 w-4" />
+                )}
               </Button>
             </div>
             <div className="space-y-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-lg font-semibold">
                   {formData.full_name || '未设置名称'}
                 </h3>
@@ -174,6 +269,10 @@ export const ProfileSettings = () => {
               </div>
               <p className="text-sm text-gray-600">
                 {user?.email}
+              </p>
+              <p className="text-xs text-gray-400">
+                <Upload className="h-3 w-3 inline mr-1" />
+                支持 JPG/PNG/GIF/WebP，最大 500KB
               </p>
               {profile?.seller_verified && (
                 <div className="flex items-center gap-1 text-green-600">

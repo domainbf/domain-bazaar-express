@@ -5,7 +5,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.48.1";
 import { corsHeaders } from "./utils/cors.ts";
 import { OfferRequest } from "./utils/types.ts";
 import { sendOfferEmails } from "./services/email.ts";
-import { saveOfferToDatabase } from "./services/db.ts";
+import { saveOfferToDatabase, createOfferNotification } from "./services/db.ts";
 import { verifyCaptcha } from "./services/captcha.ts";
 
 serve(async (req) => {
@@ -201,17 +201,32 @@ serve(async (req) => {
       console.log("域名所有者邮箱:", ownerEmail);
     }
 
+    let offerId: string | null = null;
     try {
       // 保存报价到数据库
       console.log("保存报价到数据库...");
-      await saveOfferToDatabase(supabaseAdmin, {
+      offerId = await saveOfferToDatabase(supabaseAdmin, {
         ...requestData,
         domainId: domainData.id,
         sellerId: domainData.owner_id,
       });
-      console.log("报价保存成功");
+      console.log("报价保存成功, ID:", offerId);
+      
+      // 创建站内通知给卖家
+      if (domainData.owner_id && offerId) {
+        console.log("创建站内通知...");
+        await createOfferNotification(
+          supabaseAdmin,
+          domainData.owner_id,
+          domain,
+          parseFloat(offer),
+          offerId,
+          email
+        );
+        console.log("站内通知创建成功");
+      }
     } catch (dbError: any) {
-      console.error("数据库保存失败:", dbError);
+      console.error("数据库操作失败:", dbError);
       // 不阻止邮件发送，但记录错误
     }
 
