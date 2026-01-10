@@ -82,8 +82,7 @@ export const DomainFilters = ({
               <SelectItem value="0-1000">¥0 - ¥1,000</SelectItem>
               <SelectItem value="1000-5000">¥1,000 - ¥5,000</SelectItem>
               <SelectItem value="5000-10000">¥5,000 - ¥10,000</SelectItem>
-              <SelectItem value="10000-50000">¥10,000 - ¥50,000</SelectItem>
-              <SelectItem value="50000+">¥50,000+</SelectItem>
+              <SelectItem value="10000+">¥10,000+</SelectItem>
             </SelectContent>
           </Select>
         )}
@@ -114,11 +113,9 @@ export const DomainFilters = ({
             <SelectContent>
               <SelectItem value="newest">最新添加</SelectItem>
               <SelectItem value="oldest">最早添加</SelectItem>
-              <SelectItem value="price-asc">价格低到高</SelectItem>
-              <SelectItem value="price-desc">价格高到低</SelectItem>
-              <SelectItem value="name-asc">名称 A-Z</SelectItem>
-              <SelectItem value="name-desc">名称 Z-A</SelectItem>
-              <SelectItem value="views">浏览量</SelectItem>
+              <SelectItem value="price-low">价格低到高</SelectItem>
+              <SelectItem value="price-high">价格高到低</SelectItem>
+              <SelectItem value="name">名称排序</SelectItem>
             </SelectContent>
           </Select>
         )}
