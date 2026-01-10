@@ -41,6 +41,11 @@ export const TransactionHistory = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // 页面加载时加载数据
+  useEffect(() => {
+    loadTransactions();
+  }, []);
+
   // 实时监听发出的报价状态变化
   useEffect(() => {
     const channel = supabase
@@ -48,12 +53,12 @@ export const TransactionHistory = () => {
       .on(
         'postgres_changes',
         {
-          event: 'UPDATE',
+          event: '*',
           schema: 'public',
           table: 'domain_offers'
         },
         (payload) => {
-          console.log('Sent offer updated:', payload);
+          console.log('Offer updated:', payload);
           loadTransactions();
         }
       )
@@ -302,7 +307,7 @@ export const TransactionHistory = () => {
         </TabsContent>
 
         <TabsContent value="sent">
-          <SentOffersTable offers={sentOffers} />
+          <SentOffersTable offers={sentOffers} onRefresh={loadTransactions} />
         </TabsContent>
       </Tabs>
     </div>
