@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { DomainActions } from './DomainActions';
 import { DomainFilters } from './domain/DomainFilters';
@@ -18,10 +18,13 @@ export const DomainManagement = () => {
   const { domains, isLoading, isRefreshing, loadDomains, refreshDomains } = useDomainsData();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [sortBy, setSortBy] = useState('newest');
+  const [priceRange, setPriceRange] = useState('all');
+  const [category, setCategory] = useState('all');
 
   // 使用 useMemo 优化域名过滤性能
   const filteredDomains = useMemo(() => {
-    return domains
+    let result = domains
       .filter(domain => 
         domain.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (domain.description && domain.description.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -33,7 +36,46 @@ export const DomainManagement = () => {
         if (activeTab === 'sold') return domain.status === 'sold';
         return true;
       });
-  }, [domains, searchQuery, activeTab]);
+
+    // 价格筛选
+    if (priceRange !== 'all') {
+      result = result.filter(domain => {
+        const price = domain.price || 0;
+        switch (priceRange) {
+          case '0-1000': return price >= 0 && price <= 1000;
+          case '1000-5000': return price > 1000 && price <= 5000;
+          case '5000-10000': return price > 5000 && price <= 10000;
+          case '10000+': return price > 10000;
+          default: return true;
+        }
+      });
+    }
+
+    // 分类筛选
+    if (category !== 'all') {
+      result = result.filter(domain => domain.category === category);
+    }
+
+    // 排序
+    result.sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+        case 'oldest':
+          return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+        case 'price-high':
+          return (b.price || 0) - (a.price || 0);
+        case 'price-low':
+          return (a.price || 0) - (b.price || 0);
+        case 'name':
+          return (a.name || '').localeCompare(b.name || '');
+        default:
+          return 0;
+      }
+    });
+
+    return result;
+  }, [domains, searchQuery, activeTab, sortBy, priceRange, category]);
 
   // 认证检查
   if (isAuthLoading) {
@@ -97,6 +139,13 @@ export const DomainManagement = () => {
         setSearchQuery={setSearchQuery}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        priceRange={priceRange}
+        setPriceRange={setPriceRange}
+        category={category}
+        setCategory={setCategory}
+        totalCount={filteredDomains.length}
       />
 
       {domains.length === 0 ? (

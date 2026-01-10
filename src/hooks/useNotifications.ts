@@ -36,7 +36,6 @@ export const useNotifications = () => {
       setUnreadCount(unread);
     } catch (error: any) {
       console.error('Error loading notifications:', error);
-      toast.error('加载通知失败');
       
       // Fallback: use direct table query
       try {
@@ -83,7 +82,6 @@ export const useNotifications = () => {
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error: any) {
       console.error('Error marking notification as read:', error);
-      toast.error('更新通知状态失败');
       
       // Fallback: direct update
       try {
@@ -128,7 +126,6 @@ export const useNotifications = () => {
       toast.success('已将所有通知标记为已读');
     } catch (error: any) {
       console.error('Error marking all notifications as read:', error);
-      toast.error('更新通知状态失败');
       
       // Fallback: direct update
       try {
@@ -155,6 +152,45 @@ export const useNotifications = () => {
   useEffect(() => {
     loadNotifications();
   }, [user, loadNotifications]);
+
+  // Real-time subscription for new notifications
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('notifications-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('New notification received:', payload);
+          const newNotification = payload.new as Notification;
+          
+          // Add to notifications list
+          setNotifications(prev => [newNotification, ...prev]);
+          setUnreadCount(prev => prev + 1);
+          
+          // Show toast notification
+          toast.info(newNotification.title, {
+            description: newNotification.message,
+            action: newNotification.action_url ? {
+              label: '查看',
+              onClick: () => window.location.href = newNotification.action_url || '#'
+            } : undefined
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   return {
     notifications,
