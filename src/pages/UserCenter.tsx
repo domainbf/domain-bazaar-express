@@ -38,6 +38,7 @@ export const UserCenter = () => {
     }
   }, [isAuthLoading, user, navigate]);
 
+  // 监听URL参数变化来切换tab
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tabParam = params.get('tab');
@@ -45,6 +46,24 @@ export const UserCenter = () => {
       setActiveTab(tabParam);
     }
   }, []);
+
+  // 监听底部导航的tabChange事件
+  useEffect(() => {
+    const handleTabChange = (event: CustomEvent) => {
+      const newTab = event.detail?.tab;
+      if (newTab && ['domains', 'transactions', 'profile', 'notifications'].includes(newTab)) {
+        setActiveTab(newTab);
+        if (newTab === 'notifications') {
+          refreshNotifications();
+        }
+      }
+    };
+
+    window.addEventListener('tabChange', handleTabChange as EventListener);
+    return () => {
+      window.removeEventListener('tabChange', handleTabChange as EventListener);
+    };
+  }, [refreshNotifications]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);

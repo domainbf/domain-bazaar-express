@@ -6,7 +6,7 @@ export interface OfferRequest {
   message?: string;
   buyerId?: string | null;
   domainId?: string;
-  domainOwnerId?: string;
+  sellerId?: string;
   ownerEmail?: string;
   captchaToken: string;
   dashboardUrl?: string;

@@ -78,9 +78,9 @@ serve(async (req) => {
       );
     }
 
-    const { domain, offer, email, message, buyerId, captchaToken } = requestData;
+    const { domain, offer, email, message, buyerId, sellerId, domainId, captchaToken } = requestData;
 
-    console.log("收到报价请求:", { domain, offer, email, buyerId });
+    console.log("收到报价请求:", { domain, offer, email, buyerId, sellerId, domainId });
 
     // 验证必需参数
     if (!domain || !offer || !email) {
@@ -139,56 +139,64 @@ serve(async (req) => {
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // 查找域名和所有者信息
-    console.log("查找域名信息:", domain);
-    const { data: domainData, error: domainError } = await supabaseAdmin
-      .from("domain_listings")
-      .select("id, name, owner_id, price")
-      .eq("name", domain)
-      .eq("status", "available")
-      .maybeSingle();
+    // 如果已经提供了domainId和sellerId，使用它们；否则查找
+    let finalDomainId = domainId;
+    let finalSellerId = sellerId;
 
-    if (domainError) {
-      console.error("域名查找失败:", domainError);
-      return new Response(
-        JSON.stringify({ 
-          error: "查询域名信息时出错",
-          success: false
-        }),
-        {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+    // 查找域名和所有者信息（如果没有提供）
+    if (!finalDomainId || !finalSellerId) {
+      console.log("查找域名信息:", domain);
+      const { data: domainData, error: domainError } = await supabaseAdmin
+        .from("domain_listings")
+        .select("id, name, owner_id, price")
+        .eq("name", domain)
+        .eq("status", "available")
+        .maybeSingle();
+
+      if (domainError) {
+        console.error("域名查找失败:", domainError);
+        return new Response(
+          JSON.stringify({ 
+            error: "查询域名信息时出错",
+            success: false
+          }),
+          {
+            status: 500,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      }
+
+      if (!domainData) {
+        console.error("域名不存在:", domain);
+        return new Response(
+          JSON.stringify({ 
+            error: `域名 ${domain} 不存在或不可售`,
+            success: false
+          }),
+          {
+            status: 404,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      }
+
+      finalDomainId = domainData.id;
+      finalSellerId = domainData.owner_id;
+      console.log("找到域名:", domainData);
     }
-
-    if (!domainData) {
-      console.error("域名不存在:", domain);
-      return new Response(
-        JSON.stringify({ 
-          error: `域名 ${domain} 不存在或不可售`,
-          success: false
-        }),
-        {
-          status: 404,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-    }
-
-    console.log("找到域名:", domainData);
 
     // 获取域名所有者的邮箱（缺失则继续流程，仅跳过卖家邮件）
     const { data: ownerProfile, error: ownerError } = await supabaseAdmin
       .from("profiles")
       .select("contact_email, full_name")
-      .eq("id", domainData.owner_id)
+      .eq("id", finalSellerId)
       .maybeSingle();
 
     let ownerEmail: string | null = null;
@@ -207,17 +215,17 @@ serve(async (req) => {
       console.log("保存报价到数据库...");
       offerId = await saveOfferToDatabase(supabaseAdmin, {
         ...requestData,
-        domainId: domainData.id,
-        sellerId: domainData.owner_id,
+        domainId: finalDomainId,
+        sellerId: finalSellerId,
       });
       console.log("报价保存成功, ID:", offerId);
       
       // 创建站内通知给卖家
-      if (domainData.owner_id && offerId) {
+      if (finalSellerId && offerId) {
         console.log("创建站内通知...");
         await createOfferNotification(
           supabaseAdmin,
-          domainData.owner_id,
+          finalSellerId,
           domain,
           parseFloat(offer),
           offerId,
