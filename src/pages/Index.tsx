@@ -19,6 +19,9 @@ import { fallbackDomains } from '@/data/availableDomains';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTranslation } from 'react-i18next';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { BottomNavigation } from '@/components/mobile/BottomNavigation';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const Index = () => {
   const [filter, setFilter] = useState('all');
@@ -32,6 +35,8 @@ const Index = () => {
   const { user, profile, isLoading: authLoading } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const { unreadCount } = useNotifications();
 
   // 优化的域名加载函数 - 减少复杂度，提高加载速度
   const loadDomains = async () => {
@@ -204,8 +209,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <Navbar unreadCount={unreadCount} />
       
+      <div className={isMobile ? 'pb-20' : ''}>
       {/* Hero Section */}
       <HeroSection />
 
@@ -454,7 +460,9 @@ const Index = () => {
           <p className="text-sm md:text-base font-semibold">{t('homePage.footer')}</p>
         </div>
       </footer>
+      </div>
 
+      {isMobile && <BottomNavigation unreadCount={unreadCount} />}
       <AuthModal open={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </div>
   );

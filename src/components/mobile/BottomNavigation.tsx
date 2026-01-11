@@ -1,5 +1,5 @@
 import { Home, Search, User, Bell } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface BottomNavigationProps {
@@ -9,6 +9,7 @@ interface BottomNavigationProps {
 export const BottomNavigation = ({ unreadCount = 0 }: BottomNavigationProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
 
   const navItems = [
@@ -48,7 +49,6 @@ export const BottomNavigation = ({ unreadCount = 0 }: BottomNavigationProps) => 
   ];
 
   const isActive = (item: typeof navItems[0]) => {
-    const searchParams = new URLSearchParams(location.search);
     const currentTab = searchParams.get('tab');
     
     // 对于首页
@@ -59,10 +59,7 @@ export const BottomNavigation = ({ unreadCount = 0 }: BottomNavigationProps) => 
     
     // 对于用户中心的标签页
     if (item.path === '/user-center' && location.pathname === '/user-center') {
-      if (item.tab === 'notifications' && currentTab === 'notifications') return true;
-      if (item.tab === 'profile' && (currentTab === 'profile' || (!currentTab && item.id === 'profile'))) return true;
-      // 默认在用户中心时，我的按钮不激活，除非明确是 profile tab
-      if (item.tab === 'profile' && !currentTab) return false;
+      if (item.tab === currentTab) return true;
     }
     
     return false;
@@ -81,16 +78,24 @@ export const BottomNavigation = ({ unreadCount = 0 }: BottomNavigationProps) => 
       return;
     }
     
-    // 如果有 tab 参数，导航到对应标签
+    // 如果有 tab 参数
     if (item.tab) {
-      navigate(`${item.path}?tab=${item.tab}`);
+      // 如果已经在用户中心页面，使用 replaceState 触发tab切换
+      if (location.pathname === '/user-center') {
+        // 先导航然后刷新页面让React重新读取参数
+        window.history.replaceState({}, '', `/user-center?tab=${item.tab}`);
+        // 触发自定义事件通知UserCenter组件切换tab
+        window.dispatchEvent(new CustomEvent('tabChange', { detail: { tab: item.tab } }));
+      } else {
+        navigate(`${item.path}?tab=${item.tab}`);
+      }
     } else {
       navigate(item.path);
     }
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-inset-bottom md:hidden">
+    <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50 safe-area-inset-bottom md:hidden">
       <nav className="flex justify-around items-center h-16">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -101,7 +106,7 @@ export const BottomNavigation = ({ unreadCount = 0 }: BottomNavigationProps) => 
               key={item.id}
               onClick={() => handleNavigation(item)}
               className={`flex flex-col items-center justify-center flex-1 h-full transition-colors relative ${
-                active ? 'text-primary' : 'text-gray-500'
+                active ? 'text-primary' : 'text-muted-foreground'
               }`}
             >
               <div className="relative flex items-center justify-center">

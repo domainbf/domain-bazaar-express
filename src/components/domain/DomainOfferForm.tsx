@@ -105,9 +105,9 @@ export const DomainOfferForm = ({
         offer: offer,
         email: email,
         message: message,
-        buyerId: session?.user.id,
+        buyerId: session?.user?.id || null,
         domainId: domainInfo.domainId,
-        domainOwnerId: domainInfo.sellerId,
+        sellerId: domainInfo.sellerId,
         captchaToken: captchaToken
       };
 
