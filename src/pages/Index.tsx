@@ -9,6 +9,7 @@ import { HeroSection } from '@/components/sections/HeroSection';
 import { DomainEstimator } from '@/components/tools/DomainEstimator';
 import { DomainMonitor } from '@/components/tools/DomainMonitor';
 import { SoldDomains } from '@/components/sections/SoldDomains';
+import SupportSection from '@/components/sections/SupportSection';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthModal } from '@/components/AuthModal';
 import { supabase } from '@/integrations/supabase/client';
@@ -425,6 +426,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Support Section */}
+      <SupportSection />
 
       {/* Sold Domains Section */}
       <SoldDomains />
