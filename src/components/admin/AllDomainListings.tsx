@@ -1,17 +1,19 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { DomainListing } from '@/types/domain';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Star, Check, RefreshCw, Search } from 'lucide-react';
+import { MoreHorizontal, Star, Check, RefreshCw, Search, Download, Eye, Trash2, Edit, Globe, Filter, TrendingUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import {
@@ -21,6 +23,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 export const AllDomainListings = () => {
   const { t } = useTranslation();
@@ -30,6 +42,10 @@ export const AllDomainListings = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [verificationFilter, setVerificationFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('created_at');
+  const [editingDomain, setEditingDomain] = useState<DomainListing | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   useEffect(() => {
     loadDomains();
@@ -43,66 +59,31 @@ export const AllDomainListings = () => {
         .select(`
           *,
           domain_analytics(views, favorites, offers),
-          profiles!domain_listings_owner_id_fkey(username, full_name)
+          profiles!domain_listings_owner_id_fkey(username, full_name, contact_email)
         `);
       
       if (error) throw error;
       
-      // Process the data to include analytics
       const processedDomains: DomainListing[] = data?.map(domain => {
-        // Type assertions for domain_analytics and profiles with proper null checks
         const analyticsData = domain.domain_analytics && Array.isArray(domain.domain_analytics) ? domain.domain_analytics[0] : null;
         const ownerData = domain.profiles;
         
-        // Extract analytics data with proper type checking
-        let viewsValue = 0;
-        let favoritesValue = 0;
-        let offersValue = 0;
+        let viewsValue = 0, favoritesValue = 0, offersValue = 0;
         
         if (analyticsData) {
-          // Parse views safely
-          if (typeof analyticsData.views === 'number') {
-            viewsValue = analyticsData.views;
-          } else if (analyticsData.views !== null && analyticsData.views !== undefined) {
-            try {
-              viewsValue = parseInt(String(analyticsData.views), 10) || 0;
-            } catch {
-              viewsValue = 0;
-            }
-          }
-          
-          // Parse favorites safely
-          if (typeof analyticsData.favorites === 'number') {
-            favoritesValue = analyticsData.favorites;
-          } else if (analyticsData.favorites !== null && analyticsData.favorites !== undefined) {
-            try {
-              favoritesValue = parseInt(String(analyticsData.favorites), 10) || 0;
-            } catch {
-              favoritesValue = 0;
-            }
-          }
-          
-          // Parse offers safely
-          if (typeof analyticsData.offers === 'number') {
-            offersValue = analyticsData.offers;
-          } else if (analyticsData.offers !== null && analyticsData.offers !== undefined) {
-            try {
-              offersValue = parseInt(String(analyticsData.offers), 10) || 0;
-            } catch {
-              offersValue = 0;
-            }
-          }
+          viewsValue = typeof analyticsData.views === 'number' ? analyticsData.views : parseInt(String(analyticsData.views), 10) || 0;
+          favoritesValue = typeof analyticsData.favorites === 'number' ? analyticsData.favorites : parseInt(String(analyticsData.favorites), 10) || 0;
+          offersValue = typeof analyticsData.offers === 'number' ? analyticsData.offers : parseInt(String(analyticsData.offers), 10) || 0;
         }
         
-        // Extract owner info safely with proper null checks
-        let ownerName = t('common.unknown', '未知');
-        if (ownerData && typeof ownerData === 'object' && ownerData !== null) {
-          // Additional type checking to ensure ownerData has the expected properties
-          const owner = ownerData as { username?: string; full_name?: string };
-          ownerName = owner.username || owner.full_name || t('common.unknown', '未知');
+        let ownerName = '未知';
+        let ownerEmail = '';
+        if (ownerData && typeof ownerData === 'object') {
+          const owner = ownerData as { username?: string; full_name?: string; contact_email?: string };
+          ownerName = owner.username || owner.full_name || '未知';
+          ownerEmail = owner.contact_email || '';
         }
         
-        // Remove nested objects
         const { domain_analytics, profiles, ...rest } = domain;
         
         return {
@@ -110,14 +91,15 @@ export const AllDomainListings = () => {
           views: viewsValue,
           favorites: favoritesValue,
           offers: offersValue,
-          ownerName
+          ownerName,
+          ownerEmail
         };
       }) || [];
       
       setDomains(processedDomains);
     } catch (error: any) {
       console.error('Error loading domains:', error);
-      toast.error(t('admin.domainsSection.loadError', 'Failed to load domains'));
+      toast.error('加载域名列表失败');
     } finally {
       setIsLoading(false);
     }
@@ -127,6 +109,7 @@ export const AllDomainListings = () => {
     setIsRefreshing(true);
     await loadDomains();
     setIsRefreshing(false);
+    toast.success('数据已刷新');
   };
 
   const toggleHighlight = async (domain: DomainListing) => {
@@ -138,19 +121,14 @@ export const AllDomainListings = () => {
       
       if (error) throw error;
       
-      // Update local state
       setDomains(domains.map(d => 
         d.id === domain.id ? { ...d, highlight: !domain.highlight } : d
       ));
       
-      toast.success(
-        domain.highlight 
-          ? t('admin.domainsSection.removedHighlight', 'Domain removed from featured listings')
-          : t('admin.domainsSection.addedHighlight', 'Domain added to featured listings')
-      );
+      toast.success(domain.highlight ? '已取消推荐' : '已设为推荐');
     } catch (error: any) {
       console.error('Error toggling highlight:', error);
-      toast.error(t('admin.domainsSection.updateError', 'Failed to update domain'));
+      toast.error('操作失败');
     }
   };
 
@@ -163,42 +141,166 @@ export const AllDomainListings = () => {
       
       if (error) throw error;
       
-      // Update local state
       setDomains(domains.map(d => 
         d.id === domain.id ? { ...d, status } : d
       ));
       
-      toast.success(t('admin.domainsSection.statusUpdated', 'Domain status updated to {{status}}', { status }));
+      toast.success(`状态已更新为: ${getStatusLabel(status)}`);
     } catch (error: any) {
       console.error('Error updating status:', error);
-      toast.error(t('admin.domainsSection.statusUpdateError', 'Failed to update domain status'));
+      toast.error('更新状态失败');
     }
   };
 
+  const deleteDomain = async (domainId: string) => {
+    if (!confirm('确定要删除这个域名吗？此操作不可撤销。')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('domain_listings')
+        .delete()
+        .eq('id', domainId);
+      
+      if (error) throw error;
+      
+      setDomains(domains.filter(d => d.id !== domainId));
+      toast.success('域名已删除');
+    } catch (error: any) {
+      console.error('Error deleting domain:', error);
+      toast.error('删除失败');
+    }
+  };
+
+  const handleEditDomain = async () => {
+    if (!editingDomain) return;
+    
+    try {
+      const { error } = await supabase
+        .from('domain_listings')
+        .update({
+          name: editingDomain.name,
+          price: editingDomain.price,
+          description: editingDomain.description,
+          category: editingDomain.category,
+          status: editingDomain.status
+        })
+        .eq('id', editingDomain.id);
+      
+      if (error) throw error;
+      
+      setDomains(domains.map(d => d.id === editingDomain.id ? editingDomain : d));
+      toast.success('域名信息已更新');
+      setIsEditDialogOpen(false);
+      setEditingDomain(null);
+    } catch (error: any) {
+      console.error('Error updating domain:', error);
+      toast.error('更新失败');
+    }
+  };
+
+  const exportDomains = () => {
+    const csvData = filteredDomains.map(d => ({
+      域名: d.name,
+      价格: d.price,
+      状态: getStatusLabel(d.status || ''),
+      分类: getCategoryLabel(d.category || ''),
+      验证状态: getVerificationLabel(d.verification_status || ''),
+      浏览量: d.views || 0,
+      收藏数: d.favorites || 0,
+      报价数: d.offers || 0,
+      创建时间: new Date(d.created_at).toLocaleDateString()
+    }));
+
+    const headers = Object.keys(csvData[0] || {}).join(',');
+    const rows = csvData.map(row => Object.values(row).join(','));
+    const csv = [headers, ...rows].join('\n');
+    
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `domains_export_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    
+    toast.success('导出成功');
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      'available': '可售',
+      'sold': '已售',
+      'reserved': '保留',
+      'pending': '待审核'
+    };
+    return labels[status] || status;
+  };
+
+  const getCategoryLabel = (category: string) => {
+    const labels: Record<string, string> = {
+      'premium': '高端',
+      'standard': '标准',
+      'short': '短域名',
+      'numeric': '数字',
+      'brandable': '品牌',
+      'keyword': '关键词'
+    };
+    return labels[category] || category;
+  };
+
+  const getVerificationLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      'verified': '已验证',
+      'pending': '待验证',
+      'none': '未验证'
+    };
+    return labels[status] || '未验证';
+  };
+
   const filteredDomains = useMemo(() => {
-    return domains.filter(domain => {
-      // Apply search query filter
+    let result = domains.filter(domain => {
       const matchesSearch = 
         searchQuery === '' ||
         domain.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (domain.description && domain.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (domain.ownerName && domain.ownerName.toLowerCase().includes(searchQuery.toLowerCase()));
       
-      // Apply status filter
-      const matchesStatus = 
-        statusFilter === 'all' ||
-        domain.status === statusFilter;
-        
-      // Apply verification filter
+      const matchesStatus = statusFilter === 'all' || domain.status === statusFilter;
       const matchesVerification = 
         verificationFilter === 'all' ||
         (verificationFilter === 'verified' && domain.verification_status === 'verified') ||
         (verificationFilter === 'pending' && domain.verification_status === 'pending') ||
         (verificationFilter === 'none' && (!domain.verification_status || domain.verification_status === 'none'));
+      const matchesCategory = categoryFilter === 'all' || domain.category === categoryFilter;
       
-      return matchesSearch && matchesStatus && matchesVerification;
+      return matchesSearch && matchesStatus && matchesVerification && matchesCategory;
     });
-  }, [domains, searchQuery, statusFilter, verificationFilter]);
+
+    // 排序
+    result.sort((a, b) => {
+      switch (sortBy) {
+        case 'price_asc':
+          return (a.price || 0) - (b.price || 0);
+        case 'price_desc':
+          return (b.price || 0) - (a.price || 0);
+        case 'views':
+          return (b.views || 0) - (a.views || 0);
+        case 'name':
+          return a.name.localeCompare(b.name);
+        default:
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
+
+    return result;
+  }, [domains, searchQuery, statusFilter, verificationFilter, categoryFilter, sortBy]);
+
+  // 统计数据
+  const stats = {
+    total: domains.length,
+    available: domains.filter(d => d.status === 'available').length,
+    sold: domains.filter(d => d.status === 'sold').length,
+    verified: domains.filter(d => d.verification_status === 'verified').length,
+    totalValue: domains.reduce((sum, d) => sum + (d.price || 0), 0)
+  };
 
   if (isLoading) {
     return (
@@ -210,24 +312,64 @@ export const AllDomainListings = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">{t('admin.domainsSection.allListings', 'All Domain Listings')}</h2>
-        <Button 
-          size="sm" 
-          variant="outline" 
-          onClick={refreshDomains}
-          disabled={isRefreshing}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-          {t('common.refresh', 'Refresh')}
-        </Button>
+      {/* 头部统计 */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold">{stats.total}</p>
+            <p className="text-xs text-muted-foreground">总域名数</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold text-green-600">{stats.available}</p>
+            <p className="text-xs text-muted-foreground">可售</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold text-blue-600">{stats.sold}</p>
+            <p className="text-xs text-muted-foreground">已售</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold text-purple-600">{stats.verified}</p>
+            <p className="text-xs text-muted-foreground">已验证</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold text-orange-600">¥{stats.totalValue.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground">总价值</p>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="flex gap-2 items-center">
-          <Search className="h-4 w-4 text-gray-500" />
+      {/* 工具栏 */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h2 className="text-xl font-semibold flex items-center gap-2">
+          <Globe className="h-5 w-5" />
+          所有域名列表
+        </h2>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={exportDomains}>
+            <Download className="h-4 w-4 mr-2" />
+            导出CSV
+          </Button>
+          <Button size="sm" variant="outline" onClick={refreshDomains} disabled={isRefreshing}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            刷新
+          </Button>
+        </div>
+      </div>
+
+      {/* 筛选器 */}
+      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="col-span-2 sm:col-span-1 lg:col-span-2 flex gap-2 items-center">
+          <Search className="h-4 w-4 text-muted-foreground" />
           <Input 
-            placeholder={t('admin.domainsSection.searchPlaceholder', 'Search domains...')}
+            placeholder="搜索域名..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -235,79 +377,113 @@ export const AllDomainListings = () => {
 
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger>
-            <SelectValue placeholder={t('admin.domainsSection.filterByStatus', 'Filter by status')} />
+            <SelectValue placeholder="状态" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t('common.all', 'All')}</SelectItem>
-            <SelectItem value="available">{t('domains.statusTypes.available', 'Available')}</SelectItem>
-            <SelectItem value="sold">{t('domains.statusTypes.sold', 'Sold')}</SelectItem>
-            <SelectItem value="reserved">{t('domains.statusTypes.reserved', 'Reserved')}</SelectItem>
+            <SelectItem value="all">全部状态</SelectItem>
+            <SelectItem value="available">可售</SelectItem>
+            <SelectItem value="sold">已售</SelectItem>
+            <SelectItem value="reserved">保留</SelectItem>
+            <SelectItem value="pending">待审核</SelectItem>
           </SelectContent>
         </Select>
 
         <Select value={verificationFilter} onValueChange={setVerificationFilter}>
           <SelectTrigger>
-            <SelectValue placeholder={t('admin.domainsSection.filterByVerification', 'Filter by verification')} />
+            <SelectValue placeholder="验证状态" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t('common.all', 'All')}</SelectItem>
-            <SelectItem value="verified">{t('domains.verificationTypes.verified', 'Verified')}</SelectItem>
-            <SelectItem value="pending">{t('domains.verificationTypes.pending', 'Pending')}</SelectItem>
-            <SelectItem value="none">{t('domains.verificationTypes.none', 'Not Verified')}</SelectItem>
+            <SelectItem value="all">全部</SelectItem>
+            <SelectItem value="verified">已验证</SelectItem>
+            <SelectItem value="pending">待验证</SelectItem>
+            <SelectItem value="none">未验证</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger>
+            <SelectValue placeholder="分类" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">全部分类</SelectItem>
+            <SelectItem value="premium">高端</SelectItem>
+            <SelectItem value="standard">标准</SelectItem>
+            <SelectItem value="short">短域名</SelectItem>
+            <SelectItem value="numeric">数字</SelectItem>
+            <SelectItem value="brandable">品牌</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger>
+            <SelectValue placeholder="排序" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="created_at">最新添加</SelectItem>
+            <SelectItem value="price_desc">价格从高到低</SelectItem>
+            <SelectItem value="price_asc">价格从低到高</SelectItem>
+            <SelectItem value="views">浏览量</SelectItem>
+            <SelectItem value="name">名称</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* 域名表格 */}
+      <div className="overflow-x-auto rounded-lg border">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-gray-50">
-              <th className="text-left p-4 border-b">{t('domains.name', 'Domain')}</th>
-              <th className="text-left p-4 border-b">{t('domains.price', 'Price')}</th>
-              <th className="text-left p-4 border-b">{t('domains.owner', 'Owner')}</th>
-              <th className="text-left p-4 border-b">{t('domains.category', 'Category')}</th>
-              <th className="text-left p-4 border-b">{t('domains.status', 'Status')}</th>
-              <th className="text-left p-4 border-b">{t('domains.verification', 'Verification')}</th>
-              <th className="text-left p-4 border-b">{t('domains.stats', 'Stats')}</th>
-              <th className="text-left p-4 border-b">{t('domains.created', 'Created')}</th>
-              <th className="text-left p-4 border-b">{t('common.actions', 'Actions')}</th>
+            <tr className="bg-muted/50">
+              <th className="text-left p-4 font-medium">域名</th>
+              <th className="text-left p-4 font-medium">价格</th>
+              <th className="text-left p-4 font-medium">所有者</th>
+              <th className="text-left p-4 font-medium">分类</th>
+              <th className="text-left p-4 font-medium">状态</th>
+              <th className="text-left p-4 font-medium">验证</th>
+              <th className="text-left p-4 font-medium">统计</th>
+              <th className="text-left p-4 font-medium">创建时间</th>
+              <th className="text-left p-4 font-medium">操作</th>
             </tr>
           </thead>
           <tbody>
             {filteredDomains.map((domain) => (
-              <tr key={domain.id} className="border-b hover:bg-gray-50">
+              <tr key={domain.id} className="border-b hover:bg-muted/30">
                 <td className="p-4">
                   <div className="flex items-center gap-2">
-                    {domain.name}
+                    <span className="font-medium">{domain.name}</span>
                     {domain.highlight && (
                       <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
                     )}
                   </div>
                 </td>
-                <td className="p-4">¥{domain.price}</td>
-                <td className="p-4">{domain.ownerName}</td>
-                <td className="p-4 capitalize">{t(`domains.categories.${domain.category}`, domain.category)}</td>
-                <td className="p-4 capitalize">{t(`domains.statusTypes.${domain.status}`, domain.status)}</td>
+                <td className="p-4 font-medium">¥{domain.price?.toLocaleString()}</td>
+                <td className="p-4 text-sm text-muted-foreground">{domain.ownerName}</td>
+                <td className="p-4">
+                  <Badge variant="outline">{getCategoryLabel(domain.category || 'standard')}</Badge>
+                </td>
+                <td className="p-4">
+                  <Badge variant={domain.status === 'available' ? 'default' : domain.status === 'sold' ? 'secondary' : 'outline'}>
+                    {getStatusLabel(domain.status || 'available')}
+                  </Badge>
+                </td>
                 <td className="p-4">
                   {domain.verification_status === 'verified' ? (
-                    <span className="inline-flex items-center text-green-600">
+                    <span className="inline-flex items-center text-green-600 text-sm">
                       <Check className="h-4 w-4 mr-1" />
-                      {t('domains.verificationTypes.verified', 'Verified')}
+                      已验证
                     </span>
                   ) : domain.verification_status === 'pending' ? (
-                    <span className="text-yellow-600">{t('domains.verificationTypes.pending', 'Pending')}</span>
+                    <span className="text-yellow-600 text-sm">待验证</span>
                   ) : (
-                    <span className="text-gray-500">{t('domains.verificationTypes.none', 'Not Verified')}</span>
+                    <span className="text-muted-foreground text-sm">未验证</span>
                   )}
                 </td>
                 <td className="p-4">
-                  <div className="flex flex-col">
-                    <span className="text-xs">{t('domains.statistics.views', 'Views')}: {domain.views || 0}</span>
-                    <span className="text-xs">{t('domains.statistics.favorites', 'Favorites')}: {domain.favorites || 0}</span>
-                    <span className="text-xs">{t('domains.statistics.offers', 'Offers')}: {domain.offers || 0}</span>
+                  <div className="flex flex-col text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {domain.views || 0}</span>
+                    <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3" /> {domain.offers || 0}报价</span>
                   </div>
                 </td>
-                <td className="p-4">
+                <td className="p-4 text-sm text-muted-foreground">
                   {new Date(domain.created_at).toLocaleDateString()}
                 </td>
                 <td className="p-4">
@@ -317,21 +493,32 @@ export const AllDomainListings = () => {
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-white">
-                      <DropdownMenuItem onClick={() => toggleHighlight(domain)}>
-                        {domain.highlight 
-                          ? t('admin.domainsSection.removeFeatured', 'Remove Featured') 
-                          : t('admin.domainsSection.markAsFeatured', 'Mark as Featured')
-                        }
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => {
+                        setEditingDomain(domain);
+                        setIsEditDialogOpen(true);
+                      }}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        编辑
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => toggleHighlight(domain)}>
+                        <Star className="h-4 w-4 mr-2" />
+                        {domain.highlight ? '取消推荐' : '设为推荐'}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => updateDomainStatus(domain, 'available')}>
-                        {t('admin.domainsSection.setAvailable', 'Set as Available')}
+                        设为可售
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => updateDomainStatus(domain, 'sold')}>
-                        {t('admin.domainsSection.markAsSold', 'Mark as Sold')}
+                        标记已售
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => updateDomainStatus(domain, 'reserved')}>
-                        {t('admin.domainsSection.markAsReserved', 'Mark as Reserved')}
+                        设为保留
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-red-600" onClick={() => deleteDomain(domain.id)}>
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        删除
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -343,10 +530,91 @@ export const AllDomainListings = () => {
       </div>
 
       {filteredDomains.length === 0 && (
-        <div className="text-center py-8 bg-gray-50 rounded-lg">
-          <p className="text-gray-600">{t('admin.domainsSection.noDomains', 'No domains found')}</p>
+        <div className="text-center py-12 bg-muted/30 rounded-lg">
+          <Globe className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <p className="text-muted-foreground">没有找到符合条件的域名</p>
         </div>
       )}
+
+      <div className="text-sm text-muted-foreground text-center">
+        显示 {filteredDomains.length} / {domains.length} 个域名
+      </div>
+
+      {/* 编辑域名对话框 */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>编辑域名</DialogTitle>
+            <DialogDescription>修改域名信息</DialogDescription>
+          </DialogHeader>
+          {editingDomain && (
+            <div className="space-y-4">
+              <div>
+                <Label>域名</Label>
+                <Input
+                  value={editingDomain.name}
+                  onChange={(e) => setEditingDomain({...editingDomain, name: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>价格 (¥)</Label>
+                <Input
+                  type="number"
+                  value={editingDomain.price}
+                  onChange={(e) => setEditingDomain({...editingDomain, price: parseFloat(e.target.value) || 0})}
+                />
+              </div>
+              <div>
+                <Label>描述</Label>
+                <Textarea
+                  value={editingDomain.description || ''}
+                  onChange={(e) => setEditingDomain({...editingDomain, description: e.target.value})}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>分类</Label>
+                  <Select
+                    value={editingDomain.category || 'standard'}
+                    onValueChange={(v) => setEditingDomain({...editingDomain, category: v})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="premium">高端</SelectItem>
+                      <SelectItem value="standard">标准</SelectItem>
+                      <SelectItem value="short">短域名</SelectItem>
+                      <SelectItem value="numeric">数字</SelectItem>
+                      <SelectItem value="brandable">品牌</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>状态</Label>
+                  <Select
+                    value={editingDomain.status || 'available'}
+                    onValueChange={(v) => setEditingDomain({...editingDomain, status: v})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="available">可售</SelectItem>
+                      <SelectItem value="sold">已售</SelectItem>
+                      <SelectItem value="reserved">保留</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>取消</Button>
+            <Button onClick={handleEditDomain}>保存更改</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
