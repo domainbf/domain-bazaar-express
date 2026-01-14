@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -9,8 +9,9 @@ import { UserCenterHelpCard } from '@/components/usercenter/UserCenterHelpCard';
 import { UserCenterStatsGrid } from '@/components/usercenter/UserCenterStatsGrid';
 import { UserCenterTabsContent } from '@/components/usercenter/UserCenterTabsContent';
 import { UserCenterLayout } from '@/components/usercenter/UserCenterLayout';
+import { QuickActions } from '@/components/usercenter/QuickActions';
 import { Button } from "@/components/ui/button";
-import { Home, HelpCircle, Settings, ClipboardList, User, Bell, MessageSquare, FileQuestion } from 'lucide-react';
+import { Home, HelpCircle, Settings, ClipboardList, User, Bell, MessageSquare, FileQuestion, Wallet } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Badge } from "@/components/ui/badge";
 import { useNotifications } from '@/hooks/useNotifications';
@@ -147,6 +148,13 @@ export const UserCenter = () => {
           </div>
 
           <UserCenterHelpCard open={showHelp} onClose={() => setShowHelp(false)} />
+          
+          {/* 快捷操作面板 */}
+          {!isMobile && (
+            <QuickActions 
+              onViewNotifications={() => handleTabChange('notifications')}
+            />
+          )}
           
           {/* 统计数据网格 */}
           <UserCenterStatsGrid profile={profile} user={user} />
