@@ -7,6 +7,8 @@ import { PriceHistoryChart } from "./PriceHistoryChart";
 import { DomainAnalytics } from "./DomainAnalytics";
 import { SimilarDomainsGrid } from "./SimilarDomainsGrid";
 import { DomainOwnerInfo } from "./DomainOwnerInfo";
+import { OfferHistory } from "./OfferHistory";
+import { DomainValuationReport } from "./DomainValuationReport";
 
 interface Props {
   domain: Domain;
@@ -19,7 +21,7 @@ export const DomainDetailMainContent: React.FC<Props> = ({
   priceHistory,
   similarDomains,
 }) => (
-  <div className="lg:col-span-2 space-y-6">
+  <div className="space-y-6">
     {/* 域名所有者信息 */}
     {domain.owner && (
       <DomainOwnerInfo owner={domain.owner} />
@@ -38,6 +40,12 @@ export const DomainDetailMainContent: React.FC<Props> = ({
         </CardContent>
       </Card>
     )}
+
+    {/* 出价历史 */}
+    <OfferHistory domainId={domain.id} currentPrice={domain.price} />
+
+    {/* 域名估值报告 */}
+    <DomainValuationReport domainName={domain.name} currentPrice={domain.price} />
 
     {/* 价格历史图表 */}
     <Card>
@@ -69,9 +77,10 @@ export const DomainDetailMainContent: React.FC<Props> = ({
           <CardTitle>相似域名推荐</CardTitle>
         </CardHeader>
         <CardContent>
-          <SimilarDomainsGrid domains={similarDomains} />
+          <SimilarDomainsGrid domains={similarDomains} currentDomainName={domain.name} />
         </CardContent>
       </Card>
     )}
   </div>
 );
+
