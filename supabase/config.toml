@@ -56,3 +56,7 @@ verify_jwt = false
 # Enhanced domain evaluation with AI
 [functions.domain-enhanced-evaluation]
 verify_jwt = false
+
+# WHOIS domain query
+[functions.whois-query]
+verify_jwt = false

@@ -1,10 +1,10 @@
-
 import { Navbar } from "@/components/Navbar";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { DomainDetailHeader } from "@/components/domain/DomainDetailHeader";
 import { DomainDetailMainContent } from "@/components/domain/DomainDetailMainContent";
 import { DomainDetailSidebar } from "@/components/domain/DomainDetailSidebar";
 import { DomainShareButtons } from "@/components/domain/DomainShareButtons";
+import { DomainSeoHead } from "@/components/domain/DomainSeoHead";
 import { useDomainDetail } from "@/components/domain/useDomainDetail";
 import { useDomainAnalytics } from "@/hooks/useDomainAnalytics";
 import { DomainValuationTool } from "@/components/domain/DomainValuationTool";
@@ -77,6 +77,12 @@ export const DomainDetailPage = () => {
 
   return (
     <div className="bg-background min-h-screen">
+      {/* SEO Head with structured data */}
+      <DomainSeoHead 
+        domain={domain} 
+        analytics={analytics}
+      />
+      
       <Navbar />
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* 返回按钮 */}
