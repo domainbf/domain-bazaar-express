@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp } from "lucide-react";
@@ -9,6 +8,7 @@ import { SimilarDomainsGrid } from "./SimilarDomainsGrid";
 import { DomainOwnerInfo } from "./DomainOwnerInfo";
 import { OfferHistory } from "./OfferHistory";
 import { DomainValuationReport } from "./DomainValuationReport";
+import { DomainWhoisInfo } from "./DomainWhoisInfo";
 
 interface Props {
   domain: Domain;
@@ -40,6 +40,9 @@ export const DomainDetailMainContent: React.FC<Props> = ({
         </CardContent>
       </Card>
     )}
+
+    {/* WHOIS 信息 */}
+    <DomainWhoisInfo domainName={domain.name} />
 
     {/* 出价历史 */}
     <OfferHistory domainId={domain.id} currentPrice={domain.price} />
