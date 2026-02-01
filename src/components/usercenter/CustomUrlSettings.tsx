@@ -16,34 +16,13 @@ export const CustomUrlSettings = () => {
   const [isAvailable, setIsAvailable] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [qrCodeUrl, setQrCodeUrl] = useState('');
-  const [copiedState, setCopiedState] = useState<'url' | 'qr' | null>(null);
-  const qrCanvasRef = useRef<HTMLCanvasElement>(null);
+  const [copiedState, setCopiedState] = useState<'url' | null>(null);
 
   useEffect(() => {
     if (profile?.custom_url) {
       setCustomUrl(profile.custom_url);
     }
   }, [profile]);
-
-  // 生成二维码
-  useEffect(() => {
-    const generateQR = async () => {
-      const profileUrl = getProfileUrl();
-      if (profileUrl && qrCanvasRef.current) {
-        try {
-          await QRCode.toCanvas(qrCanvasRef.current, profileUrl, {
-            width: 200,
-            margin: 2,
-            color: { dark: '#000000', light: '#FFFFFF' }
-          });
-        } catch (err) {
-          console.error('Error generating QR code:', err);
-        }
-      }
-    };
-    generateQR();
-  }, [profile?.custom_url, profile?.id]);
 
   const checkUrlAvailability = async (url: string) => {
     if (!url) {
