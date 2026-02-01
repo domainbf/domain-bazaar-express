@@ -172,8 +172,13 @@ export const ProfileSettings = () => {
       return false;
     }
 
-    if (formData.contact_phone && !/^[\d\s\-\+\(\)]+$/.test(formData.contact_phone)) {
+    if (formData.contact_phone && formData.contact_phone && !/^[\d\s\-\+\(\)]+$/.test(formData.contact_phone)) {
       toast.error('请输入有效的电话号码');
+      return false;
+    }
+
+    if (formData.website_url && !/^https?:\/\/.+/.test(formData.website_url)) {
+      toast.error('请输入有效的网址（需要以 http:// 或 https:// 开头）');
       return false;
     }
 
