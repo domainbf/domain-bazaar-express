@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +33,8 @@ export const ProfileSettings = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+  const [activeTab, setActiveTab] = useState('basic');
+
   const [formData, setFormData] = useState({
     full_name: profile?.full_name || '',
     username: profile?.username || '',
@@ -43,12 +43,26 @@ export const ProfileSettings = () => {
     contact_phone: profile?.contact_phone || '',
     company_name: profile?.company_name || '',
     custom_url: profile?.custom_url || '',
-    avatar_url: profile?.avatar_url || ''
+    avatar_url: profile?.avatar_url || '',
+    // 新增字段
+    address: (profile as any)?.address || '',
+    country: (profile as any)?.country || '',
+    city: (profile as any)?.city || '',
+    website_url: (profile as any)?.website_url || '',
+    twitter: (profile as any)?.twitter || '',
+    linkedin: (profile as any)?.linkedin || '',
+    wechat: (profile as any)?.wechat || '',
+    qq: (profile as any)?.qq || '',
+    language_preference: (profile as any)?.language_preference || 'zh'
   });
 
   const [sellerSettings, setSellerSettings] = useState({
     is_seller: profile?.is_seller || false,
-    preferred_payment_methods: profile?.preferred_payment_methods || ['paypal', 'bank_transfer']
+    preferred_payment_methods: profile?.preferred_payment_methods || ['paypal', 'bank_transfer'],
+    business_license: (profile as any)?.business_license || '',
+    seller_description: (profile as any)?.seller_description || '',
+    response_time: (profile as any)?.response_time || '24',
+    shipping_days: (profile as any)?.shipping_days || '3'
   });
 
   // 头像上传配置
