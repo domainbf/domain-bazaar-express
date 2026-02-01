@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { DomainCard } from '@/components/DomainCard';
 import { Search, User, ClipboardList, ArrowRight, Bell, TrendingUp, Calculator, Eye } from 'lucide-react';
@@ -23,6 +23,17 @@ import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { BottomNavigation } from '@/components/mobile/BottomNavigation';
 import { useNotifications } from '@/hooks/useNotifications';
+
+// 延迟加载下面的部分以提高首页初始加载速度
+const StatsSection = lazy(() => import('@/components/sections/StatsSection'));
+const PremiumShowcase = lazy(() => import('@/components/sections/PremiumShowcase'));
+const TrendingDomains = lazy(() => import('@/components/sections/TrendingDomains'));
+const ContactSection = lazy(() => import('@/components/sections/ContactSection'));
+
+// 简单的加载占位符
+const SectionLoader = () => (
+  <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />
+);
 
 const Index = () => {
   const [filter, setFilter] = useState('all');
