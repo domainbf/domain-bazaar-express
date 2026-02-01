@@ -187,27 +187,37 @@ export const ProfileSettings = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     setIsLoading(true);
-    
+
     try {
       const updateData = {
         ...formData,
         ...sellerSettings,
         updated_at: new Date().toISOString()
       };
-      
-      const success = await updateProfile(updateData);
-      
-      if (success) {
-        toast.success('个人资料更新成功');
-        await refreshProfile();
+
+      // 过滤掉空字符串和不必要的字段
+      const cleanedData = Object.fromEntries(
+        Object.entries(updateData).filter(([_, value]) => value !== '' && value !== null && value !== undefined)
+      );
+
+      const { error } = await supabase
+        .from('profiles')
+        .update(cleanedData)
+        .eq('id', user?.id);
+
+      if (error) {
+        throw error;
       }
+
+      toast.success('个人资料更新成功');
+      await refreshProfile();
     } catch (error: any) {
       console.error('Profile update error:', error);
-      toast.error('更新失败，请重试');
+      toast.error(error.message || '更新失败，请重试');
     } finally {
       setIsLoading(false);
     }
