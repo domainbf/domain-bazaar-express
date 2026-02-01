@@ -238,62 +238,113 @@ const Index = () => {
               </TabsList>
             </div>
 
-            <TabsContent value="marketplace">
-              <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-8 md:mb-10">{t('homePage.featuredDomains')}</h2>
-              
-              {/* Filter buttons */}
-              <div className="overflow-x-auto pb-4 mb-8">
-                <div className="flex gap-2 md:gap-3 md:flex-wrap md:justify-center min-w-max px-4">
-                  <Button
-                    variant={filter === 'all' ? 'default' : 'outline'}
-                    onClick={() => setFilter('all')}
-                    className={filter === 'all' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
-                    size="sm"
-                  >
-                    {t('common.all')}
-                  </Button>
-                  <Button
-                    variant={filter === 'premium' ? 'default' : 'outline'}
-                    onClick={() => setFilter('premium')}
-                    className={filter === 'premium' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
-                    size="sm"
-                  >
-                    {t('domains.categories.premium')}
-                  </Button>
-                  <Button
-                    variant={filter === 'short' ? 'default' : 'outline'}
-                    onClick={() => setFilter('short')}
-                    className={filter === 'short' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
-                    size="sm"
-                  >
-                    {t('domains.categories.short')}
-                  </Button>
-                  <Button
-                    variant={filter === 'dev' ? 'default' : 'outline'}
-                    onClick={() => setFilter('dev')}
-                    className={filter === 'dev' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
-                    size="sm"
-                  >
-                    {t('domains.categories.tech')}
-                  </Button>
-                </div>
-              </div>
-
-              <div className="max-w-md mx-auto mb-10">
-                <div className="relative">
-                  <Input
-                    type="text"
-                    placeholder={t('marketplace.searchPlaceholder')}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full h-10 md:h-12 pl-12 pr-4 bg-white border-gray-500 focus:border-gray-900 text-gray-900 font-medium"
+            <TabsContent value="marketplace" className="mt-0">
+              {/* 推荐域名轮播 - 从左往右 */}
+              {domains.length > 0 && !isLoading && !error && (
+                <div className="mb-16 md:mb-20">
+                  <HorizontalDomainCarousel
+                    domains={domains.slice(0, 6)}
+                    direction="ltr"
+                    title="🌟 推荐精选"
                   />
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-700 w-5 h-5" />
+                </div>
+              )}
+
+              {/* 精品域名轮播 - 从右往左 */}
+              {domains.length > 6 && !isLoading && !error && (
+                <div className="mb-16 md:mb-20">
+                  <HorizontalDomainCarousel
+                    domains={domains.slice(3, 9)}
+                    direction="ltr"
+                    title="💎 精品推荐"
+                  />
+                </div>
+              )}
+
+              {/* 分类过滤和搜索区域 */}
+              <div className="bg-gray-50 rounded-2xl p-6 md:p-8 mb-12">
+                <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-6">按分类浏览</h3>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+                  {[
+                    { label: '全部', value: 'all' },
+                    { label: '精品域名', value: 'premium' },
+                    { label: '短域名', value: 'short' },
+                    { label: '科技域名', value: 'dev' }
+                  ].map((cat) => (
+                    <Button
+                      key={cat.value}
+                      variant={filter === cat.value ? 'default' : 'outline'}
+                      onClick={() => setFilter(cat.value)}
+                      className={filter === cat.value
+                        ? 'bg-gray-900 text-white font-semibold'
+                        : 'bg-white text-gray-900 border-gray-300 font-semibold hover:bg-gray-100'}
+                    >
+                      {cat.label}
+                    </Button>
+                  ))}
+                </div>
+
+                {/* 搜索框 */}
+                <div className="max-w-2xl mx-auto">
+                  <div className="relative">
+                    <Input
+                      type="text"
+                      placeholder="搜索您想要的域名..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full h-12 md:h-14 pl-12 pr-4 bg-white border-gray-300 text-gray-900 font-medium rounded-lg"
+                    />
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
+                  </div>
                 </div>
               </div>
 
-              {/* Domain Cards Grid */}
-              {error ? (
+              {/* 搜索结果展示 */}
+              {searchQuery && (
+                <div className="mb-12">
+                  <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-6">
+                    搜索结果 ({filteredDomains.length})
+                  </h3>
+
+                  {filteredDomains.length > 0 ? (
+                    <>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
+                        {filteredDomains.map((domain) => (
+                          <DomainCard
+                            key={domain.id}
+                            domain={domain.name}
+                            price={domain.price}
+                            highlight={domain.highlight || false}
+                            description={domain.description || ''}
+                            category={domain.category || ''}
+                            domainId={domain.id}
+                            sellerId={domain.owner_id || ''}
+                          />
+                        ))}
+                      </div>
+
+                      <div className="text-center">
+                        <Link to="/marketplace">
+                          <Button className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 font-semibold">
+                            查看更多搜索结果
+                          </Button>
+                        </Link>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+                      <p className="text-gray-500 mb-4">未找到匹配的域名</p>
+                      <Button variant="outline" onClick={() => setSearchQuery('')}>
+                        清除搜索
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 错误和加载状态 */}
+              {error && (
                 <div className="text-center py-16 bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl border border-red-200 mb-12">
                   <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
                     <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -311,56 +362,13 @@ const Index = () => {
                     </Button>
                   </div>
                 </div>
-              ) : isLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-8 px-2 md:px-0">
-                  {[1, 2, 3, 4, 5, 6].map((i) => (
-                    <div key={i} className="animate-pulse">
-                      <div className="bg-gray-200 rounded-lg h-48 mb-4"></div>
-                      <div className="bg-gray-200 h-4 rounded mb-2"></div>
-                      <div className="bg-gray-200 h-3 rounded w-2/3"></div>
-                    </div>
-                  ))}
-                </div>
-              ) : filteredDomains.length > 0 ? (
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-8 px-2 md:px-0">
-                    {filteredDomains.map((domain) => (
-                      <DomainCard 
-                        key={domain.id} 
-                        domain={domain.name} 
-                        price={domain.price}
-                        highlight={domain.highlight || false}
-                        description={domain.description || ''}
-                        category={domain.category || ''}
-                        domainId={domain.id}
-                        sellerId={domain.owner_id || ''}
-                      />
-                    ))}
-                  </div>
-                  
+              )}
+
+              {isLoading && (
+                <div className="flex items-center justify-center py-20">
                   <div className="text-center">
-                    <Link to="/marketplace">
-                      <Button className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3">
-                        查看更多域名
-                      </Button>
-                    </Link>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-16 bg-gray-50 rounded-lg border border-gray-200 mb-12">
-                  <h3 className="text-2xl font-medium text-gray-600 mb-4">
-                    {domains.length === 0 ? '暂无域名' : t('marketplace.noDomainsFound')}
-                  </h3>
-                  <p className="text-gray-500 mb-4">
-                    {domains.length === 0 ? '看起来还没有域名添加到平台中' : t('homePage.tryAdjustingFilters')}
-                  </p>
-                  <div className="space-x-4">
-                    <Button onClick={handleSellDomains} className="bg-gray-900">
-                      {t('homePage.addYourDomain')}
-                    </Button>
-                    <Button variant="outline" onClick={handleRetry}>
-                      刷新页面
-                    </Button>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                    <p className="text-gray-600">正在加载域名列表...</p>
                   </div>
                 </div>
               )}
