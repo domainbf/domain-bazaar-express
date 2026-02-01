@@ -147,15 +147,6 @@ export const CustomUrlSettings = () => {
     }
   };
 
-  const downloadQRCode = () => {
-    if (qrCanvasRef.current) {
-      const link = document.createElement('a');
-      link.href = qrCanvasRef.current.toDataURL('image/png');
-      link.download = `profile-qr-${customUrl || profile?.id}.png`;
-      link.click();
-      toast.success('二维码已下载');
-    }
-  };
 
   return (
     <div className="space-y-6">
