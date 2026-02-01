@@ -281,24 +281,26 @@ export const CustomUrlSettings = () => {
                     </div>
                   </div>
 
-                  {/* 二维码 */}
+                  {/* 分享链接 */}
                   <div className="space-y-3">
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex flex-col items-center">
-                      <p className="text-xs text-gray-600 mb-3">扫码访问</p>
-                      <canvas
-                        ref={qrCanvasRef}
-                        className="border border-gray-200 rounded"
-                      />
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <p className="text-xs text-gray-600 mb-3">快速分享</p>
+                      <div className="text-sm text-gray-600">
+                        <p className="mb-2">✓ 复制链接后分享给买家</p>
+                        <p>✓ 在社交媒体中推广</p>
+                      </div>
                     </div>
 
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={downloadQRCode}
                       className="w-full flex items-center gap-2"
+                      asChild
                     >
-                      <QrCode className="h-4 w-4" />
-                      下载二维码
+                      <a href={getProfileUrl()} target="_blank" rel="noopener noreferrer">
+                        <Share2 className="h-4 w-4" />
+                        在新窗口打开
+                      </a>
                     </Button>
                   </div>
                 </div>
