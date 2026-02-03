@@ -122,7 +122,13 @@ export const DomainDetailPage = () => {
         >
           {/* 域名名称和状态 */}
           <div className="text-center mb-6">
-            <div className="flex items-center justify-center gap-2 mb-3">
+            {/* 域名名称在最上方 */}
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight uppercase mb-4 text-foreground">
+              {domain.name}
+            </h1>
+
+            {/* 状态徽章 */}
+            <div className="flex items-center justify-center gap-2 mb-4">
               {domain.is_verified && (
                 <Badge className="bg-green-500/10 text-green-600 border-green-200">
                   <Shield className="h-3 w-3 mr-1" />
@@ -136,10 +142,6 @@ export const DomainDetailPage = () => {
                 {domain.status === "available" ? "可购买" : "不可用"}
               </Badge>
             </div>
-            
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight uppercase mb-4 text-foreground">
-              {domain.name}
-            </h1>
 
             {/* 统计数据 */}
             <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">

@@ -5,6 +5,7 @@ import { Navbar } from '@/components/Navbar';
 import { MarketplaceHeader } from '@/components/marketplace/MarketplaceHeader';
 import { FilterSection } from '@/components/marketplace/FilterSection';
 import { DomainListings } from '@/components/marketplace/DomainListings';
+import { AdvancedFilters, AdvancedFiltersState } from '@/components/marketplace/AdvancedFilters';
 import { Domain } from '@/types/domain';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +13,19 @@ import { BottomNavigation } from '@/components/mobile/BottomNavigation';
 import { SkeletonCardGrid } from '@/components/common/SkeletonCard';
 import { SoldDomains } from '@/components/sections/SoldDomains';
 import { useNotifications } from '@/hooks/useNotifications';
+
+// 获取域名不含后缀的名称
+const getDomainNameWithoutExtension = (domain: string): string => {
+  const lastDot = domain.lastIndexOf('.');
+  if (lastDot === -1) return domain;
+  return domain.substring(0, lastDot);
+};
+
+// 获取域名后缀
+const getDomainExtension = (domain: string): string => {
+  const match = domain.match(/(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?$/);
+  return match ? match[0].toLowerCase() : '';
+};
 
 export const Marketplace = () => {
   const [domains, setDomains] = useState<Domain[]>([]);
@@ -21,9 +35,33 @@ export const Marketplace = () => {
   const [priceRange, setPriceRange] = useState<{min: string, max: string}>({min: '', max: ''});
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFiltersState>({
+    priceMin: '',
+    priceMax: '',
+    lengthMin: '',
+    lengthMax: '',
+    extensions: [],
+    verifiedOnly: false,
+    category: 'all',
+    sortBy: 'created_at',
+    sortOrder: 'desc',
+  });
   const isMobile = useIsMobile();
   const { t } = useTranslation();
   const { unreadCount } = useNotifications();
+
+  // 计算活跃的高级筛选数量
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (advancedFilters.priceMin) count++;
+    if (advancedFilters.priceMax) count++;
+    if (advancedFilters.lengthMin) count++;
+    if (advancedFilters.lengthMax) count++;
+    if (advancedFilters.extensions.length > 0) count++;
+    if (advancedFilters.verifiedOnly) count++;
+    if (advancedFilters.category !== 'all') count++;
+    return count;
+  }, [advancedFilters]);
 
   // 优化的加载函数
   const loadDomains = useCallback(async () => {
@@ -182,7 +220,7 @@ export const Marketplace = () => {
   const filteredDomains = useMemo(() => {
     let result = [...domains];
     
-    // 应用分类过滤
+    // 应用分类过滤（基础筛选）
     if (filter !== 'all') {
       result = result.filter(domain => domain.category === filter);
     }
@@ -196,7 +234,7 @@ export const Marketplace = () => {
       );
     }
     
-    // 应用价格范围过滤
+    // 应用基础价格范围过滤
     if (priceRange.min) {
       const minPrice = parseFloat(priceRange.min);
       if (!isNaN(minPrice)) {
@@ -211,13 +249,84 @@ export const Marketplace = () => {
       }
     }
     
-    // 应用验证过滤
+    // 应用基础验证过滤
     if (verifiedOnly) {
       result = result.filter(domain => domain.is_verified);
     }
+
+    // ========== 高级筛选 ==========
+    
+    // 高级价格范围
+    if (advancedFilters.priceMin) {
+      const minPrice = parseFloat(advancedFilters.priceMin);
+      if (!isNaN(minPrice)) {
+        result = result.filter(domain => domain.price >= minPrice);
+      }
+    }
+    if (advancedFilters.priceMax) {
+      const maxPrice = parseFloat(advancedFilters.priceMax);
+      if (!isNaN(maxPrice)) {
+        result = result.filter(domain => domain.price <= maxPrice);
+      }
+    }
+
+    // 域名长度筛选
+    if (advancedFilters.lengthMin) {
+      const minLen = parseInt(advancedFilters.lengthMin);
+      if (!isNaN(minLen)) {
+        result = result.filter(domain => {
+          const nameWithoutExt = getDomainNameWithoutExtension(domain.name);
+          return nameWithoutExt.length >= minLen;
+        });
+      }
+    }
+    if (advancedFilters.lengthMax) {
+      const maxLen = parseInt(advancedFilters.lengthMax);
+      if (!isNaN(maxLen)) {
+        result = result.filter(domain => {
+          const nameWithoutExt = getDomainNameWithoutExtension(domain.name);
+          return nameWithoutExt.length <= maxLen;
+        });
+      }
+    }
+
+    // 后缀筛选
+    if (advancedFilters.extensions.length > 0) {
+      result = result.filter(domain => {
+        const ext = getDomainExtension(domain.name);
+        return advancedFilters.extensions.some(e => ext.endsWith(e.toLowerCase()));
+      });
+    }
+
+    // 高级分类筛选
+    if (advancedFilters.category !== 'all') {
+      result = result.filter(domain => domain.category === advancedFilters.category);
+    }
+
+    // 高级验证筛选
+    if (advancedFilters.verifiedOnly) {
+      result = result.filter(domain => domain.is_verified);
+    }
+
+    // 排序
+    result.sort((a, b) => {
+      const order = advancedFilters.sortOrder === 'asc' ? 1 : -1;
+      
+      switch (advancedFilters.sortBy) {
+        case 'price':
+          return (a.price - b.price) * order;
+        case 'name':
+          return a.name.localeCompare(b.name) * order;
+        case 'views':
+          return ((a.views || 0) - (b.views || 0)) * order;
+        case 'created_at':
+        default:
+          return (new Date(b.created_at).getTime() - new Date(a.created_at).getTime()) * order;
+      }
+    });
     
     return result;
-  }, [domains, filter, searchQuery, priceRange, verifiedOnly]);
+  }, [domains, filter, searchQuery, priceRange, verifiedOnly, advancedFilters]);
 
   const handleRetry = () => {
     setError(null);
@@ -235,15 +344,25 @@ export const Marketplace = () => {
           isMobile={isMobile}
         />
 
-        <FilterSection 
-          filter={filter} 
-          setFilter={setFilter} 
-          priceRange={priceRange} 
-          setPriceRange={setPriceRange}
-          verifiedOnly={verifiedOnly}
-          setVerifiedOnly={setVerifiedOnly}
-          isMobile={isMobile}
-        />
+        <div className="flex items-center justify-between mb-4">
+          <FilterSection 
+            filter={filter} 
+            setFilter={setFilter} 
+            priceRange={priceRange} 
+            setPriceRange={setPriceRange}
+            verifiedOnly={verifiedOnly}
+            setVerifiedOnly={setVerifiedOnly}
+            isMobile={isMobile}
+          />
+          <div className={`${isMobile ? 'px-2' : 'max-w-6xl mx-auto px-4'}`}>
+            <AdvancedFilters
+              filters={advancedFilters}
+              onFiltersChange={setAdvancedFilters}
+              activeFiltersCount={activeFiltersCount}
+              isMobile={isMobile}
+            />
+          </div>
+        </div>
 
         <section className={`${isMobile ? 'py-6 px-2' : 'py-12'}`}>
           <div className={`${isMobile ? 'px-2' : 'max-w-6xl mx-auto px-4'}`}>

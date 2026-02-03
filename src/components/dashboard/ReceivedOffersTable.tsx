@@ -59,33 +59,59 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
     setProcessingOffers(prev => ({...prev, [offerId]: true}));
     
     try {
-      const { error } = await supabase
-        .from('domain_offers')
-        .update({ status: action, updated_at: new Date().toISOString() })
-        .eq('id', offerId);
-      
-      if (error) throw error;
-      
-      // Get the offer details to send notification
-      const { data: offerData } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('请先登录');
+        return;
+      }
+
+      // 先获取报价详情以确认权限
+      const { data: offerData, error: fetchError } = await supabase
         .from('domain_offers')
         .select(`
           *,
-          domain_listings (name)
+          domain_listings (name, owner_id)
         `)
         .eq('id', offerId)
         .single();
-        
-      if (offerData?.domain_listings) {
-        // 创建通知给买家
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user && offerData.buyer_id) {
-          const actionMessages = {
-            accepted: '您的报价已被接受！卖家将与您联系完成交易。',
-            rejected: '您的报价已被拒绝，您可以尝试提交新的报价。',
-            completed: '交易已完成！感谢您使用我们的平台。'
-          };
+      
+      if (fetchError) throw fetchError;
+      
+      if (!offerData) {
+        toast.error('报价不存在');
+        return;
+      }
 
+      // 验证当前用户是卖家
+      if (offerData.seller_id !== user.id) {
+        toast.error('您没有权限处理此报价');
+        return;
+      }
+
+      // 使用 RPC 或直接更新（卖家有更新自己收到报价的权限）
+      const { error: updateError } = await supabase
+        .from('domain_offers')
+        .update({ 
+          status: action, 
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', offerId)
+        .eq('seller_id', user.id); // 确保只更新自己的报价
+      
+      if (updateError) {
+        console.error('Update error:', updateError);
+        throw new Error(`更新失败: ${updateError.message}`);
+      }
+        
+      // 创建通知给买家
+      if (offerData.buyer_id && offerData.domain_listings) {
+        const actionMessages = {
+          accepted: '您的报价已被接受！卖家将与您联系完成交易。',
+          rejected: '您的报价已被拒绝，您可以尝试提交新的报价。',
+          completed: '交易已完成！感谢您使用我们的平台。'
+        };
+
+        try {
           await supabase
             .from('notifications')
             .insert({
@@ -96,6 +122,9 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
               related_id: offerId,
               action_url: '/user-center?tab=transactions'
             });
+        } catch (notifError) {
+          console.error('Notification error:', notifError);
+          // 通知失败不影响主流程
         }
       }
       
@@ -105,7 +134,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
       await onRefresh();
     } catch (error: any) {
       console.error('Error updating offer:', error);
-      toast.error(error.message || '更新报价状态失败');
+      toast.error(error.message || '更新报价状态失败，请检查权限');
     } finally {
       setProcessingOffers(prev => ({...prev, [offerId]: false}));
     }
