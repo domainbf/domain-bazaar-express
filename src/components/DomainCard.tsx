@@ -170,60 +170,69 @@ export const DomainCard = ({
   };
 
   return (
-    <div className={`relative border rounded-lg p-6 hover:shadow-lg transition-all duration-200 group ${highlight ? 'border-black border-2 bg-gray-50' : 'border-gray-200 bg-white'}`}>
+    <div className={`relative rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 group ${highlight ? 'border-2 border-yellow-400 bg-gradient-to-br from-yellow-50 to-white' : 'border border-gray-200 bg-white'}`}>
+      {/* Top decorative bar */}
+      <div className={`h-1 w-full ${highlight ? 'bg-gradient-to-r from-yellow-400 to-orange-400' : 'bg-gradient-to-r from-blue-400 to-purple-400'}`}></div>
+
       {/* Top badges row */}
-      <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+      <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           {highlight && (
-            <Badge className="bg-black text-white">精选</Badge>
+            <Badge className="bg-yellow-400 text-yellow-900 font-bold">⭐ 精选</Badge>
           )}
           {isVerified && (
-            <Badge className="bg-green-500 text-white gap-1">
+            <Badge className="bg-green-500 text-white gap-1 font-semibold">
               <Shield className="h-3 w-3" />
               已验证
             </Badge>
           )}
         </div>
-        
+
         {/* Favorite button */}
         <Button
           variant="ghost"
           size="icon"
-          className={`h-8 w-8 rounded-full transition-all ${
-            isFavorited 
-              ? 'text-red-500 hover:text-red-600 hover:bg-red-50' 
+          className={`h-9 w-9 rounded-full transition-all ${
+            isFavorited
+              ? 'text-red-500 hover:text-red-600 hover:bg-red-50'
               : 'text-gray-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100'
           }`}
           onClick={handleToggleFavorite}
           disabled={isLoadingFavorite}
         >
-          <Heart className={`h-4 w-4 ${isFavorited ? 'fill-current' : ''}`} />
+          <Heart className={`h-5 w-5 ${isFavorited ? 'fill-current' : ''}`} />
         </Button>
       </div>
-      
-      <div className="flex flex-col items-center space-y-4 pt-6">
+
+      <div className="flex flex-col items-center justify-between h-full space-y-4 p-6 pt-16">
+        {/* 域名显示 - 加大字体 */}
         <Link to={`/domain/${domain}`} className="w-full text-center">
-          <h3 className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
+          <h3 className="text-3xl md:text-4xl font-bold text-gray-900 hover:text-blue-600 transition-colors break-words line-clamp-3">
             {domain}
           </h3>
         </Link>
-        
+
+        {/* 价格 */}
         {price !== undefined && (
-          <span className="text-2xl font-bold text-primary">
-            {typeof price === 'number' ? `¥${price.toLocaleString()}` : price}
-          </span>
+          <div className="text-center">
+            <p className="text-xs text-gray-500 mb-1">起价</p>
+            <span className="text-3xl md:text-4xl font-bold text-gray-900">
+              {typeof price === 'number' ? `¥${price.toLocaleString()}` : price}
+            </span>
+          </div>
         )}
-        
-        <div className="flex items-center gap-2 flex-wrap justify-center">
+
+        {/* 分类和浏览量 */}
+        <div className="flex items-center gap-2 flex-wrap justify-center w-full">
           {category && (
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-xs font-semibold bg-blue-100 text-blue-800">
               {getCategoryLabel(category)}
             </Badge>
           )}
           {views > 0 && (
-            <Badge variant="outline" className="text-xs gap-1">
+            <Badge variant="outline" className="text-xs gap-1 font-semibold">
               <Eye className="h-3 w-3" />
-              {views}
+              {views} 次浏览
             </Badge>
           )}
         </div>
