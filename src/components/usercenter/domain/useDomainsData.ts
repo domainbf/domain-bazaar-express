@@ -1,5 +1,4 @@
-
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
@@ -13,6 +12,8 @@ export const useDomainsData = () => {
   const [domains, setDomains] = useState<Domain[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const createAnalyticsRecord = async (domainId: string) => {
     try {
@@ -40,7 +41,8 @@ export const useDomainsData = () => {
     const { data: domainsData, error: domainsError } = await supabase
       .from('domain_listings')
       .select('*')
-      .eq('owner_id', user.id);
+      .eq('owner_id', user.id)
+      .order('created_at', { ascending: false });
     
     if (domainsError) throw domainsError;
     
@@ -85,6 +87,7 @@ export const useDomainsData = () => {
       await createAnalyticsRecord(domain.id);
     }
 
+    setLastUpdated(new Date());
     console.log('Domains loaded successfully');
     return processedDomains as Domain[];
   }, [user]);
@@ -138,13 +141,20 @@ export const useDomainsData = () => {
     try {
       clearCache(); // 清除缓存强制刷新
       await refreshCache();
+      toast.success('数据已刷新', { duration: 2000 });
     } finally {
       setIsRefreshing(false);
     }
   }, [refreshCache, clearCache]);
 
+  // 设置实时订阅
   useEffect(() => {
     if (!user) return;
+
+    // 清理之前的频道
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+    }
 
     const channel = supabase
       .channel(`domain_listings_owner_${user.id}`)
@@ -156,15 +166,25 @@ export const useDomainsData = () => {
           table: 'domain_listings',
           filter: `owner_id=eq.${user.id}`,
         },
-        () => {
+        (payload) => {
+          console.log('Domain change detected:', payload.eventType);
           // 实时刷新缓存数据
           refreshCache();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Realtime subscription active for domains');
+        }
+      });
+
+    channelRef.current = channel;
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [user, refreshCache]);
 
@@ -172,6 +192,7 @@ export const useDomainsData = () => {
     domains,
     isLoading,
     isRefreshing,
+    lastUpdated,
     loadDomains,
     refreshDomains
   };

@@ -49,6 +49,27 @@ export const AllDomainListings = () => {
 
   useEffect(() => {
     loadDomains();
+    
+    // 设置实时订阅
+    const channel = supabase
+      .channel('admin-domain-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'domain_listings',
+        },
+        (payload) => {
+          console.log('Admin: Domain change detected', payload.eventType);
+          loadDomains();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const loadDomains = async () => {

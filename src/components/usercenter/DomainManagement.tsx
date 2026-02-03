@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { DomainActions } from './DomainActions';
@@ -7,15 +6,49 @@ import { DomainTable } from './domain/DomainTable';
 import { EmptyDomainState } from './domain/EmptyDomainState';
 import { useDomainsData } from './domain/useDomainsData';
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
+import { motion, AnimatePresence } from "framer-motion";
+
+// 域名管理骨架屏
+const DomainManagementSkeleton = () => (
+  <div className="space-y-6">
+    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <Skeleton className="h-8 w-32" />
+      <div className="flex gap-2">
+        <Skeleton className="h-9 w-20" />
+        <Skeleton className="h-9 w-28" />
+      </div>
+    </div>
+    
+    <div className="flex flex-wrap gap-2">
+      <Skeleton className="h-10 w-64" />
+      <Skeleton className="h-10 w-24" />
+      <Skeleton className="h-10 w-24" />
+    </div>
+    
+    <div className="space-y-3">
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className="flex items-center gap-4 p-4 border rounded-lg">
+          <Skeleton className="h-5 w-32" />
+          <Skeleton className="h-5 w-20" />
+          <Skeleton className="h-5 w-16" />
+          <Skeleton className="h-5 w-16" />
+          <div className="flex-1" />
+          <Skeleton className="h-8 w-24" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
 export const DomainManagement = () => {
   const { t } = useTranslation();
   const { user, isLoading: isAuthLoading } = useAuth();
-  const { domains, isLoading, isRefreshing, loadDomains, refreshDomains } = useDomainsData();
+  const { domains, isLoading, isRefreshing, lastUpdated, loadDomains, refreshDomains } = useDomainsData();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
@@ -79,12 +112,7 @@ export const DomainManagement = () => {
 
   // 认证检查
   if (isAuthLoading) {
-    return (
-      <div className="flex justify-center py-10">
-        <LoadingSpinner />
-        <span className="ml-2 text-gray-600">正在验证用户权限...</span>
-      </div>
-    );
+    return <DomainManagementSkeleton />;
   }
 
   if (!user) {
@@ -104,21 +132,26 @@ export const DomainManagement = () => {
 
   // 初始加载状态
   if (isLoading && domains.length === 0) {
-    return (
-      <div className="flex flex-col items-center py-10">
-        <LoadingSpinner />
-        <div className="mt-4 text-gray-600 text-center">
-          <div>正在加载域名数据...</div>
-          <div className="text-sm text-gray-500 mt-2">数据已缓存，后续加载会更快</div>
-        </div>
-      </div>
-    );
+    return <DomainManagementSkeleton />;
   }
 
   return (
-    <div className="space-y-6">
+    <motion.div 
+      className="space-y-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h2 className="text-2xl font-bold">{t('userCenter.myDomains', '我的域名')}</h2>
+        <div>
+          <h2 className="text-2xl font-bold">{t('userCenter.myDomains', '我的域名')}</h2>
+          {lastUpdated && (
+            <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+              <Clock className="h-3 w-3" />
+              最后更新: {lastUpdated.toLocaleTimeString()}
+            </p>
+          )}
+        </div>
         <div className="flex gap-2">
           <Button 
             variant="outline" 
@@ -148,25 +181,48 @@ export const DomainManagement = () => {
         totalCount={filteredDomains.length}
       />
 
-      {domains.length === 0 ? (
-        <EmptyDomainState 
-          onDomainAdded={loadDomains} 
-          isEmpty={true}
-          isFiltered={false}
-        />
-      ) : filteredDomains.length === 0 ? (
-        <EmptyDomainState 
-          onDomainAdded={loadDomains} 
-          isEmpty={false}
-          isFiltered={true}
-        />
-      ) : (
-        <DomainTable 
-          domains={filteredDomains} 
-          onDomainUpdate={loadDomains}
-          currentUserId={user.id}
-        />
-      )}
-    </div>
+      <AnimatePresence mode="wait">
+        {domains.length === 0 ? (
+          <motion.div
+            key="empty"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <EmptyDomainState 
+              onDomainAdded={loadDomains} 
+              isEmpty={true}
+              isFiltered={false}
+            />
+          </motion.div>
+        ) : filteredDomains.length === 0 ? (
+          <motion.div
+            key="filtered-empty"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <EmptyDomainState 
+              onDomainAdded={loadDomains} 
+              isEmpty={false}
+              isFiltered={true}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="table"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <DomainTable 
+              domains={filteredDomains} 
+              onDomainUpdate={loadDomains}
+              currentUserId={user.id}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };

@@ -1,5 +1,5 @@
 import { Navbar } from "@/components/Navbar";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { DomainDetailSkeleton } from "@/components/domain/DomainDetailSkeleton";
 import { DomainSeoHead } from "@/components/domain/DomainSeoHead";
 import { useDomainDetail } from "@/components/domain/useDomainDetail";
 import { useDomainAnalytics } from "@/hooks/useDomainAnalytics";
@@ -37,13 +37,44 @@ import { DomainAnalytics } from "./DomainAnalytics";
 import { SimilarDomainsGrid } from "./SimilarDomainsGrid";
 import { DomainShareButtons } from "./DomainShareButtons";
 import { DomainValuationTool } from "./DomainValuationTool";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+
+// 页面过渡动画配置
+const pageVariants = {
+  initial: { opacity: 0 },
+  animate: { 
+    opacity: 1,
+    transition: { 
+      duration: 0.4,
+      staggerChildren: 0.08
+    }
+  },
+  exit: { opacity: 0 }
+};
+
+const itemVariants = {
+  initial: { opacity: 0, y: 20 },
+  animate: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.4, ease: "easeOut" }
+  }
+};
+
+const cardHoverVariants = {
+  rest: { scale: 1 },
+  hover: { 
+    scale: 1.01,
+    boxShadow: "0 10px 30px -10px rgba(0,0,0,0.1)",
+    transition: { duration: 0.2 }
+  }
+};
 
 export const DomainDetailPage = () => {
   const { domain, similarDomains, priceHistory, isLoading, error } = useDomainDetail();
@@ -58,15 +89,9 @@ export const DomainDetailPage = () => {
     }
   }, [domain?.id]);
 
+  // 使用骨架屏代替 LoadingSpinner
   if (isLoading) {
-    return (
-      <>
-        <Navbar />
-        <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
-          <LoadingSpinner size="lg" text="加载域名信息中..." />
-        </div>
-      </>
-    );
+    return <DomainDetailSkeleton />;
   }
 
   if (error || !domain) {
@@ -93,72 +118,100 @@ export const DomainDetailPage = () => {
   };
 
   return (
-    <div className="bg-background min-h-screen">
-      <DomainSeoHead domain={domain} analytics={analytics} />
-      <Navbar />
-      
-      <main className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        {/* 返回导航 */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="mb-6"
-        >
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-            className="hover:bg-accent -ml-2"
+    <AnimatePresence mode="wait">
+      <motion.div 
+        className="bg-background min-h-screen"
+        variants={pageVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+      >
+        <DomainSeoHead domain={domain} analytics={analytics} />
+        <Navbar />
+        
+        <main className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          {/* 返回导航 */}
+          <motion.div
+            variants={itemVariants}
+            className="mb-6"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            返回
-          </Button>
-        </motion.div>
+            <Button
+              variant="ghost"
+              onClick={() => navigate(-1)}
+              className="hover:bg-accent -ml-2 transition-all duration-200 hover:scale-105"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              返回
+            </Button>
+          </motion.div>
 
-        {/* 核心信息区域 - Hero Section */}
-        <motion.section 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-card border rounded-2xl p-6 sm:p-8 mb-6 shadow-sm"
-        >
-          {/* 域名名称和状态 */}
-          <div className="text-center mb-6">
-            {/* 域名名称在最上方 */}
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight uppercase mb-4 text-foreground">
-              {domain.name}
-            </h1>
+          {/* 核心信息区域 - Hero Section */}
+          <motion.section 
+            variants={itemVariants}
+            whileHover="hover"
+            initial="rest"
+            animate="rest"
+            className="bg-card border rounded-2xl p-6 sm:p-8 mb-6 shadow-sm transition-shadow duration-300"
+          >
+            {/* 域名名称和状态 */}
+            <motion.div 
+              className="text-center mb-6"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            >
+              {/* 域名名称在最上方 */}
+              <motion.h1 
+                className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight uppercase mb-4 text-foreground"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 0.4 }}
+              >
+                {domain.name}
+              </motion.h1>
 
-            {/* 状态徽章 */}
-            <div className="flex items-center justify-center gap-2 mb-4">
-              {domain.is_verified && (
-                <Badge className="bg-green-500/10 text-green-600 border-green-200">
-                  <Shield className="h-3 w-3 mr-1" />
-                  已验证
+              {/* 状态徽章 */}
+              <motion.div 
+                className="flex items-center justify-center gap-2 mb-4 flex-wrap"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.4 }}
+              >
+                {domain.is_verified && (
+                  <Badge className="bg-green-500/10 text-green-600 border-green-200 animate-fade-in">
+                    <Shield className="h-3 w-3 mr-1" />
+                    已验证
+                  </Badge>
+                )}
+                <Badge variant="outline" className="capitalize">
+                  {domain.category}
                 </Badge>
-              )}
-              <Badge variant="outline" className="capitalize">
-                {domain.category}
-              </Badge>
-              <Badge variant={domain.status === "available" ? "default" : "secondary"}>
-                {domain.status === "available" ? "可购买" : "不可用"}
-              </Badge>
-            </div>
+                <Badge variant={domain.status === "available" ? "default" : "secondary"}>
+                  {domain.status === "available" ? "可购买" : "不可用"}
+                </Badge>
+              </motion.div>
 
-            {/* 统计数据 */}
-            <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Eye className="h-4 w-4" />
-                {analytics?.views || 0}
-              </span>
-              <span className="flex items-center gap-1">
-                <Heart className="h-4 w-4" />
-                {analytics?.favorites || 0}
-              </span>
-              <span className="flex items-center gap-1">
-                <MessageSquare className="h-4 w-4" />
-                {analytics?.offers || 0}
-              </span>
-            </div>
-          </div>
+              {/* 统计数据 */}
+              <motion.div 
+                className="flex items-center justify-center gap-6 text-sm text-muted-foreground"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.4 }}
+              >
+                <span className="flex items-center gap-1 transition-transform hover:scale-110">
+                  <Eye className="h-4 w-4" />
+                  {analytics?.views || 0}
+                </span>
+                <span className="flex items-center gap-1 transition-transform hover:scale-110">
+                  <Heart className="h-4 w-4" />
+                  {analytics?.favorites || 0}
+                </span>
+                <span className="flex items-center gap-1 transition-transform hover:scale-110">
+                  <MessageSquare className="h-4 w-4" />
+                  {analytics?.offers || 0}
+                </span>
+              </motion.div>
+            </motion.div>
 
           {/* 价格区域 */}
           <div className="text-center py-6 border-y border-border mb-6">
@@ -380,6 +433,7 @@ export const DomainDetailPage = () => {
           </DialogContent>
         </Dialog>
       )}
-    </div>
+      </motion.div>
+    </AnimatePresence>
   );
 };
