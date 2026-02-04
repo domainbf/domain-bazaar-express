@@ -75,7 +75,7 @@ export const UserCenterLayout = ({ profile, user, children }: UserCenterLayoutPr
                 )}
               </div>
               
-              <div className="space-y-1.5 md:space-y-2">
+              <div className="space-y-1.5 md:space-y-2 flex-1">
                 <div>
                   <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-gray-900`}>
                     {profile?.full_name || user?.email?.split('@')[0] || '用户'}

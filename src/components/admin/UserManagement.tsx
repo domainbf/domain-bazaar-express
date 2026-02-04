@@ -74,7 +74,7 @@ export const UserManagement = () => {
   const loadUsers = async () => {
     setIsLoading(true);
     try {
-      // 加载用户资料
+      // 加载用户资料 - 获取所有字段
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
@@ -91,11 +91,14 @@ export const UserManagement = () => {
         console.error('Error loading roles:', rolesError);
       }
 
-      // 合并角色信息
+      // 合并角色信息和用户邮箱
       const usersWithRoles = (profilesData || []).map(profile => {
         const userRole = adminRoles?.find(r => r.user_id === profile.id);
+        // 优先使用 contact_email，因为 auth.users 表不可直接访问
+        const userEmail = profile.contact_email || `用户ID: ${profile.id.slice(0, 8)}...`;
         return {
           ...profile,
+          email: userEmail,
           is_admin: !!userRole,
           role: userRole?.role || 'user'
         };
@@ -199,7 +202,8 @@ export const UserManagement = () => {
           username: editingUser.username,
           bio: editingUser.bio,
           is_seller: editingUser.is_seller,
-          seller_verified: editingUser.seller_verified
+          seller_verified: editingUser.seller_verified,
+          contact_email: editingUser.email // Save the email to contact_email field
         })
         .eq('id', editingUser.id);
       
@@ -665,11 +669,30 @@ export const UserManagement = () => {
           </DialogHeader>
           {editingUser && (
             <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>用户ID</Label>
+                  <Input
+                    value={editingUser.id}
+                    disabled
+                    className="bg-muted text-xs"
+                  />
+                </div>
+                <div>
+                  <Label>联系邮箱</Label>
+                  <Input
+                    value={editingUser.email || ''}
+                    onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
+                    placeholder="用户邮箱"
+                  />
+                </div>
+              </div>
               <div>
                 <Label>姓名</Label>
                 <Input
                   value={editingUser.full_name || ''}
                   onChange={(e) => setEditingUser({...editingUser, full_name: e.target.value})}
+                  placeholder="用户全名"
                 />
               </div>
               <div>
@@ -677,6 +700,7 @@ export const UserManagement = () => {
                 <Input
                   value={editingUser.username || ''}
                   onChange={(e) => setEditingUser({...editingUser, username: e.target.value})}
+                  placeholder="@用户名"
                 />
               </div>
               <div>
@@ -685,9 +709,10 @@ export const UserManagement = () => {
                   value={editingUser.bio || ''}
                   onChange={(e) => setEditingUser({...editingUser, bio: e.target.value})}
                   rows={3}
+                  placeholder="用户的个人简介..."
                 />
               </div>
-              <div className="flex items-center space-x-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="is_seller"
@@ -704,6 +729,14 @@ export const UserManagement = () => {
                   />
                   <Label htmlFor="seller_verified">已验证</Label>
                 </div>
+              </div>
+              <div className="flex items-center gap-2 p-3 rounded-md bg-muted/50">
+                <Badge variant={editingUser.is_admin ? "default" : "outline"}>
+                  {editingUser.is_admin ? '管理员' : '普通用户'}
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  角色需在"设置角色"中更改
+                </span>
               </div>
             </div>
           )}
