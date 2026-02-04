@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { DomainCard } from '@/components/DomainCard';
 import { Search, User, ClipboardList, ArrowRight, Bell, TrendingUp, Calculator, Eye } from 'lucide-react';
@@ -6,10 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/Navbar';
 import { HeroSection } from '@/components/sections/HeroSection';
-import { DomainEstimator } from '@/components/tools/DomainEstimator';
-import { DomainMonitor } from '@/components/tools/DomainMonitor';
-import { SoldDomains } from '@/components/sections/SoldDomains';
-import SupportSection from '@/components/sections/SupportSection';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthModal } from '@/components/AuthModal';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,6 +19,12 @@ import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { BottomNavigation } from '@/components/mobile/BottomNavigation';
 import { useNotifications } from '@/hooks/useNotifications';
+
+// 懒加载组件
+const DomainEstimator = lazy(() => import('@/components/tools/DomainEstimator').then(m => ({ default: m.DomainEstimator })));
+const DomainMonitor = lazy(() => import('@/components/tools/DomainMonitor').then(m => ({ default: m.DomainMonitor })));
+const SoldDomains = lazy(() => import('@/components/sections/SoldDomains').then(m => ({ default: m.SoldDomains })));
+const SupportSection = lazy(() => import('@/components/sections/SupportSection'));
 
 const Index = () => {
   const [filter, setFilter] = useState('all');
@@ -366,11 +368,15 @@ const Index = () => {
             </TabsContent>
 
             <TabsContent value="estimator">
-              <DomainEstimator />
+              <Suspense fallback={<div className="flex justify-center py-12"><LoadingSpinner /></div>}>
+                <DomainEstimator />
+              </Suspense>
             </TabsContent>
 
             <TabsContent value="monitor">
-              <DomainMonitor />
+              <Suspense fallback={<div className="flex justify-center py-12"><LoadingSpinner /></div>}>
+                <DomainMonitor />
+              </Suspense>
             </TabsContent>
           </Tabs>
         </div>

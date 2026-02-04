@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { supabase } from "@/integrations/supabase/client";
@@ -9,8 +8,9 @@ import { PendingVerifications } from '@/components/admin/PendingVerifications';
 import { AllDomainListings } from '@/components/admin/AllDomainListings';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { ContentManagement } from '@/components/admin/ContentManagement';
+import { SeoConfiguration } from '@/components/admin/SeoConfiguration';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Settings, RefreshCw, FileText, Layers } from 'lucide-react';
+import { Shield, Settings, RefreshCw, FileText, Layers, Search } from 'lucide-react';
 import { SiteSettings } from '@/components/admin/SiteSettings';
 import { HomeContentManagement } from '@/components/admin/HomeContentManagement';
 import { BulkDomainOperations } from '@/components/admin/BulkDomainOperations';
@@ -36,17 +36,47 @@ export const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
 
   useEffect(() => {
-    // 快速权限检查
-    if (!authLoading && user && !isAdmin) {
-      toast.error('您没有管理员权限');
-      navigate('/');
-      return;
-    }
+    const checkAndLoadAdmin = async () => {
+      // 等待认证加载完成
+      if (authLoading) return;
+      
+      // 检查用户是否登录
+      if (!user) {
+        toast.error('请先登录');
+        navigate('/auth');
+        return;
+      }
+      
+      // 重新验证管理员状态（从数据库检查）
+      try {
+        const { data: isAdminUser, error } = await supabase.rpc('is_admin', {
+          user_id: user.id
+        });
+        
+        if (error) {
+          console.error('Admin check error:', error);
+          toast.error('权限验证失败');
+          navigate('/');
+          return;
+        }
+        
+        if (!isAdminUser) {
+          toast.error('您没有管理员权限');
+          navigate('/');
+          return;
+        }
+        
+        // 用户是管理员，加载统计数据
+        loadAdminStats();
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        toast.error('权限验证失败');
+        navigate('/');
+      }
+    };
     
-    if (!authLoading && user && isAdmin) {
-      loadAdminStats();
-    }
-  }, [user, isAdmin, authLoading, navigate]);
+    checkAndLoadAdmin();
+  }, [user, authLoading, navigate]);
 
   const loadAdminStats = async () => {
     try {
@@ -105,18 +135,18 @@ export const AdminPanel = () => {
     );
   }
 
-  // 如果用户未登录或不是管理员
-  if (!user || !isAdmin) {
+  // 如果用户未登录
+  if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-2">访问被拒绝</h1>
-          <p className="text-gray-600 mb-4">您没有权限访问此页面</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">需要登录</h1>
+          <p className="text-gray-600 mb-4">请先登录管理员账户</p>
           <Button
-            variant="outline"
-            onClick={() => navigate('/')}
+            variant="default"
+            onClick={() => navigate('/auth')}
           >
-            返回首页
+            前往登录
           </Button>
         </div>
       </div>
@@ -125,10 +155,6 @@ export const AdminPanel = () => {
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    // 只有在切换到仪表盘时才刷新统计数据
-    if (value === 'dashboard' && !isLoading) {
-      loadAdminStats();
-    }
   };
 
   return (
@@ -166,6 +192,10 @@ export const AdminPanel = () => {
             <TabsTrigger value="users">用户管理</TabsTrigger>
             <TabsTrigger value="homepage">首页管理</TabsTrigger>
             <TabsTrigger value="content">内容管理</TabsTrigger>
+            <TabsTrigger value="seo" className="flex items-center gap-2">
+              <Search className="w-4 h-4" />
+              SEO配置
+            </TabsTrigger>
             <TabsTrigger value="settings">网站设置</TabsTrigger>
           </TabsList>
           
@@ -195,6 +225,10 @@ export const AdminPanel = () => {
             
             <TabsContent value="content">
               <ContentManagement />
+            </TabsContent>
+            
+            <TabsContent value="seo">
+              <SeoConfiguration />
             </TabsContent>
           
           <TabsContent value="settings">

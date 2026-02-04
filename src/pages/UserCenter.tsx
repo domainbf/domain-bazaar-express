@@ -109,9 +109,9 @@ export const UserCenter = () => {
       
       <div className={isMobile ? 'pb-20' : ''}>
         <UserCenterLayout profile={profile} user={user}>
-          {/* 快捷操作区域 */}
+          {/* 快捷操作区域 - 整合在用户卡片上方右侧 */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 md:mb-6">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Button 
                 onClick={() => window.location.href = '/'}
                 variant="outline" 
@@ -122,19 +122,6 @@ export const UserCenter = () => {
                 {!isMobile && "返回首页"}
               </Button>
               
-              {profile?.is_admin && (
-                <Button 
-                  onClick={() => navigate('/admin')}
-                  size={isMobile ? "sm" : "default"}
-                  className="flex items-center gap-2 bg-red-600 hover:bg-red-700"
-                >
-                  <Settings className="w-4 h-4" />
-                  {!isMobile && "管理员面板"}
-                </Button>
-              )}
-            </div>
-            
-            <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size={isMobile ? "sm" : "default"}
@@ -145,6 +132,18 @@ export const UserCenter = () => {
                 {!isMobile && "帮助中心"}
               </Button>
             </div>
+            
+            {/* 管理员按钮放在右侧 */}
+            {profile?.is_admin && (
+              <Button 
+                onClick={() => navigate('/admin')}
+                size={isMobile ? "sm" : "default"}
+                className="flex items-center gap-2 bg-red-600 hover:bg-red-700"
+              >
+                <Settings className="w-4 h-4" />
+                {isMobile ? "管理" : "管理员面板"}
+              </Button>
+            )}
           </div>
 
           <UserCenterHelpCard open={showHelp} onClose={() => setShowHelp(false)} />

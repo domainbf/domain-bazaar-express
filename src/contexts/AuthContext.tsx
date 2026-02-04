@@ -72,37 +72,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session.user);
         setSession(session);
         
-        // 异步检查管理员状态（使用数据库函数）
-        setTimeout(async () => {
-          try {
-            const { data: isAdminUser } = await supabase.rpc('is_admin', {
-              user_id: session.user.id
-            });
-            setIsAdmin(isAdminUser || false);
-          } catch (error) {
-            console.error('Error checking admin status:', error);
-            setIsAdmin(false);
-          }
-        }, 0);
+        // 同步检查管理员状态（使用数据库函数），确保权限立即生效
+        try {
+          const { data: isAdminUser } = await supabase.rpc('is_admin', {
+            user_id: session.user.id
+          });
+          setIsAdmin(isAdminUser || false);
+          console.log('Admin status check for user:', session.user.email, 'isAdmin:', isAdminUser);
+        } catch (error) {
+          console.error('Error checking admin status:', error);
+          setIsAdmin(false);
+        }
         
-        // 异步加载用户资料，不阻塞主流程
-        setTimeout(async () => {
-          try {
-            const { data: profileData, error } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .maybeSingle();
-            
-            if (!error && profileData) {
-              setProfile(profileData);
-            } else if (error && error.code === 'PGRST116') {
-              await createDefaultProfile(session.user.id, session.user.email);
+        // 加载用户资料
+        try {
+          const { data: profileData, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .maybeSingle();
+          
+          if (!error && profileData) {
+            // 将邮箱同步到 contact_email（如果没有设置）
+            if (!profileData.contact_email && session.user.email) {
+              await supabase
+                .from('profiles')
+                .update({ contact_email: session.user.email })
+                .eq('id', session.user.id);
+              profileData.contact_email = session.user.email;
             }
-          } catch (profileError) {
-            console.error('Error fetching profile:', profileError);
+            setProfile(profileData);
+          } else if (error && error.code === 'PGRST116') {
+            await createDefaultProfile(session.user.id, session.user.email);
           }
-        }, 0);
+        } catch (profileError) {
+          console.error('Error fetching profile:', profileError);
+        }
       } else {
         setUser(null);
         setSession(null);
