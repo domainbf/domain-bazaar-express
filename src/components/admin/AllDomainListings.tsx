@@ -79,15 +79,32 @@ export const AllDomainListings = () => {
         .from('domain_listings')
         .select(`
           *,
-          domain_analytics(views, favorites, offers),
-          profiles!domain_listings_owner_id_fkey(username, full_name, contact_email)
+          domain_analytics(views, favorites, offers)
         `);
       
       if (error) throw error;
       
+      // 获取所有者信息
+      const ownerIds = [...new Set(data?.map(d => d.owner_id).filter(Boolean) || [])];
+      let profilesMap: Record<string, { username?: string; full_name?: string; contact_email?: string }> = {};
+      
+      if (ownerIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, username, full_name, contact_email')
+          .in('id', ownerIds);
+        
+        if (profilesData) {
+          profilesMap = profilesData.reduce((acc, profile) => {
+            acc[profile.id] = profile;
+            return acc;
+          }, {} as Record<string, { username?: string; full_name?: string; contact_email?: string }>);
+        }
+      }
+      
       const processedDomains: DomainListing[] = data?.map(domain => {
         const analyticsData = domain.domain_analytics && Array.isArray(domain.domain_analytics) ? domain.domain_analytics[0] : null;
-        const ownerData = domain.profiles;
+        const ownerData = domain.owner_id ? profilesMap[domain.owner_id] : null;
         
         let viewsValue = 0, favoritesValue = 0, offersValue = 0;
         
@@ -100,12 +117,11 @@ export const AllDomainListings = () => {
         let ownerName = '未知';
         let ownerEmail = '';
         if (ownerData && typeof ownerData === 'object') {
-          const owner = ownerData as { username?: string; full_name?: string; contact_email?: string };
-          ownerName = owner.username || owner.full_name || '未知';
-          ownerEmail = owner.contact_email || '';
+          ownerName = ownerData.username || ownerData.full_name || '未知';
+          ownerEmail = ownerData.contact_email || '';
         }
         
-        const { domain_analytics, profiles, ...rest } = domain;
+        const { domain_analytics, ...rest } = domain;
         
         return {
           ...rest,
