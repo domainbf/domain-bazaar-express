@@ -11,16 +11,17 @@ import { UserCenterTabsContent } from '@/components/usercenter/UserCenterTabsCon
 import { UserCenterLayout } from '@/components/usercenter/UserCenterLayout';
 import { QuickActions } from '@/components/usercenter/QuickActions';
 import { Button } from "@/components/ui/button";
-import { Home, HelpCircle, Settings, ClipboardList, User, Bell, MessageSquare, FileQuestion, Wallet } from 'lucide-react';
+import { Home, HelpCircle, Settings, ClipboardList, User, Bell, MessageSquare, FileQuestion, ArrowLeft, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Badge } from "@/components/ui/badge";
 import { useNotifications } from '@/hooks/useNotifications';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { Card, CardContent } from "@/components/ui/card";
 import { BottomNavigation } from '@/components/mobile/BottomNavigation';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const UserCenter = () => {
-  const { user, profile, isLoading: isAuthLoading } = useAuth();
+  const { user, profile, isLoading: isAuthLoading, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('domains');
   const [showHelp, setShowHelp] = useState(false);
@@ -29,8 +30,12 @@ export const UserCenter = () => {
   const { unreadCount, refreshNotifications } = useNotifications();
 
   const displayName = useMemo(() => {
-    return profile?.full_name || user?.email?.split('@')[0] || '用户';
-  }, [profile?.full_name, user?.email]);
+    return profile?.full_name || profile?.username || user?.email?.split('@')[0] || '用户';
+  }, [profile?.full_name, profile?.username, user?.email]);
+
+  const avatarInitial = useMemo(() => {
+    return displayName.charAt(0).toUpperCase();
+  }, [displayName]);
 
   useEffect(() => {
     if (!isAuthLoading && !user) {
@@ -39,7 +44,6 @@ export const UserCenter = () => {
     }
   }, [isAuthLoading, user, navigate]);
 
-  // 监听URL参数变化来切换tab
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tabParam = params.get('tab');
@@ -48,7 +52,6 @@ export const UserCenter = () => {
     }
   }, []);
 
-  // 监听底部导航的tabChange事件
   useEffect(() => {
     const handleTabChange = (event: CustomEvent) => {
       const newTab = event.detail?.tab;
@@ -66,20 +69,20 @@ export const UserCenter = () => {
     };
   }, [refreshNotifications]);
 
-  const handleTabChange = (value: string) => {
+  const handleTabChange = useCallback((value: string) => {
     setActiveTab(value);
     window.history.replaceState({}, '', `/user-center?tab=${value}`);
     if (value === 'notifications') refreshNotifications();
-  };
+  }, [refreshNotifications]);
 
   if (isAuthLoading) {
     return (
-      <div className="min-h-screen bg-white flex flex-col">
+      <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <LoadingSpinner size="lg" />
-            <p className="mt-4 text-gray-600">正在加载用户中心...</p>
+            <p className="mt-4 text-muted-foreground">正在加载用户中心...</p>
           </div>
         </div>
       </div>
@@ -88,12 +91,12 @@ export const UserCenter = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-white flex flex-col">
+      <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <h2 className="text-xl font-semibold mb-4">需要登录</h2>
-            <p className="text-gray-600 mb-4">请登录后访问用户中心</p>
+            <h2 className="text-xl font-semibold mb-4 text-foreground">需要登录</h2>
+            <p className="text-muted-foreground mb-4">请登录后访问用户中心</p>
             <Button onClick={() => navigate('/auth')}>
               前往登录
             </Button>
@@ -103,144 +106,158 @@ export const UserCenter = () => {
     );
   }
 
+  const tabItems = [
+    { value: 'domains', label: '我的域名', shortLabel: '域名', icon: ClipboardList },
+    { value: 'transactions', label: '交易记录', shortLabel: '交易', icon: ClipboardList },
+    { value: 'notifications', label: '消息通知', shortLabel: '通知', icon: Bell, badge: unreadCount },
+    { value: 'profile', label: '个人资料', shortLabel: '我的', icon: User },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/30">
       <Navbar unreadCount={unreadCount} />
       
       <div className={isMobile ? 'pb-20' : ''}>
-        <UserCenterLayout profile={profile} user={user}>
-          {/* 快捷操作区域 - 整合在用户卡片上方右侧 */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 md:mb-6">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Button 
-                onClick={() => window.location.href = '/'}
-                variant="outline" 
-                size={isMobile ? "sm" : "default"}
-                className="flex items-center gap-2"
-              >
-                <Home className="w-4 h-4" />
-                {!isMobile && "返回首页"}
-              </Button>
-              
-              <Button
-                variant="outline"
-                size={isMobile ? "sm" : "default"}
-                onClick={() => setShowHelp(!showHelp)}
-                className="flex items-center gap-2"
-              >
-                <HelpCircle className="h-4 w-4" />
-                {!isMobile && "帮助中心"}
-              </Button>
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          {/* 用户信息头部 */}
+          <Card className="mb-6 overflow-hidden">
+            <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-16 w-16 border-2 border-background shadow-lg">
+                      <AvatarImage src={profile?.avatar_url || ''} />
+                      <AvatarFallback className="bg-primary text-primary-foreground text-xl font-semibold">
+                        {avatarInitial}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h1 className="text-xl sm:text-2xl font-bold text-foreground">{displayName}</h1>
+                      <p className="text-sm text-muted-foreground">{user?.email}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        {profile?.is_seller && (
+                          <Badge variant="secondary" className="text-xs">
+                            认证卖家
+                          </Badge>
+                        )}
+                        {isAdmin && (
+                          <Badge variant="default" className="text-xs bg-red-600">
+                            管理员
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                    <Button 
+                      onClick={() => navigate('/')}
+                      variant="outline" 
+                      size={isMobile ? "sm" : "default"}
+                      className="flex items-center gap-2"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      {!isMobile && "返回首页"}
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      size={isMobile ? "sm" : "default"}
+                      onClick={() => setShowHelp(!showHelp)}
+                      className="flex items-center gap-2"
+                    >
+                      <HelpCircle className="h-4 w-4" />
+                      {!isMobile && "帮助中心"}
+                    </Button>
+                    
+                    {isAdmin && (
+                      <Button 
+                        onClick={() => navigate('/admin')}
+                        size={isMobile ? "sm" : "default"}
+                        className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+                      >
+                        <Shield className="w-4 h-4" />
+                        {isMobile ? "管理" : "管理面板"}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
             </div>
-            
-            {/* 管理员按钮放在右侧 */}
-            {profile?.is_admin && (
-              <Button 
-                onClick={() => navigate('/admin')}
-                size={isMobile ? "sm" : "default"}
-                className="flex items-center gap-2 bg-red-600 hover:bg-red-700"
-              >
-                <Settings className="w-4 h-4" />
-                {isMobile ? "管理" : "管理员面板"}
-              </Button>
-            )}
-          </div>
+          </Card>
 
           <UserCenterHelpCard open={showHelp} onClose={() => setShowHelp(false)} />
           
           {/* 快捷操作面板 */}
           {!isMobile && (
-            <QuickActions 
-              onViewNotifications={() => handleTabChange('notifications')}
-            />
+            <div className="mb-6">
+              <QuickActions onViewNotifications={() => handleTabChange('notifications')} />
+            </div>
           )}
           
           {/* 统计数据网格 */}
-          <UserCenterStatsGrid profile={profile} user={user} />
+          <div className="mb-6">
+            <UserCenterStatsGrid profile={profile} user={user} />
+          </div>
 
           {/* 主要功能标签页 */}
-          <Card className="shadow-sm">
-            <CardContent className={isMobile ? "p-0" : "p-0"}>
-              <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                <div className="border-b border-gray-200 bg-white rounded-t-lg">
-                  <TabsList className={isMobile 
-                    ? "grid w-full grid-cols-4 bg-transparent h-auto p-0 gap-0" 
-                    : "grid w-full grid-cols-4 bg-transparent h-auto p-0"}>
-                    <TabsTrigger 
-                      value="domains" 
-                      className={isMobile 
-                        ? "flex flex-col items-center gap-1 py-3 px-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:border-b-2 data-[state=active]:border-blue-700 rounded-none border-b-2 border-transparent transition-all"
-                        : "flex items-center gap-2 py-4 px-6 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:border-b-2 data-[state=active]:border-blue-700 rounded-none border-b-2 border-transparent hover:bg-gray-50 transition-all"}
-                    >
-                      <ClipboardList className="w-4 h-4" />
-                      <span className={isMobile ? "text-xs" : "hidden sm:inline"}>
-                        {isMobile ? "域名" : "我的域名"}
-                      </span>
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="transactions" 
-                      className={isMobile 
-                        ? "flex flex-col items-center gap-1 py-3 px-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:border-b-2 data-[state=active]:border-blue-700 rounded-none border-b-2 border-transparent transition-all"
-                        : "flex items-center gap-2 py-4 px-6 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:border-b-2 data-[state=active]:border-blue-700 rounded-none border-b-2 border-transparent hover:bg-gray-50 transition-all"}
-                    >
-                      <ClipboardList className="w-4 h-4" />
-                      <span className={isMobile ? "text-xs" : "hidden sm:inline"}>
-                        {isMobile ? "交易" : "交易记录"}
-                      </span>
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="notifications" 
-                      className={isMobile 
-                        ? "flex flex-col items-center gap-1 py-3 px-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:border-b-2 data-[state=active]:border-blue-700 rounded-none border-b-2 border-transparent transition-all"
-                        : "flex items-center gap-2 py-4 px-6 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:border-b-2 data-[state=active]:border-blue-700 rounded-none border-b-2 border-transparent hover:bg-gray-50 transition-all"}
-                    >
-                      <div className="relative">
-                        <Bell className="w-4 h-4" />
-                        {unreadCount > 0 && (
-                          <Badge variant="destructive" className="absolute -top-2 -right-2 h-4 min-w-[16px] flex items-center justify-center text-[10px]">
-                            {unreadCount > 99 ? '99+' : unreadCount}
-                          </Badge>
-                        )}
-                      </div>
-                      <span className={isMobile ? "text-xs" : "hidden sm:inline"}>
-                        {isMobile ? "通知" : "消息通知"}
-                      </span>
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="profile" 
-                      className={isMobile 
-                        ? "flex flex-col items-center gap-1 py-3 px-2 text-xs data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:border-b-2 data-[state=active]:border-blue-700 rounded-none border-b-2 border-transparent transition-all"
-                        : "flex items-center gap-2 py-4 px-6 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:border-b-2 data-[state=active]:border-blue-700 rounded-none border-b-2 border-transparent hover:bg-gray-50 transition-all"}
-                    >
-                      <User className="w-4 h-4" />
-                      <span className={isMobile ? "text-xs" : "hidden sm:inline"}>
-                        {isMobile ? "我的" : "个人资料"}
-                      </span>
-                    </TabsTrigger>
-                  </TabsList>
-                </div>
+          <Card className="shadow-sm overflow-hidden">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+              <div className="border-b border-border bg-background">
+                <TabsList className={`w-full justify-start bg-transparent h-auto p-0 ${isMobile ? 'grid grid-cols-4' : 'flex'}`}>
+                  {tabItems.map((tab) => {
+                    const Icon = tab.icon;
+                    return (
+                      <TabsTrigger 
+                        key={tab.value}
+                        value={tab.value} 
+                        className={`
+                          flex items-center gap-2 rounded-none border-b-2 border-transparent
+                          data-[state=active]:border-primary data-[state=active]:bg-primary/5 data-[state=active]:text-primary
+                          transition-all
+                          ${isMobile ? 'flex-col py-3 px-2 text-xs' : 'py-4 px-6'}
+                        `}
+                      >
+                        <div className="relative">
+                          <Icon className="w-4 h-4" />
+                          {tab.badge && tab.badge > 0 && (
+                            <Badge 
+                              variant="destructive" 
+                              className="absolute -top-2 -right-3 h-4 min-w-4 flex items-center justify-center text-[10px] p-0"
+                            >
+                              {tab.badge > 99 ? '99+' : tab.badge}
+                            </Badge>
+                          )}
+                        </div>
+                        <span>{isMobile ? tab.shortLabel : tab.label}</span>
+                      </TabsTrigger>
+                    );
+                  })}
+                </TabsList>
+              </div>
 
-                <div className={isMobile ? "p-4" : "p-6"}>
-                  <UserCenterTabsContent />
-                </div>
-              </Tabs>
-            </CardContent>
+              <div className={isMobile ? "p-4" : "p-6"}>
+                <UserCenterTabsContent />
+              </div>
+            </Tabs>
           </Card>
           
           {/* 帮助和支持区域 */}
-          <Card className="mt-6 md:mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <Card className="mt-6 bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
             <CardContent className={isMobile ? "p-4 text-center" : "p-6 text-center"}>
               <div className="flex items-center justify-center gap-2 mb-3">
-                <MessageSquare className={isMobile ? "w-4 h-4 text-blue-600" : "w-5 h-5 text-blue-600"} />
-                <h3 className={isMobile ? "text-base font-semibold text-blue-900" : "text-lg font-semibold text-blue-900"}>需要帮助？</h3>
+                <MessageSquare className={isMobile ? "w-4 h-4 text-primary" : "w-5 h-5 text-primary"} />
+                <h3 className={isMobile ? "text-base font-semibold" : "text-lg font-semibold"}>需要帮助？</h3>
               </div>
-              <p className={isMobile ? "text-sm text-blue-700 mb-3" : "text-blue-700 mb-4"}>我们的客户服务团队随时为您提供支持</p>
+              <p className={`text-muted-foreground ${isMobile ? "text-sm mb-3" : "mb-4"}`}>
+                我们的客户服务团队随时为您提供支持
+              </p>
               <div className="flex flex-col sm:flex-row gap-2 md:gap-3 justify-center">
                 <Link to="/contact">
                   <Button 
                     variant="outline" 
                     size={isMobile ? "sm" : "default"}
-                    className="border-blue-300 text-blue-700 hover:bg-blue-100 flex items-center gap-2 w-full sm:w-auto"
+                    className="flex items-center gap-2 w-full sm:w-auto"
                   >
                     <MessageSquare className="w-4 h-4" />
                     联系客服
@@ -250,7 +267,7 @@ export const UserCenter = () => {
                   <Button 
                     variant="outline" 
                     size={isMobile ? "sm" : "default"}
-                    className="border-blue-300 text-blue-700 hover:bg-blue-100 flex items-center gap-2 w-full sm:w-auto"
+                    className="flex items-center gap-2 w-full sm:w-auto"
                   >
                     <FileQuestion className="w-4 h-4" />
                     常见问题
@@ -259,7 +276,7 @@ export const UserCenter = () => {
               </div>
             </CardContent>
           </Card>
-        </UserCenterLayout>
+        </div>
       </div>
 
       {isMobile && <BottomNavigation unreadCount={unreadCount} />}
