@@ -40,6 +40,7 @@ export interface UserProfile {
   bio?: string;
   is_admin?: boolean;
   role?: string;
+  has_2fa?: boolean;
 }
 
 export const UserManagement = () => {
@@ -365,7 +366,7 @@ export const UserManagement = () => {
   return (
     <div className="space-y-6">
       {/* 头部统计 */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -407,6 +408,17 @@ export const UserManagement = () => {
                 <p className="text-2xl font-bold">{users.filter(u => u.is_admin).length}</p>
               </div>
               <Crown className="h-8 w-8 text-yellow-500" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">2FA启用</p>
+                <p className="text-2xl font-bold">{users.filter(u => u.has_2fa).length}</p>
+              </div>
+              <Shield className="h-8 w-8 text-purple-500" />
             </div>
           </CardContent>
         </Card>
@@ -511,6 +523,7 @@ export const UserManagement = () => {
                 <TableHead>用户</TableHead>
                 <TableHead>角色</TableHead>
                 <TableHead>状态</TableHead>
+                <TableHead>2FA</TableHead>
                 <TableHead>注册时间</TableHead>
                 <TableHead className="text-right">操作</TableHead>
               </TableRow>
@@ -573,6 +586,16 @@ export const UserManagement = () => {
                       </Badge>
                     ) : (
                       <Badge variant="outline">未验证</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {user.has_2fa ? (
+                      <Badge className="bg-blue-100 text-blue-800">
+                        <Shield className="h-3 w-3 mr-1" />
+                        已启用
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-muted-foreground">未启用</Badge>
                     )}
                   </TableCell>
                   <TableCell>
