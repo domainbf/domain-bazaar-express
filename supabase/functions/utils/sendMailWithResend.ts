@@ -21,7 +21,7 @@ export async function sendMailWithResend(
         to,
         subject,
         html,
-        from: options.from || "NIC.BN 域名交易平台 <noreply@sale.nic.bn>"
+        from: options.from || "NIC.BN 域名交易平台 <noreply@domain.bf>"
       }),
     });
 

@@ -25,7 +25,7 @@ export async function sendOfferEmails({
   const ownerEmailHtml = getOwnerEmailHtml(domain, offer, email, message, buyerId, finalDashboardUrl);
 
   // 使用已验证的 sale.nic.bn 域名
-  const from = "NIC.BN 域名交易平台 <noreply@sale.nic.bn>";
+  const from = "NIC.BN 域名交易平台 <noreply@domain.bf>";
 
   try {
     // 发送给买家的确认邮件
