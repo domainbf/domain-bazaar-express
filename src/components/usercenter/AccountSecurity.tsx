@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { TwoFactorAuth } from './TwoFactorAuth';
+import { DeviceManagement } from './DeviceManagement';
 
 export const AccountSecurity = () => {
   const { user } = useAuth();
@@ -300,6 +301,9 @@ export const AccountSecurity = () => {
           </Button>
         </CardContent>
       </Card>
+
+      {/* 设备管理 */}
+      <DeviceManagement />
 
       {/* 登录历史 */}
       <Card>
