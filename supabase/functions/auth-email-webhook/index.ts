@@ -278,7 +278,7 @@ const handler = async (req: Request): Promise<Response> => {
         to: userEmail,
         subject: subject,
         html: htmlContent,
-        from: "NIC.BN 域名交易平台 <noreply@sale.nic.bn>"
+        from: "NIC.BN 域名交易平台 <noreply@domain.bf>"
       }),
     });
 
