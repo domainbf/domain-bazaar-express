@@ -20,15 +20,15 @@ export const signInWithEmailPassword = async (email: string, password: string) =
 
 export const signUpWithEmailPassword = async (email: string, password: string, options?: { metadata?: { [key: string]: any }, redirectTo?: string }) => {
   try {
-    // 统一使用 nic.bn 域名进行重定向
-    const redirectUrl = `https://nic.bn/auth/callback`;
+    // 使用当前域名进行重定向，确保预览和生产环境都能正常工作
+    const defaultRedirectUrl = `${window.location.origin}/`;
     
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: options?.metadata || {},
-        emailRedirectTo: options?.redirectTo || redirectUrl
+        emailRedirectTo: options?.redirectTo || defaultRedirectUrl
       }
     });
     
@@ -74,7 +74,7 @@ export const resetUserPassword = async (email: string) => {
     
     // 使用 Supabase 内置的密码重置功能
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `https://nic.bn/reset-password`,
+      redirectTo: `${window.location.origin}/reset-password`,
     });
     
     if (error) {

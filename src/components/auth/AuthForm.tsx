@@ -374,15 +374,16 @@ export const AuthForm = ({
       
         {mode === 'signin' && (
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               <Checkbox
                 id="remember-me"
                 checked={rememberMe}
                 onCheckedChange={(checked) => setRememberMe(checked === true)}
+                className="h-4 w-4 rounded border-input data-[state=checked]:bg-primary data-[state=checked]:border-primary"
               />
               <label
                 htmlFor="remember-me"
-                className="text-sm text-muted-foreground cursor-pointer select-none"
+                className="text-sm text-muted-foreground cursor-pointer select-none leading-none"
               >
                 记住我
               </label>
