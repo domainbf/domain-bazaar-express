@@ -166,12 +166,13 @@ export const Navbar = ({ unreadCount = 0 }: NavbarProps) => {
         </div>
       ) : (
         <div className="flex items-center space-x-3">
-          <Button variant="ghost" onClick={() => handleNavigation('/auth')}>
+          <Button variant="outline" size="sm" onClick={() => handleNavigation('/auth')} className="px-5">
             登录
           </Button>
           <Button 
+            size="sm"
             onClick={() => handleNavigation('/auth')}
-            className="bg-black text-white hover:bg-gray-800 transition-colors"
+            className="bg-foreground text-background hover:bg-foreground/90 transition-colors px-5"
           >
             注册
           </Button>
@@ -283,14 +284,14 @@ export const Navbar = ({ unreadCount = 0 }: NavbarProps) => {
             ) : (
               <>
                 <Button 
-                  variant="ghost" 
-                  className="w-full justify-start" 
+                  variant="outline" 
+                  className="w-full justify-center" 
                   onClick={() => handleNavigation('/auth')}
                 >
                   登录
                 </Button>
                 <Button 
-                  className="w-full bg-black text-white hover:bg-gray-800"
+                  className="w-full bg-foreground text-background hover:bg-foreground/90"
                   onClick={() => handleNavigation('/auth')}
                 >
                   注册

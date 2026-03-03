@@ -44,9 +44,11 @@ export const AuthPage = () => {
               className="h-10 w-auto" 
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
+                const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                if (fallback) fallback.style.display = 'block';
               }}
             />
-            <span className="text-2xl font-bold text-foreground ml-2">NIC.BN</span>
+            <span className="text-2xl font-bold text-foreground" style={{ display: 'none' }}>NIC.BN</span>
           </Link>
           <Link to="/" className="text-muted-foreground hover:text-foreground text-sm font-medium flex items-center gap-1.5 transition-colors">
             <ArrowLeft className="w-4 h-4" />
