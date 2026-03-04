@@ -136,59 +136,59 @@ export const UserCenterStatsGrid = ({ profile, user }: UserCenterStatsGridProps)
       title: '我的域名',
       value: stats.totalDomains.toString(),
       icon: Globe,
-      description: `其中 ${stats.activeListings} 个正在出售`,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50'
+      description: `${stats.activeListings} 个正在出售`,
+      color: 'text-primary',
+      bgColor: 'bg-primary/10'
     },
     {
       title: '总价值',
       value: formatCurrency(stats.totalValue),
       icon: DollarSign,
       description: '所有域名估值总和',
-      color: 'text-green-600',
-      bgColor: 'bg-green-50'
+      color: 'text-green-600 dark:text-green-400',
+      bgColor: 'bg-green-500/10'
     },
     {
       title: '总浏览量',
       value: stats.totalViews.toLocaleString(),
       icon: Eye,
       description: '域名页面总访问次数',
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50'
+      color: 'text-purple-600 dark:text-purple-400',
+      bgColor: 'bg-purple-500/10'
     },
     {
       title: '收到报价',
       value: stats.totalOffers.toString(),
       icon: MessageSquare,
       description: '买家发送的报价数量',
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50'
+      color: 'text-orange-600 dark:text-orange-400',
+      bgColor: 'bg-orange-500/10'
     },
     {
       title: '被收藏',
       value: stats.totalFavorites.toString(),
       icon: Heart,
       description: '域名被收藏的次数',
-      color: 'text-red-600',
-      bgColor: 'bg-red-50'
+      color: 'text-red-600 dark:text-red-400',
+      bgColor: 'bg-red-500/10'
     },
     {
       title: '完成交易',
       value: stats.completedTransactions.toString(),
       icon: ShoppingCart,
       description: '成功完成的交易数量',
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-50'
+      color: 'text-indigo-600 dark:text-indigo-400',
+      bgColor: 'bg-indigo-500/10'
     }
   ];
 
   if (isLoading) {
     return (
-      <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'} gap-3 md:gap-6 mb-6 md:mb-8`}>
+      <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6'} gap-3 mb-6`}>
         {[...Array(6)].map((_, i) => (
           <Card key={i} className="animate-pulse">
-            <CardContent className={isMobile ? "p-3" : "p-6"}>
-              <div className={isMobile ? "h-12 bg-gray-200 rounded" : "h-16 bg-gray-200 rounded"}></div>
+            <CardContent className="p-4">
+              <div className="h-14 bg-muted rounded" />
             </CardContent>
           </Card>
         ))}
@@ -197,83 +197,54 @@ export const UserCenterStatsGrid = ({ profile, user }: UserCenterStatsGridProps)
   }
 
   return (
-    <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'} gap-3 md:gap-6 mb-6 md:mb-8`}>
+    <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6'} gap-3 mb-6`}>
       {statsCards.map((stat, index) => {
         const Icon = stat.icon;
         return (
-          <Card key={index} className="hover:shadow-lg transition-shadow duration-200">
-            <CardContent className={isMobile ? "p-3" : "p-6"}>
-              <div className="flex items-center justify-between">
-                <div className="space-y-1 md:space-y-2">
-                  <div className="flex items-center space-x-1 md:space-x-2">
-                    <h3 className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-600`}>{stat.title}</h3>
-                    {profile?.is_seller && index < 2 && !isMobile && (
-                      <Badge variant="secondary" className="text-xs">
-                        卖家
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="space-y-0.5 md:space-y-1">
-                    <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold ${stat.color}`}>
-                      {stat.value}
-                    </p>
-                    {!isMobile && (
-                      <p className="text-xs text-gray-500">
-                        {stat.description}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div className={`${stat.bgColor} ${isMobile ? 'p-2' : 'p-3'} rounded-full`}>
-                  <Icon className={`${isMobile ? 'h-4 w-4' : 'h-6 w-6'} ${stat.color}`} />
+          <Card key={index} className="hover:shadow-md transition-shadow duration-200 border-border/60">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className={`${stat.bgColor} p-2 rounded-lg`}>
+                  <Icon className={`h-4 w-4 ${stat.color}`} />
                 </div>
               </div>
+              <p className={`text-xl font-bold ${stat.color}`}>{stat.value}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{stat.title}</p>
             </CardContent>
           </Card>
         );
       })}
       
-      {/* 用户评分卡片 */}
-      {profile?.is_seller && (
-        <Card className="hover:shadow-lg transition-shadow duration-200">
-          <CardContent className="p-6">
+      {profile?.is_seller && !isMobile && (
+        <Card className="hover:shadow-md transition-shadow duration-200 border-border/60 col-span-2 md:col-span-3 lg:col-span-6">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <h3 className="text-sm font-medium text-gray-600">卖家评分</h3>
-                  {profile.seller_verified && (
-                    <Badge className="text-xs bg-green-100 text-green-800">
-                      已认证
-                    </Badge>
-                  )}
+              <div className="flex items-center gap-3">
+                <div className="bg-yellow-500/10 p-2 rounded-lg">
+                  <Award className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
                 </div>
-                <div className="space-y-1">
-                  <div className="flex items-center space-x-1">
-                    <p className="text-2xl font-bold text-yellow-600">
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground">卖家评分</h3>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-xl font-bold text-yellow-600 dark:text-yellow-400">
                       {stats.avgRating > 0 ? stats.avgRating.toFixed(1) : '暂无'}
-                    </p>
+                    </span>
                     {stats.avgRating > 0 && (
-                      <div className="flex space-x-1">
+                      <div className="flex gap-0.5">
                         {[...Array(5)].map((_, i) => (
-                          <div
-                            key={i}
-                            className={`w-3 h-3 rounded-full ${
-                              i < Math.round(stats.avgRating) 
-                                ? 'bg-yellow-400' 
-                                : 'bg-gray-200'
-                            }`}
-                          />
+                          <div key={i} className={`w-2.5 h-2.5 rounded-full ${i < Math.round(stats.avgRating) ? 'bg-yellow-400' : 'bg-muted'}`} />
                         ))}
                       </div>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500">
-                    基于买家评价的平均分数
-                  </p>
                 </div>
               </div>
-              <div className="bg-yellow-50 p-3 rounded-full">
-                <Award className="h-6 w-6 text-yellow-600" />
+              <div className="flex items-center gap-2">
+                {profile.seller_verified && (
+                  <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
+                    <CheckCircle className="w-3 h-3 mr-1" /> 已认证卖家
+                  </Badge>
+                )}
               </div>
             </div>
           </CardContent>
