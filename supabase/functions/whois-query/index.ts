@@ -3,8 +3,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+const WHOIS_API_BASE = 'https://xrw-tau.vercel.app/api/lookup';
+
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -19,31 +20,24 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Clean domain name (remove protocol and paths)
     let cleanDomain = domain.trim().toLowerCase();
     cleanDomain = cleanDomain.replace(/^(https?:\/\/)?/i, '');
     cleanDomain = cleanDomain.replace(/\/.*$/, '');
 
     console.log('Querying WHOIS for domain:', cleanDomain);
 
-    // Call the external WHOIS API
-    const response = await fetch(`https://api.tian.hu/whois/${encodeURIComponent(cleanDomain)}`, {
+    const response = await fetch(`${WHOIS_API_BASE}?query=${encodeURIComponent(cleanDomain)}`, {
       method: 'GET',
-      headers: {
-        'lang': 'zh',
-        'Accept': 'application/json',
-      },
+      headers: { 'Accept': 'application/json' },
     });
 
     if (!response.ok) {
       if (response.status === 429) {
-        console.error('Rate limited by WHOIS API');
         return new Response(
           JSON.stringify({ success: false, error: '查询频率超限，请稍后再试' }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      
       console.error('WHOIS API error:', response.status);
       return new Response(
         JSON.stringify({ success: false, error: `WHOIS查询失败: ${response.status}` }),
@@ -54,28 +48,41 @@ Deno.serve(async (req) => {
     const data = await response.json();
     console.log('WHOIS query successful for:', cleanDomain);
 
-    // Extract and format the relevant information
-    const formatted = data.formatted || {};
+    if (!data.status) {
+      return new Response(
+        JSON.stringify({ success: false, error: data.error || 'WHOIS查询失败' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const result = data.result || {};
+
+    // Map status array to statusTags
+    const statusTags = (result.status || []).map((s: any) => s.status || s);
+
+    // Determine registration status
+    const isRegistered = !!result.registrar;
+    const statusCode = isRegistered ? 1 : 0;
+
     const whoisInfo = {
-      domain: data.domain || cleanDomain,
-      status: data.status,
-      statusText: getStatusText(data.status),
-      registrar: formatted.registrar || null,
-      registrarUrl: formatted.registrarUrl || null,
-      createdDate: formatted.createdDate || formatted.creationDate || null,
-      updatedDate: formatted.updatedDate || null,
-      expiryDate: formatted.expiryDate || formatted.expirationDate || null,
-      nameServers: formatted.nameServers || formatted.dns || [],
-      dnsSec: formatted.dnsSec || null,
-      registrant: formatted.registrant || null,
-      admin: formatted.admin || null,
-      tech: formatted.tech || null,
-      tld: data.tld || null,
-      tags: data.tags || [],
-      statusTags: data.statusTags || [],
-      timezone: data.timezone || null,
-      rdap: data.rdap || false,
-      rawResult: data.result || null,
+      domain: result.domain || cleanDomain,
+      status: statusCode,
+      statusText: isRegistered ? '已注册' : '未注册',
+      registrar: result.registrar || null,
+      registrarUrl: result.registrarURL || null,
+      createdDate: result.creationDate || null,
+      updatedDate: result.updatedDate || null,
+      expiryDate: result.expirationDate || null,
+      nameServers: result.nameServers || [],
+      dnsSec: result.dnssec || null,
+      registrant: null,
+      tld: cleanDomain.split('.').pop() || null,
+      tags: [],
+      statusTags,
+      timezone: null,
+      rdap: data.source === 'rdap',
+      domainAge: result.domainAge || null,
+      remainingDays: result.remainingDays || null,
     };
 
     return new Response(
@@ -91,22 +98,3 @@ Deno.serve(async (req) => {
     );
   }
 });
-
-function getStatusText(status: number): string {
-  switch (status) {
-    case -1:
-      return '未知';
-    case 0:
-      return '未注册';
-    case 1:
-      return '已注册';
-    case 2:
-      return '保留域名';
-    case 3:
-      return 'DROPZONE';
-    case 4:
-      return '受保护';
-    default:
-      return '未知状态';
-  }
-}
