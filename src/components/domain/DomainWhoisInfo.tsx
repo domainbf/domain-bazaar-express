@@ -40,6 +40,8 @@ interface WhoisData {
   statusTags: string[];
   timezone: string | null;
   rdap: boolean;
+  domainAge?: number | null;
+  remainingDays?: number | null;
 }
 
 interface Props {

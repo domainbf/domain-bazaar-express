@@ -379,7 +379,7 @@ export const AuthForm = ({
                 id="remember-me"
                 checked={rememberMe}
                 onCheckedChange={(checked) => setRememberMe(checked === true)}
-                className="h-4 w-4 rounded border-input data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                className="h-4 w-4 shrink-0 rounded-[3px] border-input data-[state=checked]:bg-primary data-[state=checked]:border-primary"
               />
               <label
                 htmlFor="remember-me"

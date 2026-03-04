@@ -321,7 +321,7 @@ export const DomainDetailPage = () => {
           transition={{ delay: 0.2 }}
           className="space-y-4 mb-6"
         >
-          <Accordion type="multiple" defaultValue={["whois", "offers"]} className="space-y-3">
+          <Accordion type="multiple" defaultValue={[]} className="space-y-3">
             {/* WHOIS 信息 */}
             <AccordionItem value="whois" className="border rounded-xl bg-card shadow-sm overflow-hidden">
               <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-accent/50 [&[data-state=open]>svg]:rotate-180">
