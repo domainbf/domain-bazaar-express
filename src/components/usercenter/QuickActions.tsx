@@ -31,66 +31,58 @@ export const QuickActions = ({ onAddDomain, onViewNotifications }: QuickActionsP
     {
       icon: Plus,
       label: '添加域名',
-      description: '上架新域名出售',
       onClick: onAddDomain,
-      color: 'bg-blue-500 hover:bg-blue-600',
+      color: 'bg-primary text-primary-foreground',
       showFor: 'seller'
     },
     {
       icon: Search,
       label: '浏览市场',
-      description: '发现优质域名',
       onClick: () => navigate('/marketplace'),
-      color: 'bg-green-500 hover:bg-green-600',
+      color: 'bg-green-600 text-white',
       showFor: 'all'
     },
     {
       icon: Calculator,
       label: '域名估价',
-      description: 'AI智能估价工具',
       onClick: () => navigate('/#estimator'),
-      color: 'bg-purple-500 hover:bg-purple-600',
+      color: 'bg-purple-600 text-white',
       showFor: 'all'
     },
     {
       icon: BarChart3,
       label: '数据分析',
-      description: '查看域名表现',
       onClick: () => navigate('/user-center?tab=domains'),
-      color: 'bg-orange-500 hover:bg-orange-600',
+      color: 'bg-orange-600 text-white',
       showFor: 'seller'
     },
     {
       icon: Bell,
       label: '消息通知',
-      description: `${unreadCount > 0 ? `${unreadCount}条未读` : '查看所有通知'}`,
       onClick: onViewNotifications || (() => navigate('/user-center?tab=notifications')),
-      color: 'bg-red-500 hover:bg-red-600',
+      color: 'bg-red-600 text-white',
       badge: unreadCount > 0 ? unreadCount : undefined,
       showFor: 'all'
     },
     {
       icon: Shield,
       label: '安全中心',
-      description: '账户安全设置',
       onClick: () => navigate('/security-center'),
-      color: 'bg-gray-700 hover:bg-gray-800',
+      color: 'bg-foreground text-background',
       showFor: 'all'
     },
     {
       icon: HelpCircle,
       label: '帮助中心',
-      description: '常见问题解答',
       onClick: () => navigate('/faq'),
-      color: 'bg-teal-500 hover:bg-teal-600',
+      color: 'bg-teal-600 text-white',
       showFor: 'all'
     },
     {
       icon: Settings,
       label: '账户设置',
-      description: '管理个人资料',
       onClick: () => navigate('/user-center?tab=profile'),
-      color: 'bg-indigo-500 hover:bg-indigo-600',
+      color: 'bg-indigo-600 text-white',
       showFor: 'all'
     }
   ];
@@ -102,32 +94,31 @@ export const QuickActions = ({ onAddDomain, onViewNotifications }: QuickActionsP
   });
 
   return (
-    <Card className="mb-6">
+    <Card className="border-border/60">
       <CardContent className="p-4">
         <h3 className="text-sm font-semibold text-muted-foreground mb-3">快捷操作</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+        <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-3">
           {filteredActions.map((action, index) => {
             const Icon = action.icon;
             return (
-              <Button
+              <button
                 key={index}
-                variant="ghost"
-                className="flex flex-col items-center justify-center h-auto py-3 px-2 hover:bg-gray-100 relative"
+                className="flex flex-col items-center justify-center gap-2 py-3 px-1 rounded-xl hover:bg-muted/60 transition-colors relative group"
                 onClick={action.onClick}
               >
-                <div className={`w-10 h-10 rounded-full ${action.color} text-white flex items-center justify-center mb-2`}>
+                <div className={`w-10 h-10 rounded-xl ${action.color} flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow`}>
                   <Icon className="h-5 w-5" />
                   {action.badge && (
                     <Badge 
                       variant="destructive" 
-                      className="absolute -top-1 -right-1 h-5 min-w-[20px] flex items-center justify-center text-xs"
+                      className="absolute -top-1 right-0 h-4 min-w-4 flex items-center justify-center text-[10px] p-0 px-1"
                     >
                       {action.badge > 99 ? '99+' : action.badge}
                     </Badge>
                   )}
                 </div>
-                <span className="text-xs font-medium text-center">{action.label}</span>
-              </Button>
+                <span className="text-xs font-medium text-foreground/80">{action.label}</span>
+              </button>
             );
           })}
         </div>

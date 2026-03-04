@@ -6,25 +6,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
-  Users,
-  Globe,
-  TrendingUp,
-  DollarSign,
-  Shield,
-  Activity,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  BarChart3,
-  RefreshCw,
-  Eye,
-  Heart,
-  MessageSquare,
-  ArrowUpRight,
-  ArrowDownRight,
-  Calendar
+  Users, Globe, TrendingUp, DollarSign, Shield, Activity,
+  AlertTriangle, CheckCircle, Clock, BarChart3, RefreshCw,
+  Eye, Heart, MessageSquare, ArrowUpRight, ArrowDownRight, Calendar
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { DashboardTrendChart } from './DashboardTrendChart';
+import { EnhancedActivityLog } from './EnhancedActivityLog';
 
 interface AdminStats {
   totalUsers: number;
@@ -370,6 +358,9 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
         })}
       </div>
 
+      {/* 数据趋势图表 */}
+      <DashboardTrendChart />
+
       {/* 快速操作和数据面板 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* 快速操作 */}
@@ -480,40 +471,8 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
           </CardContent>
         </Card>
 
-        {/* 近期活动 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Clock className="h-5 w-5" />
-              近期活动
-            </CardTitle>
-            <CardDescription>最新操作记录</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {recentActivities.length > 0 ? (
-              <div className="space-y-3 max-h-64 overflow-y-auto">
-                {recentActivities.slice(0, 6).map((activity, index) => (
-                  <div key={index} className="flex items-center justify-between py-2 border-b last:border-b-0">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <div>
-                        <p className="text-sm font-medium">{activity.activity_type}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(activity.created_at).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">暂无近期活动</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* 增强版审计日志 */}
+        <EnhancedActivityLog />
       </div>
 
       {/* 系统状态和警告 */}
