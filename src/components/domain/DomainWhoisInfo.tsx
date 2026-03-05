@@ -64,11 +64,14 @@ export const DomainWhoisInfo: React.FC<Props> = ({ domainName }) => {
       });
 
       if (fnError) {
-        throw new Error(fnError.message);
+        // Don't throw on non-2xx - check data instead
+        if (!data) {
+          throw new Error(fnError.message || 'WHOIS查询服务不可用');
+        }
       }
 
-      if (!data.success) {
-        throw new Error(data.error || '查询失败');
+      if (!data?.success) {
+        throw new Error(data?.error || '查询失败');
       }
 
       setWhoisData(data.data);

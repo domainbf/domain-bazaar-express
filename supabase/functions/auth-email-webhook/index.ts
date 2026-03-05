@@ -100,7 +100,20 @@ const handler = async (req: Request): Promise<Response> => {
       email_data: { token, token_hash, redirect_to, email_action_type, site_url }
     } = data;
 
-    const baseUrl = site_url || "https://nic.bn";
+    // Use redirect_to to determine the correct base URL (supports preview & production)
+    // redirect_to contains the full URL the client set, e.g. https://preview.lovable.app/reset-password
+    let baseUrl = "https://nic.bn";
+    if (redirect_to) {
+      try {
+        const redirectUrl = new URL(redirect_to);
+        baseUrl = redirectUrl.origin;
+      } catch {
+        // fallback to site_url if redirect_to is not a valid URL
+        if (site_url) baseUrl = site_url.replace(/\/$/, '');
+      }
+    } else if (site_url) {
+      baseUrl = site_url.replace(/\/$/, '');
+    }
     const userEmail = user.email;
 
     let subject = '';
