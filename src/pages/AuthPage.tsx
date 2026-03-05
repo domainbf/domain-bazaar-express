@@ -48,7 +48,7 @@ export const AuthPage = () => {
                 if (fallback) fallback.style.display = 'block';
               }}
             />
-            <span className="text-2xl font-bold text-foreground" style={{ display: 'none' }}>NIC.BN</span>
+            <span className="text-2xl font-bold text-foreground" style={{ display: 'none' }}>域见•你</span>
           </Link>
           <Link to="/" className="text-muted-foreground hover:text-foreground text-sm font-medium flex items-center gap-1.5 transition-colors">
             <ArrowLeft className="w-4 h-4" />
@@ -153,7 +153,7 @@ export const AuthPage = () => {
 
       {/* Footer */}
       <footer className="bg-background border-t border-border px-4 py-4 text-center text-sm text-muted-foreground">
-        © 2025 NIC.BN - 专业域名交易平台
+        © 2025 域见•你 - 专业域名交易平台
       </footer>
     </div>
   );

@@ -264,7 +264,7 @@ export const ContactPage: React.FC = () => {
                   <Mail className="h-5 w-5 text-gray-500 mt-1" />
                   <div>
                     <div className="font-medium">客服邮箱</div>
-                    <div className="text-gray-600">support@nic.bn</div>
+                    <div className="text-gray-600">support@domain.bf</div>
                     <div className="text-sm text-gray-500">24小时内回复</div>
                   </div>
                 </div>

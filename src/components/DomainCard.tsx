@@ -147,28 +147,28 @@ export const DomainCard = ({
         </Button>
       </div>
       
-      {/* 核心内容：域名名称为视觉主体 */}
+      {/* 核心内容：域名名称为绝对视觉主体 */}
       <div className="flex flex-col items-center pt-8 pb-2">
         <Link to={`/domain/${domain}`} className="w-full text-center group/link">
-          <h3 className="text-3xl sm:text-4xl font-black text-foreground uppercase tracking-tight hover:text-primary transition-colors leading-tight">
+          <h3 className="text-4xl sm:text-5xl font-black text-foreground uppercase tracking-tight hover:text-primary transition-colors leading-none">
             {domain}
           </h3>
         </Link>
         
-        {price !== undefined && (
-          <span className="text-xl font-bold text-foreground mt-3">
-            {typeof price === 'number' ? `¥${price.toLocaleString()}` : price}
-          </span>
-        )}
-        
         {category && (
-          <Badge variant="secondary" className="text-[11px] mt-2.5 px-3">
+          <Badge variant="secondary" className="text-[11px] mt-3 px-3">
             {getCategoryLabel(category)}
           </Badge>
         )}
         
+        {price !== undefined && (
+          <span className="text-sm text-muted-foreground mt-2.5 font-medium">
+            售价 {typeof price === 'number' ? `$${price.toLocaleString()}` : price}
+          </span>
+        )}
+        
         {description && (
-          <p className="text-xs text-muted-foreground text-center line-clamp-2 mt-2.5 max-w-[90%]">
+          <p className="text-xs text-muted-foreground text-center line-clamp-2 mt-2 max-w-[90%]">
             {description}
           </p>
         )}
@@ -184,7 +184,7 @@ export const DomainCard = ({
           <>
             <Link to={`/domain/${domain}`} className="flex-1">
               <Button variant="outline" className="w-full text-xs" size="sm">
-                <ExternalLink className="h-3.5 w-3.5 mr-1" />详情
+                查看详情 →
               </Button>
             </Link>
             <Dialog open={isDialogOpen} onOpenChange={(open) => !open && setIsDialogOpen(false)}>

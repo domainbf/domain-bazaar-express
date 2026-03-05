@@ -54,7 +54,7 @@ export const en = {
   
   // Authentication
   auth: {
-    welcome: 'Welcome to NIC.BN',
+    welcome: 'Welcome to 域见•你',
   },
 
   // Navigation

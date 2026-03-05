@@ -22,7 +22,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
         {/* 简洁的品牌标识 */}
         <div className="mb-8">
           <span className="text-3xl font-bold text-foreground">
-            NIC.BN
+            域见•你
           </span>
           <span className="ml-2 px-2 py-0.5 text-xs rounded bg-muted text-muted-foreground">Beta</span>
           <p className="mt-2 text-sm text-muted-foreground">{t('common.platformDescription')}</p>
