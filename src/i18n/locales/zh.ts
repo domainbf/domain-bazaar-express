@@ -54,7 +54,7 @@ export const zh = {
   
   // 认证
   auth: {
-    welcome: '欢迎使用 NIC.BN',
+    welcome: '欢迎使用 域见•你',
   },
 
   // 导航

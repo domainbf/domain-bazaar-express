@@ -140,7 +140,7 @@ const SecurityCenter: React.FC = () => {
                   </ul>
                   <div className="bg-red-50 p-3 rounded-lg mt-3 border border-red-200">
                     <p className="text-red-800 text-sm font-medium">
-                      重要提醒：NIC.BN 永远不会通过邮件要求您提供密码或验证码！
+                      重要提醒：域见•你 永远不会通过邮件要求您提供密码或验证码！
                     </p>
                   </div>
                 </AccordionContent>

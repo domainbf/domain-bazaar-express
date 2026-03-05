@@ -14,7 +14,7 @@ async function sendEmailDirect(to: string, subject: string, html: string): Promi
   }
   const resend = new Resend(resendApiKey);
   const { error } = await resend.emails.send({
-    from: "NIC.BN 域名交易平台 <noreply@domain.bf>",
+    from: "域见•你 域名交易平台 <noreply@domain.bf>",
     to: [to],
     subject,
     html,
@@ -43,8 +43,8 @@ function getPasswordResetHtml(token: string, baseUrl: string): string {
 <p style="margin:0;font-size:14px;color:#6b7280;">如果您没有请求重置密码，请忽略此邮件。</p>
 <p style="margin:5px 0 0;font-size:14px;color:#6b7280;">If you didn't request this, please ignore this email.</p></div></div>
 <div style="background:#f8fafc;padding:30px 20px;text-align:center;border-top:1px solid #e5e7eb;">
-<p style="margin:0;font-size:14px;color:#6b7280;">此邮件由 <strong>NIC.BN 域名交易平台</strong> 发送</p>
-<p style="margin:15px 0 0;font-size:12px;color:#9ca3af;">© 2024 NIC.BN. All rights reserved.</p></div></div></body></html>`;
+<p style="margin:0;font-size:14px;color:#6b7280;">此邮件由 <strong>域见•你 域名交易平台</strong> 发送</p>
+<p style="margin:15px 0 0;font-size:12px;color:#9ca3af;">© 2025 域见•你. All rights reserved.</p></div></div></body></html>`;
 }
 
 function getEmailVerificationHtml(tokenHash: string, confirmUrl: string): string {
@@ -52,8 +52,8 @@ function getEmailVerificationHtml(tokenHash: string, confirmUrl: string): string
 <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;color:#333;background:#f8fafc;">
 <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 25px rgba(0,0,0,0.1);">
 <div style="background:linear-gradient(135deg,#1f2937,#374151);padding:40px 20px;text-align:center;">
-<h1 style="color:#fff;margin:0;font-size:28px;font-weight:700;">🎉 欢迎加入 NIC.BN</h1>
-<h2 style="color:#d1d5db;margin:10px 0 0;font-size:16px;font-weight:400;">Welcome to NIC.BN</h2></div>
+<h1 style="color:#fff;margin:0;font-size:28px;font-weight:700;">🎉 欢迎加入 域见•你</h1>
+<h2 style="color:#d1d5db;margin:10px 0 0;font-size:16px;font-weight:400;">Welcome to 域见•你</h2></div>
 <div style="padding:40px 20px;">
 <div style="text-align:center;margin-bottom:30px;">
 <p style="font-size:16px;color:#374151;margin:0 0 20px;">感谢注册！请验证您的邮箱地址。</p>
@@ -62,8 +62,8 @@ function getEmailVerificationHtml(tokenHash: string, confirmUrl: string): string
 <a href="${confirmUrl}" style="display:inline-block;background:linear-gradient(135deg,#1f2937,#374151);color:#fff;padding:16px 32px;text-decoration:none;border-radius:8px;font-weight:600;font-size:16px;">
 验证邮箱 | Verify Email</a></div></div>
 <div style="background:#f8fafc;padding:30px 20px;text-align:center;border-top:1px solid #e5e7eb;">
-<p style="margin:0;font-size:14px;color:#6b7280;">此邮件由 <strong>NIC.BN 域名交易平台</strong> 发送</p>
-<p style="margin:15px 0 0;font-size:12px;color:#9ca3af;">© 2024 NIC.BN. All rights reserved.</p></div></div></body></html>`;
+<p style="margin:0;font-size:14px;color:#6b7280;">此邮件由 <strong>域见•你 域名交易平台</strong> 发送</p>
+<p style="margin:15px 0 0;font-size:12px;color:#9ca3af;">© 2025 域见•你. All rights reserved.</p></div></div></body></html>`;
 }
 
 function getMagicLinkHtml(confirmUrl: string): string {
@@ -75,15 +75,15 @@ function getMagicLinkHtml(confirmUrl: string): string {
 <h2 style="color:#d1d5db;margin:10px 0 0;font-size:16px;font-weight:400;">Magic Login Link</h2></div>
 <div style="padding:40px 20px;">
 <div style="text-align:center;margin-bottom:30px;">
-<p style="font-size:16px;color:#374151;margin:0 0 20px;">点击下方链接登录您的 NIC.BN 账户：</p></div>
+<p style="font-size:16px;color:#374151;margin:0 0 20px;">点击下方链接登录您的 域见•你 账户：</p></div>
 <div style="text-align:center;margin:30px 0;">
 <a href="${confirmUrl}" style="display:inline-block;background:linear-gradient(135deg,#1f2937,#374151);color:#fff;padding:16px 32px;text-decoration:none;border-radius:8px;font-weight:600;font-size:16px;">
-登录 NIC.BN | Sign in</a></div>
+登录 域见•你 | Sign in</a></div>
 <div style="background:#f3f4f6;border-radius:8px;padding:20px;margin:30px 0;text-align:center;">
 <p style="margin:0;font-size:14px;color:#6b7280;">⏰ 此链接将在30分钟后过期</p></div></div>
 <div style="background:#f8fafc;padding:30px 20px;text-align:center;border-top:1px solid #e5e7eb;">
-<p style="margin:0;font-size:14px;color:#6b7280;">此邮件由 <strong>NIC.BN 域名交易平台</strong> 发送</p>
-<p style="margin:15px 0 0;font-size:12px;color:#9ca3af;">© 2024 NIC.BN. All rights reserved.</p></div></div></body></html>`;
+<p style="margin:0;font-size:14px;color:#6b7280;">此邮件由 <strong>域见•你 域名交易平台</strong> 发送</p>
+<p style="margin:15px 0 0;font-size:12px;color:#9ca3af;">© 2025 域见•你. All rights reserved.</p></div></div></body></html>`;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -101,14 +101,12 @@ const handler = async (req: Request): Promise<Response> => {
     } = data;
 
     // Use redirect_to to determine the correct base URL (supports preview & production)
-    // redirect_to contains the full URL the client set, e.g. https://preview.lovable.app/reset-password
     let baseUrl = "https://nic.bn";
     if (redirect_to) {
       try {
         const redirectUrl = new URL(redirect_to);
         baseUrl = redirectUrl.origin;
       } catch {
-        // fallback to site_url if redirect_to is not a valid URL
         if (site_url) baseUrl = site_url.replace(/\/$/, '');
       }
     } else if (site_url) {
@@ -121,28 +119,27 @@ const handler = async (req: Request): Promise<Response> => {
 
     switch (email_action_type) {
       case 'recovery':
-        subject = '🔐 重置您的 NIC.BN 账户密码 | Reset your password';
+        subject = '🔐 重置您的 域见•你 账户密码 | Reset your password';
         htmlContent = getPasswordResetHtml(token, baseUrl);
         break;
       case 'signup':
       case 'email_change': {
-        subject = '🎉 欢迎加入 NIC.BN - 请验证邮箱 | Verify your email';
+        subject = '🎉 欢迎加入 域见•你 - 请验证邮箱 | Verify your email';
         const confirmUrl = `${baseUrl}/auth/confirm?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to || baseUrl)}`;
         htmlContent = getEmailVerificationHtml(token_hash, confirmUrl);
         break;
       }
       case 'magiclink': {
-        subject = '🔗 您的 NIC.BN 登录链接 | Your login link';
+        subject = '🔗 您的 域见•你 登录链接 | Your login link';
         const magicUrl = `${baseUrl}/auth/confirm?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to || baseUrl)}`;
         htmlContent = getMagicLinkHtml(magicUrl);
         break;
       }
       default:
-        subject = 'NIC.BN 通知';
-        htmlContent = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;"><h2>NIC.BN 通知</h2><p>您收到了一封来自 NIC.BN 的通知邮件。</p></div>`;
+        subject = '域见•你 通知';
+        htmlContent = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;"><h2>域见•你 通知</h2><p>您收到了一封来自 域见•你 的通知邮件。</p></div>`;
     }
 
-    // 直接调用 Resend API，消除中间 edge function 跳转，大幅减少延迟
     await sendEmailDirect(userEmail, subject, htmlContent);
 
     console.log(`Auth email sent to ${userEmail} for: ${email_action_type}`);

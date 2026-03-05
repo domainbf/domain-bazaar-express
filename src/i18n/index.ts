@@ -66,9 +66,9 @@ export const changeLanguage = async (language: string) => {
     
     // 立即更新页面标题
     if (language === 'zh') {
-      document.title = 'NIC.BN - 域名交易平台';
+      document.title = '域见•你 - 域名交易平台';
     } else {
-      document.title = 'NIC.BN - Domain Marketplace';
+      document.title = '域见•你 - Domain Marketplace';
     }
     
     // 触发页面重新渲染

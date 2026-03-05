@@ -24,7 +24,7 @@ function getBuyerConfirmationHtml(data: OfferNotificationRequest): string {
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>报价提交成功 - NIC.BN</title>
+      <title>报价提交成功 - 域见•你</title>
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -181,10 +181,10 @@ function getBuyerConfirmationHtml(data: OfferNotificationRequest): string {
             <a href="${data.dashboardUrl}" class="button">查看我的报价</a>
           </div>
           
-          <p style="margin-top: 24px; color: #374151;">感谢您使用 NIC.BN 域名交易平台！</p>
+          <p style="margin-top: 24px; color: #374151;">感谢您使用 域见•你 域名交易平台！</p>
         </div>
         <div class="footer">
-          <p>© ${new Date().getFullYear()} NIC.BN 域名交易平台</p>
+          <p>© ${new Date().getFullYear()} 域见•你 域名交易平台</p>
           <div style="margin-top: 12px;">
             <a href="https://nic.bn/help" style="color: #6b7280; text-decoration: none; margin: 0 8px;">帮助中心</a>
             <a href="https://nic.bn/contact" style="color: #6b7280; text-decoration: none; margin: 0 8px;">联系客服</a>
@@ -204,7 +204,7 @@ function getOwnerNotificationHtml(data: OfferNotificationRequest): string {
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>您收到了新域名报价 - NIC.BN</title>
+      <title>您收到了新域名报价 - 域见•你</title>
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -365,10 +365,10 @@ function getOwnerNotificationHtml(data: OfferNotificationRequest): string {
             <a href="mailto:${data.email}" class="button button-secondary">直接联系买家</a>
           </div>
           
-          <p style="margin-top: 24px; color: #374151;">感谢您使用 NIC.BN 域名交易平台！</p>
+          <p style="margin-top: 24px; color: #374151;">感谢您使用 域见•你 域名交易平台！</p>
         </div>
         <div class="footer">
-          <p>© ${new Date().getFullYear()} NIC.BN 域名交易平台</p>
+          <p>© ${new Date().getFullYear()} 域见•你 域名交易平台</p>
           <div style="margin-top: 12px;">
             <a href="https://nic.bn/help" style="color: #6b7280; text-decoration: none; margin: 0 8px;">帮助中心</a>
             <a href="https://nic.bn/contact" style="color: #6b7280; text-decoration: none; margin: 0 8px;">联系客服</a>
@@ -407,7 +407,7 @@ const handler = async (req: Request): Promise<Response> => {
         to: data.email,
         subject: `报价提交成功：${data.domain} - ¥${data.offer.toLocaleString()}`,
         html: getBuyerConfirmationHtml(data),
-        from: "NIC.BN 域名交易平台 <noreply@sale.nic.bn>"
+         from: "域见•你 域名交易平台 <noreply@sale.nic.bn>"
       }),
     });
 
@@ -427,7 +427,7 @@ const handler = async (req: Request): Promise<Response> => {
           to: data.domainOwnerEmail,
           subject: `新的域名报价：${data.domain} - 买家出价 ¥${data.offer.toLocaleString()}`,
           html: getOwnerNotificationHtml(data),
-          from: "NIC.BN 域名交易平台 <noreply@sale.nic.bn>"
+          from: "域见•你 域名交易平台 <noreply@sale.nic.bn>"
         }),
       });
 

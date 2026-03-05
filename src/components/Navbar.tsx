@@ -203,7 +203,7 @@ export const Navbar = ({ unreadCount = 0 }: NavbarProps) => {
             className="text-2xl font-bold text-gray-900"
             style={{ display: 'none' }}
           >
-            NIC.BN
+            域见•你
           </span>
         </Link>
 
