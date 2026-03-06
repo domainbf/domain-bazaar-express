@@ -104,7 +104,7 @@ export const zh = {
     ctaDescription: '立即加入我们的平台，轻松开始域名交易',
     visitUserCenter: '访问用户中心',
     registerLogin: '注册/登录',
-    footer: '© 2024 域名交易平台。保留所有权利。'
+    footer: '© ' + new Date().getFullYear() + ' 域见•你 域名交易平台。保留所有权利。'
   },
 
   // 域名市场

@@ -40,7 +40,7 @@ export const AuthPage = () => {
           <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
             <img 
               src="/lovable-uploads/nic.png" 
-              alt="NIC.BN" 
+              alt="域见•你" 
               className="h-10 w-auto" 
               onError={(e) => {
                 e.currentTarget.style.display = 'none';

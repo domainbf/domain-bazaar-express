@@ -301,7 +301,7 @@ export const HomeContentManagement = () => {
       setHeroContent([
         {
           id: '1',
-          title: 'NIC.BN 域名交易平台',
+          title: '域见•你 域名交易平台',
           subtitle: '专业的域名买卖与评估服务',
           description: '发现优质域名，实现价值最大化',
           cta_text: '开始探索',

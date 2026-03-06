@@ -209,7 +209,7 @@ export const SeoConfiguration = () => {
                   id="site_name"
                   value={settings.site_name}
                   onChange={(e) => handleChange('site_name', e.target.value)}
-                  placeholder="例如：NIC.BN 域名交易平台"
+                  placeholder="例如：域见•你 域名交易平台"
                 />
                 <p className="text-xs text-muted-foreground">网站的品牌名称</p>
               </div>
@@ -225,7 +225,7 @@ export const SeoConfiguration = () => {
                   id="meta_title"
                   value={settings.meta_title}
                   onChange={(e) => handleChange('meta_title', e.target.value)}
-                  placeholder="例如：NIC.BN - 优质域名交易平台"
+                  placeholder="例如：域见•你 - 优质域名交易平台"
                   maxLength={60}
                 />
                 <p className="text-xs text-muted-foreground">显示在浏览器标签页和搜索结果中的标题</p>
@@ -242,7 +242,7 @@ export const SeoConfiguration = () => {
                   id="meta_description"
                   value={settings.meta_description}
                   onChange={(e) => handleChange('meta_description', e.target.value)}
-                  placeholder="例如：NIC.BN是专业的域名交易平台，提供优质域名买卖、估价、托管等服务..."
+                  placeholder="例如：域见•你是专业的域名交易平台，提供优质域名买卖、估价、托管等服务..."
                   rows={3}
                   maxLength={160}
                 />
@@ -267,7 +267,7 @@ export const SeoConfiguration = () => {
                   id="author"
                   value={settings.author}
                   onChange={(e) => handleChange('author', e.target.value)}
-                  placeholder="例如：NIC.BN Team"
+                  placeholder="例如：域见•你 Team"
                 />
               </div>
             </CardContent>
@@ -392,7 +392,7 @@ export const SeoConfiguration = () => {
               {settings.meta_title || '您的网站标题'}
             </div>
             <div className="text-green-700 text-sm">
-              {settings.canonical_url || 'https://nic.bn'} ›
+              {settings.canonical_url || window.location.origin} ›
             </div>
             <div className="text-gray-600 text-sm mt-1">
               {settings.meta_description || '您的网站描述将显示在这里...'}
