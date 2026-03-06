@@ -410,7 +410,7 @@ export const SiteSettings = () => {
                       <Input
                         value={smtpSettings.from_name}
                         onChange={(e) => setSmtpSettings({...smtpSettings, from_name: e.target.value})}
-                        placeholder="NIC.BN"
+                        placeholder="域见•你"
                       />
                     </div>
                   </div>

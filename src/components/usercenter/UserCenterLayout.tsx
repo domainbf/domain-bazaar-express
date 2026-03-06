@@ -133,12 +133,12 @@ export const UserCenterLayout = ({ profile, user, children }: UserCenterLayoutPr
                   <div className="flex items-center gap-2 text-gray-600">
                     <Globe className="w-4 h-4" />
                     <a 
-                      href={`https://nic.bn/${profile.custom_url}`}
+                      href={`${window.location.origin}/${profile.custom_url}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:underline"
                     >
-                      nic.bn/{profile.custom_url}
+                      {window.location.host}/{profile.custom_url}
                     </a>
                   </div>
                 )}

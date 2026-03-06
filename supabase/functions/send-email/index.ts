@@ -29,8 +29,7 @@ const handler = async (req: Request): Promise<Response> => {
     const resend = new Resend(resendApiKey);
     const { to, subject, html, from }: EmailRequest = await req.json();
 
-    // 统一使用 sale.nic.bn 发件人地址
-    const fromEmail = from || "NIC.BN 域名交易平台 <noreply@domain.bf>";
+    const fromEmail = from || "域见•你 域名交易平台 <noreply@domain.bf>";
 
     console.log(`准备发送邮件到: ${Array.isArray(to) ? to.join(', ') : to}`);
     console.log(`发件人: ${fromEmail}`);

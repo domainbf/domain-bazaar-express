@@ -247,7 +247,7 @@ serve(async (req) => {
         email,
         message: message || "",
         buyerId: buyerId || null,
-        dashboardUrl: "https://nic.bn/user-center?tab=transactions",
+        dashboardUrl: "/user-center?tab=transactions",
         domainOwnerEmail: ownerEmail || undefined,
       });
       console.log("邮件发送成功");

@@ -16,16 +16,13 @@ export async function sendOfferEmails({
   console.log("开始发送报价邮件...");
   console.log("发送参数:", { domain, offer, email, domainOwnerEmail });
   
-  // 使用 nic.bn 作为主域名
-  const finalDashboardUrl = dashboardUrl && dashboardUrl.includes('nic.bn') 
-    ? dashboardUrl 
-    : "https://nic.bn/user-center?tab=domains";
+  // 使用动态域名
+  const finalDashboardUrl = dashboardUrl || "/user-center?tab=domains";
 
   const userEmailHtml = getUserEmailHtml(domain, offer, message, finalDashboardUrl);
   const ownerEmailHtml = getOwnerEmailHtml(domain, offer, email, message, buyerId, finalDashboardUrl);
 
-  // 使用已验证的 sale.nic.bn 域名
-  const from = "NIC.BN 域名交易平台 <noreply@domain.bf>";
+  const from = "域见•你 域名交易平台 <noreply@domain.bf>";
 
   try {
     // 发送给买家的确认邮件

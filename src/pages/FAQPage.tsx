@@ -31,8 +31,8 @@ interface FAQItem {
 const faqData: FAQItem[] = [
   {
     id: '1',
-    question: '什么是NIC.BN域名交易平台？',
-    answer: 'NIC.BN是文莱国家顶级域名(.bn)的官方交易平台，为用户提供安全、便捷的域名买卖服务。我们致力于打造透明、高效的域名交易生态系统。',
+    question: '什么是域见•你域名交易平台？',
+    answer: '域见•你是专业的域名交易平台，为用户提供安全、便捷的域名买卖服务。我们致力于打造透明、高效的域名交易生态系统。',
     category: 'general',
     tags: ['平台介绍', '域名交易']
   },

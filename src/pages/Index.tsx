@@ -467,7 +467,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="py-8 md:py-12 bg-black text-white">
         <div className="max-w-6xl mx-auto px-4 md:px-8 text-center">
-          <p className="text-sm md:text-base font-semibold">{t('homePage.footer')}</p>
+          <p className="text-sm md:text-base font-semibold">© {new Date().getFullYear()} 域见•你 域名交易平台。保留所有权利。</p>
         </div>
       </footer>
       </div>
