@@ -186,8 +186,8 @@ function getBuyerConfirmationHtml(data: OfferNotificationRequest): string {
         <div class="footer">
           <p>© ${new Date().getFullYear()} 域见•你 域名交易平台</p>
           <div style="margin-top: 12px;">
-            <a href="https://nic.bn/help" style="color: #6b7280; text-decoration: none; margin: 0 8px;">帮助中心</a>
-            <a href="https://nic.bn/contact" style="color: #6b7280; text-decoration: none; margin: 0 8px;">联系客服</a>
+            <a href="https://domain.bf/faq" style="color: #6b7280; text-decoration: none; margin: 0 8px;">帮助中心</a>
+            <a href="https://domain.bf/contact" style="color: #6b7280; text-decoration: none; margin: 0 8px;">联系客服</a>
           </div>
         </div>
       </div>
@@ -370,8 +370,8 @@ function getOwnerNotificationHtml(data: OfferNotificationRequest): string {
         <div class="footer">
           <p>© ${new Date().getFullYear()} 域见•你 域名交易平台</p>
           <div style="margin-top: 12px;">
-            <a href="https://nic.bn/help" style="color: #6b7280; text-decoration: none; margin: 0 8px;">帮助中心</a>
-            <a href="https://nic.bn/contact" style="color: #6b7280; text-decoration: none; margin: 0 8px;">联系客服</a>
+            <a href="https://domain.bf/faq" style="color: #6b7280; text-decoration: none; margin: 0 8px;">帮助中心</a>
+            <a href="https://domain.bf/contact" style="color: #6b7280; text-decoration: none; margin: 0 8px;">联系客服</a>
           </div>
         </div>
       </div>
@@ -407,7 +407,7 @@ const handler = async (req: Request): Promise<Response> => {
         to: data.email,
         subject: `报价提交成功：${data.domain} - ¥${data.offer.toLocaleString()}`,
         html: getBuyerConfirmationHtml(data),
-         from: "域见•你 域名交易平台 <noreply@sale.nic.bn>"
+         from: "域见•你 域名交易平台 <noreply@domain.bf>"
       }),
     });
 
@@ -427,7 +427,7 @@ const handler = async (req: Request): Promise<Response> => {
           to: data.domainOwnerEmail,
           subject: `新的域名报价：${data.domain} - 买家出价 ¥${data.offer.toLocaleString()}`,
           html: getOwnerNotificationHtml(data),
-          from: "域见•你 域名交易平台 <noreply@sale.nic.bn>"
+          from: "域见•你 域名交易平台 <noreply@domain.bf>"
         }),
       });
 
