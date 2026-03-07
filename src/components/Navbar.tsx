@@ -13,6 +13,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { LogOut, Settings, User, Bell, Menu, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 interface NavbarProps {
   unreadCount?: number;
@@ -22,6 +23,7 @@ export const Navbar = ({ unreadCount = 0 }: NavbarProps) => {
   const { user, logOut, isAdmin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { config: siteConfig } = useSiteSettings();
   const [actualUnreadCount, setActualUnreadCount] = useState(unreadCount);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -186,8 +188,8 @@ export const Navbar = ({ unreadCount = 0 }: NavbarProps) => {
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
           <img 
-            src="/lovable-uploads/nic.png" 
-            alt="NIC.BN" 
+            src={siteConfig.logo_url || '/lovable-uploads/nic.png'} 
+            alt={siteConfig.site_name || '域见•你'} 
             className="h-10 w-auto" 
             onError={(e) => {
               // 如果图片加载失败，显示文字logo
@@ -203,7 +205,7 @@ export const Navbar = ({ unreadCount = 0 }: NavbarProps) => {
             className="text-2xl font-bold text-gray-900"
             style={{ display: 'none' }}
           >
-            域见•你
+            {siteConfig.site_name || '域见•你'}
           </span>
         </Link>
 

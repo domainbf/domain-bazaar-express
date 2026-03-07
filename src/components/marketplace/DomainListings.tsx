@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Domain } from '@/types/domain';
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { ArrowRight, Shield } from 'lucide-react';
+import { Shield, ArrowUpRight } from 'lucide-react';
 
 export interface DomainListingsProps {
   domains: Domain[];
@@ -29,42 +29,51 @@ export const DomainListings = ({ domains, isLoading, isMobile }: DomainListingsP
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">
-          可用域名 ({domains.length})
-        </h2>
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          共 <span className="font-semibold text-foreground">{domains.length}</span> 个域名
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-3'} gap-3`}>
         {domains.map((domain) => (
           <Link 
             key={domain.id} 
             to={`/domain/${encodeURIComponent(domain.name)}`}
             className="group block"
           >
-            <div className="border border-border bg-card rounded-xl p-6 hover:shadow-lg transition-all duration-200 flex flex-col items-center text-center relative">
-              {domain.is_verified && (
-                <Badge className="absolute top-3 right-3 bg-green-600 text-white text-[10px] px-2 py-0.5 gap-0.5">
-                  <Shield className="h-2.5 w-2.5" />已验证
-                </Badge>
-              )}
-              {domain.highlight && (
-                <Badge className="absolute top-3 left-3 bg-foreground text-background text-[10px] px-2 py-0.5">精选</Badge>
-              )}
-              <h3 className="text-3xl sm:text-4xl font-black text-foreground uppercase tracking-tight group-hover:text-primary transition-colors leading-none mt-2">
+            <div className="border border-border bg-card rounded-lg px-5 py-6 hover:border-foreground/30 hover:shadow-sm transition-all duration-200 relative">
+              {/* Top badges */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-1.5">
+                  {domain.highlight && (
+                    <Badge className="bg-foreground text-background text-[10px] px-2 py-0 h-5">精选</Badge>
+                  )}
+                  {domain.is_verified && (
+                    <Badge className="bg-green-600 text-white text-[10px] px-2 py-0 h-5 gap-0.5">
+                      <Shield className="h-2.5 w-2.5" />已验证
+                    </Badge>
+                  )}
+                </div>
+                <ArrowUpRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+
+              {/* Domain name - hero element */}
+              <h3 className="text-2xl sm:text-3xl font-black text-foreground uppercase tracking-tight group-hover:text-primary transition-colors leading-none break-all">
                 {domain.name}
               </h3>
-              {domain.category && (
-                <Badge variant="secondary" className="text-[11px] mt-3 px-3">
-                  {domain.category}
-                </Badge>
-              )}
-              <span className="text-sm text-muted-foreground mt-2 font-medium">
-                ${domain.price?.toLocaleString()}
-              </span>
-              <div className="mt-4 flex items-center gap-1 text-sm text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                查看详情 <ArrowRight className="h-3.5 w-3.5" />
+
+              {/* Meta row */}
+              <div className="flex items-center gap-2 mt-3">
+                {domain.category && (
+                  <span className="text-[11px] text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                    {domain.category}
+                  </span>
+                )}
+                <span className="text-xs text-muted-foreground">
+                  ${domain.price?.toLocaleString()}
+                </span>
               </div>
             </div>
           </Link>

@@ -2,8 +2,6 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Navbar } from '@/components/Navbar';
-import { MarketplaceHeader } from '@/components/marketplace/MarketplaceHeader';
-import { FilterSection } from '@/components/marketplace/FilterSection';
 import { DomainListings } from '@/components/marketplace/DomainListings';
 import { AdvancedFilters, AdvancedFiltersState } from '@/components/marketplace/AdvancedFilters';
 import { Domain } from '@/types/domain';
@@ -13,15 +11,18 @@ import { BottomNavigation } from '@/components/mobile/BottomNavigation';
 import { SkeletonCardGrid } from '@/components/common/SkeletonCard';
 import { SoldDomains } from '@/components/sections/SoldDomains';
 import { useNotifications } from '@/hooks/useNotifications';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Search, SlidersHorizontal, X } from 'lucide-react';
 
-// 获取域名不含后缀的名称
 const getDomainNameWithoutExtension = (domain: string): string => {
   const lastDot = domain.lastIndexOf('.');
   if (lastDot === -1) return domain;
   return domain.substring(0, lastDot);
 };
 
-// 获取域名后缀
 const getDomainExtension = (domain: string): string => {
   const match = domain.match(/(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?$/);
   return match ? match[0].toLowerCase() : '';
@@ -35,6 +36,7 @@ export const Marketplace = () => {
   const [priceRange, setPriceRange] = useState<{min: string, max: string}>({min: '', max: ''});
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFiltersState>({
     priceMin: '',
     priceMax: '',
@@ -50,7 +52,6 @@ export const Marketplace = () => {
   const { t } = useTranslation();
   const { unreadCount } = useNotifications();
 
-  // 计算活跃的高级筛选数量
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (advancedFilters.priceMin) count++;
@@ -60,77 +61,54 @@ export const Marketplace = () => {
     if (advancedFilters.extensions.length > 0) count++;
     if (advancedFilters.verifiedOnly) count++;
     if (advancedFilters.category !== 'all') count++;
+    if (priceRange.min) count++;
+    if (priceRange.max) count++;
+    if (verifiedOnly) count++;
+    if (filter !== 'all') count++;
     return count;
-  }, [advancedFilters]);
+  }, [advancedFilters, priceRange, verifiedOnly, filter]);
 
-  // 优化的加载函数
+  const categoryFilters = [
+    { id: 'all', label: t('marketplace.filters.all') },
+    { id: 'premium', label: t('marketplace.filters.premium') },
+    { id: 'short', label: t('marketplace.filters.short') },
+    { id: 'business', label: t('marketplace.filters.business') },
+    { id: 'tech', label: t('marketplace.filters.tech') }
+  ];
+
   const loadDomains = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     
     try {
-      console.log('Loading domains from marketplace...');
-      
-      // 首先获取域名列表
       const { data: listingsData, error: listingsError } = await supabase
         .from('domain_listings')
         .select('*')
         .eq('status', 'available')
         .order('created_at', { ascending: false })
-        .limit(100); // 限制数量以提高性能
+        .limit(100);
       
-      if (listingsError) {
-        console.error('Error loading domain listings:', listingsError);
-        throw new Error(`加载域名列表失败: ${listingsError.message}`);
-      }
-      
-      console.log('Loaded domain listings:', listingsData?.length || 0);
+      if (listingsError) throw new Error(`加载域名列表失败: ${listingsError.message}`);
       
       if (!listingsData || listingsData.length === 0) {
-        console.log('No domains found in database');
         setDomains([]);
         return;
       }
       
-      // 获取所有域名的分析数据（批量查询）
       const domainIds = listingsData.map(domain => domain.id);
-      
-      const { data: analyticsData, error: analyticsError } = await supabase
+      const { data: analyticsData } = await supabase
         .from('domain_analytics')
         .select('domain_id, views, favorites, offers')
         .in('domain_id', domainIds);
       
-      if (analyticsError) {
-        console.error('Error fetching analytics:', analyticsError);
-        // 继续处理，即使分析数据获取失败
-      }
-      
-      console.log('Loaded analytics data:', analyticsData?.length || 0);
-      
-      // 创建分析数据映射
       const analyticsMap = new Map();
-      if (analyticsData) {
-        analyticsData.forEach(item => {
-          analyticsMap.set(item.domain_id, item);
-        });
-      }
+      analyticsData?.forEach(item => analyticsMap.set(item.domain_id, item));
       
-      // 处理并合并数据
       const processedDomains: Domain[] = listingsData.map(domain => {
         const analytics = analyticsMap.get(domain.id);
-        
-        // 安全地解析浏览量
         let viewsValue = 0;
         if (analytics?.views) {
-          if (typeof analytics.views === 'number') {
-            viewsValue = analytics.views;
-          } else {
-            try {
-              viewsValue = parseInt(String(analytics.views), 10) || 0;
-            } catch {
-              viewsValue = 0;
-            }
-          }
+          viewsValue = typeof analytics.views === 'number' ? analytics.views : parseInt(String(analytics.views), 10) || 0;
         }
         
         return {
@@ -149,26 +127,15 @@ export const Marketplace = () => {
         };
       });
       
-      // 排序：优先显示已验证的域名，然后按浏览量，最后按创建时间
       processedDomains.sort((a, b) => {
-        // 首先按验证状态排序
-        if (a.is_verified !== b.is_verified) {
-          return b.is_verified ? 1 : -1;
-        }
-        
-        // 然后按浏览量排序
+        if (a.is_verified !== b.is_verified) return b.is_verified ? 1 : -1;
         const viewsDiff = (b.views || 0) - (a.views || 0);
         if (viewsDiff !== 0) return viewsDiff;
-        
-        // 最后按创建时间排序
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       });
       
-      console.log('Processed domains successfully:', processedDomains.length);
       setDomains(processedDomains);
-      
     } catch (error: any) {
-      console.error('Error loading domains:', error);
       const errorMessage = error.message || '加载域名列表失败，请刷新页面重试';
       setError(errorMessage);
       toast.error(errorMessage);
@@ -179,205 +146,201 @@ export const Marketplace = () => {
   }, []);
 
   useEffect(() => {
-    // 从 URL 获取搜索参数
     const urlParams = new URLSearchParams(window.location.search);
     const searchParam = urlParams.get('search');
-    if (searchParam) {
-      setSearchQuery(searchParam);
-    }
-
-    // 延迟加载以确保组件完全挂载
-    const timer = setTimeout(() => {
-      loadDomains();
-    }, 100);
-
+    if (searchParam) setSearchQuery(searchParam);
+    const timer = setTimeout(() => loadDomains(), 100);
     return () => clearTimeout(timer);
   }, [loadDomains]);
 
-  // 订阅公开可用域名的实时变化（新增/更新/删除）
   useEffect(() => {
     const channel = supabase
       .channel('domain_listings_public')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'domain_listings'
-        },
-        () => {
-          loadDomains();
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'domain_listings' }, () => loadDomains())
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [loadDomains]);
 
-  // 使用 memoized 过滤以提高性能
   const filteredDomains = useMemo(() => {
     let result = [...domains];
-    
-    // 应用分类过滤（基础筛选）
-    if (filter !== 'all') {
-      result = result.filter(domain => domain.category === filter);
-    }
-    
-    // 应用搜索过滤
+    if (filter !== 'all') result = result.filter(d => d.category === filter);
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      result = result.filter(domain => 
-        (domain.name && domain.name.toLowerCase().includes(query)) || 
-        (domain.description && domain.description.toLowerCase().includes(query))
-      );
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(d => d.name?.toLowerCase().includes(q) || d.description?.toLowerCase().includes(q));
     }
-    
-    // 应用基础价格范围过滤
-    if (priceRange.min) {
-      const minPrice = parseFloat(priceRange.min);
-      if (!isNaN(minPrice)) {
-        result = result.filter(domain => domain.price >= minPrice);
-      }
-    }
-    
-    if (priceRange.max) {
-      const maxPrice = parseFloat(priceRange.max);
-      if (!isNaN(maxPrice)) {
-        result = result.filter(domain => domain.price <= maxPrice);
-      }
-    }
-    
-    // 应用基础验证过滤
-    if (verifiedOnly) {
-      result = result.filter(domain => domain.is_verified);
-    }
+    if (priceRange.min) { const v = parseFloat(priceRange.min); if (!isNaN(v)) result = result.filter(d => d.price >= v); }
+    if (priceRange.max) { const v = parseFloat(priceRange.max); if (!isNaN(v)) result = result.filter(d => d.price <= v); }
+    if (verifiedOnly) result = result.filter(d => d.is_verified);
+    if (advancedFilters.priceMin) { const v = parseFloat(advancedFilters.priceMin); if (!isNaN(v)) result = result.filter(d => d.price >= v); }
+    if (advancedFilters.priceMax) { const v = parseFloat(advancedFilters.priceMax); if (!isNaN(v)) result = result.filter(d => d.price <= v); }
+    if (advancedFilters.lengthMin) { const v = parseInt(advancedFilters.lengthMin); if (!isNaN(v)) result = result.filter(d => getDomainNameWithoutExtension(d.name).length >= v); }
+    if (advancedFilters.lengthMax) { const v = parseInt(advancedFilters.lengthMax); if (!isNaN(v)) result = result.filter(d => getDomainNameWithoutExtension(d.name).length <= v); }
+    if (advancedFilters.extensions.length > 0) result = result.filter(d => { const ext = getDomainExtension(d.name); return advancedFilters.extensions.some(e => ext.endsWith(e.toLowerCase())); });
+    if (advancedFilters.category !== 'all') result = result.filter(d => d.category === advancedFilters.category);
+    if (advancedFilters.verifiedOnly) result = result.filter(d => d.is_verified);
 
-    // ========== 高级筛选 ==========
-    
-    // 高级价格范围
-    if (advancedFilters.priceMin) {
-      const minPrice = parseFloat(advancedFilters.priceMin);
-      if (!isNaN(minPrice)) {
-        result = result.filter(domain => domain.price >= minPrice);
-      }
-    }
-    if (advancedFilters.priceMax) {
-      const maxPrice = parseFloat(advancedFilters.priceMax);
-      if (!isNaN(maxPrice)) {
-        result = result.filter(domain => domain.price <= maxPrice);
-      }
-    }
-
-    // 域名长度筛选
-    if (advancedFilters.lengthMin) {
-      const minLen = parseInt(advancedFilters.lengthMin);
-      if (!isNaN(minLen)) {
-        result = result.filter(domain => {
-          const nameWithoutExt = getDomainNameWithoutExtension(domain.name);
-          return nameWithoutExt.length >= minLen;
-        });
-      }
-    }
-    if (advancedFilters.lengthMax) {
-      const maxLen = parseInt(advancedFilters.lengthMax);
-      if (!isNaN(maxLen)) {
-        result = result.filter(domain => {
-          const nameWithoutExt = getDomainNameWithoutExtension(domain.name);
-          return nameWithoutExt.length <= maxLen;
-        });
-      }
-    }
-
-    // 后缀筛选
-    if (advancedFilters.extensions.length > 0) {
-      result = result.filter(domain => {
-        const ext = getDomainExtension(domain.name);
-        return advancedFilters.extensions.some(e => ext.endsWith(e.toLowerCase()));
-      });
-    }
-
-    // 高级分类筛选
-    if (advancedFilters.category !== 'all') {
-      result = result.filter(domain => domain.category === advancedFilters.category);
-    }
-
-    // 高级验证筛选
-    if (advancedFilters.verifiedOnly) {
-      result = result.filter(domain => domain.is_verified);
-    }
-
-    // 排序
     result.sort((a, b) => {
       const order = advancedFilters.sortOrder === 'asc' ? 1 : -1;
-      
       switch (advancedFilters.sortBy) {
-        case 'price':
-          return (a.price - b.price) * order;
-        case 'name':
-          return a.name.localeCompare(b.name) * order;
-        case 'views':
-          return ((a.views || 0) - (b.views || 0)) * order;
-        case 'created_at':
-        default:
-          return (new Date(b.created_at).getTime() - new Date(a.created_at).getTime()) * order;
+        case 'price': return (a.price - b.price) * order;
+        case 'name': return a.name.localeCompare(b.name) * order;
+        case 'views': return ((a.views || 0) - (b.views || 0)) * order;
+        default: return (new Date(b.created_at).getTime() - new Date(a.created_at).getTime()) * order;
       }
     });
-    
     return result;
   }, [domains, filter, searchQuery, priceRange, verifiedOnly, advancedFilters]);
 
-  const handleRetry = () => {
-    setError(null);
-    loadDomains();
+  const clearAllFilters = () => {
+    setFilter('all');
+    setSearchQuery('');
+    setPriceRange({ min: '', max: '' });
+    setVerifiedOnly(false);
+    setAdvancedFilters({
+      priceMin: '', priceMax: '', lengthMin: '', lengthMax: '',
+      extensions: [], verifiedOnly: false, category: 'all', sortBy: 'created_at', sortOrder: 'desc',
+    });
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <Navbar unreadCount={unreadCount} />
       
       <div className={isMobile ? 'pb-20' : ''}>
-        <MarketplaceHeader 
-          searchQuery={searchQuery} 
-          setSearchQuery={setSearchQuery} 
-          isMobile={isMobile}
-        />
-
-        <div className="flex items-center justify-between mb-4">
-          <FilterSection 
-            filter={filter} 
-            setFilter={setFilter} 
-            priceRange={priceRange} 
-            setPriceRange={setPriceRange}
-            verifiedOnly={verifiedOnly}
-            setVerifiedOnly={setVerifiedOnly}
-            isMobile={isMobile}
-          />
-          <div className={`${isMobile ? 'px-2' : 'max-w-6xl mx-auto px-4'}`}>
-            <AdvancedFilters
-              filters={advancedFilters}
-              onFiltersChange={setAdvancedFilters}
-              activeFiltersCount={activeFiltersCount}
-              isMobile={isMobile}
-            />
-          </div>
-        </div>
-
-        <section className={`${isMobile ? 'py-6 px-2' : 'py-12'}`}>
-          <div className={`${isMobile ? 'px-2' : 'max-w-6xl mx-auto px-4'}`}>
-            {error ? (
-              <div className="text-center py-12">
-                <div className="text-red-500 mb-4">
-                  <h3 className="text-lg font-semibold mb-2">加载失败</h3>
-                  <p>{error}</p>
+        {/* Hero Header */}
+        <section className={`bg-foreground text-background ${isMobile ? 'py-8 px-4' : 'py-14'}`}>
+          <div className={`${isMobile ? '' : 'max-w-5xl mx-auto px-4'}`}>
+            <div className="text-center">
+              <h1 className={`${isMobile ? 'text-2xl mb-2' : 'text-3xl mb-3'} font-bold`}>
+                {t('marketplace.title')}
+              </h1>
+              <p className={`${isMobile ? 'text-sm mb-5' : 'text-base mb-8'} text-muted-foreground/70`}>
+                {t('marketplace.subtitle')}
+              </p>
+              
+              {/* Search Bar */}
+              <div className="max-w-lg mx-auto">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder={t('marketplace.searchPlaceholder')}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="h-11 pl-11 pr-4 bg-background text-foreground border-border rounded-lg"
+                  />
                 </div>
-                <button 
-                  onClick={handleRetry}
-                  className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Filters Bar */}
+        <section className="border-b border-border bg-card">
+          <div className={`${isMobile ? 'px-3 py-3' : 'max-w-5xl mx-auto px-4 py-3'}`}>
+            <div className="flex items-center justify-between gap-3">
+              {/* Category Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                {categoryFilters.map(cat => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setFilter(cat.id)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                      filter === cat.id
+                        ? 'bg-foreground text-background'
+                        : 'bg-muted text-muted-foreground hover:bg-accent'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Filter Toggle */}
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    showFilters || activeFiltersCount > 0
+                      ? 'bg-foreground text-background'
+                      : 'bg-muted text-muted-foreground hover:bg-accent'
+                  }`}
                 >
-                  重新加载
+                  <SlidersHorizontal className="h-3.5 w-3.5" />
+                  筛选
+                  {activeFiltersCount > 0 && (
+                    <span className="bg-background text-foreground rounded-full w-4 h-4 text-[10px] flex items-center justify-center">
+                      {activeFiltersCount}
+                    </span>
+                  )}
                 </button>
+                {activeFiltersCount > 0 && (
+                  <button onClick={clearAllFilters} className="text-xs text-muted-foreground hover:text-foreground">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Expandable Filter Panel */}
+            {showFilters && (
+              <div className="mt-3 pt-3 border-t border-border">
+                <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-4'} gap-3`}>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">最低价格 ($)</label>
+                    <Input
+                      type="number"
+                      value={priceRange.min}
+                      onChange={(e) => setPriceRange({...priceRange, min: e.target.value})}
+                      placeholder="最低"
+                      className="h-8 text-xs"
+                      min="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">最高价格 ($)</label>
+                    <Input
+                      type="number"
+                      value={priceRange.max}
+                      onChange={(e) => setPriceRange({...priceRange, max: e.target.value})}
+                      placeholder="最高"
+                      className="h-8 text-xs"
+                      min="0"
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        id="verified-filter"
+                        checked={verifiedOnly}
+                        onCheckedChange={setVerifiedOnly}
+                      />
+                      <Label htmlFor="verified-filter" className="text-xs">仅已验证</Label>
+                    </div>
+                  </div>
+                  <div className="flex items-end">
+                    <AdvancedFilters
+                      filters={advancedFilters}
+                      onFiltersChange={setAdvancedFilters}
+                      activeFiltersCount={activeFiltersCount}
+                      isMobile={isMobile}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Domain Listings */}
+        <section className={`${isMobile ? 'py-6 px-3' : 'py-10'}`}>
+          <div className={`${isMobile ? '' : 'max-w-5xl mx-auto px-4'}`}>
+            {error ? (
+              <div className="text-center py-16">
+                <p className="text-destructive mb-4">{error}</p>
+                <Button onClick={() => { setError(null); loadDomains(); }} variant="outline" size="sm">
+                  重新加载
+                </Button>
               </div>
             ) : isLoading ? (
               <SkeletonCardGrid count={isMobile ? 6 : 9} />
@@ -390,26 +353,17 @@ export const Marketplace = () => {
                 />
                 
                 {!isLoading && filteredDomains.length === 0 && domains.length === 0 && !error && (
-                  <div className="text-center py-12">
+                  <div className="text-center py-16">
                     <h3 className="text-lg font-semibold mb-2">暂无域名列表</h3>
-                    <p className="text-muted-foreground mb-4">
-                      看起来还没有域名添加到市场中
-                    </p>
-                    <button 
-                      onClick={loadDomains}
-                      className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
-                    >
-                      重新加载
-                    </button>
+                    <p className="text-muted-foreground mb-4">看起来还没有域名添加到市场中</p>
+                    <Button onClick={loadDomains} variant="outline" size="sm">重新加载</Button>
                   </div>
                 )}
                 
                 {!isLoading && filteredDomains.length === 0 && domains.length > 0 && !error && (
-                  <div className="text-center py-12">
+                  <div className="text-center py-16">
                     <h3 className="text-lg font-semibold mb-2">没有找到匹配的域名</h3>
-                    <p className="text-muted-foreground">
-                      请尝试调整搜索条件或筛选器
-                    </p>
+                    <p className="text-muted-foreground">请尝试调整搜索条件或筛选器</p>
                   </div>
                 )}
               </>

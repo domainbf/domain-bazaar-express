@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { BottomNavigation } from '@/components/mobile/BottomNavigation';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 // 懒加载组件
 const DomainEstimator = lazy(() => import('@/components/tools/DomainEstimator').then(m => ({ default: m.DomainEstimator })));
@@ -40,6 +41,7 @@ const Index = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { unreadCount } = useNotifications();
+  const { config: siteConfig } = useSiteSettings();
 
   // 优化的域名加载函数 - 减少复杂度，提高加载速度
   const loadDomains = async () => {
@@ -467,7 +469,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="py-8 md:py-12 bg-black text-white">
         <div className="max-w-6xl mx-auto px-4 md:px-8 text-center">
-          <p className="text-sm md:text-base font-semibold">© {new Date().getFullYear()} 域见•你 域名交易平台。保留所有权利。</p>
+          <p className="text-sm md:text-base font-semibold">© {new Date().getFullYear()} {siteConfig.footer_text}</p>
         </div>
       </footer>
       </div>
