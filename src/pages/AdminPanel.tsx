@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, Settings, RefreshCw, FileText, Layers, Search, Home, Users, Globe, CheckSquare, BarChart3 } from 'lucide-react';
 import { SiteSettings } from '@/components/admin/SiteSettings';
 import { HomeContentManagement } from '@/components/admin/HomeContentManagement';
+import { FrontendContentManager } from '@/components/admin/FrontendContentManager';
 import { BulkDomainOperations } from '@/components/admin/BulkDomainOperations';
 import { QuickSettingsPanel } from '@/components/admin/QuickSettingsPanel';
 import { AdminActivityLog } from '@/components/admin/AdminActivityLog';
@@ -165,6 +166,7 @@ export const AdminPanel = () => {
     { value: 'homepage', label: '首页管理', icon: Home },
     { value: 'content', label: '内容管理', icon: FileText },
     { value: 'seo', label: 'SEO配置', icon: Search },
+    { value: 'frontend', label: '前台管理', icon: Home },
     { value: 'quick-settings', label: '快速设置', icon: Settings },
     { value: 'settings', label: '系统设置', icon: Settings },
   ];
@@ -273,6 +275,10 @@ export const AdminPanel = () => {
           
           <TabsContent value="seo" className="mt-0">
             <SeoConfiguration />
+          </TabsContent>
+
+          <TabsContent value="frontend" className="mt-0">
+            <FrontendContentManager />
           </TabsContent>
 
           <TabsContent value="quick-settings" className="mt-0">

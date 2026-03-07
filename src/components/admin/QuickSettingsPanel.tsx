@@ -33,7 +33,7 @@ interface QuickSetting {
 
 export const QuickSettingsPanel = () => {
   const [settings, setSettings] = useState<QuickSetting[]>([
-    { key: 'site_name', value: 'NIC.BN', label: '网站名称', type: 'text', category: 'general', description: '显示在标题和页面上的网站名称' },
+    { key: 'site_name', value: '域见•你', label: '网站名称', type: 'text', category: 'general', description: '显示在标题和页面上的网站名称' },
     { key: 'site_description', value: '专业的域名交易平台', label: '网站描述', type: 'text', category: 'general', description: '用于SEO的网站描述' },
     { key: 'contact_email', value: '', label: '联系邮箱', type: 'text', category: 'general', description: '接收用户反馈的邮箱地址' },
     { key: 'maintenance_mode', value: 'false', label: '维护模式', type: 'boolean', category: 'system', description: '开启后访客将看到维护页面' },
