@@ -283,6 +283,10 @@ export const AdminPanel = () => {
             <FrontendContentManager />
           </TabsContent>
 
+          <TabsContent value="payment" className="mt-0">
+            <PaymentGatewaySettings />
+          </TabsContent>
+
           <TabsContent value="quick-settings" className="mt-0">
             <QuickSettingsPanel />
           </TabsContent>
