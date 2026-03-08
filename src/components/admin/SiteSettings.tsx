@@ -8,7 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Settings, Globe, Mail, PieChart, Shield, Plus, Trash2, Save, RefreshCw, Database, Bell, Palette } from 'lucide-react';
+import { Settings, Globe, Mail, PieChart, Shield, Plus, Trash2, Save, RefreshCw, Database, Bell, Palette, Key, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -48,12 +49,73 @@ interface SmtpSettings {
 }
 
 export const SiteSettings = () => {
+  const { user } = useAuth();
   const [settings, setSettings] = useState<SiteSetting[]>([]);
   const [smtpSettings, setSmtpSettings] = useState<SmtpSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [newSetting, setNewSetting] = useState({ key: '', value: '', description: '', section: 'general', type: 'text' });
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [targetEmail, setTargetEmail] = useState('');
+  const [targetPassword, setTargetPassword] = useState('');
+  const [isChangingUserPassword, setIsChangingUserPassword] = useState(false);
+
+  const handleChangeOwnPassword = async () => {
+    if (!newPassword || newPassword.length < 8) {
+      toast.error('密码至少8位');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('两次密码不一致');
+      return;
+    }
+    setIsChangingPassword(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const response = await supabase.functions.invoke('admin-password', {
+        body: { action: 'change_own_password', password: newPassword },
+      });
+      if (response.error) throw new Error(response.error.message);
+      if (response.data?.error) throw new Error(response.data.error);
+      toast.success('密码修改成功');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error: any) {
+      toast.error(error.message || '密码修改失败');
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
+  const handleChangeUserPassword = async () => {
+    if (!targetEmail) {
+      toast.error('请输入用户邮箱');
+      return;
+    }
+    if (!targetPassword || targetPassword.length < 8) {
+      toast.error('密码至少8位');
+      return;
+    }
+    setIsChangingUserPassword(true);
+    try {
+      const response = await supabase.functions.invoke('admin-password', {
+        body: { action: 'change_user_password', email: targetEmail, password: targetPassword },
+      });
+      if (response.error) throw new Error(response.error.message);
+      if (response.data?.error) throw new Error(response.data.error);
+      toast.success(`用户 ${targetEmail} 密码已更新`);
+      setTargetEmail('');
+      setTargetPassword('');
+    } catch (error: any) {
+      toast.error(error.message || '修改用户密码失败');
+    } finally {
+      setIsChangingUserPassword(false);
+    }
+  };
 
   useEffect(() => {
     loadSettings();
@@ -503,6 +565,85 @@ export const SiteSettings = () => {
         </TabsContent>
         
         <TabsContent value="security" className="space-y-6">
+          {/* Admin Password Management */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Key className="h-5 w-5" />
+                管理员密码管理
+              </CardTitle>
+              <CardDescription>修改管理员密码或重置用户密码</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Change own password */}
+              <div className="space-y-4 p-4 border rounded-lg">
+                <h4 className="font-medium">修改自己的密码</h4>
+                <p className="text-sm text-muted-foreground">当前账号: {user?.email}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="relative">
+                    <Label>新密码</Label>
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="输入新密码（至少8位）"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <Label>确认密码</Label>
+                    <Input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="再次输入新密码"
+                    />
+                  </div>
+                </div>
+                <Button onClick={handleChangeOwnPassword} disabled={isChangingPassword}>
+                  {isChangingPassword ? '修改中...' : '修改密码'}
+                </Button>
+              </div>
+
+              {/* Change user password */}
+              <div className="space-y-4 p-4 border rounded-lg">
+                <h4 className="font-medium">修改用户密码</h4>
+                <p className="text-sm text-muted-foreground">管理员可重置任意用户的登录密码</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>用户邮箱</Label>
+                    <Input
+                      type="email"
+                      value={targetEmail}
+                      onChange={(e) => setTargetEmail(e.target.value)}
+                      placeholder="输入用户邮箱"
+                    />
+                  </div>
+                  <div>
+                    <Label>新密码</Label>
+                    <Input
+                      type="password"
+                      value={targetPassword}
+                      onChange={(e) => setTargetPassword(e.target.value)}
+                      placeholder="输入新密码（至少8位）"
+                    />
+                  </div>
+                </div>
+                <Button onClick={handleChangeUserPassword} disabled={isChangingUserPassword} variant="outline">
+                  {isChangingUserPassword ? '修改中...' : '重置用户密码'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>安全设置</CardTitle>

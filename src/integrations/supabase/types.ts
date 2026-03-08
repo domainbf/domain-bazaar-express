@@ -1427,6 +1427,10 @@ export type Database = {
       }
     }
     Functions: {
+      admin_change_password: {
+        Args: { p_new_password: string; p_user_email: string }
+        Returns: Json
+      }
       cleanup_expired_valuations: { Args: never; Returns: undefined }
       get_user_notifications: {
         Args: { user_id_param: string }
