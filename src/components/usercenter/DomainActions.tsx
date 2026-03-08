@@ -48,25 +48,25 @@ export const DomainActions = ({ domain, onSuccess, mode }: DomainActionsProps) =
           <Button 
             variant="outline" 
             size="sm" 
-            className="flex items-center gap-1 text-blue-600"
+            className="flex items-center gap-1"
             onClick={() => setIsOpen(true)}
           >
             <Edit className="w-4 h-4" />
-            编辑
+            <span className="hidden sm:inline">编辑</span>
           </Button>
         ) : (
           <Button 
             variant="outline" 
             size="sm" 
-            className="flex items-center gap-1 text-red-600"
+            className="flex items-center gap-1 text-destructive hover:text-destructive"
             onClick={() => setIsOpen(true)}
           >
             <Trash2 className="w-4 h-4" />
-            删除
+            <span className="hidden sm:inline">删除</span>
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {mode === 'add' ? '添加新域名' : mode === 'edit' ? '编辑域名' : '删除域名'}

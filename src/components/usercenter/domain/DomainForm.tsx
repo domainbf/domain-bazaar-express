@@ -3,11 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/contexts/AuthContext';
-import { useTranslation } from "react-i18next";
-import { Loader2, CheckCircle, AlertCircle, Globe, DollarSign, Tag, FileText } from "lucide-react";
+import { Loader2, CheckCircle, AlertCircle, Globe, DollarSign, Tag, FileText, Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Domain {
@@ -18,6 +18,7 @@ interface Domain {
   description?: string;
   status?: string;
   currency?: string;
+  highlight?: boolean;
 }
 
 interface DomainFormProps {
@@ -38,7 +39,6 @@ export const DomainForm = ({
   setIsLoading 
 }: DomainFormProps) => {
   const { user } = useAuth();
-  const { t } = useTranslation();
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
@@ -48,10 +48,10 @@ export const DomainForm = ({
     category: domain?.category || 'standard',
     description: domain?.description || '',
     status: domain?.status || 'available',
-    currency: (domain as any)?.currency || 'USD'
+    currency: domain?.currency || 'CNY',
+    highlight: domain?.highlight || false
   });
 
-  // 当 domain 变化时同步表单数据
   useEffect(() => {
     if (domain) {
       setFormData({
@@ -60,7 +60,8 @@ export const DomainForm = ({
         category: domain.category || 'standard',
         description: domain.description || '',
         status: domain.status || 'available',
-        currency: (domain as any)?.currency || 'USD'
+        currency: domain.currency || 'CNY',
+        highlight: domain.highlight || false
       });
     }
   }, [domain]);
@@ -69,15 +70,15 @@ export const DomainForm = ({
     const newErrors: Record<string, string> = {};
     
     if (!formData.name.trim()) {
-      newErrors.name = '域名名称不能为空';
+      newErrors.name = '域名不能为空';
     } else if (!/^[a-zA-Z0-9][a-zA-Z0-9-_.]*\.[a-zA-Z]{2,}$/.test(formData.name.trim())) {
-      newErrors.name = '请输入有效的域名格式 (例如: example.com)';
+      newErrors.name = '请输入有效的域名格式（如 example.com）';
     }
     
     if (formData.price <= 0) {
-      newErrors.price = '价格必须大于0';
+      newErrors.price = '价格必须大于 0';
     } else if (formData.price > 100000000) {
-      newErrors.price = '价格不能超过1亿';
+      newErrors.price = '价格不能超过 1 亿';
     }
     
     setErrors(newErrors);
@@ -87,7 +88,6 @@ export const DomainForm = ({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // 清除该字段的错误
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -106,7 +106,7 @@ export const DomainForm = ({
     }
     
     if (!user) {
-      toast.error(t('auth.signInRequired', '请先登录'));
+      toast.error('请先登录');
       return;
     }
     
@@ -121,11 +121,9 @@ export const DomainForm = ({
         description: formData.description.trim(),
         status: formData.status,
         currency: formData.currency,
+        highlight: formData.highlight,
         owner_id: user.id
       };
-      
-      let result;
-      let newDomainId;
       
       if (mode === 'add') {
         // 检查域名是否已存在
@@ -133,24 +131,22 @@ export const DomainForm = ({
           .from('domain_listings')
           .select('id')
           .eq('name', domainData.name)
-          .single();
+          .maybeSingle();
         
         if (existingDomain) {
-          toast.error('该域名已被添加');
+          toast.error('该域名已被添加，请检查后重试');
           setIsLoading(false);
           return;
         }
         
-        // 添加域名记录
-        result = await supabase
+        const result = await supabase
           .from('domain_listings')
           .insert([domainData])
           .select();
 
         if (result.error) throw result.error;
-        newDomainId = result.data?.[0]?.id;
+        const newDomainId = result.data?.[0]?.id;
         
-        // 创建analytics记录
         if (newDomainId) {
           await supabase
             .from('domain_analytics')
@@ -162,20 +158,16 @@ export const DomainForm = ({
             });
         }
         
-        toast.success(t('domainActions.addDomainSuccess', '域名已成功添加'), {
+        toast.success('域名已成功上架', {
           description: `${domainData.name} 已添加到您的域名列表`
         });
       } else if (mode === 'edit' && domain?.id) {
-        // 更新域名
-        const { name, ...updateData } = domainData; // 排除 name 字段（不允许编辑）
-        result = await supabase
+        const { name, owner_id, ...updateData } = domainData;
+        const result = await supabase
           .from('domain_listings')
-          .update({
-            ...updateData,
-            // 不更新 owner_id，保持原样
-          })
+          .update(updateData)
           .eq('id', domain.id)
-          .eq('owner_id', user.id) // 确保只能更新自己的域名
+          .eq('owner_id', user.id)
           .select();
         
         if (result.error) throw result.error;
@@ -184,21 +176,17 @@ export const DomainForm = ({
           throw new Error('更新失败，您可能没有权限编辑此域名');
         }
         
-        toast.success(t('domainActions.editDomainSuccess', '域名已成功更新'), {
+        toast.success('域名信息已更新', {
           description: '更改已即时生效'
         });
       }
       
       setSaveSuccess(true);
-      
-      // 短暂延迟后关闭，让用户看到成功反馈
-      setTimeout(() => {
-        onSuccess();
-      }, 500);
+      setTimeout(() => { onSuccess(); }, 400);
       
     } catch (error: any) {
       console.error('Error submitting domain:', error);
-      toast.error(error.message || t('common.submitFailed', '提交域名失败'));
+      toast.error(error.message || '提交域名失败，请重试');
     } finally {
       setIsLoading(false);
     }
@@ -222,8 +210,8 @@ export const DomainForm = ({
       
       <div className="space-y-2">
         <Label htmlFor="name" className="flex items-center gap-2">
-          <Globe className="h-4 w-4" />
-          {t('domainActions.domainName', '域名名称')}
+          <Globe className="h-4 w-4 text-muted-foreground" />
+          域名
           <span className="text-destructive">*</span>
         </Label>
         <Input
@@ -247,8 +235,8 @@ export const DomainForm = ({
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="price" className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4" />
-            {t('domainActions.domainPrice', '价格')}
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            价格
             <span className="text-destructive">*</span>
           </Label>
           <Input
@@ -280,64 +268,84 @@ export const DomainForm = ({
               <SelectValue placeholder="选择货币" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="USD">$ 美元 (USD)</SelectItem>
-              <SelectItem value="CNY">¥ 人民币 (CNY)</SelectItem>
+              <SelectItem value="CNY">¥ 人民币</SelectItem>
+              <SelectItem value="USD">$ 美元</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
       
-      <div className="space-y-2">
-        <Label htmlFor="category" className="flex items-center gap-2">
-          <Tag className="h-4 w-4" />
-          {t('domainActions.domainCategory', '分类')}
-        </Label>
-        <Select 
-          value={formData.category} 
-          onValueChange={(value) => handleSelectChange('category', value)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder={t('domainFilters.category', '选择分类')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="premium">{t('domainActions.domainCategories.premium', '高级域名')}</SelectItem>
-            <SelectItem value="standard">{t('domainActions.domainCategories.standard', '标准域名')}</SelectItem>
-            <SelectItem value="short">{t('domainActions.domainCategories.short', '短域名')}</SelectItem>
-            <SelectItem value="brandable">{t('domainActions.domainCategories.brandable', '品牌域名')}</SelectItem>
-            <SelectItem value="dev">{t('domainActions.domainCategories.dev', '开发域名')}</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="category" className="flex items-center gap-2">
+            <Tag className="h-4 w-4 text-muted-foreground" />
+            分类
+          </Label>
+          <Select 
+            value={formData.category} 
+            onValueChange={(value) => handleSelectChange('category', value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="选择分类" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="premium">精品域名</SelectItem>
+              <SelectItem value="standard">普通域名</SelectItem>
+              <SelectItem value="short">短域名</SelectItem>
+              <SelectItem value="brandable">品牌域名</SelectItem>
+              <SelectItem value="numeric">数字域名</SelectItem>
+              <SelectItem value="business">商业域名</SelectItem>
+              <SelectItem value="keyword">关键词域名</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="status">销售状态</Label>
+          <Select 
+            value={formData.status} 
+            onValueChange={(value) => handleSelectChange('status', value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="选择状态" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="available">可售</SelectItem>
+              <SelectItem value="pending">暂不出售</SelectItem>
+              <SelectItem value="reserved">保留</SelectItem>
+              <SelectItem value="sold">已售出</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="status">销售状态</Label>
-        <Select 
-          value={formData.status} 
-          onValueChange={(value) => handleSelectChange('status', value)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="选择状态" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="available">可售</SelectItem>
-            <SelectItem value="pending">暂不出售</SelectItem>
-            <SelectItem value="sold">已售出</SelectItem>
-          </SelectContent>
-        </Select>
+
+      {/* 推荐设置 */}
+      <div className="flex items-center justify-between p-3 border border-border rounded-lg bg-muted/30">
+        <div className="flex items-center gap-2">
+          <Star className="h-4 w-4 text-yellow-500" />
+          <div>
+            <Label className="text-sm font-medium">高亮显示</Label>
+            <p className="text-xs text-muted-foreground">在列表中突出显示此域名</p>
+          </div>
+        </div>
+        <Switch
+          checked={formData.highlight}
+          onCheckedChange={(checked) => setFormData(prev => ({ ...prev, highlight: checked }))}
+        />
       </div>
       
       <div className="space-y-2">
         <Label htmlFor="description" className="flex items-center gap-2">
-          <FileText className="h-4 w-4" />
-          {t('domainActions.domainDescription', '描述')}
+          <FileText className="h-4 w-4 text-muted-foreground" />
+          描述
         </Label>
         <textarea
           id="description"
           name="description"
           value={formData.description}
           onChange={handleChange}
-          placeholder={t('common.addDescription', '添加关于此域名的描述...')}
-          className="w-full border border-input bg-background rounded-md p-3 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all"
+          placeholder="添加关于此域名的描述，如适用场景、关键词价值等..."
+          className="w-full border border-input bg-background rounded-md p-3 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all text-sm"
           maxLength={500}
         />
         <p className="text-xs text-muted-foreground text-right">
@@ -345,15 +353,15 @@ export const DomainForm = ({
         </p>
       </div>
       
-      <div className="flex justify-end gap-2 pt-4 border-t">
+      <div className="flex justify-end gap-2 pt-4 border-t border-border">
         <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
-          {t('common.cancel', '取消')}
+          取消
         </Button>
         <Button type="submit" disabled={isLoading} className="min-w-[120px]">
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              {t('common.submitting', '提交中...')}
+              提交中...
             </>
           ) : saveSuccess ? (
             <>
@@ -361,9 +369,9 @@ export const DomainForm = ({
               已保存
             </>
           ) : mode === 'add' ? (
-            t('domainActions.addDomain', '添加域名')
+            '上架域名'
           ) : (
-            t('domainActions.editDomain', '更新域名')
+            '更新域名'
           )}
         </Button>
       </div>

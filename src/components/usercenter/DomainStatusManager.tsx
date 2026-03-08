@@ -16,8 +16,9 @@ import {
   DialogFooter
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
-import { PackageCheck, PackageX, Package } from 'lucide-react';
+import { PackageCheck, PackageX, Package, Loader2 } from 'lucide-react';
 
 interface Domain {
   id: string;
@@ -31,27 +32,39 @@ interface DomainStatusManagerProps {
 }
 
 export const DomainStatusManager = ({ domain, onStatusChange }: DomainStatusManagerProps) => {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [newStatus, setNewStatus] = useState(domain.status || 'available');
   const [isLoading, setIsLoading] = useState(false);
 
   const statusOptions = [
-    { value: 'available', label: '可售', icon: PackageCheck, color: 'text-green-600' },
-    { value: 'pending', label: '审核中', icon: Package, color: 'text-yellow-600' },
-    { value: 'sold', label: '已售', icon: PackageX, color: 'text-gray-600' },
+    { value: 'available', label: '可售', icon: PackageCheck, color: 'text-green-600 dark:text-green-400' },
+    { value: 'pending', label: '暂不出售', icon: Package, color: 'text-yellow-600 dark:text-yellow-400' },
+    { value: 'sold', label: '已售', icon: PackageX, color: 'text-muted-foreground' },
   ];
 
   const handleStatusChange = async () => {
+    if (!user) {
+      toast.error('请先登录');
+      return;
+    }
+
+    if (newStatus === domain.status) {
+      setIsOpen(false);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { error } = await supabase
         .from('domain_listings')
         .update({ status: newStatus })
-        .eq('id', domain.id);
+        .eq('id', domain.id)
+        .eq('owner_id', user.id); // 确保只能修改自己的域名
 
       if (error) throw error;
 
-      toast.success('域名状态已更新');
+      toast.success(`域名状态已更新为「${statusOptions.find(o => o.value === newStatus)?.label}」`);
       setIsOpen(false);
       onStatusChange();
     } catch (error: any) {
@@ -69,46 +82,63 @@ export const DomainStatusManager = ({ domain, onStatusChange }: DomainStatusMana
       <Button
         variant="outline"
         size="sm"
-        onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2"
+        onClick={() => {
+          setNewStatus(domain.status || 'available');
+          setIsOpen(true);
+        }}
+        className="flex items-center gap-1.5"
       >
         <currentStatusConfig.icon className={`w-4 h-4 ${currentStatusConfig.color}`} />
-        <span className="hidden sm:inline">{currentStatusConfig.label}</span>
+        <span className="hidden sm:inline text-xs">{currentStatusConfig.label}</span>
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>更改域名状态</DialogTitle>
             <DialogDescription>
-              为 <span className="font-semibold">{domain.name}</span> 选择新的状态
+              为 <span className="font-semibold text-foreground">{domain.name}</span> 选择新的状态
             </DialogDescription>
           </DialogHeader>
 
-          <div className="py-4">
-            <Select value={newStatus} onValueChange={setNewStatus}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {statusOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    <div className="flex items-center gap-2">
-                      <option.icon className={`w-4 h-4 ${option.color}`} />
-                      {option.label}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="py-4 space-y-3">
+            {statusOptions.map(option => {
+              const Icon = option.icon;
+              const isSelected = newStatus === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setNewStatus(option.value)}
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-colors text-left ${
+                    isSelected 
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-border hover:bg-muted/50'
+                  }`}
+                >
+                  <Icon className={`w-5 h-5 ${option.color}`} />
+                  <span className={`font-medium ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                    {option.label}
+                  </span>
+                  {option.value === domain.status && (
+                    <span className="ml-auto text-xs text-muted-foreground">当前</span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isLoading}>
               取消
             </Button>
-            <Button onClick={handleStatusChange} disabled={isLoading}>
-              {isLoading ? '更新中...' : '确认更改'}
+            <Button onClick={handleStatusChange} disabled={isLoading || newStatus === domain.status}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  更新中...
+                </>
+              ) : '确认更改'}
             </Button>
           </DialogFooter>
         </DialogContent>
