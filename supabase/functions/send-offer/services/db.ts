@@ -67,27 +67,53 @@ export async function createOfferNotification(
   domainName: string, 
   offerAmount: number,
   offerId: string,
-  buyerEmail: string
+  buyerEmail: string,
+  buyerId?: string | null,
+  currency?: string
 ): Promise<void> {
+  const currencySymbol = currency === 'USD' ? '$' : '¥';
+  const formattedAmount = `${currencySymbol}${offerAmount.toLocaleString()}`;
+  
   try {
-    const { error } = await supabase
+    // 通知卖家
+    const { error: sellerNotifError } = await supabase
       .from('notifications')
       .insert({
         user_id: sellerId,
-        title: `收到新报价：${domainName}`,
-        message: `您的域名 ${domainName} 收到了 ¥${offerAmount.toLocaleString()} 的报价，买家邮箱：${buyerEmail}`,
+        title: `💰 收到新报价：${domainName}`,
+        message: `您的域名 ${domainName} 收到了 ${formattedAmount} 的新报价，买家邮箱：${buyerEmail}`,
         type: 'offer',
         is_read: false,
         related_id: offerId,
         action_url: '/user-center?tab=transactions'
       });
 
-    if (error) {
-      console.error("创建通知失败:", error);
-      throw error;
+    if (sellerNotifError) {
+      console.error("创建卖家通知失败:", sellerNotifError);
+    } else {
+      console.log("卖家通知已创建，卖家ID:", sellerId);
     }
-    
-    console.log("报价通知已创建，卖家ID:", sellerId);
+
+    // 通知买家（如果已登录）
+    if (buyerId) {
+      const { error: buyerNotifError } = await supabase
+        .from('notifications')
+        .insert({
+          user_id: buyerId,
+          title: `✅ 报价已提交：${domainName}`,
+          message: `您对域名 ${domainName} 提交了 ${formattedAmount} 的报价，卖家将会处理您的报价。`,
+          type: 'offer',
+          is_read: false,
+          related_id: offerId,
+          action_url: '/user-center?tab=transactions'
+        });
+
+      if (buyerNotifError) {
+        console.error("创建买家通知失败:", buyerNotifError);
+      } else {
+        console.log("买家通知已创建，买家ID:", buyerId);
+      }
+    }
   } catch (error) {
     console.error("创建通知时出错:", error);
     throw error;
