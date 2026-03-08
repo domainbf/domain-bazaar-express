@@ -137,8 +137,8 @@ export const DomainCard = ({
         <Button
           variant="ghost" size="icon"
           className={`h-7 w-7 rounded-full transition-all ${
-            isFavorited ? 'text-red-500 hover:text-red-600 hover:bg-red-50' 
-            : 'text-muted-foreground hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100'
+            isFavorited ? 'text-destructive hover:text-destructive/80 hover:bg-destructive/10' 
+            : 'text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100'
           }`}
           onClick={handleToggleFavorite}
           disabled={isLoadingFavorite}
