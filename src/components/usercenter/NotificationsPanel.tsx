@@ -169,7 +169,7 @@ export const NotificationsPanel = () => {
                             {new Date(notification.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
                         </div>
-                        <p className="text-gray-600 mt-1">{notification.message}</p>
+                        <p className="text-muted-foreground mt-1">{notification.message}</p>
                       </Link>
                     </CardContent>
                   </Card>
