@@ -212,7 +212,7 @@ export const DomainForm = ({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700"
+            className="flex items-center gap-2 p-3 bg-primary/10 border border-primary/20 rounded-lg text-primary"
           >
             <CheckCircle className="h-5 w-5" />
             <span className="font-medium">保存成功！</span>
