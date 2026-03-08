@@ -10,13 +10,14 @@ import { UserManagement } from '@/components/admin/UserManagement';
 import { ContentManagement } from '@/components/admin/ContentManagement';
 import { SeoConfiguration } from '@/components/admin/SeoConfiguration';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Settings, RefreshCw, FileText, Layers, Search, Home, Users, Globe, CheckSquare, BarChart3 } from 'lucide-react';
+import { Shield, Settings, RefreshCw, FileText, Layers, Search, Home, Users, Globe, CheckSquare, BarChart3, CreditCard } from 'lucide-react';
 import { SiteSettings } from '@/components/admin/SiteSettings';
 import { HomeContentManagement } from '@/components/admin/HomeContentManagement';
 import { FrontendContentManager } from '@/components/admin/FrontendContentManager';
 import { BulkDomainOperations } from '@/components/admin/BulkDomainOperations';
 import { QuickSettingsPanel } from '@/components/admin/QuickSettingsPanel';
 import { AdminActivityLog } from '@/components/admin/AdminActivityLog';
+import { PaymentGatewaySettings } from '@/components/admin/PaymentGatewaySettings';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -167,6 +168,7 @@ export const AdminPanel = () => {
     { value: 'content', label: '内容管理', icon: FileText },
     { value: 'seo', label: 'SEO配置', icon: Search },
     { value: 'frontend', label: '前台管理', icon: Home },
+    { value: 'payment', label: '支付配置', icon: CreditCard },
     { value: 'quick-settings', label: '快速设置', icon: Settings },
     { value: 'settings', label: '系统设置', icon: Settings },
   ];
@@ -279,6 +281,10 @@ export const AdminPanel = () => {
 
           <TabsContent value="frontend" className="mt-0">
             <FrontendContentManager />
+          </TabsContent>
+
+          <TabsContent value="payment" className="mt-0">
+            <PaymentGatewaySettings />
           </TabsContent>
 
           <TabsContent value="quick-settings" className="mt-0">
