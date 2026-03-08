@@ -9,9 +9,26 @@
     <meta name="author" content="域见•你" />
     <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/JRL5cCRiAqUu0eBT4GPmgFJAhYx1/social-images/social-1770545343639-IMG_8979.png.svg">
     
-    
-    
-    
+    <!-- Dynamic canonical & og:url -->
+    <script>
+      (function() {
+        var origin = window.location.origin;
+        var path = window.location.pathname;
+        var canonical = origin + path;
+        
+        // Set canonical link
+        var link = document.createElement('link');
+        link.rel = 'canonical';
+        link.href = canonical;
+        document.head.appendChild(link);
+        
+        // Set og:url
+        var ogUrl = document.createElement('meta');
+        ogUrl.setAttribute('property', 'og:url');
+        ogUrl.content = canonical;
+        document.head.appendChild(ogUrl);
+      })();
+    </script>
 
     <!-- Performance: preconnect/dns-prefetch -->
     <link rel="preconnect" href="https://trqxaizkwuizuhlfmdup.supabase.co" crossorigin>
