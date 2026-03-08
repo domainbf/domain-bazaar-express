@@ -25,14 +25,12 @@ export const UserProfilePage = () => {
       setError(null);
       
       try {
-        // First try to fetch by custom_url
         let { data: profileByUrl, error: urlError } = await supabase
           .from('profiles')
           .select('*')
           .eq('custom_url', profileId)
           .single();
         
-        // If not found by custom_url, try by id
         if (urlError) {
           const { data: profileById, error: idError } = await supabase
             .from('profiles')
@@ -51,7 +49,6 @@ export const UserProfilePage = () => {
         
         setProfile(profileByUrl);
         
-        // Fetch the user's available domains
         const { data: domainData, error: domainError } = await supabase
           .from('domain_listings')
           .select('*')
@@ -78,7 +75,7 @@ export const UserProfilePage = () => {
   
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <Navbar />
         <div className="max-w-6xl mx-auto px-4 py-12">
           <LoadingSpinner />
@@ -89,7 +86,7 @@ export const UserProfilePage = () => {
   
   if (error || !profile) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <Navbar />
         <div className="max-w-6xl mx-auto px-4 py-12">
           <Alert variant="destructive">
@@ -114,7 +111,7 @@ export const UserProfilePage = () => {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <div className="max-w-6xl mx-auto px-4 py-12">
         <UserProfileHeader profile={profile} />
@@ -124,9 +121,9 @@ export const UserProfilePage = () => {
         </div>
         
         {domains.length === 0 && (
-          <div className="mt-8 text-center py-12 bg-white rounded-lg shadow">
-            <h3 className="text-lg font-medium text-gray-900">该用户暂无在售域名</h3>
-            <p className="mt-2 text-sm text-gray-500">返回首页或浏览其他用户的域名</p>
+          <div className="mt-8 text-center py-12 bg-card rounded-lg shadow-sm border border-border">
+            <h3 className="text-lg font-medium text-foreground">该用户暂无在售域名</h3>
+            <p className="mt-2 text-sm text-muted-foreground">返回首页或浏览其他用户的域名</p>
             <div className="mt-6">
               <Link to="/">
                 <Button className="mx-auto">浏览更多域名</Button>

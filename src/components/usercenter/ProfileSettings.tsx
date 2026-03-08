@@ -501,7 +501,7 @@ export const ProfileSettings = () => {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <Label>两步验证</Label>
-              <p className="text-sm text-gray-600">为您的账户增加额外安全保护</p>
+              <p className="text-sm text-muted-foreground">为您的账户增加额外安全保护</p>
             </div>
             <Button variant="outline" size="sm" disabled>
               即将推出

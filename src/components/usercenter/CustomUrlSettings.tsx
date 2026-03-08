@@ -162,7 +162,7 @@ export const CustomUrlSettings = () => {
             {isLoading ? '保存中...' : '保存自定义地址'}
           </Button>
           
-          <div className="text-sm text-gray-500 space-y-1">
+          <div className="text-sm text-muted-foreground space-y-1">
             <p>自定义地址可让您更方便地分享您的个人主页。</p>
             <p>您的个人主页将展示您所有在售的域名。</p>
           </div>
