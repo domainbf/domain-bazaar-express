@@ -1,6 +1,6 @@
 
 export function getUserEmailHtml(domain: string, offer: string, message: string | undefined, dashboardUrl: string): string {
-  const primaryDashboardUrl = dashboardUrl || `https://domain.bf/user-center`;
+  const primaryDashboardUrl = dashboardUrl || `/user-center`;
   
   return `
     <!DOCTYPE html>

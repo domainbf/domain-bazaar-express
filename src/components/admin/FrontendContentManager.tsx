@@ -19,7 +19,7 @@ interface FrontendConfig {
 const configFields = [
   { key: 'site_name', label: '网站名称', icon: Type, placeholder: '域见•你', description: '显示在导航栏和页脚的品牌名称' },
   { key: 'contact_phone', label: '联系电话', icon: Phone, placeholder: '400-123-4567', description: '显示在联系我们页面的电话号码' },
-  { key: 'contact_email', label: '联系邮箱', icon: Mail, placeholder: 'support@domain.bf', description: '显示在联系我们页面的邮箱地址' },
+  { key: 'contact_email', label: '联系邮箱', icon: Mail, placeholder: 'support@example.com', description: '显示在联系我们页面的邮箱地址' },
   { key: 'footer_text', label: '页脚文字', icon: Type, placeholder: '域见•你 域名交易平台。保留所有权利。', description: '显示在页面底部的版权文字' },
   { key: 'logo_url', label: 'Logo图片URL', icon: Image, placeholder: '/lovable-uploads/nic.png', description: '导航栏Logo图片路径或URL' },
   { key: 'support_hours', label: '服务时间', icon: Clock, placeholder: '7x24小时在线服务', description: '显示在联系页面的服务时间' },
@@ -29,7 +29,7 @@ export const FrontendContentManager = () => {
   const [config, setConfig] = useState<FrontendConfig>({
     site_name: '域见•你',
     contact_phone: '400-123-4567',
-    contact_email: 'support@domain.bf',
+    contact_email: 'support@example.com',
     footer_text: '域见•你 域名交易平台。保留所有权利。',
     logo_url: '/lovable-uploads/nic.png',
     support_hours: '7x24小时在线服务',

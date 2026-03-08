@@ -13,7 +13,7 @@ interface SiteConfig {
 const defaultConfig: SiteConfig = {
   site_name: '域见•你',
   contact_phone: '400-123-4567',
-  contact_email: 'support@domain.bf',
+  contact_email: 'support@example.com',
   footer_text: '域见•你 域名交易平台。保留所有权利。',
   logo_url: '/lovable-uploads/nic.png',
   support_hours: '7x24小时在线服务',

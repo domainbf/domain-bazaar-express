@@ -21,7 +21,7 @@ export async function sendMailWithResend(
         to,
         subject,
         html,
-        from: options.from || "域见•你 域名交易平台 <noreply@domain.bf>"
+        from: options.from || "域见•你 域名交易平台 <noreply@noreply.example.com>"
       }),
     });
 
