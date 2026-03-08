@@ -376,9 +376,9 @@ export const TwoFactorAuth = ({ onStatusChange }: TwoFactorAuthProps) => {
 
           {setupStep === 'recovery' && (
             <div className="space-y-4">
-              <Alert className="border-yellow-200 bg-yellow-50">
-                <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                <AlertDescription className="text-yellow-800">
+              <Alert className="border-yellow-500/30 bg-yellow-500/5">
+                <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                <AlertDescription className="text-yellow-800 dark:text-yellow-300">
                   请妥善保存这些恢复码！如果您无法访问身份验证器应用，可以使用恢复码登录。
                 </AlertDescription>
               </Alert>
