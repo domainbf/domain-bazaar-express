@@ -224,7 +224,7 @@ export const DomainForm = ({
         <Label htmlFor="name" className="flex items-center gap-2">
           <Globe className="h-4 w-4" />
           {t('domainActions.domainName', '域名名称')}
-          <span className="text-red-500">*</span>
+          <span className="text-destructive">*</span>
         </Label>
         <Input
           id="name"
