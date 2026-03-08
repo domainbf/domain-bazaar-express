@@ -58,11 +58,11 @@ export const NotificationsPanel = () => {
   // Get badge color for notification type
   const getNotificationTypeBadge = (type: string) => {
     switch (type) {
-      case 'offer': return <Badge className="bg-blue-500">报价</Badge>;
-      case 'verification': return <Badge className="bg-green-500">验证</Badge>;
-      case 'transaction': return <Badge className="bg-purple-500">交易</Badge>;
-      case 'system': return <Badge>系统</Badge>;
-      default: return <Badge>通知</Badge>;
+      case 'offer': return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800">报价</Badge>;
+      case 'verification': return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">验证</Badge>;
+      case 'transaction': return <Badge className="bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-800">交易</Badge>;
+      case 'system': return <Badge variant="secondary">系统</Badge>;
+      default: return <Badge variant="secondary">通知</Badge>;
     }
   };
 
@@ -80,7 +80,7 @@ export const NotificationsPanel = () => {
         <h2 className="text-2xl font-bold flex items-center gap-2">
           通知中心 
           {unreadCount > 0 && (
-            <Badge className="bg-blue-500">{unreadCount} 未读</Badge>
+            <Badge className="bg-primary/10 text-primary border-primary/20">{unreadCount} 未读</Badge>
           )}
         </h2>
         
@@ -99,7 +99,7 @@ export const NotificationsPanel = () => {
       
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="relative w-full md:w-64">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input 
             placeholder="搜索通知..."
             value={searchQuery}

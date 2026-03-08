@@ -35,12 +35,44 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
     setProcessingOffers(prev => ({...prev, [offerId]: true}));
     
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('请先登录');
+        return;
+      }
+
+      // 获取报价详情用于通知卖家
+      const { data: offerData } = await supabase
+        .from('domain_offers')
+        .select(`*, domain_listings (name, owner_id)`)
+        .eq('id', offerId)
+        .eq('buyer_id', user.id)
+        .single();
+
+      // 更新状态为 cancelled 而不是删除，保留记录
       const { error } = await supabase
         .from('domain_offers')
-        .delete()
-        .eq('id', offerId);
+        .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+        .eq('id', offerId)
+        .eq('buyer_id', user.id);
       
       if (error) throw error;
+
+      // 通知卖家报价已被买家取消
+      if (offerData?.seller_id && offerData?.domain_listings) {
+        try {
+          await supabase.from('notifications').insert({
+            user_id: offerData.seller_id,
+            title: '报价已被取消',
+            message: `买家取消了对域名 ${offerData.domain_listings.name} 的 ¥${Number(offerData.amount).toLocaleString()} 报价`,
+            type: 'offer',
+            related_id: offerId,
+            action_url: '/user-center?tab=transactions'
+          });
+        } catch (e) {
+          console.error('Cancel notification error:', e);
+        }
+      }
       
       toast.success('报价已取消');
       setCancelDialog(null);
@@ -58,26 +90,32 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
       case 'accepted':
         return {
           label: '已接受',
-          className: 'bg-green-100 text-green-800 border-green-200',
+          className: 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800',
           icon: <CheckCircle2 className="h-3 w-3" />
         };
       case 'rejected':
         return {
           label: '已拒绝',
-          className: 'bg-red-100 text-red-800 border-red-200',
+          className: 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800',
           icon: <XCircle className="h-3 w-3" />
         };
       case 'completed':
         return {
           label: '已完成',
-          className: 'bg-blue-100 text-blue-800 border-blue-200',
+          className: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800',
           icon: <Package className="h-3 w-3" />
+        };
+      case 'cancelled':
+        return {
+          label: '已取消',
+          className: 'bg-muted text-muted-foreground border-border',
+          icon: <XCircle className="h-3 w-3" />
         };
       case 'pending':
       default:
         return {
           label: '待处理',
-          className: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+          className: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
           icon: <Clock className="h-3 w-3" />
         };
     }
@@ -155,7 +193,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
                         size="sm" 
                         variant="outline"
                         onClick={() => setCancelDialog({ open: true, offerId: offer.id, domainName: offer.domain_name || '' })}
-                        className="text-red-600 hover:bg-red-50"
+                        className="text-destructive hover:bg-destructive/10"
                         disabled={isProcessing}
                       >
                         {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
@@ -233,7 +271,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
                             size="sm" 
                             variant="outline"
                             onClick={() => setCancelDialog({ open: true, offerId: offer.id, domainName: offer.domain_name || '' })}
-                            className="text-red-600 hover:bg-red-50"
+                            className="text-destructive hover:bg-destructive/10"
                             disabled={isProcessing}
                           >
                             {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4 mr-1" />}
@@ -264,7 +302,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
               <AlertDialogCancel>返回</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => handleCancelOffer(cancelDialog.offerId)}
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
               >
                 确认取消
               </AlertDialogAction>

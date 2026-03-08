@@ -70,7 +70,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
         .from('domain_offers')
         .select(`
           *,
-          domain_listings (name, owner_id)
+          domain_listings (name, owner_id, currency)
         `)
         .eq('id', offerId)
         .single();
@@ -105,10 +105,18 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
         
       // 创建通知给买家
       if (offerData.buyer_id && offerData.domain_listings) {
-        const actionMessages = {
-          accepted: '您的报价已被接受！卖家将与您联系完成交易。',
-          rejected: '您的报价已被拒绝，您可以尝试提交新的报价。',
-          completed: '交易已完成！感谢您使用我们的平台。'
+        const currencySymbol = offerData.domain_listings.currency === 'USD' ? '$' : '¥';
+        const formattedAmount = `${currencySymbol}${Number(offerData.amount).toLocaleString()}`;
+        const actionMessages: Record<string, string> = {
+          accepted: `您对域名 ${offerData.domain_listings.name} 的 ${formattedAmount} 报价已被卖家接受！卖家将与您联系完成交易。`,
+          rejected: `您对域名 ${offerData.domain_listings.name} 的 ${formattedAmount} 报价已被拒绝，您可以尝试提交新的报价。`,
+          completed: `域名 ${offerData.domain_listings.name} 的 ${formattedAmount} 交易已完成！感谢您使用我们的平台。`
+        };
+
+        const titleMap: Record<string, string> = {
+          accepted: '🎉 报价已接受',
+          rejected: '❌ 报价已拒绝',
+          completed: '✅ 交易已完成'
         };
 
         try {
@@ -116,15 +124,14 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
             .from('notifications')
             .insert({
               user_id: offerData.buyer_id,
-              title: `报价${action === 'accepted' ? '已接受' : action === 'rejected' ? '已拒绝' : '已完成'}`,
-              message: `您对域名 ${offerData.domain_listings.name} 的报价（¥${offerData.amount}）${actionMessages[action]}`,
+              title: titleMap[action] || `报价状态更新`,
+              message: actionMessages[action],
               type: 'offer',
               related_id: offerId,
               action_url: '/user-center?tab=transactions'
             });
         } catch (notifError) {
           console.error('Notification error:', notifError);
-          // 通知失败不影响主流程
         }
       }
       
@@ -145,31 +152,37 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
       case 'pending':
         return {
           label: '待处理',
-          className: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+          className: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
           icon: <Clock className="h-3 w-3" />
         };
       case 'accepted':
         return {
           label: '已接受',
-          className: 'bg-green-100 text-green-800 border-green-200',
+          className: 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800',
           icon: <CheckCircle2 className="h-3 w-3" />
         };
       case 'rejected':
         return {
           label: '已拒绝',
-          className: 'bg-red-100 text-red-800 border-red-200',
+          className: 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800',
           icon: <XCircle className="h-3 w-3" />
         };
       case 'completed':
         return {
           label: '已完成',
-          className: 'bg-blue-100 text-blue-800 border-blue-200',
+          className: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800',
           icon: <Package className="h-3 w-3" />
+        };
+      case 'cancelled':
+        return {
+          label: '已取消',
+          className: 'bg-muted text-muted-foreground border-border',
+          icon: <XCircle className="h-3 w-3" />
         };
       default:
         return {
           label: status,
-          className: 'bg-gray-100 text-gray-800 border-gray-200',
+          className: 'bg-muted text-muted-foreground border-border',
           icon: <AlertCircle className="h-3 w-3" />
         };
     }
@@ -242,7 +255,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
                         size="sm" 
                         variant="outline"
                         onClick={() => setConfirmDialog({ open: true, offerId: offer.id, action: 'rejected', domainName: offer.domain_name || '' })}
-                        className="flex-1 text-red-600 hover:bg-red-50"
+                        className="flex-1 text-destructive hover:bg-destructive/10"
                         disabled={isProcessing}
                       >
                         {isProcessing ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <X className="h-4 w-4 mr-1" />}
@@ -332,7 +345,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
                             size="sm" 
                             variant="outline"
                             onClick={() => setConfirmDialog({ open: true, offerId: offer.id, action: 'rejected', domainName: offer.domain_name || '' })}
-                            className="text-red-600 hover:bg-red-50"
+                            className="text-destructive hover:bg-destructive/10"
                             disabled={isProcessing}
                           >
                             {isProcessing ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <X className="h-4 w-4 mr-1" />}
@@ -382,7 +395,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
               <AlertDialogCancel>取消</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => handleOfferAction(confirmDialog.offerId, confirmDialog.action)}
-                className={confirmDialog.action === 'rejected' ? 'bg-red-600 hover:bg-red-700' : ''}
+                className={confirmDialog.action === 'rejected' ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground' : ''}
               >
                 确认
               </AlertDialogAction>
