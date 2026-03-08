@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect, Suspense, lazy, memo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { CustomScripts } from './components/common/CustomScripts';
 
 // Route-based code splitting
 const Index = lazy(() => import('./pages/Index'));
