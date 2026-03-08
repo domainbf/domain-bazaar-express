@@ -63,7 +63,7 @@ export const DomainTable = ({ domains, onDomainUpdate, currentUserId }: DomainTa
         </thead>
         <tbody>
           {domains.map((domain) => (
-            <tr key={domain.id} className="border-b hover:bg-gray-50">
+            <tr key={domain.id} className="border-b hover:bg-muted/50">
               <td className="py-3 px-4">
                 <div className="flex items-center">
                   <span className="font-medium">{domain.name}</span>
