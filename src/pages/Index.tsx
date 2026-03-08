@@ -272,9 +272,9 @@ const Index = () => {
                     placeholder={t('marketplace.searchPlaceholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full h-10 md:h-12 pl-12 pr-4 bg-white border-gray-500 focus:border-gray-900 text-gray-900 font-medium"
+                    className="w-full h-10 md:h-12 pl-12 pr-4 bg-background border-border focus:border-ring text-foreground font-medium"
                   />
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-700 w-5 h-5" />
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                 </div>
               </div>
 
