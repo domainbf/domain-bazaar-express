@@ -185,7 +185,7 @@ const Index = () => {
   }, [user?.id]);
 
   // 优化的过滤逻辑
-  const filteredDomains = domains
+  const filteredDomains = useMemo(() => domains
     .filter(domain => {
       if (filter !== 'all' && domain.category !== filter) return false;
       if (searchQuery.trim()) {
@@ -197,7 +197,7 @@ const Index = () => {
       }
       return true;
     })
-    .slice(0, 9);
+    .slice(0, 9), [domains, filter, searchQuery]);
 
   const handleSellDomains = () => {
     if (user) {
