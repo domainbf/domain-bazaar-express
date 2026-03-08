@@ -31,22 +31,22 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md w-full">
-        <h2 className="text-2xl font-bold text-red-600 mb-4">页面加载出错</h2>
-        <p className="text-gray-600 mb-6">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <div className="text-center p-8 bg-card rounded-lg shadow-lg max-w-md w-full border border-border">
+        <h2 className="text-2xl font-bold text-destructive mb-4">页面加载出错</h2>
+        <p className="text-muted-foreground mb-6">
           抱歉，页面遇到了问题。请尝试刷新页面或返回首页。
         </p>
         <div className="space-y-3">
           <button
             onClick={resetErrorBoundary}
-            className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="w-full px-4 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
           >
             重试
           </button>
           <button
             onClick={handleGoHome}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="w-full px-4 py-3 border border-border rounded-lg hover:bg-accent transition-colors text-foreground"
           >
             返回首页
           </button>
