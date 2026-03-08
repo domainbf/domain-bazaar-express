@@ -485,7 +485,7 @@ export const ProfileSettings = () => {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <Label>密码</Label>
-              <p className="text-sm text-gray-600">上次更新：30天前</p>
+              <p className="text-sm text-muted-foreground">上次更新：30天前</p>
             </div>
             <Button 
               variant="outline" 
