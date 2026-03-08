@@ -233,7 +233,7 @@ export const DeviceManagement = () => {
                 {idx > 0 && <Separator className="mb-3" />}
                 <div className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className={`p-2.5 rounded-full ${device.isCurrent ? 'bg-green-100 text-green-600' : 'bg-muted text-muted-foreground'}`}>
+                    <div className={`p-2.5 rounded-full ${device.isCurrent ? 'bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-muted text-muted-foreground'}`}>
                       <DeviceIcon type={device.deviceType} />
                     </div>
                     <div>
