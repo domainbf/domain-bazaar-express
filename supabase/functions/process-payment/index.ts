@@ -221,7 +221,7 @@ Deno.serve(async (req) => {
     }
 
     const body: PaymentRequest = await req.json()
-    const { gateway, amount, currency = 'CNY', domain_id, domain_name, return_url = '' } = body
+    const { gateway, amount, currency = 'CNY', domain_id, domain_name, return_url = '', buyer_note = '' } = body
 
     if (!gateway || !amount || !domain_id) {
       return new Response(JSON.stringify({ error: '缺少必要参数' }), {
