@@ -442,11 +442,11 @@ export const ProfileSettings = () => {
                 <Label>销售统计</Label>
                 <div className="mt-2 grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="text-gray-600">总销售额：</span>
+                    <span className="text-muted-foreground">总销售额：</span>
                     <span className="font-medium">¥{profile?.total_sales || 0}</span>
                   </div>
                   <div>
-                    <span className="text-gray-600">卖家评分：</span>
+                    <span className="text-muted-foreground">卖家评分：</span>
                     <span className="font-medium">
                       {profile?.seller_rating ? `${profile.seller_rating}/5` : '暂无评分'}
                     </span>
