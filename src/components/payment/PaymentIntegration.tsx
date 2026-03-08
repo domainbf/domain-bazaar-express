@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
-  CreditCard, Smartphone, Banknote, Shield, CheckCircle, Clock, ExternalLink
+  CreditCard, Smartphone, Banknote, Shield, CheckCircle, Clock, ExternalLink, Coins
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Domain } from '@/types/domain';
@@ -30,6 +31,7 @@ const gatewayIcons: Record<string, any> = {
   paypal: CreditCard,
   stripe: CreditCard,
   bank_transfer: Banknote,
+  usdt_trc20: Coins,
 };
 
 export const PaymentIntegration: React.FC<PaymentIntegrationProps> = ({
@@ -39,7 +41,8 @@ export const PaymentIntegration: React.FC<PaymentIntegrationProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [gateways, setGateways] = useState<GatewayOption[]>([]);
   const [loadingGateways, setLoadingGateways] = useState(true);
-  const [bankInfo, setBankInfo] = useState<any>(null);
+  const [extraInfo, setExtraInfo] = useState<any>(null);
+  const [buyerNote, setBuyerNote] = useState('');
 
   useEffect(() => {
     loadEnabledGateways();
@@ -71,7 +74,7 @@ export const PaymentIntegration: React.FC<PaymentIntegrationProps> = ({
       return;
     }
     setIsProcessing(true);
-    setBankInfo(null);
+    setExtraInfo(null);
 
     try {
       const { data, error } = await supabase.functions.invoke('process-payment', {
@@ -82,15 +85,16 @@ export const PaymentIntegration: React.FC<PaymentIntegrationProps> = ({
           domain_id: domain.id,
           domain_name: domain.name,
           return_url: window.location.href,
+          buyer_note: buyerNote.trim() || undefined,
         },
       });
 
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || '支付创建失败');
 
-      if (paymentMethod === 'bank_transfer') {
-        setBankInfo(data.gateway_response);
-        toast.success('请按照以下信息完成银行转账');
+      if (paymentMethod === 'bank_transfer' || paymentMethod === 'usdt_trc20') {
+        setExtraInfo({ type: paymentMethod, ...data.gateway_response });
+        toast.success(paymentMethod === 'bank_transfer' ? '请按照以下信息完成银行转账' : '请按照以下信息完成USDT转账');
       } else if (data.payment_url) {
         toast.success('正在跳转到支付页面...');
         window.open(data.payment_url, '_blank');
@@ -106,6 +110,8 @@ export const PaymentIntegration: React.FC<PaymentIntegrationProps> = ({
       setIsProcessing(false);
     }
   };
+
+  const isManualTransfer = paymentMethod === 'bank_transfer' || paymentMethod === 'usdt_trc20';
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -175,17 +181,44 @@ export const PaymentIntegration: React.FC<PaymentIntegrationProps> = ({
             </div>
           )}
 
-          {/* Bank transfer info display */}
-          {bankInfo && (
+          {/* Buyer note */}
+          <div>
+            <Label className="text-sm font-medium mb-2 block">支付备注（可选）</Label>
+            <Textarea
+              placeholder="输入备注信息，如特殊要求、联系方式等"
+              value={buyerNote}
+              onChange={(e) => setBuyerNote(e.target.value)}
+              rows={2}
+              maxLength={500}
+            />
+          </div>
+
+          {/* Bank transfer info */}
+          {extraInfo && extraInfo.type === 'bank_transfer' && (
             <div className="bg-muted/30 p-4 rounded-lg space-y-2 text-sm">
               <h3 className="font-semibold">银行转账信息</h3>
-              {bankInfo.bank_name && <div>银行: {bankInfo.bank_name}</div>}
-              {bankInfo.account_name && <div>户名: {bankInfo.account_name}</div>}
-              {bankInfo.account_number && <div>账号: {bankInfo.account_number}</div>}
-              {bankInfo.swift_code && <div>SWIFT: {bankInfo.swift_code}</div>}
-              <div>金额: ¥{bankInfo.amount?.toLocaleString()}</div>
-              <div>备注/参考号: {bankInfo.reference}</div>
-              <p className="text-muted-foreground mt-2">{bankInfo.note}</p>
+              {extraInfo.bank_name && <div>银行: {extraInfo.bank_name}</div>}
+              {extraInfo.account_name && <div>户名: {extraInfo.account_name}</div>}
+              {extraInfo.account_number && <div>账号: {extraInfo.account_number}</div>}
+              {extraInfo.swift_code && <div>SWIFT: {extraInfo.swift_code}</div>}
+              <div>金额: ¥{extraInfo.amount?.toLocaleString()}</div>
+              <div>备注/参考号: {extraInfo.reference}</div>
+              <p className="text-muted-foreground mt-2">{extraInfo.note}</p>
+            </div>
+          )}
+
+          {/* USDT info */}
+          {extraInfo && extraInfo.type === 'usdt_trc20' && (
+            <div className="bg-muted/30 p-4 rounded-lg space-y-2 text-sm">
+              <h3 className="font-semibold flex items-center gap-2">
+                <Coins className="h-4 w-4" />USDT 转账信息
+              </h3>
+              <div>钱包地址: <code className="bg-muted px-2 py-1 rounded text-xs break-all">{extraInfo.wallet_address}</code></div>
+              <div>网络: {extraInfo.network}</div>
+              <div>金额: {extraInfo.amount} USDT</div>
+              <div>订单号: {extraInfo.reference}</div>
+              <div>所需确认数: {extraInfo.confirmation_required}</div>
+              <p className="text-muted-foreground mt-2">{extraInfo.note}</p>
             </div>
           )}
 
@@ -212,7 +245,7 @@ export const PaymentIntegration: React.FC<PaymentIntegrationProps> = ({
           >
             {isProcessing ? (
               <><Clock className="h-4 w-4 mr-2 animate-spin" />处理中...</>
-            ) : paymentMethod === 'bank_transfer' ? (
+            ) : isManualTransfer ? (
               '获取转账信息'
             ) : (
               <>支付 ¥{total.toLocaleString()} <ExternalLink className="h-4 w-4 ml-2" /></>

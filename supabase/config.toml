@@ -68,3 +68,7 @@ verify_jwt = false
 # Payment processing
 [functions.process-payment]
 verify_jwt = false
+
+# Payment callback webhook (called by external gateways)
+[functions.payment-callback]
+verify_jwt = false

@@ -31,6 +31,7 @@ const gatewayIcons: Record<string, any> = {
   paypal: CreditCard,
   stripe: CreditCard,
   bank_transfer: Banknote,
+  usdt_trc20: Shield,
 };
 
 const gatewayColors: Record<string, string> = {
@@ -39,6 +40,7 @@ const gatewayColors: Record<string, string> = {
   paypal: 'text-blue-700',
   stripe: 'text-purple-600',
   bank_transfer: 'text-amber-600',
+  usdt_trc20: 'text-emerald-500',
 };
 
 // Fields that should be masked in the UI
