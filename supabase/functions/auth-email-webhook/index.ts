@@ -14,7 +14,7 @@ async function sendEmailDirect(to: string, subject: string, html: string): Promi
   }
   const resend = new Resend(resendApiKey);
   const { error } = await resend.emails.send({
-    from: "域见•你 域名交易平台 <noreply@domain.bf>",
+    from: "域见•你 域名交易平台 <noreply@noreply.example.com>",
     to: [to],
     subject,
     html,
