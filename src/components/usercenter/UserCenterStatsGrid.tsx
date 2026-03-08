@@ -184,7 +184,7 @@ export const UserCenterStatsGrid = ({ profile, user }: UserCenterStatsGridProps)
 
   if (isLoading) {
     return (
-      <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6'} gap-3 mb-6`}>
+      <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6'} gap-3`}>
         {[...Array(6)].map((_, i) => (
           <Card key={i} className="animate-pulse">
             <CardContent className="p-4">
@@ -197,7 +197,7 @@ export const UserCenterStatsGrid = ({ profile, user }: UserCenterStatsGridProps)
   }
 
   return (
-    <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6'} gap-3 mb-6`}>
+    <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6'} gap-3`}>
       {statsCards.map((stat, index) => {
         const Icon = stat.icon;
         return (

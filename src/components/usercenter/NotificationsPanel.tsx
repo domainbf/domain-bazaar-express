@@ -125,27 +125,27 @@ export const NotificationsPanel = () => {
       {notifications.length === 0 ? (
         <Card>
           <CardContent className="py-20 text-center">
-            <Bell className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-            <p className="text-gray-500 text-lg font-medium mb-2">暂无通知</p>
-            <p className="text-gray-400">您还没有收到任何通知</p>
+            <Bell className="h-12 w-12 mx-auto mb-4 text-muted-foreground/30" />
+            <p className="text-muted-foreground text-lg font-medium mb-2">暂无通知</p>
+            <p className="text-muted-foreground/70">您还没有收到任何通知</p>
           </CardContent>
         </Card>
       ) : filteredNotifications.length === 0 ? (
         <Card>
           <CardContent className="py-10 text-center">
-            <p className="text-gray-500">没有找到符合条件的通知</p>
+            <p className="text-muted-foreground">没有找到符合条件的通知</p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-6">
           {Object.entries(groupedNotifications).map(([date, notifs]) => (
             <div key={date} className="space-y-2">
-              <h3 className="text-sm font-medium text-gray-500">{date}</h3>
+              <h3 className="text-sm font-medium text-muted-foreground">{date}</h3>
               <div className="space-y-2">
                 {notifs.map((notification) => (
                   <Card 
                     key={notification.id} 
-                    className={`hover:bg-gray-50 transition-colors ${!notification.is_read ? 'border-l-4 border-l-blue-500' : ''}`}
+                    className={`hover:bg-muted/50 transition-colors ${!notification.is_read ? 'border-l-4 border-l-primary' : ''}`}
                   >
                     <CardContent className="p-4">
                       <Link 
@@ -165,11 +165,11 @@ export const NotificationsPanel = () => {
                             <h4 className="font-medium">{notification.title}</h4>
                             {getNotificationTypeBadge(notification.type)}
                           </div>
-                          <div className="text-xs text-gray-400">
+                          <div className="text-xs text-muted-foreground/60">
                             {new Date(notification.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
                         </div>
-                        <p className="text-gray-600 mt-1">{notification.message}</p>
+                        <p className="text-muted-foreground mt-1">{notification.message}</p>
                       </Link>
                     </CardContent>
                   </Card>

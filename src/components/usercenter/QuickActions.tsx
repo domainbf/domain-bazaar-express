@@ -31,7 +31,7 @@ export const QuickActions = ({ onAddDomain, onViewNotifications }: QuickActionsP
     {
       icon: Plus,
       label: '添加域名',
-      onClick: onAddDomain,
+      onClick: onAddDomain || (() => navigate('/user-center?tab=domains')),
       color: 'bg-primary text-primary-foreground',
       showFor: 'seller'
     },
