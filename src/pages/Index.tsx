@@ -51,7 +51,7 @@ const Index = () => {
     try {
       console.log('Loading domains for homepage...');
       
-      // 简化查询，只获取必要字段，减少网络传输
+      // 获取域名列表
       const { data: listingsData, error: listingsError } = await supabase
         .from('domain_listings')
         .select(`
@@ -65,9 +65,7 @@ const Index = () => {
           is_verified
         `)
         .in('status', ['available', 'reserved'])
-        .order('highlight', { ascending: false })
-        .order('is_verified', { ascending: false })
-        .limit(9); // 减少到9个，提高加载速度
+        .limit(50);
       
       if (listingsError) {
         throw listingsError;
