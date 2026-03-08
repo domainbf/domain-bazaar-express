@@ -165,7 +165,7 @@ export const NotificationsPanel = () => {
                             <h4 className="font-medium">{notification.title}</h4>
                             {getNotificationTypeBadge(notification.type)}
                           </div>
-                          <div className="text-xs text-gray-400">
+                          <div className="text-xs text-muted-foreground/60">
                             {new Date(notification.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
                         </div>

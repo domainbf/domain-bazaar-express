@@ -18,11 +18,11 @@ export const EmptyDomainState = ({ onDomainAdded, isEmpty, isFiltered }: EmptyDo
       <CardContent className="py-10 text-center">
         {isEmpty ? (
           <>
-            <p className="text-gray-500 mb-4">您还没有添加任何域名</p>
+            <p className="text-muted-foreground mb-4">您还没有添加任何域名</p>
             <DomainActions mode="add" onSuccess={onDomainAdded} />
           </>
         ) : (
-          <p className="text-gray-500">没有找到符合条件的域名</p>
+          <p className="text-muted-foreground">没有找到符合条件的域名</p>
         )}
       </CardContent>
     </Card>

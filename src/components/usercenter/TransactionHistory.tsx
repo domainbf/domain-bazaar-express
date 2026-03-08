@@ -294,10 +294,10 @@ export const TransactionHistory = () => {
       {/* 交易记录表格 */}
       <Tabs defaultValue="received" className="w-full">
         <TabsList className="mb-6">
-          <TabsTrigger value="received" className="data-[state=active]:bg-black data-[state=active]:text-white">
+          <TabsTrigger value="received">
             收到的报价 ({stats.totalReceived})
           </TabsTrigger>
-          <TabsTrigger value="sent" className="data-[state=active]:bg-black data-[state=active]:text-white">
+          <TabsTrigger value="sent">
             发出的报价 ({stats.totalSent})
           </TabsTrigger>
         </TabsList>

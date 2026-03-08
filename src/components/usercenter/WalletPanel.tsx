@@ -384,7 +384,7 @@ export const WalletPanel = () => {
               {filteredTransactions.map((transaction) => (
                 <div
                   key={transaction.id}
-                  className={`flex items-center justify-between ${isMobile ? 'p-2' : 'p-3'} border rounded-lg hover:bg-gray-50 transition-colors`}
+                  className={`flex items-center justify-between ${isMobile ? 'p-2' : 'p-3'} border rounded-lg hover:bg-muted/50 transition-colors`}
                 >
                   <div className="flex items-center gap-2 md:gap-3">
                     <div className={`${isMobile ? 'h-8 w-8' : 'h-10 w-10'} rounded-full bg-gray-100 flex items-center justify-center`}>
