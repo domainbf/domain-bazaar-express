@@ -458,57 +458,6 @@ export const ProfileSettings = () => {
         </CardContent>
       </Card>
 
-      {/* 账户安全 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            账户安全
-          </CardTitle>
-          <CardDescription>
-            管理您的账户安全设置
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label>登录邮箱</Label>
-              <p className="text-sm text-muted-foreground">{user?.email}</p>
-            </div>
-            <Button variant="outline" size="sm">
-              更改邮箱
-            </Button>
-          </div>
-
-          <Separator />
-
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label>密码</Label>
-              <p className="text-sm text-muted-foreground">上次更新：30天前</p>
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => window.location.href = '/reset-password'}
-            >
-              更改密码
-            </Button>
-          </div>
-
-          <Separator />
-
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label>两步验证</Label>
-              <p className="text-sm text-muted-foreground">为您的账户增加额外安全保护</p>
-            </div>
-            <Button variant="outline" size="sm" disabled>
-              即将推出
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
