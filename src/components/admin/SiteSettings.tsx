@@ -8,7 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Settings, Globe, Mail, PieChart, Shield, Plus, Trash2, Save, RefreshCw, Database, Bell, Palette } from 'lucide-react';
+import { Settings, Globe, Mail, PieChart, Shield, Plus, Trash2, Save, RefreshCw, Database, Bell, Palette, Key, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
