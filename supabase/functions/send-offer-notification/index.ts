@@ -370,8 +370,8 @@ function getOwnerNotificationHtml(data: OfferNotificationRequest): string {
         <div class="footer">
           <p>© ${new Date().getFullYear()} 域见•你 域名交易平台</p>
           <div style="margin-top: 12px;">
-            <a href="https://domain.bf/faq" style="color: #6b7280; text-decoration: none; margin: 0 8px;">帮助中心</a>
-            <a href="https://domain.bf/contact" style="color: #6b7280; text-decoration: none; margin: 0 8px;">联系客服</a>
+            <a href="/faq" style="color: #6b7280; text-decoration: none; margin: 0 8px;">帮助中心</a>
+            <a href="/contact" style="color: #6b7280; text-decoration: none; margin: 0 8px;">联系客服</a>
           </div>
         </div>
       </div>
