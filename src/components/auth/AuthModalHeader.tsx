@@ -11,10 +11,10 @@ export const AuthModalHeader = ({ title }: AuthModalHeaderProps) => {
   
   return (
     <div className="text-center mb-6">
-      <h2 className="text-2xl font-bold text-gray-900">
+      <h2 className="text-2xl font-bold text-foreground">
         {React.createElement('span', {}, title)}
       </h2>
-      <p className="text-gray-500 mt-2">{t('auth.welcome')}</p>
+      <p className="text-muted-foreground mt-2">{t('auth.welcome')}</p>
     </div>
   );
 };

@@ -67,8 +67,8 @@ export const DomainFilters = ({
       {/* 高级筛选 */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-gray-500" />
-          <span className="text-sm text-gray-600">筛选：</span>
+          <Filter className="w-4 h-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">筛选：</span>
         </div>
         
         {/* 价格区间 */}

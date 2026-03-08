@@ -76,13 +76,13 @@ export const SimpleDnsChecker = ({ recordName, expectedValue, domainName }: Simp
         </Button>
 
         {result && (
-          <Alert className={result.verified ? 'border-green-500 bg-green-50' : 'border-yellow-500 bg-yellow-50'}>
+          <Alert className={result.verified ? 'border-primary bg-primary/5' : 'border-accent bg-accent/5'}>
             {result.verified ? (
-              <CheckCircle className="h-4 w-4 text-green-600" />
+              <CheckCircle className="h-4 w-4 text-primary" />
             ) : (
-              <XCircle className="h-4 w-4 text-yellow-600" />
+              <XCircle className="h-4 w-4 text-muted-foreground" />
             )}
-            <AlertDescription className={result.verified ? 'text-green-800' : 'text-yellow-800'}>
+            <AlertDescription className="text-foreground">
               <div className="whitespace-pre-wrap">{result.message}</div>
             </AlertDescription>
           </Alert>

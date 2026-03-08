@@ -85,7 +85,7 @@ export const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRoutePr
             </button>
             <button 
               onClick={() => navigate('/', { replace: true })}
-              className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+              className="px-4 py-2 border border-border rounded-md hover:bg-muted"
             >
               返回首页
             </button>

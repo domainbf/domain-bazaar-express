@@ -78,7 +78,7 @@ export const DomainListings = ({ domains, isLoading, isMobile }: DomainListingsP
                       </Badge>
                     )}
                     {domain.is_verified && (
-                      <Badge className="bg-green-600 dark:bg-green-500 text-white text-[10px] px-2 py-0 h-5 gap-0.5">
+                      <Badge variant="default" className="text-[10px] px-2 py-0 h-5 gap-0.5">
                         <Shield className="h-2.5 w-2.5" />已验证
                       </Badge>
                     )}

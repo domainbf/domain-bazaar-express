@@ -119,7 +119,7 @@ export const DeleteDomainConfirm = ({
       </div>
       
       {deleteError && (
-        <p className="text-sm text-red-600">{deleteError}</p>
+        <p className="text-sm text-destructive">{deleteError}</p>
       )}
       
       <div className="flex justify-end gap-2">
