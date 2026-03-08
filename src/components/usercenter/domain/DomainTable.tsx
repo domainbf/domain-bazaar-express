@@ -40,7 +40,7 @@ export const DomainTable = ({ domains, onDomainUpdate, currentUserId }: DomainTa
       case 'sold':
         return <Badge className="bg-blue-500">已售</Badge>;
       default:
-        return <Badge className="bg-gray-500">未知</Badge>;
+        return <Badge variant="secondary">未知</Badge>;
     }
   };
 
