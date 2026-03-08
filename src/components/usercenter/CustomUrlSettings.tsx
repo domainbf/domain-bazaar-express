@@ -138,11 +138,11 @@ export const CustomUrlSettings = () => {
           </div>
           
           {(profile?.custom_url || profile?.id) && (
-            <Alert className="bg-blue-50 border-blue-200">
+            <Alert className="bg-primary/5 border-primary/20">
               <AlertDescription className="flex flex-col space-y-2">
                 <div className="text-sm">您的个人主页地址：</div>
                 <div className="flex items-center gap-2">
-                  <code className="bg-blue-100 px-2 py-1 rounded text-blue-800 text-sm break-all">
+                  <code className="bg-primary/10 px-2 py-1 rounded text-primary text-sm break-all">
                     {getProfileUrl()}
                   </code>
                   <CopyButton text={getProfileUrl()} />
