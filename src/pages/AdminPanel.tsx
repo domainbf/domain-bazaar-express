@@ -163,6 +163,7 @@ export const AdminPanel = () => {
     { value: 'dashboard', label: '仪表盘', icon: BarChart3 },
     { value: 'verifications', label: '待验证', icon: CheckSquare, badge: stats.pending_verifications },
     { value: 'domains', label: '域名管理', icon: Globe },
+    { value: 'offers', label: '报价管理', icon: MessageSquare, badge: stats.total_offers },
     { value: 'bulk', label: '批量操作', icon: Layers },
     { value: 'users', label: '用户管理', icon: Users },
     { value: 'homepage', label: '首页管理', icon: Home },
