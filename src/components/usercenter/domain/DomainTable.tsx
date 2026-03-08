@@ -40,7 +40,7 @@ export const DomainTable = ({ domains, onDomainUpdate, currentUserId }: DomainTa
       case 'sold':
         return <Badge className="bg-blue-500">已售</Badge>;
       default:
-        return <Badge className="bg-gray-500">未知</Badge>;
+        return <Badge variant="secondary">未知</Badge>;
     }
   };
 
@@ -63,7 +63,7 @@ export const DomainTable = ({ domains, onDomainUpdate, currentUserId }: DomainTa
         </thead>
         <tbody>
           {domains.map((domain) => (
-            <tr key={domain.id} className="border-b hover:bg-gray-50">
+            <tr key={domain.id} className="border-b hover:bg-muted/50">
               <td className="py-3 px-4">
                 <div className="flex items-center">
                   <span className="font-medium">{domain.name}</span>
@@ -79,7 +79,7 @@ export const DomainTable = ({ domains, onDomainUpdate, currentUserId }: DomainTa
               <td className="py-3 px-4">{renderDomainStatus(domain.status)}</td>
               <td className="py-3 px-4">
                 <div className="flex items-center">
-                  <Eye className="w-4 h-4 mr-1 text-gray-500" />
+                  <Eye className="w-4 h-4 mr-1 text-muted-foreground" />
                   <span>{domain.views || 0}</span>
                 </div>
               </td>

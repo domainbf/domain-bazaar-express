@@ -108,13 +108,13 @@ export const FavoriteDomains = () => {
 
   const getCategoryBadge = (category: string) => {
     const categoryMap: Record<string, { label: string; className: string }> = {
-      premium: { label: '高级', className: 'bg-purple-100 text-purple-800' },
-      standard: { label: '标准', className: 'bg-gray-100 text-gray-800' },
-      short: { label: '短域名', className: 'bg-blue-100 text-blue-800' },
-      brandable: { label: '品牌', className: 'bg-green-100 text-green-800' },
-      dev: { label: '开发', className: 'bg-orange-100 text-orange-800' }
+      premium: { label: '高级', className: 'bg-purple-500/10 text-purple-700 dark:text-purple-400' },
+      standard: { label: '标准', className: 'bg-muted text-muted-foreground' },
+      short: { label: '短域名', className: 'bg-blue-500/10 text-blue-700 dark:text-blue-400' },
+      brandable: { label: '品牌', className: 'bg-green-500/10 text-green-700 dark:text-green-400' },
+      dev: { label: '开发', className: 'bg-orange-500/10 text-orange-700 dark:text-orange-400' }
     };
-    return categoryMap[category] || { label: category, className: 'bg-gray-100 text-gray-800' };
+    return categoryMap[category] || { label: category, className: 'bg-muted text-muted-foreground' };
   };
 
   if (isLoading) {

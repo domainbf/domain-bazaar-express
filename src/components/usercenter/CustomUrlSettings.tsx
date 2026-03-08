@@ -109,11 +109,11 @@ export const CustomUrlSettings = () => {
       <CardContent>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               自定义地址
             </label>
             <div className="flex items-center space-x-2">
-              <div className="flex-shrink-0 text-gray-500">
+              <div className="flex-shrink-0 text-muted-foreground">
                 {window.location.origin}/profile/
               </div>
               <Input 
@@ -129,7 +129,7 @@ export const CustomUrlSettings = () => {
             )}
             
             {isChecking && (
-              <p className="mt-1 text-sm text-gray-500">检查可用性...</p>
+              <p className="mt-1 text-sm text-muted-foreground">检查可用性...</p>
             )}
             
             {!error && !isChecking && customUrl && (
@@ -138,11 +138,11 @@ export const CustomUrlSettings = () => {
           </div>
           
           {(profile?.custom_url || profile?.id) && (
-            <Alert className="bg-blue-50 border-blue-200">
+            <Alert className="bg-primary/5 border-primary/20">
               <AlertDescription className="flex flex-col space-y-2">
                 <div className="text-sm">您的个人主页地址：</div>
                 <div className="flex items-center gap-2">
-                  <code className="bg-blue-100 px-2 py-1 rounded text-blue-800 text-sm break-all">
+                  <code className="bg-primary/10 px-2 py-1 rounded text-primary text-sm break-all">
                     {getProfileUrl()}
                   </code>
                   <CopyButton text={getProfileUrl()} />
@@ -162,7 +162,7 @@ export const CustomUrlSettings = () => {
             {isLoading ? '保存中...' : '保存自定义地址'}
           </Button>
           
-          <div className="text-sm text-gray-500 space-y-1">
+          <div className="text-sm text-muted-foreground space-y-1">
             <p>自定义地址可让您更方便地分享您的个人主页。</p>
             <p>您的个人主页将展示您所有在售的域名。</p>
           </div>

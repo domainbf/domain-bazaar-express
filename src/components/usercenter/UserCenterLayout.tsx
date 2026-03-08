@@ -86,9 +86,6 @@ export const UserCenterLayout = ({ profile, user, children }: UserCenterLayoutPr
                 <div className="flex flex-wrap gap-1.5 md:gap-2">
                   {getVerificationBadge()}
                   {getMembershipLevel()}
-                  {profile?.is_admin && (
-                    <Badge className="bg-destructive/10 text-destructive text-xs">管理员</Badge>
-                  )}
                 </div>
               </div>
             </div>

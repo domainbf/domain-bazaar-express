@@ -51,120 +51,114 @@ export const Profile = () => {
       if (error) throw error;
       
       await refreshProfile();
-      toast.success('Profile updated successfully!');
+      toast.success('个人资料更新成功！');
     } catch (error: any) {
       console.error('Error updating profile:', error);
-      toast.error(error.message || 'Failed to update profile');
+      toast.error(error.message || '更新失败');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
       
       <div className="max-w-5xl mx-auto px-4 py-12">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Your Profile</h1>
+        <h1 className="text-3xl font-bold text-foreground mb-8">个人资料</h1>
         
         <Tabs defaultValue="profile" className="w-full">
           <TabsList className="mb-8">
-            <TabsTrigger value="profile">Profile Information</TabsTrigger>
-            <TabsTrigger value="account">Account Settings</TabsTrigger>
-            <TabsTrigger value="seller">Seller Settings</TabsTrigger>
+            <TabsTrigger value="profile">基本信息</TabsTrigger>
+            <TabsTrigger value="account">账户设置</TabsTrigger>
+            <TabsTrigger value="seller">卖家设置</TabsTrigger>
           </TabsList>
           
           <TabsContent value="profile">
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h2 className="text-xl font-semibold mb-6">Profile Information</h2>
+            <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
+              <h2 className="text-xl font-semibold mb-6">基本信息</h2>
               
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                      <User className="w-4 h-4" /> Full Name
+                    <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                      <User className="w-4 h-4" /> 姓名
                     </label>
                     <Input
                       name="full_name"
                       value={formData.full_name}
                       onChange={handleChange}
-                      className="bg-white border-gray-300"
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                      <User className="w-4 h-4" /> Username
+                    <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                      <User className="w-4 h-4" /> 用户名
                     </label>
                     <Input
                       name="username"
                       value={formData.username}
                       onChange={handleChange}
-                      className="bg-white border-gray-300"
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                      <Mail className="w-4 h-4" /> Contact Email
+                    <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                      <Mail className="w-4 h-4" /> 联系邮箱
                     </label>
                     <Input
                       name="contact_email"
                       type="email"
                       value={formData.contact_email}
                       onChange={handleChange}
-                      className="bg-white border-gray-300"
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                      <Phone className="w-4 h-4" /> Contact Phone
+                    <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                      <Phone className="w-4 h-4" /> 联系电话
                     </label>
                     <Input
                       name="contact_phone"
                       value={formData.contact_phone}
                       onChange={handleChange}
-                      className="bg-white border-gray-300"
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                      <Building className="w-4 h-4" /> Company Name
+                    <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                      <Building className="w-4 h-4" /> 公司名称
                     </label>
                     <Input
                       name="company_name"
                       value={formData.company_name}
                       onChange={handleChange}
-                      className="bg-white border-gray-300"
                     />
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Bio</label>
+                  <label className="text-sm font-medium text-foreground">个人简介</label>
                   <textarea
                     name="bio"
                     value={formData.bio}
                     onChange={handleChange}
                     rows={4}
-                    className="w-full rounded-md border border-gray-300 p-2 bg-white focus:border-black focus:ring-black"
+                    className="w-full rounded-md border border-input p-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                 </div>
                 
                 <Button 
                   type="submit" 
-                  className="bg-black text-white hover:bg-gray-800"
                   disabled={isLoading}
                 >
                   {isLoading ? (
                     <span className="flex items-center gap-2">
                       <Loader2 className="animate-spin w-4 h-4" />
-                      Saving...
+                      保存中...
                     </span>
                   ) : (
-                    'Save Changes'
+                    '保存更改'
                   )}
                 </Button>
               </form>
@@ -172,50 +166,48 @@ export const Profile = () => {
           </TabsContent>
           
           <TabsContent value="account">
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h2 className="text-xl font-semibold mb-6">Account Settings</h2>
-              <p className="mb-4">Email: {user?.email}</p>
+            <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
+              <h2 className="text-xl font-semibold mb-6">账户设置</h2>
+              <p className="mb-4 text-muted-foreground">邮箱：{user?.email}</p>
               
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-medium mb-2">Change Password</h3>
-                  <Button variant="outline">Change Password</Button>
+                  <h3 className="text-lg font-medium mb-2">修改密码</h3>
+                  <Button variant="outline">修改密码</Button>
                 </div>
                 
                 <div>
-                  <h3 className="text-lg font-medium mb-2 text-red-600">Danger Zone</h3>
-                  <Button variant="destructive">Delete Account</Button>
+                  <h3 className="text-lg font-medium mb-2 text-destructive">危险操作</h3>
+                  <Button variant="destructive">删除账户</Button>
                 </div>
               </div>
             </div>
           </TabsContent>
           
           <TabsContent value="seller">
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h2 className="text-xl font-semibold mb-6">Seller Settings</h2>
+            <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
+              <h2 className="text-xl font-semibold mb-6">卖家设置</h2>
               
               <div className="mb-6">
-                <p className="mb-2">Seller Status: {profile?.is_seller ? 'Active' : 'Not a seller'}</p>
+                <p className="mb-2">卖家状态：{profile?.is_seller ? '已激活' : '未开通'}</p>
                 {!profile?.is_seller && (
-                  <Button className="bg-black text-white hover:bg-gray-800">
-                    Become a Seller
-                  </Button>
+                  <Button>成为卖家</Button>
                 )}
               </div>
               
               {profile?.is_seller && (
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-lg font-medium mb-2">Payment Methods</h3>
-                    <div className="p-4 border border-gray-200 rounded-md bg-gray-50">
-                      <p>Configure how you'll receive payments for your domains</p>
+                    <h3 className="text-lg font-medium mb-2">收款方式</h3>
+                    <div className="p-4 border border-border rounded-md bg-muted/50">
+                      <p className="text-muted-foreground">配置您的域名销售收款方式</p>
                     </div>
                   </div>
                   
                   <div>
-                    <h3 className="text-lg font-medium mb-2">Verification Status</h3>
-                    <div className="p-4 border border-gray-200 rounded-md bg-gray-50">
-                      <p>Status: {profile?.verification_status || 'Not verified'}</p>
+                    <h3 className="text-lg font-medium mb-2">认证状态</h3>
+                    <div className="p-4 border border-border rounded-md bg-muted/50">
+                      <p className="text-muted-foreground">状态：{profile?.verification_status || '未认证'}</p>
                     </div>
                   </div>
                 </div>

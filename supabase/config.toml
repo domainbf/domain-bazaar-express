@@ -60,3 +60,7 @@ verify_jwt = false
 # WHOIS domain query
 [functions.whois-query]
 verify_jwt = false
+
+# Domain monitoring cron check
+[functions.domain-monitoring-check]
+verify_jwt = false

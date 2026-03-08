@@ -195,17 +195,17 @@ export const ProfileSettings = () => {
   };
 
   const getVerificationStatus = () => {
-    if (!profile) return { status: 'pending', text: '未认证', color: 'bg-gray-100 text-gray-800' };
+    if (!profile) return { status: 'pending', text: '未认证', color: 'bg-muted text-muted-foreground' };
     
     switch (profile.verification_status) {
       case 'verified':
-        return { status: 'verified', text: '已认证', color: 'bg-green-100 text-green-800' };
+        return { status: 'verified', text: '已认证', color: 'bg-green-500/10 text-green-700 dark:text-green-400' };
       case 'pending':
-        return { status: 'pending', text: '待认证', color: 'bg-yellow-100 text-yellow-800' };
+        return { status: 'pending', text: '待认证', color: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400' };
       case 'rejected':
-        return { status: 'rejected', text: '认证失败', color: 'bg-red-100 text-red-800' };
+        return { status: 'rejected', text: '认证失败', color: 'bg-destructive/10 text-destructive' };
       default:
-        return { status: 'pending', text: '未认证', color: 'bg-gray-100 text-gray-800' };
+        return { status: 'pending', text: '未认证', color: 'bg-muted text-muted-foreground' };
     }
   };
 
@@ -228,7 +228,7 @@ export const ProfileSettings = () => {
           {/* 头像区域 */}
           <div className="flex items-center gap-6">
             <div className="relative">
-              <Avatar className="h-24 w-24 border-2 border-gray-200">
+              <Avatar className="h-24 w-24 border-2 border-border">
                 <AvatarImage src={formData.avatar_url} alt={formData.full_name} />
                 <AvatarFallback className="text-2xl">
                   {formData.full_name ? formData.full_name.charAt(0).toUpperCase() : 'U'}
@@ -267,10 +267,10 @@ export const ProfileSettings = () => {
                   <Badge variant="outline">卖家</Badge>
                 )}
               </div>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 {user?.email}
               </p>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-muted-foreground/70">
                 <Upload className="h-3 w-3 inline mr-1" />
                 支持 JPG/PNG/GIF/WebP，最大 500KB
               </p>
@@ -409,7 +409,7 @@ export const ProfileSettings = () => {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <Label>启用卖家功能</Label>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 开启后您可以在平台上出售域名
               </p>
             </div>
@@ -442,11 +442,11 @@ export const ProfileSettings = () => {
                 <Label>销售统计</Label>
                 <div className="mt-2 grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="text-gray-600">总销售额：</span>
+                    <span className="text-muted-foreground">总销售额：</span>
                     <span className="font-medium">¥{profile?.total_sales || 0}</span>
                   </div>
                   <div>
-                    <span className="text-gray-600">卖家评分：</span>
+                    <span className="text-muted-foreground">卖家评分：</span>
                     <span className="font-medium">
                       {profile?.seller_rating ? `${profile.seller_rating}/5` : '暂无评分'}
                     </span>
@@ -473,7 +473,7 @@ export const ProfileSettings = () => {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <Label>登录邮箱</Label>
-              <p className="text-sm text-gray-600">{user?.email}</p>
+              <p className="text-sm text-muted-foreground">{user?.email}</p>
             </div>
             <Button variant="outline" size="sm">
               更改邮箱
@@ -485,7 +485,7 @@ export const ProfileSettings = () => {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <Label>密码</Label>
-              <p className="text-sm text-gray-600">上次更新：30天前</p>
+              <p className="text-sm text-muted-foreground">上次更新：30天前</p>
             </div>
             <Button 
               variant="outline" 
@@ -501,7 +501,7 @@ export const ProfileSettings = () => {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <Label>两步验证</Label>
-              <p className="text-sm text-gray-600">为您的账户增加额外安全保护</p>
+              <p className="text-sm text-muted-foreground">为您的账户增加额外安全保护</p>
             </div>
             <Button variant="outline" size="sm" disabled>
               即将推出

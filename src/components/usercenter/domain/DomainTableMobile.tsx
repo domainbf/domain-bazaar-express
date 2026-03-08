@@ -37,7 +37,7 @@ export const DomainTableMobile = ({ domains, onDomainUpdate }: DomainTableMobile
       case 'sold':
         return <Badge className="bg-blue-500 text-xs">已售</Badge>;
       default:
-        return <Badge className="bg-gray-500 text-xs">未知</Badge>;
+        return <Badge variant="secondary" className="text-xs">未知</Badge>;
     }
   };
 
@@ -65,32 +65,32 @@ export const DomainTableMobile = ({ domains, onDomainUpdate }: DomainTableMobile
             {/* 域名信息 */}
             <div className="space-y-2 mb-3">
               <div className="flex items-center text-sm">
-                <DollarSign className="w-4 h-4 mr-2 text-gray-500" />
+                <DollarSign className="w-4 h-4 mr-2 text-muted-foreground" />
                 <span className="font-medium">
                   {domain.currency === 'CNY' ? '¥' : '$'}{domain.price.toLocaleString()}
                 </span>
               </div>
               
-              <div className="flex items-center text-sm text-gray-600">
-                <Tag className="w-4 h-4 mr-2 text-gray-500" />
+              <div className="flex items-center text-sm text-muted-foreground">
+                <Tag className="w-4 h-4 mr-2" />
                 <span className="capitalize">{domain.category || 'standard'}</span>
               </div>
               
-              <div className="flex items-center text-sm text-gray-600">
-                <Eye className="w-4 h-4 mr-2 text-gray-500" />
+              <div className="flex items-center text-sm text-muted-foreground">
+                <Eye className="w-4 h-4 mr-2" />
                 <span>{domain.views || 0} 次浏览</span>
               </div>
             </div>
 
             {/* 描述 */}
             {domain.description && (
-              <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                 {domain.description}
               </p>
             )}
 
             {/* 操作按钮 */}
-            <div className="flex flex-wrap items-center gap-2 pt-3 border-t">
+            <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-border">
               {!domain.is_verified && (
                 <Button
                   variant="outline"

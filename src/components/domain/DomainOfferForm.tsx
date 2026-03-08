@@ -169,24 +169,24 @@ export const DomainOfferForm = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-4 mt-4">
       {!isAuthenticated && (
-        <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-md mb-4">
-          <p className="text-yellow-800 text-sm">
+        <div className="bg-yellow-500/10 border border-yellow-500/30 p-3 rounded-md mb-4">
+          <p className="text-yellow-700 dark:text-yellow-400 text-sm">
             您尚未登录。您的报价仍会发送给卖家，但创建账户可以让您跟踪报价状态。
           </p>
         </div>
       )}
       
       {error && (
-        <div className="bg-red-50 border border-red-200 p-3 rounded-md mb-4 flex items-start">
-          <AlertCircle className="w-5 h-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
-          <p className="text-red-800 text-sm">{error}</p>
+        <div className="bg-destructive/10 border border-destructive/30 p-3 rounded-md mb-4 flex items-start">
+          <AlertCircle className="w-5 h-5 text-destructive mr-2 mt-0.5 flex-shrink-0" />
+          <p className="text-destructive text-sm">{error}</p>
         </div>
       )}
       
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">您的报价</label>
+        <label className="text-sm font-medium text-foreground">您的报价</label>
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
           <Input
             type="number"
             placeholder="1000"
@@ -197,15 +197,15 @@ export const DomainOfferForm = ({
             }}
             required
             min="1"
-            className="pl-8 bg-white border-gray-300 focus:border-black transition-colors"
+            className="pl-8"
           />
         </div>
       </div>
       
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">联系邮箱</label>
+        <label className="text-sm font-medium text-foreground">联系邮箱</label>
         <div className="relative">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
             type="email"
             placeholder="your@email.com"
@@ -215,18 +215,18 @@ export const DomainOfferForm = ({
               setError(null);
             }}
             required
-            className="pl-10 bg-white border-gray-300 focus:border-black transition-colors"
+            className="pl-10"
           />
         </div>
       </div>
       
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">留言（可选）</label>
+        <label className="text-sm font-medium text-foreground">留言（可选）</label>
         <textarea
           placeholder="添加关于您报价的任何详细信息..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          className="w-full bg-white border border-gray-300 rounded-md p-2 text-black resize-none"
+          className="w-full bg-background border border-input rounded-md p-2 text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring"
           rows={3}
         />
       </div>
@@ -244,11 +244,11 @@ export const DomainOfferForm = ({
       <Button 
         type="submit"
         disabled={isLoading || !captchaToken}
-        className="w-full bg-black text-white hover:bg-gray-800 transition-colors disabled:opacity-50"
+        className="w-full"
       >
         {isLoading ? (
           <span className="flex items-center gap-2">
-            <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" />
+            <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
             提交中...
           </span>
         ) : (
