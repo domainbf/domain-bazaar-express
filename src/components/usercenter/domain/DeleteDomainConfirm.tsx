@@ -101,17 +101,17 @@ export const DeleteDomainConfirm = ({
         </div>
       </div>
       
-      <p className="text-gray-700">
+      <p className="text-foreground">
         {t('domainActions.deleteDomainConfirm', '您确定要删除域名')} <span className="font-bold">{domain.name}</span> {t('common.question', '吗？')}
       </p>
       
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-foreground">
           {t('domainActions.typeToConfirm', '请输入域名或"DELETE"以确认删除')}
         </label>
         <input
           type="text"
-          className="w-full border border-gray-300 rounded-md p-2 text-sm"
+          className="w-full border border-border rounded-md p-2 text-sm bg-background text-foreground"
           value={confirmText}
           onChange={(e) => setConfirmText(e.target.value)}
           placeholder={domain.name}
