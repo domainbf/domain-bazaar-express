@@ -17,6 +17,7 @@ import { FrontendContentManager } from '@/components/admin/FrontendContentManage
 import { BulkDomainOperations } from '@/components/admin/BulkDomainOperations';
 import { QuickSettingsPanel } from '@/components/admin/QuickSettingsPanel';
 import { AdminActivityLog } from '@/components/admin/AdminActivityLog';
+import { PaymentGatewaySettings } from '@/components/admin/PaymentGatewaySettings';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
