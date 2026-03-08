@@ -12,11 +12,11 @@ export interface DomainListingsProps {
 }
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 12 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.04, duration: 0.35, ease: "easeOut" },
+    transition: { delay: i * 0.02, duration: 0.2, ease: "easeOut" },
   }),
 };
 
@@ -70,11 +70,6 @@ export const DomainListings = ({ domains, isLoading, isMobile }: DomainListingsP
 
       <div className={`grid ${isMobile ? 'grid-cols-1 gap-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'}`}>
         {domains.map((domain, i) => {
-          // Split domain name and extension
-          const dotIdx = domain.name.indexOf('.');
-          const baseName = dotIdx > 0 ? domain.name.substring(0, dotIdx) : domain.name;
-          const ext = dotIdx > 0 ? domain.name.substring(dotIdx) : '';
-
           return (
             <motion.div
               key={domain.id}
@@ -88,22 +83,32 @@ export const DomainListings = ({ domains, isLoading, isMobile }: DomainListingsP
                 className="group block h-full"
               >
                 <div className={`relative h-full border rounded-xl overflow-hidden
-                  transition-all duration-300 ease-out
-                  hover:shadow-lg hover:-translate-y-1
+                  transition-all duration-200 ease-out
+                  hover:shadow-md hover:-translate-y-0.5
                   ${domain.highlight 
                     ? 'border-primary/30 bg-card shadow-sm' 
                     : 'border-border bg-card'
                   }`}>
                   
-                  {/* Highlight accent */}
                   {domain.highlight && (
                     <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary via-primary/60 to-transparent" />
                   )}
 
-                  {/* Card body */}
-                  <div className="px-4 pt-3 pb-3">
-                    {/* Row 1: Badges + Price */}
-                    <div className="flex items-center justify-between mb-2">
+                  <div className="px-5 pt-4 pb-3">
+                    {/* Row 1: Domain name - largest element */}
+                    <div className="flex items-end justify-between mb-3">
+                      <h3 className="text-3xl sm:text-4xl font-black text-foreground uppercase tracking-tight leading-none
+                        transition-colors duration-150 group-hover:text-primary break-all">
+                        {domain.name}
+                      </h3>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-150 shrink-0 mb-1" />
+                    </div>
+
+                    {/* Row 2: Price + Verified badge */}
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xl font-bold text-foreground">
+                        ${domain.price?.toLocaleString()}
+                      </span>
                       <div className="flex items-center gap-1.5">
                         {domain.is_verified && (
                           <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 gap-0.5 border-primary/40 text-primary">
@@ -116,26 +121,12 @@ export const DomainListings = ({ domains, isLoading, isMobile }: DomainListingsP
                           </Badge>
                         )}
                       </div>
-                      <span className="text-lg font-bold text-foreground shrink-0">
-                        ${domain.price?.toLocaleString()}
-                      </span>
-                    </div>
-
-                    {/* Row 2: Domain name - HERO */}
-                    <div className="flex items-baseline gap-0.5">
-                      <h3 className="text-2xl sm:text-3xl font-black text-foreground uppercase tracking-tight leading-none
-                        transition-colors duration-200 group-hover:text-primary break-all">
-                        {baseName}
-                      </h3>
-                      <span className="text-lg sm:text-xl font-bold text-muted-foreground/50 uppercase shrink-0">
-                        {ext}
-                      </span>
                     </div>
                   </div>
 
-                  {/* Footer: category + views + arrow */}
-                  <div className="border-t border-border/60 px-4 py-2 flex items-center justify-between bg-muted/20">
-                    <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+                  {/* Footer */}
+                  <div className="border-t border-border/60 px-5 py-2 flex items-center justify-between bg-muted/20">
+                    <div className="flex items-center gap-2">
                       {domain.category && (
                         <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${getCategoryColor(domain.category)}`}>
                           <Tag className="h-2.5 w-2.5" />
@@ -143,12 +134,11 @@ export const DomainListings = ({ domains, isLoading, isMobile }: DomainListingsP
                         </span>
                       )}
                       {domain.views !== undefined && domain.views > 0 && (
-                        <span className="text-[11px] text-muted-foreground flex items-center gap-1 shrink-0">
+                        <span className="text-[11px] text-muted-foreground flex items-center gap-1">
                           <Eye className="h-3 w-3" />{domain.views}
                         </span>
                       )}
                     </div>
-                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/50 group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
                   </div>
                 </div>
               </Link>
