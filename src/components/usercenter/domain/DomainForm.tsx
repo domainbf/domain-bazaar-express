@@ -212,7 +212,7 @@ export const DomainForm = ({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700"
+            className="flex items-center gap-2 p-3 bg-primary/10 border border-primary/20 rounded-lg text-primary"
           >
             <CheckCircle className="h-5 w-5" />
             <span className="font-medium">保存成功！</span>
@@ -224,7 +224,7 @@ export const DomainForm = ({
         <Label htmlFor="name" className="flex items-center gap-2">
           <Globe className="h-4 w-4" />
           {t('domainActions.domainName', '域名名称')}
-          <span className="text-red-500">*</span>
+          <span className="text-destructive">*</span>
         </Label>
         <Input
           id="name"
@@ -234,10 +234,10 @@ export const DomainForm = ({
           placeholder="example.com"
           required
           disabled={mode === 'edit'}
-          className={errors.name ? 'border-red-500' : ''}
+          className={errors.name ? 'border-destructive' : ''}
         />
         {errors.name && (
-          <p className="text-sm text-red-500 flex items-center gap-1">
+          <p className="text-sm text-destructive flex items-center gap-1">
             <AlertCircle className="h-3 w-3" />
             {errors.name}
           </p>
@@ -249,7 +249,7 @@ export const DomainForm = ({
           <Label htmlFor="price" className="flex items-center gap-2">
             <DollarSign className="h-4 w-4" />
             {t('domainActions.domainPrice', '价格')}
-            <span className="text-red-500">*</span>
+            <span className="text-destructive">*</span>
           </Label>
           <Input
             id="price"
@@ -260,10 +260,10 @@ export const DomainForm = ({
             placeholder="1000"
             required
             min="1"
-            className={errors.price ? 'border-red-500' : ''}
+            className={errors.price ? 'border-destructive' : ''}
           />
           {errors.price && (
-            <p className="text-sm text-red-500 flex items-center gap-1">
+            <p className="text-sm text-destructive flex items-center gap-1">
               <AlertCircle className="h-3 w-3" />
               {errors.price}
             </p>

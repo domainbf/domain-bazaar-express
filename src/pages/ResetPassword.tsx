@@ -55,12 +55,12 @@ export const ResetPassword = () => {
   // Show loading state while checking token
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 py-12 flex justify-center">
           <div className="w-full max-w-md flex flex-col items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-black mb-4" />
-            <p className="text-gray-600">正在验证您的重置链接...</p>
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground">正在验证您的重置链接...</p>
           </div>
         </div>
       </div>
@@ -68,7 +68,7 @@ export const ResetPassword = () => {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <div className="max-w-4xl mx-auto px-4 py-12 flex justify-center">
         <div className="w-full max-w-md">
@@ -76,8 +76,8 @@ export const ResetPassword = () => {
             <ResetPasswordConfirmForm tokenData={resetTokenData} />
           ) : (
             <>
-              <h1 className="text-3xl font-bold text-center mb-6">重置密码</h1>
-              <p className="text-gray-600 text-center mb-8">
+              <h1 className="text-3xl font-bold text-center mb-6 text-foreground">重置密码</h1>
+              <p className="text-muted-foreground text-center mb-8">
                 请输入您注册时使用的邮箱，我们将发送重置链接给您
               </p>
               <ResetPasswordForm />
