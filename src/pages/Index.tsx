@@ -221,7 +221,7 @@ const Index = () => {
       <HeroSection />
 
       {/* 主要内容区域 - 使用标签页 */}
-      <section className="py-12 md:py-16 bg-white">
+      <section className="py-12 md:py-16 bg-card">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="flex justify-center mb-8">
