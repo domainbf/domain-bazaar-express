@@ -70,7 +70,7 @@ export const DomainAnalytics = ({ domainId, createdAt }: DomainAnalyticsProps) =
       <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-4'} gap-4`}>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-1 text-gray-500">
+            <CardTitle className="text-sm flex items-center gap-1 text-muted-foreground">
               <Eye className="h-4 w-4" />
               浏览量
             </CardTitle>
