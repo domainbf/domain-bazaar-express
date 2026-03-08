@@ -263,6 +263,7 @@ const Index = () => {
                       {f.label}
                     </Button>
                   ))}
+                </div>
               </div>
 
               <div className="max-w-md mx-auto mb-10">
