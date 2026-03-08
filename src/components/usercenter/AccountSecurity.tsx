@@ -137,8 +137,8 @@ export const AccountSecurity = () => {
               </div>
             </div>
             <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50">
-              <div className="p-2 rounded-full bg-blue-100">
-                <Clock className="w-5 h-5 text-blue-600" />
+              <div className="p-2 rounded-full bg-blue-500/10">
+                <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
                 <p className="text-sm font-medium">上次登录</p>
