@@ -40,6 +40,7 @@ export const DomainStatusManager = ({ domain, onStatusChange }: DomainStatusMana
   const statusOptions = [
     { value: 'available', label: '可售', icon: PackageCheck, color: 'text-green-600 dark:text-green-400' },
     { value: 'pending', label: '暂不出售', icon: Package, color: 'text-yellow-600 dark:text-yellow-400' },
+    { value: 'reserved', label: '保留', icon: Package, color: 'text-purple-600 dark:text-purple-400' },
     { value: 'sold', label: '已售', icon: PackageX, color: 'text-muted-foreground' },
   ];
 

@@ -135,11 +135,25 @@ export const ProfileSettings = () => {
     }));
   };
 
-  const handleSellerToggle = (enabled: boolean) => {
+  const handleSellerToggle = async (enabled: boolean) => {
     setSellerSettings(prev => ({
       ...prev,
       is_seller: enabled
     }));
+    // 立即保存卖家状态
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_seller: enabled, updated_at: new Date().toISOString() })
+        .eq('id', user?.id);
+      if (error) throw error;
+      toast.success(enabled ? '已开启卖家功能' : '已关闭卖家功能');
+      await refreshProfile();
+    } catch (error: any) {
+      // 回滚
+      setSellerSettings(prev => ({ ...prev, is_seller: !enabled }));
+      toast.error('更新失败，请重试');
+    }
   };
 
   const validateForm = () => {
