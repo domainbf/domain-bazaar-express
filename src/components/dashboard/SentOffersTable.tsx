@@ -271,7 +271,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
                             size="sm" 
                             variant="outline"
                             onClick={() => setCancelDialog({ open: true, offerId: offer.id, domainName: offer.domain_name || '' })}
-                            className="text-red-600 hover:bg-red-50"
+                            className="text-destructive hover:bg-destructive/10"
                             disabled={isProcessing}
                           >
                             {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4 mr-1" />}
