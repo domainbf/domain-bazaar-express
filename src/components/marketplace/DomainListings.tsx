@@ -2,13 +2,23 @@ import { Link } from 'react-router-dom';
 import { Domain } from '@/types/domain';
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { Shield, ArrowUpRight } from 'lucide-react';
+import { Shield, ArrowUpRight, Eye, Heart } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export interface DomainListingsProps {
   domains: Domain[];
   isLoading: boolean;
   isMobile?: boolean;
 }
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.05, duration: 0.4, ease: "easeOut" },
+  }),
+};
 
 export const DomainListings = ({ domains, isLoading, isMobile }: DomainListingsProps) => {
   if (isLoading) {
@@ -36,47 +46,75 @@ export const DomainListings = ({ domains, isLoading, isMobile }: DomainListingsP
         </p>
       </div>
 
-      <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-3'} gap-3`}>
-        {domains.map((domain) => (
-          <Link 
-            key={domain.id} 
-            to={`/domain/${encodeURIComponent(domain.name)}`}
-            className="group block"
+      <div className={`grid ${isMobile ? 'grid-cols-1 gap-3' : 'grid-cols-2 lg:grid-cols-3 gap-4'}`}>
+        {domains.map((domain, i) => (
+          <motion.div
+            key={domain.id}
+            custom={i}
+            initial="hidden"
+            animate="visible"
+            variants={cardVariants}
           >
-            <div className="border border-border bg-card rounded-lg px-5 py-6 hover:border-foreground/30 hover:shadow-sm transition-all duration-200 relative">
-              {/* Top badges */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-1.5">
-                  {domain.highlight && (
-                    <Badge className="bg-foreground text-background text-[10px] px-2 py-0 h-5">精选</Badge>
+            <Link 
+              to={`/domain/${encodeURIComponent(domain.name)}`}
+              className="group block h-full"
+            >
+              <div className="relative h-full border border-border bg-card rounded-xl px-5 py-6 
+                transition-all duration-300 ease-out
+                hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1
+                dark:hover:shadow-primary/10">
+                
+                {/* Highlight glow effect */}
+                {domain.highlight && (
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+                )}
+
+                {/* Top badges */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-1.5">
+                    {domain.highlight && (
+                      <Badge className="bg-primary text-primary-foreground text-[10px] px-2 py-0 h-5 font-bold">
+                        精选
+                      </Badge>
+                    )}
+                    {domain.is_verified && (
+                      <Badge className="bg-green-600 dark:bg-green-500 text-white text-[10px] px-2 py-0 h-5 gap-0.5">
+                        <Shield className="h-2.5 w-2.5" />已验证
+                      </Badge>
+                    )}
+                  </div>
+                  <ArrowUpRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </div>
+
+                {/* Domain name - hero element */}
+                <h3 className="text-2xl sm:text-3xl font-black text-foreground uppercase tracking-tight leading-none break-all
+                  transition-colors duration-300 group-hover:text-primary">
+                  {domain.name}
+                </h3>
+
+                {/* Price */}
+                <div className="mt-4 flex items-baseline gap-1">
+                  <span className="text-lg font-bold text-foreground">
+                    ${domain.price?.toLocaleString()}
+                  </span>
+                </div>
+
+                {/* Meta row */}
+                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
+                  {domain.category && (
+                    <span className="text-[11px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                      {domain.category}
+                    </span>
                   )}
-                  {domain.is_verified && (
-                    <Badge className="bg-green-600 text-white text-[10px] px-2 py-0 h-5 gap-0.5">
-                      <Shield className="h-2.5 w-2.5" />已验证
-                    </Badge>
+                  {domain.views !== undefined && domain.views > 0 && (
+                    <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                      <Eye className="h-3 w-3" />{domain.views}
+                    </span>
                   )}
                 </div>
-                <ArrowUpRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-
-              {/* Domain name - hero element */}
-              <h3 className="text-2xl sm:text-3xl font-black text-foreground uppercase tracking-tight group-hover:text-primary transition-colors leading-none break-all">
-                {domain.name}
-              </h3>
-
-              {/* Meta row */}
-              <div className="flex items-center gap-2 mt-3">
-                {domain.category && (
-                  <span className="text-[11px] text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                    {domain.category}
-                  </span>
-                )}
-                <span className="text-xs text-muted-foreground">
-                  ${domain.price?.toLocaleString()}
-                </span>
-              </div>
-            </div>
-          </Link>
+            </Link>
+          </motion.div>
         ))}
       </div>
     </div>
