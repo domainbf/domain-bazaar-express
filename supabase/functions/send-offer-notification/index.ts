@@ -407,7 +407,7 @@ const handler = async (req: Request): Promise<Response> => {
         to: data.email,
         subject: `报价提交成功：${data.domain} - ¥${data.offer.toLocaleString()}`,
         html: getBuyerConfirmationHtml(data),
-         from: "域见•你 域名交易平台 <noreply@domain.bf>"
+         from: "域见•你 域名交易平台 <noreply@noreply.example.com>"
       }),
     });
 
