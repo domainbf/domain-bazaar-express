@@ -972,6 +972,7 @@ export type Database = {
       payment_transactions: {
         Row: {
           amount: number
+          buyer_note: string | null
           created_at: string | null
           currency: string | null
           domain_id: string | null
@@ -988,6 +989,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          buyer_note?: string | null
           created_at?: string | null
           currency?: string | null
           domain_id?: string | null
@@ -1004,6 +1006,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          buyer_note?: string | null
           created_at?: string | null
           currency?: string | null
           domain_id?: string | null
