@@ -334,7 +334,7 @@ export const Marketplace = () => {
 
         {/* Domain Listings */}
         <section className={`${isMobile ? 'py-6 px-3' : 'py-10'}`}>
-          <div className={`${isMobile ? '' : 'max-w-5xl mx-auto px-4'}`}>
+          <div className={`${isMobile ? '' : 'max-w-6xl mx-auto px-6'}`}>
             {error ? (
               <div className="text-center py-16">
                 <p className="text-destructive mb-4">{error}</p>
