@@ -129,7 +129,7 @@ export const CustomUrlSettings = () => {
             )}
             
             {isChecking && (
-              <p className="mt-1 text-sm text-gray-500">检查可用性...</p>
+              <p className="mt-1 text-sm text-muted-foreground">检查可用性...</p>
             )}
             
             {!error && !isChecking && customUrl && (
