@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { DomainOfferForm } from './domain/DomainOfferForm';
 import { Badge } from './ui/badge';
-import { Heart, Shield, Eye, Tag } from 'lucide-react';
+import { Heart, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,7 +32,6 @@ export const DomainCard = ({
   category,
   description,
   isVerified = false,
-  views,
 }: DomainCardProps) => {
   const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -121,25 +120,18 @@ export const DomainCard = ({
     return labels[cat] || cat;
   };
 
-  // Split domain into name and extension
-  const dotIndex = domain.indexOf('.');
-  const domainName = dotIndex > 0 ? domain.substring(0, dotIndex) : domain;
-  const domainExt = dotIndex > 0 ? domain.substring(dotIndex) : '';
-
   return (
-    <div className={`relative border rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 group ${
-      highlight ? 'border-foreground/30 border-2 bg-card shadow-md' : 'border-border bg-card'
+    <div className={`relative border rounded-xl p-5 hover:shadow-xl transition-all duration-300 group ${
+      highlight ? 'border-foreground border-2 bg-muted/30 shadow-md' : 'border-border bg-card'
     }`}>
-      {/* Top bar: badges + favorite */}
-      <div className="flex items-center justify-between px-4 pt-3 pb-0">
+      {/* 顶部标签和收藏按钮 */}
+      <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
+          {highlight && <Badge className="bg-foreground text-background text-[10px] px-2 py-0.5">精选</Badge>}
           {isVerified && (
-            <Badge variant="secondary" className="text-[10px] px-2 py-0.5 gap-0.5">
+            <Badge className="bg-primary text-primary-foreground text-[10px] px-2 py-0.5 gap-0.5">
               <Shield className="h-2.5 w-2.5" />已验证
             </Badge>
-          )}
-          {highlight && (
-            <Badge className="bg-foreground text-background text-[10px] px-2 py-0.5">精选</Badge>
           )}
         </div>
         <Button
@@ -154,64 +146,50 @@ export const DomainCard = ({
           <Heart className={`h-3.5 w-3.5 ${isFavorited ? 'fill-current' : ''}`} />
         </Button>
       </div>
-
-      {/* Main content area */}
-      <Link to={`/domain/${domain}`} className="block px-4 py-3">
-        {/* Domain name - left aligned, large */}
-        <div className="flex items-baseline gap-0.5">
-          <h3 className="text-2xl sm:text-3xl font-black text-foreground uppercase tracking-tight leading-none hover:text-primary transition-colors">
-            {domainName}
+      
+      {/* 核心内容：域名名称为绝对视觉主体 */}
+      <div className="flex flex-col items-center pt-8 pb-2">
+        <Link to={`/domain/${domain}`} className="w-full text-center group/link">
+          <h3 className="text-4xl sm:text-5xl font-black text-foreground uppercase tracking-tight hover:text-primary transition-colors leading-none">
+            {domain}
           </h3>
-          <span className="text-lg sm:text-xl font-bold text-muted-foreground uppercase">
-            {domainExt}
-          </span>
-        </div>
-
-        {/* Price */}
-        {price !== undefined && (
-          <div className="mt-2">
-            <span className="text-xl font-bold text-foreground">
-              {typeof price === 'number' ? `$${price.toLocaleString()}` : price}
-            </span>
-          </div>
+        </Link>
+        
+        {category && (
+          <Badge variant="secondary" className="text-[11px] mt-3 px-3">
+            {getCategoryLabel(category)}
+          </Badge>
         )}
-
-        {/* Description */}
+        
+        {price !== undefined && (
+          <span className="text-sm text-muted-foreground mt-2.5 font-medium">
+            售价 {typeof price === 'number' ? `$${price.toLocaleString()}` : price}
+          </span>
+        )}
+        
         {description && (
-          <p className="text-xs text-muted-foreground line-clamp-1 mt-1.5">
+          <p className="text-xs text-muted-foreground text-center line-clamp-2 mt-2 max-w-[90%]">
             {description}
           </p>
         )}
-      </Link>
-
-      {/* Bottom bar: meta info + actions */}
-      <div className="border-t border-border px-4 py-2.5 flex items-center justify-between">
-        <div className="flex items-center gap-3 text-muted-foreground">
-          {category && (
-            <span className="flex items-center gap-1 text-[11px]">
-              <Tag className="h-3 w-3" />
-              {getCategoryLabel(category)}
-            </span>
-          )}
-          {views !== undefined && views > 0 && (
-            <span className="flex items-center gap-1 text-[11px]">
-              <Eye className="h-3 w-3" />
-              {views}
-            </span>
-          )}
-        </div>
-
+      </div>
+      
+      {/* 操作按钮 */}
+      <div className="w-full pt-3 flex gap-2 mt-1">
         {isSold ? (
-          <Badge variant="secondary" className="text-[11px]">已售出</Badge>
+          <span className="w-full text-center px-4 py-2 rounded-lg bg-muted text-muted-foreground font-semibold text-sm">
+            已售出
+          </span>
         ) : (
-          <div className="flex items-center gap-1.5">
+          <>
+            <Link to={`/domain/${domain}`} className="flex-1">
+              <Button variant="outline" className="w-full text-xs" size="sm">
+                查看详情 →
+              </Button>
+            </Link>
             <Dialog open={isDialogOpen} onOpenChange={(open) => !open && setIsDialogOpen(false)}>
               <DialogTrigger asChild>
-                <Button 
-                  className="bg-foreground text-background hover:bg-foreground/90 text-[11px] h-7 px-3 rounded-md" 
-                  size="sm" 
-                  onClick={handleOpenDialog}
-                >
+                <Button className="flex-1 bg-foreground text-background hover:bg-foreground/90 text-xs" size="sm" onClick={handleOpenDialog}>
                   报价
                 </Button>
               </DialogTrigger>
@@ -227,7 +205,7 @@ export const DomainCard = ({
                 />
               </DialogContent>
             </Dialog>
-          </div>
+          </>
         )}
       </div>
     </div>

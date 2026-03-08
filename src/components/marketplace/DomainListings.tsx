@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Domain } from '@/types/domain';
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { Shield, ArrowUpRight, Eye, Heart } from 'lucide-react';
+import { Shield, Eye, Tag, Star, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export interface DomainListingsProps {
@@ -16,8 +16,30 @@ const cardVariants = {
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.05, duration: 0.4, ease: "easeOut" },
+    transition: { delay: i * 0.04, duration: 0.35, ease: "easeOut" },
   }),
+};
+
+const getCategoryLabel = (cat: string) => {
+  const labels: Record<string, string> = {
+    premium: '精品', standard: '标准', short: '短域名',
+    brandable: '品牌', dev: '技术', numeric: '数字',
+    business: '商业', keyword: '关键词',
+  };
+  return labels[cat] || cat;
+};
+
+const getCategoryColor = (cat: string) => {
+  const colors: Record<string, string> = {
+    premium: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
+    short: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+    brandable: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
+    business: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
+    dev: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400',
+    numeric: 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400',
+    keyword: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
+  };
+  return colors[cat] || 'bg-muted text-muted-foreground';
 };
 
 export const DomainListings = ({ domains, isLoading, isMobile }: DomainListingsProps) => {
@@ -46,76 +68,95 @@ export const DomainListings = ({ domains, isLoading, isMobile }: DomainListingsP
         </p>
       </div>
 
-      <div className={`grid ${isMobile ? 'grid-cols-1 gap-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5'}`}>
-        {domains.map((domain, i) => (
-          <motion.div
-            key={domain.id}
-            custom={i}
-            initial="hidden"
-            animate="visible"
-            variants={cardVariants}
-          >
-            <Link 
-              to={`/domain/${encodeURIComponent(domain.name)}`}
-              className="group block h-full"
+      <div className={`grid ${isMobile ? 'grid-cols-1 gap-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'}`}>
+        {domains.map((domain, i) => {
+          // Split domain name and extension
+          const dotIdx = domain.name.indexOf('.');
+          const baseName = dotIdx > 0 ? domain.name.substring(0, dotIdx) : domain.name;
+          const ext = dotIdx > 0 ? domain.name.substring(dotIdx) : '';
+
+          return (
+            <motion.div
+              key={domain.id}
+              custom={i}
+              initial="hidden"
+              animate="visible"
+              variants={cardVariants}
             >
-              <div className="relative h-full border border-border bg-card rounded-xl px-5 py-6 
-                transition-all duration-300 ease-out
-                hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1
-                dark:hover:shadow-primary/10">
-                
-                {/* Highlight glow effect */}
-                {domain.highlight && (
-                  <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
-                )}
+              <Link 
+                to={`/domain/${encodeURIComponent(domain.name)}`}
+                className="group block h-full"
+              >
+                <div className={`relative h-full border rounded-xl overflow-hidden
+                  transition-all duration-300 ease-out
+                  hover:shadow-lg hover:-translate-y-1
+                  ${domain.highlight 
+                    ? 'border-primary/30 bg-card shadow-sm' 
+                    : 'border-border bg-card'
+                  }`}>
+                  
+                  {/* Highlight accent */}
+                  {domain.highlight && (
+                    <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary via-primary/60 to-transparent" />
+                  )}
 
-                {/* Top badges */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-1.5">
-                    {domain.highlight && (
-                      <Badge className="bg-primary text-primary-foreground text-[10px] px-2 py-0 h-5 font-bold">
-                        精选
-                      </Badge>
-                    )}
-                    {domain.is_verified && (
-                      <Badge variant="default" className="text-[10px] px-2 py-0 h-5 gap-0.5">
-                        <Shield className="h-2.5 w-2.5" />已验证
-                      </Badge>
-                    )}
+                  {/* Card body */}
+                  <div className="px-4 pt-3.5 pb-3">
+                    {/* Row 1: Badges */}
+                    <div className="flex items-center gap-1.5 mb-3 min-h-[20px]">
+                      {domain.is_verified && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 gap-0.5 border-primary/40 text-primary">
+                          <Shield className="h-2.5 w-2.5" />已验证
+                        </Badge>
+                      )}
+                      {domain.highlight && (
+                        <Badge className="bg-foreground text-background text-[10px] px-1.5 py-0 h-5 gap-0.5">
+                          <Star className="h-2.5 w-2.5" />精选
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Row 2: Domain name - HERO */}
+                    <div className="flex items-baseline gap-0.5 mb-1">
+                      <h3 className="text-2xl sm:text-[1.75rem] font-black text-foreground uppercase tracking-tight leading-none
+                        transition-colors duration-200 group-hover:text-primary break-all">
+                        {baseName}
+                      </h3>
+                      <span className="text-base sm:text-lg font-bold text-muted-foreground/70 uppercase shrink-0">
+                        {ext}
+                      </span>
+                    </div>
+
+                    {/* Row 3: Price */}
+                    <div className="mt-2">
+                      <span className="text-lg font-bold text-foreground">
+                        ${domain.price?.toLocaleString()}
+                      </span>
+                    </div>
                   </div>
-                  <ArrowUpRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                </div>
 
-                {/* Domain name - hero element */}
-                <h3 className="text-2xl sm:text-3xl font-black text-foreground uppercase tracking-tight leading-none break-all
-                  transition-colors duration-300 group-hover:text-primary">
-                  {domain.name}
-                </h3>
-
-                {/* Price */}
-                <div className="mt-4 flex items-baseline gap-1">
-                  <span className="text-lg font-bold text-foreground">
-                    ${domain.price?.toLocaleString()}
-                  </span>
+                  {/* Footer: category + views + arrow */}
+                  <div className="border-t border-border/60 px-4 py-2 flex items-center justify-between bg-muted/20">
+                    <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+                      {domain.category && (
+                        <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${getCategoryColor(domain.category)}`}>
+                          <Tag className="h-2.5 w-2.5" />
+                          {getCategoryLabel(domain.category)}
+                        </span>
+                      )}
+                      {domain.views !== undefined && domain.views > 0 && (
+                        <span className="text-[11px] text-muted-foreground flex items-center gap-1 shrink-0">
+                          <Eye className="h-3 w-3" />{domain.views}
+                        </span>
+                      )}
+                    </div>
+                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/50 group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
+                  </div>
                 </div>
-
-                {/* Meta row */}
-                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
-                  {domain.category && (
-                    <span className="text-[11px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                      {domain.category}
-                    </span>
-                  )}
-                  {domain.views !== undefined && domain.views > 0 && (
-                    <span className="text-[11px] text-muted-foreground flex items-center gap-1">
-                      <Eye className="h-3 w-3" />{domain.views}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </Link>
-          </motion.div>
-        ))}
+              </Link>
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );
