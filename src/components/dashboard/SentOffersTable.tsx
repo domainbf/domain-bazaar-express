@@ -302,7 +302,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
               <AlertDialogCancel>返回</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => handleCancelOffer(cancelDialog.offerId)}
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
               >
                 确认取消
               </AlertDialogAction>
