@@ -395,7 +395,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
               <AlertDialogCancel>取消</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => handleOfferAction(confirmDialog.offerId, confirmDialog.action)}
-                className={confirmDialog.action === 'rejected' ? 'bg-red-600 hover:bg-red-700' : ''}
+                className={confirmDialog.action === 'rejected' ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground' : ''}
               >
                 确认
               </AlertDialogAction>
