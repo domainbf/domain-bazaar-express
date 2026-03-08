@@ -12,11 +12,11 @@ export interface DomainListingsProps {
 }
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 12 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.04, duration: 0.35, ease: "easeOut" },
+    transition: { delay: i * 0.02, duration: 0.2, ease: "easeOut" },
   }),
 };
 
