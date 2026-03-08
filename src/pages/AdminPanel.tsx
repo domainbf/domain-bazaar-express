@@ -10,7 +10,7 @@ import { UserManagement } from '@/components/admin/UserManagement';
 import { ContentManagement } from '@/components/admin/ContentManagement';
 import { SeoConfiguration } from '@/components/admin/SeoConfiguration';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Settings, RefreshCw, FileText, Layers, Search, Home, Users, Globe, CheckSquare, BarChart3 } from 'lucide-react';
+import { Shield, Settings, RefreshCw, FileText, Layers, Search, Home, Users, Globe, CheckSquare, BarChart3, CreditCard } from 'lucide-react';
 import { SiteSettings } from '@/components/admin/SiteSettings';
 import { HomeContentManagement } from '@/components/admin/HomeContentManagement';
 import { FrontendContentManager } from '@/components/admin/FrontendContentManager';
