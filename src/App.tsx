@@ -62,6 +62,10 @@ RouteLoadingFallback.displayName = 'RouteLoadingFallback';
 const AnimatedRoutes = memo(() => {
   const location = useLocation();
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   return (
     <div key={location.pathname} className="animate-in fade-in duration-200">
       <Routes location={location}>
