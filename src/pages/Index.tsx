@@ -302,9 +302,9 @@ const Index = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-8 px-2 md:px-0">
                   {[1, 2, 3, 4, 5, 6].map((i) => (
                     <div key={i} className="animate-pulse">
-                      <div className="bg-gray-200 rounded-lg h-48 mb-4"></div>
-                      <div className="bg-gray-200 h-4 rounded mb-2"></div>
-                      <div className="bg-gray-200 h-3 rounded w-2/3"></div>
+                      <div className="bg-muted rounded-lg h-48 mb-4"></div>
+                      <div className="bg-muted h-4 rounded mb-2"></div>
+                      <div className="bg-muted h-3 rounded w-2/3"></div>
                     </div>
                   ))}
                 </div>
