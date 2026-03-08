@@ -255,7 +255,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
                         size="sm" 
                         variant="outline"
                         onClick={() => setConfirmDialog({ open: true, offerId: offer.id, action: 'rejected', domainName: offer.domain_name || '' })}
-                        className="flex-1 text-red-600 hover:bg-red-50"
+                        className="flex-1 text-destructive hover:bg-destructive/10"
                         disabled={isProcessing}
                       >
                         {isProcessing ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <X className="h-4 w-4 mr-1" />}
