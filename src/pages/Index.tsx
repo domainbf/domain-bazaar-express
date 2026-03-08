@@ -51,7 +51,7 @@ const Index = () => {
     try {
       console.log('Loading domains for homepage...');
       
-      // 简化查询，只获取必要字段，减少网络传输
+      // 获取域名列表
       const { data: listingsData, error: listingsError } = await supabase
         .from('domain_listings')
         .select(`
@@ -65,9 +65,7 @@ const Index = () => {
           is_verified
         `)
         .in('status', ['available', 'reserved'])
-        .order('highlight', { ascending: false })
-        .order('is_verified', { ascending: false })
-        .limit(9); // 减少到9个，提高加载速度
+        .limit(50);
       
       if (listingsError) {
         throw listingsError;
@@ -93,8 +91,18 @@ const Index = () => {
         setIsLoading(false);
         return;
       }
+
+      // 获取浏览量数据
+      const domainIds = listingsData.map(d => d.id);
+      const { data: analyticsData } = await supabase
+        .from('domain_analytics')
+        .select('domain_id, views')
+        .in('domain_id', domainIds);
+
+      const viewsMap = new Map<string, number>();
+      analyticsData?.forEach(a => viewsMap.set(a.domain_id!, a.views || 0));
       
-      // 简化数据处理，去掉复杂的分析数据查询
+      // 处理并按浏览量排序
       const processedDomains: Domain[] = listingsData.map(domain => ({
         id: domain.id,
         name: domain.name || '',
@@ -107,11 +115,15 @@ const Index = () => {
         created_at: new Date().toISOString(),
         is_verified: Boolean(domain.is_verified),
         verification_status: domain.is_verified ? 'verified' : 'pending',
-        views: 0
+        views: viewsMap.get(domain.id) || 0
       }));
+
+      // 按浏览量降序排序，取前9个
+      processedDomains.sort((a, b) => (b.views || 0) - (a.views || 0));
+      const topDomains = processedDomains.slice(0, 9);
       
-      console.log('Loaded domains successfully:', processedDomains.length);
-      setDomains(processedDomains);
+      console.log('Loaded domains successfully:', topDomains.length);
+      setDomains(topDomains);
       
     } catch (error: any) {
       console.error('Error loading domains:', error);

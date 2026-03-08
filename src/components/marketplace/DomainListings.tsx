@@ -101,36 +101,34 @@ export const DomainListings = ({ domains, isLoading, isMobile }: DomainListingsP
                   )}
 
                   {/* Card body */}
-                  <div className="px-4 pt-3.5 pb-3">
-                    {/* Row 1: Badges */}
-                    <div className="flex items-center gap-1.5 mb-3 min-h-[20px]">
-                      {domain.is_verified && (
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 gap-0.5 border-primary/40 text-primary">
-                          <Shield className="h-2.5 w-2.5" />已验证
-                        </Badge>
-                      )}
-                      {domain.highlight && (
-                        <Badge className="bg-foreground text-background text-[10px] px-1.5 py-0 h-5 gap-0.5">
-                          <Star className="h-2.5 w-2.5" />精选
-                        </Badge>
-                      )}
-                    </div>
-
-                    {/* Row 2: Domain name - HERO */}
-                    <div className="flex items-baseline gap-0.5 mb-1">
-                      <h3 className="text-2xl sm:text-[1.75rem] font-black text-foreground uppercase tracking-tight leading-none
-                        transition-colors duration-200 group-hover:text-primary break-all">
-                        {baseName}
-                      </h3>
-                      <span className="text-base sm:text-lg font-bold text-muted-foreground/70 uppercase shrink-0">
-                        {ext}
+                  <div className="px-4 pt-3 pb-3">
+                    {/* Row 1: Badges + Price */}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-1.5">
+                        {domain.is_verified && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 gap-0.5 border-primary/40 text-primary">
+                            <Shield className="h-2.5 w-2.5" />已验证
+                          </Badge>
+                        )}
+                        {domain.highlight && (
+                          <Badge className="bg-foreground text-background text-[10px] px-1.5 py-0 h-5 gap-0.5">
+                            <Star className="h-2.5 w-2.5" />精选
+                          </Badge>
+                        )}
+                      </div>
+                      <span className="text-lg font-bold text-foreground shrink-0">
+                        ${domain.price?.toLocaleString()}
                       </span>
                     </div>
 
-                    {/* Row 3: Price */}
-                    <div className="mt-2">
-                      <span className="text-lg font-bold text-foreground">
-                        ${domain.price?.toLocaleString()}
+                    {/* Row 2: Domain name - HERO */}
+                    <div className="flex items-baseline gap-0.5">
+                      <h3 className="text-2xl sm:text-3xl font-black text-foreground uppercase tracking-tight leading-none
+                        transition-colors duration-200 group-hover:text-primary break-all">
+                        {baseName}
+                      </h3>
+                      <span className="text-lg sm:text-xl font-bold text-muted-foreground/50 uppercase shrink-0">
+                        {ext}
                       </span>
                     </div>
                   </div>
