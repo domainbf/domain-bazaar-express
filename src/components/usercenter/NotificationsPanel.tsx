@@ -133,7 +133,7 @@ export const NotificationsPanel = () => {
       ) : filteredNotifications.length === 0 ? (
         <Card>
           <CardContent className="py-10 text-center">
-            <p className="text-gray-500">没有找到符合条件的通知</p>
+            <p className="text-muted-foreground">没有找到符合条件的通知</p>
           </CardContent>
         </Card>
       ) : (
