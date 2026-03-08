@@ -565,6 +565,85 @@ export const SiteSettings = () => {
         </TabsContent>
         
         <TabsContent value="security" className="space-y-6">
+          {/* Admin Password Management */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Key className="h-5 w-5" />
+                管理员密码管理
+              </CardTitle>
+              <CardDescription>修改管理员密码或重置用户密码</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Change own password */}
+              <div className="space-y-4 p-4 border rounded-lg">
+                <h4 className="font-medium">修改自己的密码</h4>
+                <p className="text-sm text-muted-foreground">当前账号: {user?.email}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="relative">
+                    <Label>新密码</Label>
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="输入新密码（至少8位）"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <Label>确认密码</Label>
+                    <Input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="再次输入新密码"
+                    />
+                  </div>
+                </div>
+                <Button onClick={handleChangeOwnPassword} disabled={isChangingPassword}>
+                  {isChangingPassword ? '修改中...' : '修改密码'}
+                </Button>
+              </div>
+
+              {/* Change user password */}
+              <div className="space-y-4 p-4 border rounded-lg">
+                <h4 className="font-medium">修改用户密码</h4>
+                <p className="text-sm text-muted-foreground">管理员可重置任意用户的登录密码</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>用户邮箱</Label>
+                    <Input
+                      type="email"
+                      value={targetEmail}
+                      onChange={(e) => setTargetEmail(e.target.value)}
+                      placeholder="输入用户邮箱"
+                    />
+                  </div>
+                  <div>
+                    <Label>新密码</Label>
+                    <Input
+                      type="password"
+                      value={targetPassword}
+                      onChange={(e) => setTargetPassword(e.target.value)}
+                      placeholder="输入新密码（至少8位）"
+                    />
+                  </div>
+                </div>
+                <Button onClick={handleChangeUserPassword} disabled={isChangingUserPassword} variant="outline">
+                  {isChangingUserPassword ? '修改中...' : '重置用户密码'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>安全设置</CardTitle>
