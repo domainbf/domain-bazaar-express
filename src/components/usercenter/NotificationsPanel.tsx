@@ -6,24 +6,26 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Notification } from '@/types/domain';
 import { Card, CardContent } from '@/components/ui/card';
-import { Bell, Check, Search, Trash2 } from 'lucide-react';
+import { Bell, Check, Search, Trash2, CheckCheck } from 'lucide-react';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const NotificationsPanel = () => {
+  const { user } = useAuth();
   const { notifications, isLoading, markAsRead, markAllAsRead, unreadCount } = useNotifications();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
   
-  // Filter notifications
   const filteredNotifications = notifications.filter(notification => {
     const matchesSearch = 
       notification.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
       notification.message.toLowerCase().includes(searchQuery.toLowerCase());
-    
     const matchesType = filterType === 'all' || notification.type === filterType;
-    
     return matchesSearch && matchesType;
   });
 
@@ -35,36 +37,66 @@ export const NotificationsPanel = () => {
       ? '今天'
       : new Date(Date.now() - 86400000).toDateString() === date.toDateString()
         ? '昨天'
-        : date.toLocaleDateString();
+        : date.toLocaleDateString('zh-CN');
     
     if (!groupedNotifications[dateString]) {
       groupedNotifications[dateString] = [];
     }
-    
     groupedNotifications[dateString].push(notification);
   });
 
-  // Get notification type label
-  const getNotificationTypeLabel = (type: string) => {
-    switch (type) {
-      case 'offer': return '报价';
-      case 'verification': return '验证';
-      case 'transaction': return '交易';
-      case 'system': return '系统';
-      default: return '通知';
+  const handleDeleteNotification = async (notificationId: string) => {
+    setDeletingIds(prev => new Set(prev).add(notificationId));
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+      // The useNotifications hook should re-fetch, but also remove from local state
+      toast.success('通知已删除');
+      // Force re-render by triggering a state change
+      window.dispatchEvent(new CustomEvent('notifications-updated'));
+    } catch (error: any) {
+      toast.error('删除失败');
+    } finally {
+      setDeletingIds(prev => {
+        const next = new Set(prev);
+        next.delete(notificationId);
+        return next;
+      });
     }
   };
 
-  // Get badge color for notification type
+  const handleDeleteAllRead = async () => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('user_id', user?.id)
+        .eq('is_read', true);
+
+      if (error) throw error;
+      toast.success('已清除所有已读通知');
+      window.dispatchEvent(new CustomEvent('notifications-updated'));
+    } catch (error: any) {
+      toast.error('清除失败');
+    }
+  };
+
   const getNotificationTypeBadge = (type: string) => {
     switch (type) {
-      case 'offer': return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800">报价</Badge>;
-      case 'verification': return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">验证</Badge>;
-      case 'transaction': return <Badge className="bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-800">交易</Badge>;
+      case 'offer': return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20">报价</Badge>;
+      case 'verification': return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20">验证</Badge>;
+      case 'transaction': return <Badge className="bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20">交易</Badge>;
       case 'system': return <Badge variant="secondary">系统</Badge>;
       default: return <Badge variant="secondary">通知</Badge>;
     }
   };
+
+  const readCount = notifications.filter(n => n.is_read).length;
 
   if (isLoading) {
     return (
@@ -84,17 +116,20 @@ export const NotificationsPanel = () => {
           )}
         </h2>
         
-        {unreadCount > 0 && (
-          <Button 
-            variant="outline"
-            size="sm"
-            onClick={markAllAsRead}
-            className="flex items-center gap-1"
-          >
-            <Check className="h-4 w-4" />
-            全部标为已读
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {unreadCount > 0 && (
+            <Button variant="outline" size="sm" onClick={markAllAsRead} className="flex items-center gap-1">
+              <CheckCheck className="h-4 w-4" />
+              全部已读
+            </Button>
+          )}
+          {readCount > 0 && (
+            <Button variant="outline" size="sm" onClick={handleDeleteAllRead} className="flex items-center gap-1 text-destructive hover:text-destructive">
+              <Trash2 className="h-4 w-4" />
+              清除已读
+            </Button>
+          )}
+        </div>
       </div>
       
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -145,32 +180,61 @@ export const NotificationsPanel = () => {
                 {notifs.map((notification) => (
                   <Card 
                     key={notification.id} 
-                    className={`hover:bg-muted/50 transition-colors ${!notification.is_read ? 'border-l-4 border-l-primary' : ''}`}
+                    className={`hover:bg-muted/50 transition-colors ${!notification.is_read ? 'border-l-4 border-l-primary' : ''} ${deletingIds.has(notification.id) ? 'opacity-50' : ''}`}
                   >
                     <CardContent className="p-4">
-                      <Link 
-                        to={notification.action_url || '#'} 
-                        className="block"
-                        onClick={() => {
-                          if (!notification.is_read) {
-                            markAsRead(notification.id);
-                          }
-                          if (!notification.action_url) {
-                            return;
-                          }
-                        }}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-medium">{notification.title}</h4>
-                            {getNotificationTypeBadge(notification.type)}
-                          </div>
-                          <div className="text-xs text-muted-foreground/60">
-                            {new Date(notification.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </div>
+                      <div className="flex items-start gap-3">
+                        <div className="flex-1 min-w-0">
+                          <Link 
+                            to={notification.action_url || '#'} 
+                            className="block"
+                            onClick={() => {
+                              if (!notification.is_read) {
+                                markAsRead(notification.id);
+                              }
+                            }}
+                          >
+                            <div className="flex justify-between items-start">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h4 className="font-medium">{notification.title}</h4>
+                                {getNotificationTypeBadge(notification.type)}
+                                {!notification.is_read && (
+                                  <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
+                                )}
+                              </div>
+                              <span className="text-xs text-muted-foreground/60 shrink-0 ml-2">
+                                {new Date(notification.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                            <p className="text-muted-foreground mt-1 text-sm">{notification.message}</p>
+                          </Link>
                         </div>
-                        <p className="text-muted-foreground mt-1">{notification.message}</p>
-                      </Link>
+                        
+                        {/* 操作按钮 */}
+                        <div className="flex items-center gap-1 shrink-0">
+                          {!notification.is_read && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                              onClick={() => markAsRead(notification.id)}
+                              title="标为已读"
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            onClick={() => handleDeleteNotification(notification.id)}
+                            disabled={deletingIds.has(notification.id)}
+                            title="删除通知"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}

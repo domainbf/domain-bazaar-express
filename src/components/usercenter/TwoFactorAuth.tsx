@@ -200,11 +200,11 @@ export const TwoFactorAuth = ({ onStatusChange }: TwoFactorAuthProps) => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-lg ${is2FAEnabled ? 'bg-green-100' : 'bg-gray-100'}`}>
+              <div className={`p-2 rounded-lg ${is2FAEnabled ? 'bg-green-500/10' : 'bg-muted'}`}>
                 {is2FAEnabled ? (
-                  <ShieldCheck className="w-5 h-5 text-green-600" />
+                  <ShieldCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
                 ) : (
-                  <Shield className="w-5 h-5 text-gray-500" />
+                  <Shield className="w-5 h-5 text-muted-foreground" />
                 )}
               </div>
               <div>
@@ -214,7 +214,7 @@ export const TwoFactorAuth = ({ onStatusChange }: TwoFactorAuthProps) => {
                 </CardDescription>
               </div>
             </div>
-            <Badge variant={is2FAEnabled ? "default" : "secondary"} className={is2FAEnabled ? "bg-green-500" : ""}>
+            <Badge variant={is2FAEnabled ? "default" : "secondary"} className={is2FAEnabled ? "bg-green-500/10 text-green-700 dark:text-green-400 hover:bg-green-500/10" : ""}>
               {is2FAEnabled ? '已启用' : '未启用'}
             </Badge>
           </div>
@@ -222,9 +222,9 @@ export const TwoFactorAuth = ({ onStatusChange }: TwoFactorAuthProps) => {
         <CardContent className="space-y-4">
           {is2FAEnabled ? (
             <>
-              <Alert className="border-green-200 bg-green-50">
-                <ShieldCheck className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-800">
+              <Alert className="border-green-500/30 bg-green-500/5">
+                <ShieldCheck className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <AlertDescription className="text-green-800 dark:text-green-300">
                   您的账户已启用两步验证保护。每次登录时，您需要输入身份验证器应用生成的验证码。
                 </AlertDescription>
               </Alert>
@@ -250,7 +250,7 @@ export const TwoFactorAuth = ({ onStatusChange }: TwoFactorAuthProps) => {
             </>
           ) : (
             <>
-              <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+              <div className="bg-muted/50 rounded-lg p-4 space-y-3 border">
                 <h4 className="font-medium flex items-center gap-2">
                   <Info className="w-4 h-4 text-blue-500" />
                   为什么需要两步验证？
@@ -376,16 +376,16 @@ export const TwoFactorAuth = ({ onStatusChange }: TwoFactorAuthProps) => {
 
           {setupStep === 'recovery' && (
             <div className="space-y-4">
-              <Alert className="border-yellow-200 bg-yellow-50">
-                <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                <AlertDescription className="text-yellow-800">
+              <Alert className="border-yellow-500/30 bg-yellow-500/5">
+                <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                <AlertDescription className="text-yellow-800 dark:text-yellow-300">
                   请妥善保存这些恢复码！如果您无法访问身份验证器应用，可以使用恢复码登录。
                 </AlertDescription>
               </Alert>
               
-              <div className="grid grid-cols-2 gap-2 p-4 bg-gray-50 rounded-lg font-mono text-sm">
+              <div className="grid grid-cols-2 gap-2 p-4 bg-muted/50 rounded-lg font-mono text-sm border">
                 {recoveryCodes.map((code, index) => (
-                  <div key={index} className="p-2 bg-white rounded border text-center">
+                  <div key={index} className="p-2 bg-background rounded border text-center">
                     {code}
                   </div>
                 ))}

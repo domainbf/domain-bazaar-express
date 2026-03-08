@@ -7,20 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { 
-  Wallet, 
-  ArrowUpRight, 
-  ArrowDownLeft, 
-  CreditCard, 
-  History,
-  TrendingUp,
-  DollarSign,
-  RefreshCw,
-  Plus,
-  Minus,
-  Eye,
-  EyeOff,
-  Shield,
-  Clock
+  Wallet, ArrowUpRight, ArrowDownLeft, CreditCard, History,
+  TrendingUp, DollarSign, RefreshCw, Plus, Minus,
+  Eye, EyeOff, Shield, Clock
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PaymentGateway, PaymentMethod } from '@/components/payment/PaymentGateway';
@@ -49,12 +38,8 @@ export const WalletPanel = () => {
   const { user, profile } = useAuth();
   const isMobile = useIsMobile();
   const [stats, setStats] = useState<WalletStats>({
-    balance: 0,
-    totalDeposited: 0,
-    totalWithdrawn: 0,
-    totalEarned: 0,
-    pendingTransactions: 0,
-    frozenBalance: 0
+    balance: 0, totalDeposited: 0, totalWithdrawn: 0,
+    totalEarned: 0, pendingTransactions: 0, frozenBalance: 0
   });
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -68,68 +53,94 @@ export const WalletPanel = () => {
     if (!user) return;
 
     try {
-      // Get profile balance (in a real app this would come from a dedicated wallet table)
-      const balance = (profile as any)?.balance || 12580.50; // Demo balance
-
-      // Get transactions
+      // Load real transactions
       const { data: transData, error: transError } = await supabase
+        .from('payment_transactions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      // Also load from transactions table for domain purchases
+      const { data: domainTrans } = await supabase
         .from('transactions')
         .select('*')
         .eq('buyer_id', user.id)
         .order('created_at', { ascending: false })
         .limit(50);
 
-      if (transError) throw transError;
-
-      // Calculate stats from transactions
       let totalDeposited = 0;
       let totalWithdrawn = 0;
       let totalEarned = 0;
       let pendingTransactions = 0;
       let frozenBalance = 0;
 
-      const formattedTransactions: Transaction[] = (transData || []).map(t => {
+      const formattedTransactions: Transaction[] = [];
+
+      // Process payment_transactions
+      (transData || []).forEach(t => {
+        const isDeposit = (t.metadata as any)?.type === 'deposit' || t.gateway === 'deposit';
+        const isWithdraw = (t.metadata as any)?.type === 'withdrawal' || t.gateway === 'withdrawal';
+        
         if (t.status === 'pending') {
           pendingTransactions++;
           frozenBalance += Number(t.amount);
         }
-        
-        const transaction: Transaction = {
+
+        const type: Transaction['type'] = isDeposit ? 'deposit' : isWithdraw ? 'withdrawal' : 'purchase';
+        const amount = Number(t.amount);
+
+        if (type === 'deposit' && t.status === 'completed') totalDeposited += amount;
+        if (type === 'withdrawal' && t.status === 'completed') totalWithdrawn += amount;
+        if (t.status === 'completed') totalEarned += amount;
+
+        formattedTransactions.push({
           id: t.id,
-          type: t.payment_method === 'deposit' ? 'deposit' : 
-                t.payment_method === 'withdrawal' ? 'withdrawal' : 'purchase',
+          type,
+          amount,
+          status: t.status || 'pending',
+          description: t.buyer_note || `${t.gateway} ${type === 'deposit' ? '充值' : type === 'withdrawal' ? '提现' : '支付'}`,
+          created_at: t.created_at || '',
+          payment_method: t.gateway
+        });
+      });
+
+      // Process domain transactions
+      (domainTrans || []).forEach(t => {
+        if (t.status === 'pending') {
+          pendingTransactions++;
+          frozenBalance += Number(t.amount);
+        }
+        if (t.status === 'completed') totalEarned += Number(t.amount);
+
+        formattedTransactions.push({
+          id: t.id,
+          type: 'purchase',
           amount: Number(t.amount),
           status: t.status,
-          description: `交易 #${t.id.slice(0, 8)}`,
+          description: `域名交易 #${t.id.slice(0, 8)}`,
           created_at: t.created_at,
           payment_method: t.payment_method
-        };
-
-        if (transaction.type === 'deposit') totalDeposited += transaction.amount;
-        if (transaction.type === 'withdrawal') totalWithdrawn += transaction.amount;
-        if (t.status === 'completed') totalEarned += transaction.amount;
-
-        return transaction;
+        });
       });
 
-      // Add some demo transactions if no data
-      const demoTransactions: Transaction[] = formattedTransactions.length === 0 ? [
-        { id: 'demo1', type: 'deposit', amount: 5000, status: 'completed', description: '支付宝充值', created_at: new Date(Date.now() - 86400000).toISOString(), payment_method: 'alipay' },
-        { id: 'demo2', type: 'purchase', amount: 2800, status: 'completed', description: '购买域名 example.com', created_at: new Date(Date.now() - 172800000).toISOString() },
-        { id: 'demo3', type: 'sale', amount: 8500, status: 'completed', description: '出售域名 test.io', created_at: new Date(Date.now() - 259200000).toISOString() },
-        { id: 'demo4', type: 'withdrawal', amount: 3000, status: 'pending', description: '提现到支付宝', created_at: new Date(Date.now() - 345600000).toISOString(), payment_method: 'alipay' },
-        { id: 'demo5', type: 'deposit', amount: 10000, status: 'completed', description: 'PayPal充值', created_at: new Date(Date.now() - 432000000).toISOString(), payment_method: 'paypal' },
-      ] : formattedTransactions;
+      // Sort by date
+      formattedTransactions.sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
+      // Calculate balance from profile or transactions
+      const balance = (profile as any)?.balance || (totalDeposited + totalEarned - totalWithdrawn);
 
       setStats({
-        balance: balance || 12580.50,
-        totalDeposited: totalDeposited || 15000,
-        totalWithdrawn: totalWithdrawn || 3000,
-        totalEarned: totalEarned || 8500,
-        pendingTransactions: pendingTransactions || 1,
-        frozenBalance: frozenBalance || 3000
+        balance,
+        totalDeposited,
+        totalWithdrawn,
+        totalEarned,
+        pendingTransactions,
+        frozenBalance
       });
-      setTransactions(demoTransactions);
+      setTransactions(formattedTransactions);
     } catch (error: any) {
       console.error('Error loading wallet data:', error);
       toast.error('加载钱包数据失败');
@@ -149,7 +160,6 @@ export const WalletPanel = () => {
   };
 
   const handlePaymentSuccess = (transactionId: string, amount: number, method: PaymentMethod) => {
-    // In a real implementation, this would update the database
     setStats(prev => ({
       ...prev,
       balance: prev.balance + amount,
@@ -159,7 +169,6 @@ export const WalletPanel = () => {
   };
 
   const handleWithdrawSuccess = (transactionId: string, amount: number, method: PaymentMethod) => {
-    // In a real implementation, this would create a pending withdrawal
     setStats(prev => ({
       ...prev,
       frozenBalance: prev.frozenBalance + amount,
@@ -170,12 +179,12 @@ export const WalletPanel = () => {
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
-      case 'deposit': return <ArrowDownLeft className="h-4 w-4 text-green-500" />;
-      case 'withdrawal': return <ArrowUpRight className="h-4 w-4 text-red-500" />;
-      case 'purchase': return <CreditCard className="h-4 w-4 text-blue-500" />;
-      case 'sale': return <DollarSign className="h-4 w-4 text-green-500" />;
-      case 'refund': return <RefreshCw className="h-4 w-4 text-orange-500" />;
-      default: return <History className="h-4 w-4 text-gray-500" />;
+      case 'deposit': return <ArrowDownLeft className="h-4 w-4 text-green-600 dark:text-green-400" />;
+      case 'withdrawal': return <ArrowUpRight className="h-4 w-4 text-red-600 dark:text-red-400" />;
+      case 'purchase': return <CreditCard className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
+      case 'sale': return <DollarSign className="h-4 w-4 text-green-600 dark:text-green-400" />;
+      case 'refund': return <RefreshCw className="h-4 w-4 text-orange-600 dark:text-orange-400" />;
+      default: return <History className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -192,10 +201,10 @@ export const WalletPanel = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'completed': return <Badge className="bg-green-100 text-green-800 text-xs">已完成</Badge>;
-      case 'pending': return <Badge className="bg-yellow-100 text-yellow-800 text-xs">处理中</Badge>;
-      case 'failed': return <Badge className="bg-red-100 text-red-800 text-xs">失败</Badge>;
-      default: return <Badge className="text-xs">{status}</Badge>;
+      case 'completed': return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 text-xs">已完成</Badge>;
+      case 'pending': return <Badge className="bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 text-xs">处理中</Badge>;
+      case 'failed': return <Badge className="bg-destructive/10 text-destructive text-xs">失败</Badge>;
+      default: return <Badge variant="secondary" className="text-xs">{status}</Badge>;
     }
   };
 
@@ -219,12 +228,7 @@ export const WalletPanel = () => {
           <Wallet className="h-5 w-5 md:h-6 md:w-6" />
           我的钱包
         </h2>
-        <Button
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          variant="outline"
-          size="sm"
-        >
+        <Button onClick={handleRefresh} disabled={isRefreshing} variant="outline" size="sm">
           <RefreshCw className={`h-4 w-4 ${isMobile ? '' : 'mr-2'} ${isRefreshing ? 'animate-spin' : ''}`} />
           {!isMobile && '刷新'}
         </Button>
@@ -239,7 +243,7 @@ export const WalletPanel = () => {
             <div>
               <div className="flex items-center gap-2 text-gray-400 text-sm mb-1">
                 <span>可用余额</span>
-                <button onClick={() => setShowBalance(!showBalance)} className="hover:text-white">
+                <button onClick={() => setShowBalance(!showBalance)} className="hover:text-white transition-colors">
                   {showBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                 </button>
               </div>
@@ -263,7 +267,7 @@ export const WalletPanel = () => {
           <div className={`flex gap-2 md:gap-3 ${isMobile ? 'flex-col' : ''}`}>
             <Button 
               onClick={() => setDepositDialogOpen(true)}
-              className={`${isMobile ? 'flex-1' : 'flex-1'} bg-primary-foreground text-primary hover:bg-primary-foreground/90`}
+              className="flex-1 bg-white text-gray-900 hover:bg-white/90 font-medium"
               size={isMobile ? "default" : "lg"}
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -272,7 +276,7 @@ export const WalletPanel = () => {
             <Button 
               onClick={() => setWithdrawDialogOpen(true)}
               variant="outline"
-              className={`${isMobile ? 'flex-1' : 'flex-1'} border-white/30 text-white hover:bg-white/10`}
+              className="flex-1 border-white/30 text-white hover:bg-white/10 hover:text-white font-medium"
               size={isMobile ? "default" : "lg"}
             >
               <Minus className="h-4 w-4 mr-2" />
@@ -282,67 +286,67 @@ export const WalletPanel = () => {
         </CardContent>
       </Card>
 
-      {/* 统计卡片 */}
+      {/* 统计卡片 - 使用暗色兼容样式 */}
       <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-4'} gap-3 md:gap-4`}>
-        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+        <Card className="border-green-500/20 bg-green-500/5">
           <CardContent className={`${isMobile ? 'p-3' : 'p-4'}`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-green-600">累计充值</p>
-                <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-green-700`}>
+                <p className="text-xs text-green-600 dark:text-green-400">累计充值</p>
+                <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-green-700 dark:text-green-300`}>
                   {showBalance ? `¥${stats.totalDeposited.toLocaleString()}` : '****'}
                 </p>
               </div>
-              <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-green-100 flex items-center justify-center">
-                <ArrowDownLeft className="h-4 w-4 md:h-5 md:w-5 text-green-600" />
+              <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                <ArrowDownLeft className="h-4 w-4 md:h-5 md:w-5 text-green-600 dark:text-green-400" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-red-50 to-rose-50 border-red-200">
+        <Card className="border-red-500/20 bg-red-500/5">
           <CardContent className={`${isMobile ? 'p-3' : 'p-4'}`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-red-600">累计提现</p>
-                <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-red-700`}>
+                <p className="text-xs text-red-600 dark:text-red-400">累计提现</p>
+                <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-red-700 dark:text-red-300`}>
                   {showBalance ? `¥${stats.totalWithdrawn.toLocaleString()}` : '****'}
                 </p>
               </div>
-              <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-red-100 flex items-center justify-center">
-                <ArrowUpRight className="h-4 w-4 md:h-5 md:w-5 text-red-600" />
+              <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-red-500/10 flex items-center justify-center">
+                <ArrowUpRight className="h-4 w-4 md:h-5 md:w-5 text-red-600 dark:text-red-400" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+        <Card className="border-blue-500/20 bg-blue-500/5">
           <CardContent className={`${isMobile ? 'p-3' : 'p-4'}`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-blue-600">交易收益</p>
-                <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-blue-700`}>
+                <p className="text-xs text-blue-600 dark:text-blue-400">交易收益</p>
+                <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-blue-700 dark:text-blue-300`}>
                   {showBalance ? `¥${stats.totalEarned.toLocaleString()}` : '****'}
                 </p>
               </div>
-              <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-blue-600" />
+              <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-blue-500/10 flex items-center justify-center">
+                <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200">
+        <Card className="border-purple-500/20 bg-purple-500/5">
           <CardContent className={`${isMobile ? 'p-3' : 'p-4'}`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-purple-600">待处理</p>
-                <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-purple-700`}>
+                <p className="text-xs text-purple-600 dark:text-purple-400">待处理</p>
+                <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-purple-700 dark:text-purple-300`}>
                   {stats.pendingTransactions}笔
                 </p>
               </div>
-              <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-purple-100 flex items-center justify-center">
-                <Clock className="h-4 w-4 md:h-5 md:w-5 text-purple-600" />
+              <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-purple-500/10 flex items-center justify-center">
+                <Clock className="h-4 w-4 md:h-5 md:w-5 text-purple-600 dark:text-purple-400" />
               </div>
             </div>
           </CardContent>
@@ -378,6 +382,7 @@ export const WalletPanel = () => {
             <div className="text-center py-10">
               <History className="h-12 w-12 mx-auto mb-4 text-muted-foreground/30" />
               <p className="text-muted-foreground">暂无交易记录</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">充值或进行域名交易后，记录将显示在这里</p>
             </div>
           ) : (
             <div className="space-y-2 md:space-y-3">
@@ -387,7 +392,7 @@ export const WalletPanel = () => {
                   className={`flex items-center justify-between ${isMobile ? 'p-2' : 'p-3'} border rounded-lg hover:bg-muted/50 transition-colors`}
                 >
                   <div className="flex items-center gap-2 md:gap-3">
-                    <div className={`${isMobile ? 'h-8 w-8' : 'h-10 w-10'} rounded-full bg-gray-100 flex items-center justify-center`}>
+                    <div className={`${isMobile ? 'h-8 w-8' : 'h-10 w-10'} rounded-full bg-muted flex items-center justify-center`}>
                       {getTransactionIcon(transaction.type)}
                     </div>
                     <div>
@@ -399,10 +404,7 @@ export const WalletPanel = () => {
                       </div>
                       <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>
                         {new Date(transaction.created_at).toLocaleString('zh-CN', {
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
+                          month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                         })}
                       </p>
                     </div>
@@ -410,8 +412,8 @@ export const WalletPanel = () => {
                   <div className="text-right">
                     <p className={`font-bold ${isMobile ? 'text-sm' : ''} ${
                       transaction.type === 'deposit' || transaction.type === 'sale' || transaction.type === 'refund'
-                        ? 'text-green-600'
-                        : 'text-red-600'
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-red-600 dark:text-red-400'
                     }`}>
                       {transaction.type === 'deposit' || transaction.type === 'sale' || transaction.type === 'refund' ? '+' : '-'}
                       ¥{transaction.amount.toLocaleString()}

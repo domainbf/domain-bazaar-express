@@ -153,6 +153,13 @@ export const useNotifications = () => {
     loadNotifications();
   }, [user, loadNotifications]);
 
+  // Listen for manual refresh events (e.g. after delete)
+  useEffect(() => {
+    const handler = () => loadNotifications();
+    window.addEventListener('notifications-updated', handler);
+    return () => window.removeEventListener('notifications-updated', handler);
+  }, [loadNotifications]);
+
   // Real-time subscription for new notifications
   useEffect(() => {
     if (!user) return;
