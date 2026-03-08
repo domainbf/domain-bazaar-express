@@ -70,7 +70,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
         .from('domain_offers')
         .select(`
           *,
-          domain_listings (name, owner_id)
+          domain_listings (name, owner_id, currency)
         `)
         .eq('id', offerId)
         .single();
