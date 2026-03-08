@@ -249,7 +249,7 @@ export const DomainForm = ({
           <Label htmlFor="price" className="flex items-center gap-2">
             <DollarSign className="h-4 w-4" />
             {t('domainActions.domainPrice', '价格')}
-            <span className="text-red-500">*</span>
+            <span className="text-destructive">*</span>
           </Label>
           <Input
             id="price"
