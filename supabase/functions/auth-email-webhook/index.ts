@@ -101,7 +101,7 @@ const handler = async (req: Request): Promise<Response> => {
     } = data;
 
     // Use redirect_to to determine the correct base URL (supports preview & production)
-    let baseUrl = "https://domain.bf";
+    let baseUrl = "";
     if (redirect_to) {
       try {
         const redirectUrl = new URL(redirect_to);

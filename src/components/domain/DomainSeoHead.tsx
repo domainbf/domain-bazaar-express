@@ -12,7 +12,7 @@ interface Props {
 }
 
 export const DomainSeoHead: React.FC<Props> = ({ domain, analytics }) => {
-  const siteUrl = typeof window !== 'undefined' ? window.location.origin : "https://domain.bf";
+  const siteUrl = typeof window !== 'undefined' ? window.location.origin : "";
   const domainUrl = `${siteUrl}/domain/${encodeURIComponent(domain.name)}`;
   const ogImageUrl = `${siteUrl}/og-image.png`;
 

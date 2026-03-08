@@ -22,7 +22,7 @@ export async function sendOfferEmails({
   const userEmailHtml = getUserEmailHtml(domain, offer, message, finalDashboardUrl);
   const ownerEmailHtml = getOwnerEmailHtml(domain, offer, email, message, buyerId, finalDashboardUrl);
 
-  const from = "域见•你 域名交易平台 <noreply@domain.bf>";
+  const from = "域见•你 域名交易平台 <noreply@noreply.example.com>";
 
   try {
     // 发送给买家的确认邮件
