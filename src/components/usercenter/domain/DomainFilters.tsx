@@ -100,6 +100,8 @@ export const DomainFilters = ({
               <SelectItem value="numeric">数字</SelectItem>
               <SelectItem value="short">短域名</SelectItem>
               <SelectItem value="brandable">品牌</SelectItem>
+              <SelectItem value="business">商业</SelectItem>
+              <SelectItem value="keyword">关键词</SelectItem>
             </SelectContent>
           </Select>
         )}

@@ -318,8 +318,8 @@ export const AccountSecurity = () => {
           <div className="space-y-3">
             <div className="flex items-center justify-between p-3 rounded-lg border">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-green-100">
-                  <MapPin className="w-4 h-4 text-green-600" />
+                <div className="p-2 rounded-full bg-green-500/10">
+                  <MapPin className="w-4 h-4 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
                   <p className="text-sm font-medium">当前会话</p>

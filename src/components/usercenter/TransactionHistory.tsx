@@ -248,8 +248,8 @@ export const TransactionHistory = () => {
                 <p className="text-sm text-muted-foreground">接受率</p>
                 <p className="text-3xl font-bold mt-1">{stats.acceptanceRate.toFixed(1)}%</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
-                <BarChart3 className="h-6 w-6 text-orange-600" />
+              <div className="h-12 w-12 rounded-full bg-orange-500/10 flex items-center justify-center">
+                <BarChart3 className="h-6 w-6 text-orange-600 dark:text-orange-400" />
               </div>
             </div>
             <div className="text-xs text-muted-foreground mt-3">
