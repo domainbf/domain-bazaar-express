@@ -200,11 +200,11 @@ export const TwoFactorAuth = ({ onStatusChange }: TwoFactorAuthProps) => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-lg ${is2FAEnabled ? 'bg-green-100' : 'bg-gray-100'}`}>
+              <div className={`p-2 rounded-lg ${is2FAEnabled ? 'bg-green-500/10' : 'bg-muted'}`}>
                 {is2FAEnabled ? (
-                  <ShieldCheck className="w-5 h-5 text-green-600" />
+                  <ShieldCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
                 ) : (
-                  <Shield className="w-5 h-5 text-gray-500" />
+                  <Shield className="w-5 h-5 text-muted-foreground" />
                 )}
               </div>
               <div>
@@ -214,7 +214,7 @@ export const TwoFactorAuth = ({ onStatusChange }: TwoFactorAuthProps) => {
                 </CardDescription>
               </div>
             </div>
-            <Badge variant={is2FAEnabled ? "default" : "secondary"} className={is2FAEnabled ? "bg-green-500" : ""}>
+            <Badge variant={is2FAEnabled ? "default" : "secondary"} className={is2FAEnabled ? "bg-green-500/10 text-green-700 dark:text-green-400 hover:bg-green-500/10" : ""}>
               {is2FAEnabled ? '已启用' : '未启用'}
             </Badge>
           </div>
