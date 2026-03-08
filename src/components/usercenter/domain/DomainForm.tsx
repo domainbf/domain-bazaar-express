@@ -234,7 +234,7 @@ export const DomainForm = ({
           placeholder="example.com"
           required
           disabled={mode === 'edit'}
-          className={errors.name ? 'border-red-500' : ''}
+          className={errors.name ? 'border-destructive' : ''}
         />
         {errors.name && (
           <p className="text-sm text-red-500 flex items-center gap-1">
