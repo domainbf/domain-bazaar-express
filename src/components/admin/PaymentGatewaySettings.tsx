@@ -31,6 +31,7 @@ const gatewayIcons: Record<string, any> = {
   paypal: CreditCard,
   stripe: CreditCard,
   bank_transfer: Banknote,
+  usdt_trc20: Shield,
 };
 
 const gatewayColors: Record<string, string> = {
