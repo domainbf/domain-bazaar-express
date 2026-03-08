@@ -216,7 +216,7 @@ export const FavoriteDomains = () => {
                           {categoryInfo.label}
                         </Badge>
                         {favorite.domain.is_verified && (
-                          <Badge className="bg-green-100 text-green-800">已验证</Badge>
+                          <Badge className="bg-green-500/10 text-green-700 dark:text-green-400">已验证</Badge>
                         )}
                       </div>
                     </div>

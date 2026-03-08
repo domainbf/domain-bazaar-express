@@ -383,9 +383,9 @@ export const TwoFactorAuth = ({ onStatusChange }: TwoFactorAuthProps) => {
                 </AlertDescription>
               </Alert>
               
-              <div className="grid grid-cols-2 gap-2 p-4 bg-gray-50 rounded-lg font-mono text-sm">
+              <div className="grid grid-cols-2 gap-2 p-4 bg-muted/50 rounded-lg font-mono text-sm border">
                 {recoveryCodes.map((code, index) => (
-                  <div key={index} className="p-2 bg-white rounded border text-center">
+                  <div key={index} className="p-2 bg-background rounded border text-center">
                     {code}
                   </div>
                 ))}
