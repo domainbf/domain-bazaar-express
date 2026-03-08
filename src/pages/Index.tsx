@@ -247,39 +247,22 @@ const Index = () => {
               {/* Filter buttons */}
               <div className="overflow-x-auto pb-4 mb-8">
                 <div className="flex gap-2 md:gap-3 md:flex-wrap md:justify-center min-w-max px-4">
-                  <Button
-                    variant={filter === 'all' ? 'default' : 'outline'}
-                    onClick={() => setFilter('all')}
-                    className={filter === 'all' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
-                    size="sm"
-                  >
-                    {t('common.all')}
-                  </Button>
-                  <Button
-                    variant={filter === 'premium' ? 'default' : 'outline'}
-                    onClick={() => setFilter('premium')}
-                    className={filter === 'premium' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
-                    size="sm"
-                  >
-                    {t('domains.categories.premium')}
-                  </Button>
-                  <Button
-                    variant={filter === 'short' ? 'default' : 'outline'}
-                    onClick={() => setFilter('short')}
-                    className={filter === 'short' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
-                    size="sm"
-                  >
-                    {t('domains.categories.short')}
-                  </Button>
-                  <Button
-                    variant={filter === 'dev' ? 'default' : 'outline'}
-                    onClick={() => setFilter('dev')}
-                    className={filter === 'dev' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
-                    size="sm"
-                  >
-                    {t('domains.categories.tech')}
-                  </Button>
-                </div>
+                  {[
+                    { key: 'all', label: t('common.all') },
+                    { key: 'premium', label: t('domains.categories.premium') },
+                    { key: 'short', label: t('domains.categories.short') },
+                    { key: 'dev', label: t('domains.categories.tech') },
+                  ].map(f => (
+                    <Button
+                      key={f.key}
+                      variant={filter === f.key ? 'default' : 'outline'}
+                      onClick={() => setFilter(f.key)}
+                      size="sm"
+                      className="font-bold"
+                    >
+                      {f.label}
+                    </Button>
+                  ))}
               </div>
 
               <div className="max-w-md mx-auto mb-10">
