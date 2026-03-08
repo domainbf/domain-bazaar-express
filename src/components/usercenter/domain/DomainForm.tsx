@@ -260,7 +260,7 @@ export const DomainForm = ({
             placeholder="1000"
             required
             min="1"
-            className={errors.price ? 'border-red-500' : ''}
+            className={errors.price ? 'border-destructive' : ''}
           />
           {errors.price && (
             <p className="text-sm text-red-500 flex items-center gap-1">
