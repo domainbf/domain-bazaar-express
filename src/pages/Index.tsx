@@ -242,7 +242,7 @@ const Index = () => {
             </div>
 
             <TabsContent value="marketplace">
-              <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-8 md:mb-10">{t('homePage.featuredDomains')}</h2>
+              <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-8 md:mb-10">{t('homePage.featuredDomains')}</h2>
               
               {/* Filter buttons */}
               <div className="overflow-x-auto pb-4 mb-8">
