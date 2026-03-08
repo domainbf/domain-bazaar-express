@@ -118,6 +118,7 @@ function App() {
 
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => window.location.reload()}>
+      <CustomScripts />
       <Suspense fallback={<RouteLoadingFallback />}>
         <AnimatedRoutes />
       </Suspense>
