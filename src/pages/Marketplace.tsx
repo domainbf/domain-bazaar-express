@@ -209,7 +209,7 @@ export const Marketplace = () => {
       <div className={isMobile ? 'pb-20' : ''}>
         {/* Hero Header */}
         <section className={`bg-primary text-primary-foreground ${isMobile ? 'py-8 px-4' : 'py-14'}`}>
-          <div className={`${isMobile ? '' : 'max-w-5xl mx-auto px-4'}`}>
+          <div className={`${isMobile ? '' : 'max-w-6xl mx-auto px-6'}`}>
             <div className="text-center">
               <h1 className={`${isMobile ? 'text-2xl mb-2' : 'text-3xl mb-3'} font-bold`}>
                 {t('marketplace.title')}
