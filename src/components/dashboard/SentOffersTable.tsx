@@ -35,12 +35,44 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
     setProcessingOffers(prev => ({...prev, [offerId]: true}));
     
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('请先登录');
+        return;
+      }
+
+      // 获取报价详情用于通知卖家
+      const { data: offerData } = await supabase
+        .from('domain_offers')
+        .select(`*, domain_listings (name, owner_id)`)
+        .eq('id', offerId)
+        .eq('buyer_id', user.id)
+        .single();
+
+      // 更新状态为 cancelled 而不是删除，保留记录
       const { error } = await supabase
         .from('domain_offers')
-        .delete()
-        .eq('id', offerId);
+        .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+        .eq('id', offerId)
+        .eq('buyer_id', user.id);
       
       if (error) throw error;
+
+      // 通知卖家报价已被买家取消
+      if (offerData?.seller_id && offerData?.domain_listings) {
+        try {
+          await supabase.from('notifications').insert({
+            user_id: offerData.seller_id,
+            title: '报价已被取消',
+            message: `买家取消了对域名 ${offerData.domain_listings.name} 的 ¥${Number(offerData.amount).toLocaleString()} 报价`,
+            type: 'offer',
+            related_id: offerId,
+            action_url: '/user-center?tab=transactions'
+          });
+        } catch (e) {
+          console.error('Cancel notification error:', e);
+        }
+      }
       
       toast.success('报价已取消');
       setCancelDialog(null);

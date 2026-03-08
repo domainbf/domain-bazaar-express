@@ -80,7 +80,7 @@ export const NotificationsPanel = () => {
         <h2 className="text-2xl font-bold flex items-center gap-2">
           通知中心 
           {unreadCount > 0 && (
-            <Badge className="bg-blue-500">{unreadCount} 未读</Badge>
+            <Badge className="bg-primary/10 text-primary border-primary/20">{unreadCount} 未读</Badge>
           )}
         </h2>
         
