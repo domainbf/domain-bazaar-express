@@ -220,7 +220,22 @@ serve(async (req) => {
       });
       console.log("报价保存成功, ID:", offerId);
       
-      // 创建站内通知给卖家
+      // 获取域名货币信息
+      let domainCurrency = 'CNY';
+      try {
+        const { data: domainInfo } = await supabaseAdmin
+          .from('domain_listings')
+          .select('currency')
+          .eq('id', finalDomainId)
+          .single();
+        if (domainInfo?.currency) {
+          domainCurrency = domainInfo.currency;
+        }
+      } catch (e) {
+        console.warn("获取域名货币失败，使用默认CNY");
+      }
+
+      // 创建站内通知给卖家和买家
       if (finalSellerId && offerId) {
         console.log("创建站内通知...");
         await createOfferNotification(
@@ -229,7 +244,9 @@ serve(async (req) => {
           domain,
           parseFloat(offer),
           offerId,
-          email
+          email,
+          buyerId || null,
+          domainCurrency
         );
         console.log("站内通知创建成功");
       }
