@@ -237,7 +237,7 @@ export const Marketplace = () => {
 
         {/* Filters Bar */}
         <section className="border-b border-border bg-card">
-          <div className={`${isMobile ? 'px-3 py-3' : 'max-w-5xl mx-auto px-4 py-3'}`}>
+          <div className={`${isMobile ? 'px-3 py-3' : 'max-w-6xl mx-auto px-6 py-3'}`}>
             <div className="flex items-center justify-between gap-3">
               {/* Category Pills */}
               <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">

@@ -46,7 +46,7 @@ export const DomainListings = ({ domains, isLoading, isMobile }: DomainListingsP
         </p>
       </div>
 
-      <div className={`grid ${isMobile ? 'grid-cols-1 gap-3' : 'grid-cols-2 lg:grid-cols-3 gap-4'}`}>
+      <div className={`grid ${isMobile ? 'grid-cols-1 gap-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5'}`}>
         {domains.map((domain, i) => (
           <motion.div
             key={domain.id}
