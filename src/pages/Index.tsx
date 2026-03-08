@@ -327,7 +327,7 @@ const Index = () => {
                   
                   <div className="text-center">
                     <Link to="/marketplace">
-                      <Button className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3">
+                      <Button className="px-8 py-3">
                         查看更多域名
                       </Button>
                     </Link>
