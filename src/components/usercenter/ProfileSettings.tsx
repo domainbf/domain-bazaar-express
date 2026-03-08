@@ -228,7 +228,7 @@ export const ProfileSettings = () => {
           {/* 头像区域 */}
           <div className="flex items-center gap-6">
             <div className="relative">
-              <Avatar className="h-24 w-24 border-2 border-gray-200">
+              <Avatar className="h-24 w-24 border-2 border-border">
                 <AvatarImage src={formData.avatar_url} alt={formData.full_name} />
                 <AvatarFallback className="text-2xl">
                   {formData.full_name ? formData.full_name.charAt(0).toUpperCase() : 'U'}
