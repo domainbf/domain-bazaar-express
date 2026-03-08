@@ -383,24 +383,24 @@ const Index = () => {
       {/* Features Section */}
       <section className="py-16 md:py-20 bg-primary text-primary-foreground">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-10 md:mb-16">{t('homePage.howItWorks')}</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-10 md:mb-16">{siteConfig.how_it_works_title || t('homePage.howItWorks')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
             <div className="bg-secondary rounded-xl p-6 md:p-8 text-center">
               <div className="bg-primary text-primary-foreground w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">1</div>
-              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-foreground">{t('homePage.step1Title')}</h3>
-              <p className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.step1Description')}</p>
+              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-foreground">{siteConfig.step1_title || t('homePage.step1Title')}</h3>
+              <p className="text-muted-foreground text-sm md:text-base font-semibold">{siteConfig.step1_desc || t('homePage.step1Description')}</p>
             </div>
             
             <div className="bg-secondary rounded-xl p-6 md:p-8 text-center">
               <div className="bg-primary text-primary-foreground w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">2</div>
-              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-foreground">{t('homePage.step2Title')}</h3>
-              <p className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.step2Description')}</p>
+              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-foreground">{siteConfig.step2_title || t('homePage.step2Title')}</h3>
+              <p className="text-muted-foreground text-sm md:text-base font-semibold">{siteConfig.step2_desc || t('homePage.step2Description')}</p>
             </div>
             
             <div className="bg-secondary rounded-xl p-6 md:p-8 text-center">
               <div className="bg-primary text-primary-foreground w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">3</div>
-              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-foreground">{t('homePage.step3Title')}</h3>
-              <p className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.step3Description')}</p>
+              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-foreground">{siteConfig.step3_title || t('homePage.step3Title')}</h3>
+              <p className="text-muted-foreground text-sm md:text-base font-semibold">{siteConfig.step3_desc || t('homePage.step3Description')}</p>
             </div>
           </div>
         </div>
@@ -409,22 +409,22 @@ const Index = () => {
       {/* Statistics Section */}
       <section className="py-16 md:py-20 bg-card">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-10 md:mb-16">{t('homePage.platformStats')}</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-10 md:mb-16">{siteConfig.stats_title || t('homePage.platformStats')}</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             <div className="text-center p-4 md:p-6 bg-muted rounded-lg shadow-sm">
-              <div className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-3">50,000+</div>
+              <div className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-3">{siteConfig.stat_users || '50,000+'}</div>
               <div className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.activeUsers')}</div>
             </div>
             <div className="text-center p-4 md:p-6 bg-muted rounded-lg shadow-sm">
-              <div className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-3">100+</div>
+              <div className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-3">{siteConfig.stat_countries || '100+'}</div>
               <div className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.countries')}</div>
             </div>
             <div className="text-center p-4 md:p-6 bg-muted rounded-lg shadow-sm">
-              <div className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-3">$100M+</div>
+              <div className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-3">{siteConfig.stat_volume || '$100M+'}</div>
               <div className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.transactionVolume')}</div>
             </div>
             <div className="text-center p-4 md:p-6 bg-muted rounded-lg shadow-sm">
-              <div className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-3">24/7</div>
+              <div className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-3">{siteConfig.stat_support || '24/7'}</div>
               <div className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.customerSupport')}</div>
             </div>
           </div>
@@ -440,14 +440,14 @@ const Index = () => {
       {/* Call to Action */}
       <section className="py-16 md:py-20 bg-primary text-primary-foreground">
         <div className="max-w-4xl mx-auto px-4 md:px-8 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">{t('homePage.ctaTitle')}</h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">{siteConfig.cta_title || t('homePage.ctaTitle')}</h2>
           <p className="text-base md:text-xl opacity-80 mb-8 md:mb-10 font-semibold">
-            {t('homePage.ctaDescription')}
+            {siteConfig.cta_description || t('homePage.ctaDescription')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/marketplace" className="w-full sm:w-auto">
               <Button className="w-full sm:w-auto bg-primary-foreground text-primary hover:bg-primary-foreground/90 px-6 py-2 md:px-6 md:py-3 text-base font-bold">
-                {t('homePage.browseDomains')}
+                {siteConfig.cta_btn_primary || t('homePage.browseDomains')}
               </Button>
             </Link>
             <Link to={user ? "/user-center" : "#"} onClick={user ? undefined : () => setIsAuthModalOpen(true)} className="w-full sm:w-auto">
@@ -455,7 +455,7 @@ const Index = () => {
                 variant="outline" 
                 className="w-full sm:w-auto border-primary-foreground border-2 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 px-6 py-2 md:px-6 md:py-3 text-base font-bold"
               >
-                {user ? t('homePage.visitUserCenter') : t('homePage.registerLogin')}
+                {user ? (siteConfig.cta_btn_secondary || t('homePage.visitUserCenter')) : t('homePage.registerLogin')}
               </Button>
             </Link>
           </div>
