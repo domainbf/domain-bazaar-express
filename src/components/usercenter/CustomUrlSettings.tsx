@@ -109,11 +109,11 @@ export const CustomUrlSettings = () => {
       <CardContent>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               自定义地址
             </label>
             <div className="flex items-center space-x-2">
-              <div className="flex-shrink-0 text-gray-500">
+              <div className="flex-shrink-0 text-muted-foreground">
                 {window.location.origin}/profile/
               </div>
               <Input 
