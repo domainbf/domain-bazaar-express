@@ -334,15 +334,15 @@ const Index = () => {
                   </div>
                 </>
               ) : (
-                <div className="text-center py-16 bg-gray-50 rounded-lg border border-gray-200 mb-12">
-                  <h3 className="text-2xl font-medium text-gray-600 mb-4">
+                <div className="text-center py-16 bg-muted rounded-lg border border-border mb-12">
+                  <h3 className="text-2xl font-medium text-muted-foreground mb-4">
                     {domains.length === 0 ? '暂无域名' : t('marketplace.noDomainsFound')}
                   </h3>
-                  <p className="text-gray-500 mb-4">
+                  <p className="text-muted-foreground mb-4">
                     {domains.length === 0 ? '看起来还没有域名添加到平台中' : t('homePage.tryAdjustingFilters')}
                   </p>
                   <div className="space-x-4">
-                    <Button onClick={handleSellDomains} className="bg-gray-900">
+                    <Button onClick={handleSellDomains}>
                       {t('homePage.addYourDomain')}
                     </Button>
                     <Button variant="outline" onClick={handleRetry}>
