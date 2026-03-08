@@ -140,7 +140,7 @@ export const NotificationsPanel = () => {
         <div className="space-y-6">
           {Object.entries(groupedNotifications).map(([date, notifs]) => (
             <div key={date} className="space-y-2">
-              <h3 className="text-sm font-medium text-gray-500">{date}</h3>
+              <h3 className="text-sm font-medium text-muted-foreground">{date}</h3>
               <div className="space-y-2">
                 {notifs.map((notification) => (
                   <Card 
