@@ -339,7 +339,7 @@ export const SeoConfiguration = () => {
                   id="canonical_url"
                   value={settings.canonical_url}
                   onChange={(e) => handleChange('canonical_url', e.target.value)}
-                  placeholder="https://domain.bf"
+                  placeholder="https://yourdomain.com"
                 />
               </div>
 
