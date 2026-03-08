@@ -371,9 +371,15 @@ export const ProfileSettings = () => {
                 </Label>
                 <Input
                   value={formData.custom_url}
-                  onChange={(e) => handleInputChange('custom_url', e.target.value)}
+                  onChange={(e) => handleInputChange('custom_url', e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
                   placeholder="设置个人页面链接"
+                  maxLength={30}
                 />
+                {formData.custom_url && (
+                  <p className="text-xs text-muted-foreground">
+                    预览：{window.location.origin}/profile/<span className="text-primary">{formData.custom_url}</span>
+                  </p>
+                )}
               </div>
             </div>
 
