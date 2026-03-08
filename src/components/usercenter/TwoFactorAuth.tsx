@@ -250,7 +250,7 @@ export const TwoFactorAuth = ({ onStatusChange }: TwoFactorAuthProps) => {
             </>
           ) : (
             <>
-              <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+              <div className="bg-muted/50 rounded-lg p-4 space-y-3 border">
                 <h4 className="font-medium flex items-center gap-2">
                   <Info className="w-4 h-4 text-blue-500" />
                   为什么需要两步验证？
