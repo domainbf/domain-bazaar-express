@@ -473,7 +473,7 @@ export const ProfileSettings = () => {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <Label>登录邮箱</Label>
-              <p className="text-sm text-gray-600">{user?.email}</p>
+              <p className="text-sm text-muted-foreground">{user?.email}</p>
             </div>
             <Button variant="outline" size="sm">
               更改邮箱
