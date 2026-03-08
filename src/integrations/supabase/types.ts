@@ -894,6 +894,48 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_gateway_settings: {
+        Row: {
+          config: Json | null
+          created_at: string | null
+          display_name: string
+          fee_rate: number | null
+          gateway_name: string
+          id: string
+          is_enabled: boolean | null
+          max_amount: number | null
+          min_amount: number | null
+          supported_currencies: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string | null
+          display_name: string
+          fee_rate?: number | null
+          gateway_name: string
+          id?: string
+          is_enabled?: boolean | null
+          max_amount?: number | null
+          min_amount?: number | null
+          supported_currencies?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string | null
+          display_name?: string
+          fee_rate?: number | null
+          gateway_name?: string
+          id?: string
+          is_enabled?: boolean | null
+          max_amount?: number | null
+          min_amount?: number | null
+          supported_currencies?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       payment_methods: {
         Row: {
           created_at: string | null
@@ -922,6 +964,57 @@ export type Database = {
           is_default?: boolean | null
           provider_data?: Json
           type?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      payment_transactions: {
+        Row: {
+          amount: number
+          created_at: string | null
+          currency: string | null
+          domain_id: string | null
+          fee: number | null
+          gateway: string
+          gateway_response: Json | null
+          gateway_transaction_id: string | null
+          id: string
+          metadata: Json | null
+          payment_url: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          currency?: string | null
+          domain_id?: string | null
+          fee?: number | null
+          gateway: string
+          gateway_response?: Json | null
+          gateway_transaction_id?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_url?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          currency?: string | null
+          domain_id?: string | null
+          fee?: number | null
+          gateway?: string
+          gateway_response?: Json | null
+          gateway_transaction_id?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_url?: string | null
+          status?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
