@@ -263,7 +263,7 @@ export const DomainForm = ({
             className={errors.price ? 'border-destructive' : ''}
           />
           {errors.price && (
-            <p className="text-sm text-red-500 flex items-center gap-1">
+            <p className="text-sm text-destructive flex items-center gap-1">
               <AlertCircle className="h-3 w-3" />
               {errors.price}
             </p>

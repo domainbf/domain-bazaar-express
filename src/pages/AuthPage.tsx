@@ -153,7 +153,7 @@ export const AuthPage = () => {
 
       {/* Footer */}
       <footer className="bg-background border-t border-border px-4 py-4 text-center text-sm text-muted-foreground">
-        © 2025 域见•你 - 专业域名交易平台
+        © {new Date().getFullYear()} 域见•你 - 专业域名交易平台
       </footer>
     </div>
   );

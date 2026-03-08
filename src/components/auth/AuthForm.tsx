@@ -229,17 +229,17 @@ export const AuthForm = ({
         )}
         
         {showVerificationMessage && (
-          <Alert className="border-green-200 bg-green-50">
-            <CheckCircle className="h-4 w-4 text-green-600" />
+          <Alert className="border-primary/20 bg-primary/5">
+            <CheckCircle className="h-4 w-4 text-primary" />
             <AlertDescription>
               <div className="space-y-3">
                 <div>
-                  <p className="font-medium text-green-800">验证邮件已发送</p>
-                  <p className="text-sm text-green-700 mt-1">
+                  <p className="font-medium text-foreground">验证邮件已发送</p>
+                  <p className="text-sm text-muted-foreground mt-1">
                     验证邮件已发送至 <span className="font-medium">{email}</span>
                   </p>
                 </div>
-                <div className="bg-background border border-green-200 rounded-md p-3">
+                <div className="bg-background border border-border rounded-md p-3">
                   <p className="text-xs text-muted-foreground mb-2">
                     📧 请检查您的邮箱（包括垃圾邮件文件夹）并点击验证链接完成{mode === 'signup' ? '注册' : '登录'}
                   </p>
@@ -249,7 +249,6 @@ export const AuthForm = ({
                     size="sm"
                     onClick={handleResendVerification}
                     disabled={isResendingVerification}
-                    className="border-green-300 text-green-700 hover:bg-green-50"
                   >
                     {isResendingVerification ? (
                       <>
