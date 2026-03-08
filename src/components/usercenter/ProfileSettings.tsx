@@ -267,10 +267,10 @@ export const ProfileSettings = () => {
                   <Badge variant="outline">卖家</Badge>
                 )}
               </div>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 {user?.email}
               </p>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-muted-foreground/70">
                 <Upload className="h-3 w-3 inline mr-1" />
                 支持 JPG/PNG/GIF/WebP，最大 500KB
               </p>
