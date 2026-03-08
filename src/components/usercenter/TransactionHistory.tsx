@@ -197,8 +197,8 @@ export const TransactionHistory = () => {
                 <p className="text-sm text-muted-foreground">收到报价</p>
                 <p className="text-3xl font-bold mt-1">{stats.totalReceived}</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-                <ArrowDownRight className="h-6 w-6 text-green-600" />
+              <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center">
+                <ArrowDownRight className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
             </div>
             <div className="text-xs text-muted-foreground mt-3">
