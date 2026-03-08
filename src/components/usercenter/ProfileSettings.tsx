@@ -195,17 +195,17 @@ export const ProfileSettings = () => {
   };
 
   const getVerificationStatus = () => {
-    if (!profile) return { status: 'pending', text: '未认证', color: 'bg-gray-100 text-gray-800' };
+    if (!profile) return { status: 'pending', text: '未认证', color: 'bg-muted text-muted-foreground' };
     
     switch (profile.verification_status) {
       case 'verified':
-        return { status: 'verified', text: '已认证', color: 'bg-green-100 text-green-800' };
+        return { status: 'verified', text: '已认证', color: 'bg-green-500/10 text-green-700 dark:text-green-400' };
       case 'pending':
-        return { status: 'pending', text: '待认证', color: 'bg-yellow-100 text-yellow-800' };
+        return { status: 'pending', text: '待认证', color: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400' };
       case 'rejected':
-        return { status: 'rejected', text: '认证失败', color: 'bg-red-100 text-red-800' };
+        return { status: 'rejected', text: '认证失败', color: 'bg-destructive/10 text-destructive' };
       default:
-        return { status: 'pending', text: '未认证', color: 'bg-gray-100 text-gray-800' };
+        return { status: 'pending', text: '未认证', color: 'bg-muted text-muted-foreground' };
     }
   };
 
