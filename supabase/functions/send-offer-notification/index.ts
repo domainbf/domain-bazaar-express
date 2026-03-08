@@ -427,7 +427,7 @@ const handler = async (req: Request): Promise<Response> => {
           to: data.domainOwnerEmail,
           subject: `新的域名报价：${data.domain} - 买家出价 ¥${data.offer.toLocaleString()}`,
           html: getOwnerNotificationHtml(data),
-          from: "域见•你 域名交易平台 <noreply@domain.bf>"
+          from: "域见•你 域名交易平台 <noreply@noreply.example.com>"
         }),
       });
 
