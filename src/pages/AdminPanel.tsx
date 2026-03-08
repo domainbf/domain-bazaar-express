@@ -168,6 +168,7 @@ export const AdminPanel = () => {
     { value: 'content', label: '内容管理', icon: FileText },
     { value: 'seo', label: 'SEO配置', icon: Search },
     { value: 'frontend', label: '前台管理', icon: Home },
+    { value: 'payment', label: '支付配置', icon: CreditCard },
     { value: 'quick-settings', label: '快速设置', icon: Settings },
     { value: 'settings', label: '系统设置', icon: Settings },
   ];
