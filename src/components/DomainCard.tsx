@@ -129,7 +129,7 @@ export const DomainCard = ({
         <div className="flex items-center gap-1.5">
           {highlight && <Badge className="bg-foreground text-background text-[10px] px-2 py-0.5">精选</Badge>}
           {isVerified && (
-            <Badge className="bg-green-600 text-white text-[10px] px-2 py-0.5 gap-0.5">
+            <Badge className="bg-primary text-primary-foreground text-[10px] px-2 py-0.5 gap-0.5">
               <Shield className="h-2.5 w-2.5" />已验证
             </Badge>
           )}
