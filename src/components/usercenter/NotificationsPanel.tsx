@@ -125,9 +125,9 @@ export const NotificationsPanel = () => {
       {notifications.length === 0 ? (
         <Card>
           <CardContent className="py-20 text-center">
-            <Bell className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-            <p className="text-gray-500 text-lg font-medium mb-2">暂无通知</p>
-            <p className="text-gray-400">您还没有收到任何通知</p>
+            <Bell className="h-12 w-12 mx-auto mb-4 text-muted-foreground/30" />
+            <p className="text-muted-foreground text-lg font-medium mb-2">暂无通知</p>
+            <p className="text-muted-foreground/70">您还没有收到任何通知</p>
           </CardContent>
         </Card>
       ) : filteredNotifications.length === 0 ? (
