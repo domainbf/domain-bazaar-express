@@ -78,10 +78,10 @@ export const SimilarDomainsGrid: React.FC<SimilarDomainsGridProps> = ({
                       variant="outline" 
                       className={`text-xs ${
                         similarity >= 70 
-                          ? 'bg-green-50 text-green-600 border-green-200' 
+                          ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/30' 
                           : similarity >= 50 
-                            ? 'bg-blue-50 text-blue-600 border-blue-200'
-                            : 'bg-gray-50 text-gray-600 border-gray-200'
+                            ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30'
+                            : 'bg-muted text-muted-foreground border-border'
                       }`}
                     >
                       {similarity}% 相似

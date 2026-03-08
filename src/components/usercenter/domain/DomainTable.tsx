@@ -79,7 +79,7 @@ export const DomainTable = ({ domains, onDomainUpdate, currentUserId }: DomainTa
               <td className="py-3 px-4">{renderDomainStatus(domain.status)}</td>
               <td className="py-3 px-4">
                 <div className="flex items-center">
-                  <Eye className="w-4 h-4 mr-1 text-gray-500" />
+                  <Eye className="w-4 h-4 mr-1 text-muted-foreground" />
                   <span>{domain.views || 0}</span>
                 </div>
               </td>
