@@ -36,20 +36,18 @@ window.addEventListener('error', handleGlobalError);
 window.addEventListener('unhandledrejection', handleUnhandledRejection);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-      <HelmetProvider>
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
-            <LoadingProvider>
-              <AuthProvider>
-                <App />
-                <Toaster position="top-right" />
-              </AuthProvider>
-            </LoadingProvider>
-          </BrowserRouter>
-        </QueryClientProvider>
-      </HelmetProvider>
-    </ThemeProvider>
-  </React.StrictMode>,
+  <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <LoadingProvider>
+            <AuthProvider>
+              <App />
+              <Toaster position="top-right" richColors closeButton />
+            </AuthProvider>
+          </LoadingProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </HelmetProvider>
+  </ThemeProvider>,
 )
