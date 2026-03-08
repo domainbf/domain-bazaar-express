@@ -409,7 +409,7 @@ export const ProfileSettings = () => {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <Label>启用卖家功能</Label>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 开启后您可以在平台上出售域名
               </p>
             </div>
