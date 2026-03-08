@@ -51,7 +51,48 @@ export const FavoriteDomains = () => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        // If domains table query fails, try domain_listings
+        console.warn('Favorites query error, trying domain_listings:', error);
+        const { data: altData, error: altError } = await supabase
+          .from('user_favorites')
+          .select('id, domain_id, created_at')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (altError) throw altError;
+
+        // Fetch domain details from domain_listings
+        const domainIds = (altData || []).map(f => f.domain_id).filter(Boolean);
+        const { data: listingsData } = await supabase
+          .from('domain_listings')
+          .select('id, name, price, category, status, is_verified')
+          .in('id', domainIds);
+
+        const listingsMap = new Map((listingsData || []).map(d => [d.id, d]));
+        
+        const validFavorites = (altData || [])
+          .filter(item => listingsMap.has(item.domain_id))
+          .map(item => {
+            const domain = listingsMap.get(item.domain_id)!;
+            return {
+              id: item.id,
+              domain_id: item.domain_id,
+              created_at: item.created_at,
+              domain: {
+                id: domain.id,
+                name: domain.name,
+                price: domain.price,
+                category: domain.category || 'standard',
+                status: domain.status || 'available',
+                is_verified: Boolean(domain.is_verified)
+              }
+            };
+          });
+
+        setFavorites(validFavorites);
+        return;
+      }
 
       // Transform and filter valid favorites
       const validFavorites = (data || [])
