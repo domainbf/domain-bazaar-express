@@ -10,7 +10,7 @@ import { UserManagement } from '@/components/admin/UserManagement';
 import { ContentManagement } from '@/components/admin/ContentManagement';
 import { SeoConfiguration } from '@/components/admin/SeoConfiguration';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Settings, RefreshCw, FileText, Layers, Search, Home, Users, Globe, CheckSquare, BarChart3, CreditCard } from 'lucide-react';
+import { Shield, Settings, RefreshCw, FileText, Layers, Search, Home, Users, Globe, CheckSquare, BarChart3, CreditCard, MessageSquare } from 'lucide-react';
 import { SiteSettings } from '@/components/admin/SiteSettings';
 import { HomeContentManagement } from '@/components/admin/HomeContentManagement';
 import { FrontendContentManager } from '@/components/admin/FrontendContentManager';
@@ -18,6 +18,7 @@ import { BulkDomainOperations } from '@/components/admin/BulkDomainOperations';
 import { QuickSettingsPanel } from '@/components/admin/QuickSettingsPanel';
 import { AdminActivityLog } from '@/components/admin/AdminActivityLog';
 import { PaymentGatewaySettings } from '@/components/admin/PaymentGatewaySettings';
+import { OffersManagement } from '@/components/admin/OffersManagement';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -162,6 +163,7 @@ export const AdminPanel = () => {
     { value: 'dashboard', label: '仪表盘', icon: BarChart3 },
     { value: 'verifications', label: '待验证', icon: CheckSquare, badge: stats.pending_verifications },
     { value: 'domains', label: '域名管理', icon: Globe },
+    { value: 'offers', label: '报价管理', icon: MessageSquare, badge: stats.total_offers },
     { value: 'bulk', label: '批量操作', icon: Layers },
     { value: 'users', label: '用户管理', icon: Users },
     { value: 'homepage', label: '首页管理', icon: Home },
@@ -261,6 +263,10 @@ export const AdminPanel = () => {
           
           <TabsContent value="bulk" className="mt-0">
             <BulkDomainOperations />
+          </TabsContent>
+
+          <TabsContent value="offers" className="mt-0">
+            <OffersManagement />
           </TabsContent>
           
           <TabsContent value="users" className="mt-0">
