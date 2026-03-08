@@ -269,21 +269,21 @@ export const TransactionHistory = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <div className="text-center p-4 bg-blue-500/10 rounded-lg">
               <div className="text-sm text-muted-foreground mb-1">平均报价金额</div>
-              <div className="text-xl font-bold text-blue-600">
+              <div className="text-xl font-bold text-blue-600 dark:text-blue-400">
                 ¥{stats.averageOffer.toLocaleString()}
               </div>
             </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
+            <div className="text-center p-4 bg-green-500/10 rounded-lg">
               <div className="text-sm text-muted-foreground mb-1">月度增长</div>
-              <div className="text-xl font-bold text-green-600">
+              <div className="text-xl font-bold text-green-600 dark:text-green-400">
                 {stats.monthlyGrowth >= 0 ? '+' : ''}{stats.monthlyGrowth.toFixed(1)}%
               </div>
             </div>
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
+            <div className="text-center p-4 bg-purple-500/10 rounded-lg">
               <div className="text-sm text-muted-foreground mb-1">活跃度评分</div>
-              <div className="text-xl font-bold text-purple-600">
+              <div className="text-xl font-bold text-purple-600 dark:text-purple-400">
                 {Math.min(100, Math.round((stats.totalReceived + stats.totalSent) * 2))}
               </div>
             </div>
