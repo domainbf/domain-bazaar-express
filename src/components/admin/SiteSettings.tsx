@@ -49,12 +49,73 @@ interface SmtpSettings {
 }
 
 export const SiteSettings = () => {
+  const { user } = useAuth();
   const [settings, setSettings] = useState<SiteSetting[]>([]);
   const [smtpSettings, setSmtpSettings] = useState<SmtpSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [newSetting, setNewSetting] = useState({ key: '', value: '', description: '', section: 'general', type: 'text' });
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [targetEmail, setTargetEmail] = useState('');
+  const [targetPassword, setTargetPassword] = useState('');
+  const [isChangingUserPassword, setIsChangingUserPassword] = useState(false);
+
+  const handleChangeOwnPassword = async () => {
+    if (!newPassword || newPassword.length < 8) {
+      toast.error('密码至少8位');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('两次密码不一致');
+      return;
+    }
+    setIsChangingPassword(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const response = await supabase.functions.invoke('admin-password', {
+        body: { action: 'change_own_password', password: newPassword },
+      });
+      if (response.error) throw new Error(response.error.message);
+      if (response.data?.error) throw new Error(response.data.error);
+      toast.success('密码修改成功');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error: any) {
+      toast.error(error.message || '密码修改失败');
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
+  const handleChangeUserPassword = async () => {
+    if (!targetEmail) {
+      toast.error('请输入用户邮箱');
+      return;
+    }
+    if (!targetPassword || targetPassword.length < 8) {
+      toast.error('密码至少8位');
+      return;
+    }
+    setIsChangingUserPassword(true);
+    try {
+      const response = await supabase.functions.invoke('admin-password', {
+        body: { action: 'change_user_password', email: targetEmail, password: targetPassword },
+      });
+      if (response.error) throw new Error(response.error.message);
+      if (response.data?.error) throw new Error(response.data.error);
+      toast.success(`用户 ${targetEmail} 密码已更新`);
+      setTargetEmail('');
+      setTargetPassword('');
+    } catch (error: any) {
+      toast.error(error.message || '修改用户密码失败');
+    } finally {
+      setIsChangingUserPassword(false);
+    }
+  };
 
   useEffect(() => {
     loadSettings();
