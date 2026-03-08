@@ -12,6 +12,7 @@ interface PaymentRequest {
   domain_id: string
   domain_name: string
   return_url?: string
+  buyer_note?: string
 }
 
 // PayPal: Create order via REST API
