@@ -275,8 +275,7 @@ export const WalletPanel = () => {
             </Button>
             <Button 
               onClick={() => setWithdrawDialogOpen(true)}
-              variant="outline"
-              className="flex-1 border-white/30 text-white hover:bg-white/10 hover:text-white font-medium"
+              className="flex-1 bg-white/15 border border-white/40 text-white hover:bg-white/25 font-medium backdrop-blur-sm"
               size={isMobile ? "default" : "lg"}
             >
               <Minus className="h-4 w-4 mr-2" />
