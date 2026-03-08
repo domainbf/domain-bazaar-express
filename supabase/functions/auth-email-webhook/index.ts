@@ -1,27 +1,29 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@4.1.2";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-// 直接使用 Resend 发送邮件，避免通过 send-email edge function 的额外网络跳转
-async function sendEmailDirect(to: string, subject: string, html: string): Promise<void> {
-  const resendApiKey = Deno.env.get("RESEND_API_KEY");
-  if (!resendApiKey) {
-    throw new Error("RESEND_API_KEY not set");
-  }
-  const resend = new Resend(resendApiKey);
-  const { error } = await resend.emails.send({
-    from: "域见•你 域名交易平台 <noreply@noreply.example.com>",
-    to: [to],
-    subject,
-    html,
+// Send email via the unified send-email edge function (which handles SMTP/Resend)
+async function sendEmail(to: string, subject: string, html: string): Promise<void> {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+  const resp = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${serviceRoleKey}`,
+    },
+    body: JSON.stringify({ to, subject, html }),
   });
-  if (error) {
-    throw new Error(error.message || "邮件发送失败");
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(`Email send failed: ${text}`);
   }
+  await resp.json();
 }
 
 function getPasswordResetHtml(token: string, baseUrl: string): string {
@@ -44,7 +46,7 @@ function getPasswordResetHtml(token: string, baseUrl: string): string {
 <p style="margin:5px 0 0;font-size:14px;color:#6b7280;">If you didn't request this, please ignore this email.</p></div></div>
 <div style="background:#f8fafc;padding:30px 20px;text-align:center;border-top:1px solid #e5e7eb;">
 <p style="margin:0;font-size:14px;color:#6b7280;">此邮件由 <strong>域见•你 域名交易平台</strong> 发送</p>
-<p style="margin:15px 0 0;font-size:12px;color:#9ca3af;">© 2025 域见•你. All rights reserved.</p></div></div></body></html>`;
+<p style="margin:15px 0 0;font-size:12px;color:#9ca3af;">© ${new Date().getFullYear()} 域见•你. All rights reserved.</p></div></div></body></html>`;
 }
 
 function getEmailVerificationHtml(tokenHash: string, confirmUrl: string): string {
@@ -63,7 +65,7 @@ function getEmailVerificationHtml(tokenHash: string, confirmUrl: string): string
 验证邮箱 | Verify Email</a></div></div>
 <div style="background:#f8fafc;padding:30px 20px;text-align:center;border-top:1px solid #e5e7eb;">
 <p style="margin:0;font-size:14px;color:#6b7280;">此邮件由 <strong>域见•你 域名交易平台</strong> 发送</p>
-<p style="margin:15px 0 0;font-size:12px;color:#9ca3af;">© 2025 域见•你. All rights reserved.</p></div></div></body></html>`;
+<p style="margin:15px 0 0;font-size:12px;color:#9ca3af;">© ${new Date().getFullYear()} 域见•你. All rights reserved.</p></div></div></body></html>`;
 }
 
 function getMagicLinkHtml(confirmUrl: string): string {
@@ -83,10 +85,10 @@ function getMagicLinkHtml(confirmUrl: string): string {
 <p style="margin:0;font-size:14px;color:#6b7280;">⏰ 此链接将在30分钟后过期</p></div></div>
 <div style="background:#f8fafc;padding:30px 20px;text-align:center;border-top:1px solid #e5e7eb;">
 <p style="margin:0;font-size:14px;color:#6b7280;">此邮件由 <strong>域见•你 域名交易平台</strong> 发送</p>
-<p style="margin:15px 0 0;font-size:12px;color:#9ca3af;">© 2025 域见•你. All rights reserved.</p></div></div></body></html>`;
+<p style="margin:15px 0 0;font-size:12px;color:#9ca3af;">© ${new Date().getFullYear()} 域见•你. All rights reserved.</p></div></div></body></html>`;
 }
 
-const handler = async (req: Request): Promise<Response> => {
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -100,7 +102,6 @@ const handler = async (req: Request): Promise<Response> => {
       email_data: { token, token_hash, redirect_to, email_action_type, site_url }
     } = data;
 
-    // Use redirect_to to determine the correct base URL (supports preview & production)
     let baseUrl = "";
     if (redirect_to) {
       try {
@@ -140,7 +141,7 @@ const handler = async (req: Request): Promise<Response> => {
         htmlContent = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;"><h2>域见•你 通知</h2><p>您收到了一封来自 域见•你 的通知邮件。</p></div>`;
     }
 
-    await sendEmailDirect(userEmail, subject, htmlContent);
+    await sendEmail(userEmail, subject, htmlContent);
 
     console.log(`Auth email sent to ${userEmail} for: ${email_action_type}`);
 
@@ -155,6 +156,4 @@ const handler = async (req: Request): Promise<Response> => {
       { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
     );
   }
-};
-
-serve(handler);
+});

@@ -11,6 +11,7 @@ export async function sendMailWithResend(
   try {
     console.log(`Sending email to ${to} with subject: ${subject}`);
     
+    // Route through unified send-email function (handles SMTP + Resend fallback)
     const emailResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`, {
       method: 'POST',
       headers: {
@@ -21,7 +22,7 @@ export async function sendMailWithResend(
         to,
         subject,
         html,
-        from: options.from || "域见•你 域名交易平台 <noreply@noreply.example.com>"
+        from: options.from
       }),
     });
 
