@@ -1,15 +1,14 @@
-
-import { Diamond, Crown, Star, GemIcon, ShieldCheck, Rocket, Search, TrendingUp, Users, Globe } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 export const HeroSection = () => {
-  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+  const { config } = useSiteSettings();
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
@@ -20,27 +19,25 @@ export const HeroSection = () => {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
+    if (e.key === 'Enter') handleSearch();
   };
 
   return (
     <section className="relative pt-12 md:pt-20 pb-10 md:pb-16 px-4 bg-background">
       <div className="max-w-6xl mx-auto text-center">
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 text-foreground leading-tight">
-          {t('homePage.title', '找到您理想的域名')}
+          {config.hero_title}
         </h1>
         
         <p className="text-base md:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto mb-6 md:mb-8 px-2">
-          {t('homePage.subtitle', '探索、发现并获取适合您的下一个大创意的理想域名')}
+          {config.hero_subtitle}
         </p>
 
         <div className="max-w-2xl mx-auto mb-8 md:mb-12">
           <div className="relative flex flex-col sm:flex-row gap-3">
             <Input
               type="text"
-              placeholder="搜索您想要的域名..."
+              placeholder={config.hero_search_placeholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={handleKeyPress}
@@ -61,14 +58,14 @@ export const HeroSection = () => {
             onClick={() => navigate('/marketplace')}
             className="px-6 md:px-8 py-2.5 md:py-3 text-base md:text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
           >
-            浏览域名市场
+            {config.hero_cta_primary}
           </Button>
           <Button 
             onClick={() => navigate('/auth')}
             variant="outline" 
             className="px-6 md:px-8 py-2.5 md:py-3 text-base md:text-lg border-border text-foreground hover:bg-accent"
           >
-            开始出售域名
+            {config.hero_cta_secondary}
           </Button>
         </div>
       </div>
