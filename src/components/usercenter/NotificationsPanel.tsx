@@ -145,7 +145,7 @@ export const NotificationsPanel = () => {
                 {notifs.map((notification) => (
                   <Card 
                     key={notification.id} 
-                    className={`hover:bg-gray-50 transition-colors ${!notification.is_read ? 'border-l-4 border-l-blue-500' : ''}`}
+                    className={`hover:bg-muted/50 transition-colors ${!notification.is_read ? 'border-l-4 border-l-primary' : ''}`}
                   >
                     <CardContent className="p-4">
                       <Link 
