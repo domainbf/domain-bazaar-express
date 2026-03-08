@@ -91,11 +91,11 @@ export const DeleteDomainConfirm = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start space-x-2 text-amber-600 bg-amber-50 p-3 rounded-md">
+      <div className="flex items-start space-x-2 text-destructive bg-destructive/10 p-3 rounded-md">
         <AlertTriangle className="h-5 w-5 mt-0.5" />
         <div>
-          <h4 className="font-medium text-amber-800">{t('common.warning', '警告')}</h4>
-          <p className="text-sm text-amber-700">
+          <h4 className="font-medium text-destructive">{t('common.warning', '警告')}</h4>
+          <p className="text-sm text-destructive/80">
             {t('domainActions.deleteWarning', '此操作不可逆。删除域名将移除所有相关数据，包括分析、验证和报价记录。')}
           </p>
         </div>
