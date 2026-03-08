@@ -231,8 +231,8 @@ export const TransactionHistory = () => {
                 <p className="text-sm text-muted-foreground">总交易额</p>
                 <p className="text-3xl font-bold mt-1">¥{stats.totalValue.toLocaleString()}</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
-                <DollarSign className="h-6 w-6 text-purple-600" />
+              <div className="h-12 w-12 rounded-full bg-purple-500/10 flex items-center justify-center">
+                <DollarSign className="h-6 w-6 text-purple-600 dark:text-purple-400" />
               </div>
             </div>
             <div className="text-xs text-muted-foreground mt-3">
