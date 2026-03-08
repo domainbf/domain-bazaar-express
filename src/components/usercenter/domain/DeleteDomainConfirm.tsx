@@ -91,27 +91,27 @@ export const DeleteDomainConfirm = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start space-x-2 text-amber-600 bg-amber-50 p-3 rounded-md">
+      <div className="flex items-start space-x-2 text-destructive bg-destructive/10 p-3 rounded-md">
         <AlertTriangle className="h-5 w-5 mt-0.5" />
         <div>
-          <h4 className="font-medium text-amber-800">{t('common.warning', '警告')}</h4>
-          <p className="text-sm text-amber-700">
+          <h4 className="font-medium text-destructive">{t('common.warning', '警告')}</h4>
+          <p className="text-sm text-destructive/80">
             {t('domainActions.deleteWarning', '此操作不可逆。删除域名将移除所有相关数据，包括分析、验证和报价记录。')}
           </p>
         </div>
       </div>
       
-      <p className="text-gray-700">
+      <p className="text-foreground">
         {t('domainActions.deleteDomainConfirm', '您确定要删除域名')} <span className="font-bold">{domain.name}</span> {t('common.question', '吗？')}
       </p>
       
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-foreground">
           {t('domainActions.typeToConfirm', '请输入域名或"DELETE"以确认删除')}
         </label>
         <input
           type="text"
-          className="w-full border border-gray-300 rounded-md p-2 text-sm"
+          className="w-full border border-border rounded-md p-2 text-sm bg-background text-foreground"
           value={confirmText}
           onChange={(e) => setConfirmText(e.target.value)}
           placeholder={domain.name}
@@ -119,7 +119,7 @@ export const DeleteDomainConfirm = ({
       </div>
       
       {deleteError && (
-        <p className="text-sm text-red-600">{deleteError}</p>
+        <p className="text-sm text-destructive">{deleteError}</p>
       )}
       
       <div className="flex justify-end gap-2">

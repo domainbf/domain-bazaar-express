@@ -38,7 +38,7 @@ export const DomainFilters = ({
       {/* 顶部搜索和状态筛选 */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="relative w-full md:w-80">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input 
             placeholder="搜索域名名称、描述..."
             value={searchQuery}
@@ -67,8 +67,8 @@ export const DomainFilters = ({
       {/* 高级筛选 */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-gray-500" />
-          <span className="text-sm text-gray-600">筛选：</span>
+          <Filter className="w-4 h-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">筛选：</span>
         </div>
         
         {/* 价格区间 */}

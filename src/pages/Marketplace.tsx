@@ -209,7 +209,7 @@ export const Marketplace = () => {
       <div className={isMobile ? 'pb-20' : ''}>
         {/* Hero Header */}
         <section className={`bg-primary text-primary-foreground ${isMobile ? 'py-8 px-4' : 'py-14'}`}>
-          <div className={`${isMobile ? '' : 'max-w-5xl mx-auto px-4'}`}>
+          <div className={`${isMobile ? '' : 'max-w-6xl mx-auto px-6'}`}>
             <div className="text-center">
               <h1 className={`${isMobile ? 'text-2xl mb-2' : 'text-3xl mb-3'} font-bold`}>
                 {t('marketplace.title')}
@@ -237,7 +237,7 @@ export const Marketplace = () => {
 
         {/* Filters Bar */}
         <section className="border-b border-border bg-card">
-          <div className={`${isMobile ? 'px-3 py-3' : 'max-w-5xl mx-auto px-4 py-3'}`}>
+          <div className={`${isMobile ? 'px-3 py-3' : 'max-w-6xl mx-auto px-6 py-3'}`}>
             <div className="flex items-center justify-between gap-3">
               {/* Category Pills */}
               <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
@@ -334,7 +334,7 @@ export const Marketplace = () => {
 
         {/* Domain Listings */}
         <section className={`${isMobile ? 'py-6 px-3' : 'py-10'}`}>
-          <div className={`${isMobile ? '' : 'max-w-5xl mx-auto px-4'}`}>
+          <div className={`${isMobile ? '' : 'max-w-6xl mx-auto px-6'}`}>
             {error ? (
               <div className="text-center py-16">
                 <p className="text-destructive mb-4">{error}</p>
