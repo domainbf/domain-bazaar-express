@@ -70,11 +70,6 @@ export const DomainListings = ({ domains, isLoading, isMobile }: DomainListingsP
 
       <div className={`grid ${isMobile ? 'grid-cols-1 gap-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'}`}>
         {domains.map((domain, i) => {
-          // Split domain name and extension
-          const dotIdx = domain.name.indexOf('.');
-          const baseName = dotIdx > 0 ? domain.name.substring(0, dotIdx) : domain.name;
-          const ext = dotIdx > 0 ? domain.name.substring(dotIdx) : '';
-
           return (
             <motion.div
               key={domain.id}
