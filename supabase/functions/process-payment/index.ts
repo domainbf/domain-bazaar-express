@@ -158,6 +158,22 @@ async function createStripePayment(config: any, amount: number, currency: string
   throw new Error('Stripe session creation failed: ' + JSON.stringify(session))
 }
 
+// USDT TRC-20: return wallet address
+function createUsdtPayment(config: any, amount: number, orderId: string) {
+  return {
+    gateway_transaction_id: orderId,
+    payment_url: '',
+    gateway_response: {
+      wallet_address: config.wallet_address,
+      network: config.network || 'TRC-20',
+      amount,
+      reference: orderId,
+      confirmation_required: config.confirmation_required || 6,
+      note: '请转账指定金额的USDT到以下地址，并在备注中填写订单号',
+    },
+  }
+}
+
 // Bank transfer: return account info
 function createBankTransferPayment(config: any, amount: number, orderId: string) {
   return {
