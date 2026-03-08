@@ -259,6 +259,7 @@ Deno.serve(async (req) => {
         currency,
         fee,
         status: 'pending',
+        buyer_note: buyer_note || null,
         metadata: { domain_name, return_url },
       })
       .select()
