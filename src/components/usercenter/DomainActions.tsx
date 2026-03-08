@@ -66,7 +66,7 @@ export const DomainActions = ({ domain, onSuccess, mode }: DomainActionsProps) =
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {mode === 'add' ? '添加新域名' : mode === 'edit' ? '编辑域名' : '删除域名'}
