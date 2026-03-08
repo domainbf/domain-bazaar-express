@@ -376,7 +376,7 @@ export const WalletPanel = () => {
         <CardContent>
           {filteredTransactions.length === 0 ? (
             <div className="text-center py-10">
-              <History className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <History className="h-12 w-12 mx-auto mb-4 text-muted-foreground/30" />
               <p className="text-muted-foreground">暂无交易记录</p>
             </div>
           ) : (

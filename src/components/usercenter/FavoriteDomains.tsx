@@ -188,7 +188,7 @@ export const FavoriteDomains = () => {
       {favorites.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center">
-            <Heart className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+            <Heart className="h-16 w-16 mx-auto mb-4 text-muted-foreground/30" />
             <h3 className="text-lg font-semibold mb-2">暂无收藏</h3>
             <p className="text-muted-foreground mb-4">
               浏览市场，收藏您感兴趣的域名
