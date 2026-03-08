@@ -264,6 +264,10 @@ export const AdminPanel = () => {
           <TabsContent value="bulk" className="mt-0">
             <BulkDomainOperations />
           </TabsContent>
+
+          <TabsContent value="offers" className="mt-0">
+            <OffersManagement />
+          </TabsContent>
           
           <TabsContent value="users" className="mt-0">
             <UserManagement />
