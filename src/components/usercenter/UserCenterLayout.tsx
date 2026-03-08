@@ -8,7 +8,6 @@ import {
   Mail, 
   Shield, 
   Calendar,
-  MapPin,
   Briefcase,
   Phone,
   Globe
@@ -28,7 +27,7 @@ export const UserCenterLayout = ({ profile, user, children }: UserCenterLayoutPr
   
   const getVerificationBadge = () => {
     if (profile?.seller_verified) {
-      return <Badge className="bg-green-100 text-green-800 text-xs">已认证卖家</Badge>;
+      return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 text-xs">已认证卖家</Badge>;
     }
     if (profile?.is_seller) {
       return <Badge variant="secondary" className="text-xs">卖家</Badge>;
@@ -39,19 +38,18 @@ export const UserCenterLayout = ({ profile, user, children }: UserCenterLayoutPr
   const getMembershipLevel = () => {
     const level = profile?.account_level || 'basic';
     const levelConfig = {
-      basic: { label: '基础会员', color: 'bg-gray-100 text-gray-800' },
-      premium: { label: '高级会员', color: 'bg-blue-100 text-blue-800' },
-      vip: { label: 'VIP会员', color: 'bg-purple-100 text-purple-800' }
+      basic: { label: '基础会员', classes: 'bg-muted text-muted-foreground' },
+      premium: { label: '高级会员', classes: 'bg-blue-500/10 text-blue-700 dark:text-blue-400' },
+      vip: { label: 'VIP会员', classes: 'bg-purple-500/10 text-purple-700 dark:text-purple-400' }
     };
     const config = levelConfig[level as keyof typeof levelConfig] || levelConfig.basic;
-    
-    return <Badge className={`${config.color} text-xs`}>{config.label}</Badge>;
+    return <Badge className={`${config.classes} text-xs`}>{config.label}</Badge>;
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-4 md:py-6">
       {/* 用户信息头部 */}
-      <Card className="mb-6 md:mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-none shadow-sm">
+      <Card className="mb-6 md:mb-8 border-border bg-gradient-to-r from-primary/5 via-card to-accent/5 shadow-sm">
         <CardContent className={isMobile ? "p-4" : "p-6"}>
           <div className="flex flex-col lg:flex-row lg:items-center gap-4 md:gap-6">
             {/* 用户头像和基本信息 */}
@@ -61,10 +59,10 @@ export const UserCenterLayout = ({ profile, user, children }: UserCenterLayoutPr
                   <img 
                     src={profile.avatar_url} 
                     alt="用户头像" 
-                    className={`${isMobile ? 'w-14 h-14' : 'w-16 h-16'} rounded-full object-cover border-2 border-white shadow-md`}
+                    className={`${isMobile ? 'w-14 h-14' : 'w-16 h-16'} rounded-full object-cover border-2 border-background shadow-md`}
                   />
                 ) : (
-                  <div className={`${isMobile ? 'w-14 h-14' : 'w-16 h-16'} rounded-full bg-blue-500 flex items-center justify-center text-white`}>
+                  <div className={`${isMobile ? 'w-14 h-14' : 'w-16 h-16'} rounded-full bg-primary flex items-center justify-center text-primary-foreground`}>
                     <UserCircle className={isMobile ? 'w-7 h-7' : 'w-8 h-8'} />
                   </div>
                 )}
@@ -77,11 +75,11 @@ export const UserCenterLayout = ({ profile, user, children }: UserCenterLayoutPr
               
               <div className="space-y-1.5 md:space-y-2 flex-1">
                 <div>
-                  <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-gray-900`}>
+                  <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-foreground`}>
                     {profile?.full_name || user?.email?.split('@')[0] || '用户'}
                   </h1>
                   {profile?.username && (
-                    <p className="text-xs md:text-sm text-gray-600">@{profile.username}</p>
+                    <p className="text-xs md:text-sm text-muted-foreground">@{profile.username}</p>
                   )}
                 </div>
                 
@@ -89,7 +87,7 @@ export const UserCenterLayout = ({ profile, user, children }: UserCenterLayoutPr
                   {getVerificationBadge()}
                   {getMembershipLevel()}
                   {profile?.is_admin && (
-                    <Badge className="bg-red-100 text-red-800 text-xs">管理员</Badge>
+                    <Badge className="bg-destructive/10 text-destructive text-xs">管理员</Badge>
                   )}
                 </div>
               </div>
@@ -98,20 +96,20 @@ export const UserCenterLayout = ({ profile, user, children }: UserCenterLayoutPr
             {/* 用户详细信息 */}
             <div className={`flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 ${isMobile ? 'text-xs' : 'text-sm'}`}>
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <Mail className="w-4 h-4" />
                   <span>{profile?.contact_email || user?.email}</span>
                 </div>
                 
                 {profile?.contact_phone && (
-                  <div className="flex items-center gap-2 text-gray-600">
+                  <div className="flex items-center gap-2 text-muted-foreground">
                     <Phone className="w-4 h-4" />
                     <span>{profile.contact_phone}</span>
                   </div>
                 )}
                 
                 {profile?.company_name && (
-                  <div className="flex items-center gap-2 text-gray-600">
+                  <div className="flex items-center gap-2 text-muted-foreground">
                     <Briefcase className="w-4 h-4" />
                     <span>{profile.company_name}</span>
                   </div>
@@ -119,7 +117,7 @@ export const UserCenterLayout = ({ profile, user, children }: UserCenterLayoutPr
               </div>
               
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="w-4 h-4" />
                   <span>
                     加入于 {formatDistanceToNow(new Date(profile?.created_at || user?.created_at || ''), {
@@ -130,13 +128,13 @@ export const UserCenterLayout = ({ profile, user, children }: UserCenterLayoutPr
                 </div>
                 
                 {profile?.custom_url && (
-                  <div className="flex items-center gap-2 text-gray-600">
+                  <div className="flex items-center gap-2 text-muted-foreground">
                     <Globe className="w-4 h-4" />
                     <a 
                       href={`${window.location.origin}/${profile.custom_url}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
+                      className="text-primary hover:underline"
                     >
                       {window.location.host}/{profile.custom_url}
                     </a>
@@ -145,7 +143,7 @@ export const UserCenterLayout = ({ profile, user, children }: UserCenterLayoutPr
                 
                 {profile?.bio && (
                   <div className="mt-3">
-                    <p className="text-gray-700 text-sm line-clamp-2">{profile.bio}</p>
+                    <p className="text-muted-foreground text-sm line-clamp-2">{profile.bio}</p>
                   </div>
                 )}
               </div>

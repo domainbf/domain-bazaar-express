@@ -213,7 +213,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar unreadCount={unreadCount} />
       
       <div className={isMobile ? 'pb-20' : ''}>
@@ -221,7 +221,7 @@ const Index = () => {
       <HeroSection />
 
       {/* 主要内容区域 - 使用标签页 */}
-      <section className="py-12 md:py-16 bg-white">
+      <section className="py-12 md:py-16 bg-card">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="flex justify-center mb-8">
@@ -242,43 +242,27 @@ const Index = () => {
             </div>
 
             <TabsContent value="marketplace">
-              <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-8 md:mb-10">{t('homePage.featuredDomains')}</h2>
+              <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-8 md:mb-10">{t('homePage.featuredDomains')}</h2>
               
               {/* Filter buttons */}
               <div className="overflow-x-auto pb-4 mb-8">
                 <div className="flex gap-2 md:gap-3 md:flex-wrap md:justify-center min-w-max px-4">
-                  <Button
-                    variant={filter === 'all' ? 'default' : 'outline'}
-                    onClick={() => setFilter('all')}
-                    className={filter === 'all' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
-                    size="sm"
-                  >
-                    {t('common.all')}
-                  </Button>
-                  <Button
-                    variant={filter === 'premium' ? 'default' : 'outline'}
-                    onClick={() => setFilter('premium')}
-                    className={filter === 'premium' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
-                    size="sm"
-                  >
-                    {t('domains.categories.premium')}
-                  </Button>
-                  <Button
-                    variant={filter === 'short' ? 'default' : 'outline'}
-                    onClick={() => setFilter('short')}
-                    className={filter === 'short' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
-                    size="sm"
-                  >
-                    {t('domains.categories.short')}
-                  </Button>
-                  <Button
-                    variant={filter === 'dev' ? 'default' : 'outline'}
-                    onClick={() => setFilter('dev')}
-                    className={filter === 'dev' ? 'bg-gray-900 text-white font-bold' : 'text-gray-900 border-gray-700 border-2 font-bold'}
-                    size="sm"
-                  >
-                    {t('domains.categories.tech')}
-                  </Button>
+                  {[
+                    { key: 'all', label: t('common.all') },
+                    { key: 'premium', label: t('domains.categories.premium') },
+                    { key: 'short', label: t('domains.categories.short') },
+                    { key: 'dev', label: t('domains.categories.tech') },
+                  ].map(f => (
+                    <Button
+                      key={f.key}
+                      variant={filter === f.key ? 'default' : 'outline'}
+                      onClick={() => setFilter(f.key)}
+                      size="sm"
+                      className="font-bold"
+                    >
+                      {f.label}
+                    </Button>
+                  ))}
                 </div>
               </div>
 
@@ -289,27 +273,27 @@ const Index = () => {
                     placeholder={t('marketplace.searchPlaceholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full h-10 md:h-12 pl-12 pr-4 bg-white border-gray-500 focus:border-gray-900 text-gray-900 font-medium"
+                    className="w-full h-10 md:h-12 pl-12 pr-4 bg-background border-border focus:border-ring text-foreground font-medium"
                   />
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-700 w-5 h-5" />
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                 </div>
               </div>
 
               {/* Domain Cards Grid */}
               {error ? (
-                <div className="text-center py-16 bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl border border-red-200 mb-12">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-                    <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="text-center py-16 bg-destructive/5 rounded-2xl border border-destructive/20 mb-12">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-destructive/10 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <h3 className="text-2xl font-semibold text-red-700 mb-2">加载遇到问题</h3>
-                  <p className="text-red-600 mb-6 max-w-md mx-auto leading-relaxed">{error}</p>
+                  <h3 className="text-2xl font-semibold text-destructive mb-2">加载遇到问题</h3>
+                  <p className="text-destructive/80 mb-6 max-w-md mx-auto leading-relaxed">{error}</p>
                   <div className="space-x-4">
-                    <Button onClick={handleRetry} className="bg-red-600 hover:bg-red-700 text-white px-6 py-2">
+                    <Button onClick={handleRetry} variant="destructive" className="px-6 py-2">
                       重新加载
                     </Button>
-                    <Button variant="outline" onClick={() => window.location.reload()} className="border-red-300 text-red-600 hover:bg-red-50">
+                    <Button variant="outline" onClick={() => window.location.reload()}>
                       刷新页面
                     </Button>
                   </div>
@@ -318,9 +302,9 @@ const Index = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-8 px-2 md:px-0">
                   {[1, 2, 3, 4, 5, 6].map((i) => (
                     <div key={i} className="animate-pulse">
-                      <div className="bg-gray-200 rounded-lg h-48 mb-4"></div>
-                      <div className="bg-gray-200 h-4 rounded mb-2"></div>
-                      <div className="bg-gray-200 h-3 rounded w-2/3"></div>
+                      <div className="bg-muted rounded-lg h-48 mb-4"></div>
+                      <div className="bg-muted h-4 rounded mb-2"></div>
+                      <div className="bg-muted h-3 rounded w-2/3"></div>
                     </div>
                   ))}
                 </div>
@@ -343,22 +327,22 @@ const Index = () => {
                   
                   <div className="text-center">
                     <Link to="/marketplace">
-                      <Button className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3">
+                      <Button className="px-8 py-3">
                         查看更多域名
                       </Button>
                     </Link>
                   </div>
                 </>
               ) : (
-                <div className="text-center py-16 bg-gray-50 rounded-lg border border-gray-200 mb-12">
-                  <h3 className="text-2xl font-medium text-gray-600 mb-4">
+                <div className="text-center py-16 bg-muted rounded-lg border border-border mb-12">
+                  <h3 className="text-2xl font-medium text-muted-foreground mb-4">
                     {domains.length === 0 ? '暂无域名' : t('marketplace.noDomainsFound')}
                   </h3>
-                  <p className="text-gray-500 mb-4">
+                  <p className="text-muted-foreground mb-4">
                     {domains.length === 0 ? '看起来还没有域名添加到平台中' : t('homePage.tryAdjustingFilters')}
                   </p>
                   <div className="space-x-4">
-                    <Button onClick={handleSellDomains} className="bg-gray-900">
+                    <Button onClick={handleSellDomains}>
                       {t('homePage.addYourDomain')}
                     </Button>
                     <Button variant="outline" onClick={handleRetry}>
@@ -385,51 +369,51 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 md:py-20 bg-gray-900 text-white">
+      <section className="py-16 md:py-20 bg-primary text-primary-foreground">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-10 md:mb-16 text-white-enhanced">{t('homePage.howItWorks')}</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-10 md:mb-16">{t('homePage.howItWorks')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
-            <div className="bg-gray-800 rounded-xl p-6 md:p-8 text-center">
-              <div className="bg-white text-gray-900 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">1</div>
-              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-white-enhanced">{t('homePage.step1Title')}</h3>
-              <p className="text-white text-sm md:text-base font-semibold">{t('homePage.step1Description')}</p>
+            <div className="bg-secondary rounded-xl p-6 md:p-8 text-center">
+              <div className="bg-primary text-primary-foreground w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">1</div>
+              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-foreground">{t('homePage.step1Title')}</h3>
+              <p className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.step1Description')}</p>
             </div>
             
-            <div className="bg-gray-800 rounded-xl p-6 md:p-8 text-center">
-              <div className="bg-white text-gray-900 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">2</div>
-              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-white-enhanced">{t('homePage.step2Title')}</h3>
-              <p className="text-white text-sm md:text-base font-semibold">{t('homePage.step2Description')}</p>
+            <div className="bg-secondary rounded-xl p-6 md:p-8 text-center">
+              <div className="bg-primary text-primary-foreground w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">2</div>
+              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-foreground">{t('homePage.step2Title')}</h3>
+              <p className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.step2Description')}</p>
             </div>
             
-            <div className="bg-gray-800 rounded-xl p-6 md:p-8 text-center">
-              <div className="bg-white text-gray-900 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">3</div>
-              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-white-enhanced">{t('homePage.step3Title')}</h3>
-              <p className="text-white text-sm md:text-base font-semibold">{t('homePage.step3Description')}</p>
+            <div className="bg-secondary rounded-xl p-6 md:p-8 text-center">
+              <div className="bg-primary text-primary-foreground w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">3</div>
+              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-foreground">{t('homePage.step3Title')}</h3>
+              <p className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.step3Description')}</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Statistics Section */}
-      <section className="py-16 md:py-20 bg-white">
+      <section className="py-16 md:py-20 bg-card">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-dark-enhanced mb-10 md:mb-16">{t('homePage.platformStats')}</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-10 md:mb-16">{t('homePage.platformStats')}</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-            <div className="text-center p-4 md:p-6 bg-gray-100 rounded-lg shadow-sm">
-              <div className="text-2xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-3">50,000+</div>
-              <div className="text-gray-800 text-sm md:text-base font-semibold">{t('homePage.activeUsers')}</div>
+            <div className="text-center p-4 md:p-6 bg-muted rounded-lg shadow-sm">
+              <div className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-3">50,000+</div>
+              <div className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.activeUsers')}</div>
             </div>
-            <div className="text-center p-4 md:p-6 bg-gray-100 rounded-lg shadow-sm">
-              <div className="text-2xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-3">100+</div>
-              <div className="text-gray-800 text-sm md:text-base font-semibold">{t('homePage.countries')}</div>
+            <div className="text-center p-4 md:p-6 bg-muted rounded-lg shadow-sm">
+              <div className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-3">100+</div>
+              <div className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.countries')}</div>
             </div>
-            <div className="text-center p-4 md:p-6 bg-gray-100 rounded-lg shadow-sm">
-              <div className="text-2xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-3">$100M+</div>
-              <div className="text-gray-800 text-sm md:text-base font-semibold">{t('homePage.transactionVolume')}</div>
+            <div className="text-center p-4 md:p-6 bg-muted rounded-lg shadow-sm">
+              <div className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-3">$100M+</div>
+              <div className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.transactionVolume')}</div>
             </div>
-            <div className="text-center p-4 md:p-6 bg-gray-100 rounded-lg shadow-sm">
-              <div className="text-2xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-3">24/7</div>
-              <div className="text-gray-800 text-sm md:text-base font-semibold">{t('homePage.customerSupport')}</div>
+            <div className="text-center p-4 md:p-6 bg-muted rounded-lg shadow-sm">
+              <div className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-3">24/7</div>
+              <div className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.customerSupport')}</div>
             </div>
           </div>
         </div>
@@ -442,22 +426,22 @@ const Index = () => {
       <SoldDomains />
 
       {/* Call to Action */}
-      <section className="py-16 md:py-20 bg-gray-900 text-white">
+      <section className="py-16 md:py-20 bg-primary text-primary-foreground">
         <div className="max-w-4xl mx-auto px-4 md:px-8 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-white-enhanced">{t('homePage.ctaTitle')}</h2>
-          <p className="text-base md:text-xl text-white mb-8 md:mb-10 font-semibold">
+          <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">{t('homePage.ctaTitle')}</h2>
+          <p className="text-base md:text-xl opacity-80 mb-8 md:mb-10 font-semibold">
             {t('homePage.ctaDescription')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/marketplace" className="w-full sm:w-auto">
-              <Button className="w-full sm:w-auto bg-white text-gray-900 hover:bg-gray-100 px-6 py-2 md:px-6 md:py-3 text-base font-bold">
+              <Button className="w-full sm:w-auto bg-primary-foreground text-primary hover:bg-primary-foreground/90 px-6 py-2 md:px-6 md:py-3 text-base font-bold">
                 {t('homePage.browseDomains')}
               </Button>
             </Link>
             <Link to={user ? "/user-center" : "#"} onClick={user ? undefined : () => setIsAuthModalOpen(true)} className="w-full sm:w-auto">
               <Button 
                 variant="outline" 
-                className="w-full sm:w-auto border-white border-2 bg-transparent text-white hover:bg-gray-700 px-6 py-2 md:px-6 md:py-3 text-base font-bold"
+                className="w-full sm:w-auto border-primary-foreground border-2 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 px-6 py-2 md:px-6 md:py-3 text-base font-bold"
               >
                 {user ? t('homePage.visitUserCenter') : t('homePage.registerLogin')}
               </Button>
@@ -467,9 +451,9 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 md:py-12 bg-black text-white">
+      <footer className="py-8 md:py-12 bg-primary text-primary-foreground border-t border-border">
         <div className="max-w-6xl mx-auto px-4 md:px-8 text-center">
-          <p className="text-sm md:text-base font-semibold">© {new Date().getFullYear()} {siteConfig.footer_text}</p>
+          <p className="text-sm md:text-base font-semibold opacity-80">© {new Date().getFullYear()} {siteConfig.footer_text}</p>
         </div>
       </footer>
       </div>
