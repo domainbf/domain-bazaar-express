@@ -283,6 +283,9 @@ Deno.serve(async (req) => {
       case 'stripe':
         result = await createStripePayment(config, amount + fee, currency, domain_name, return_url)
         break
+      case 'usdt_trc20':
+        result = createUsdtPayment(config, amount + fee, txn.id)
+        break
       case 'bank_transfer':
         result = createBankTransferPayment(config, amount + fee, txn.id)
         break
