@@ -105,10 +105,18 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
         
       // 创建通知给买家
       if (offerData.buyer_id && offerData.domain_listings) {
-        const actionMessages = {
-          accepted: '您的报价已被接受！卖家将与您联系完成交易。',
-          rejected: '您的报价已被拒绝，您可以尝试提交新的报价。',
-          completed: '交易已完成！感谢您使用我们的平台。'
+        const currencySymbol = offerData.domain_listings.currency === 'USD' ? '$' : '¥';
+        const formattedAmount = `${currencySymbol}${Number(offerData.amount).toLocaleString()}`;
+        const actionMessages: Record<string, string> = {
+          accepted: `您对域名 ${offerData.domain_listings.name} 的 ${formattedAmount} 报价已被卖家接受！卖家将与您联系完成交易。`,
+          rejected: `您对域名 ${offerData.domain_listings.name} 的 ${formattedAmount} 报价已被拒绝，您可以尝试提交新的报价。`,
+          completed: `域名 ${offerData.domain_listings.name} 的 ${formattedAmount} 交易已完成！感谢您使用我们的平台。`
+        };
+
+        const titleMap: Record<string, string> = {
+          accepted: '🎉 报价已接受',
+          rejected: '❌ 报价已拒绝',
+          completed: '✅ 交易已完成'
         };
 
         try {
@@ -116,15 +124,14 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
             .from('notifications')
             .insert({
               user_id: offerData.buyer_id,
-              title: `报价${action === 'accepted' ? '已接受' : action === 'rejected' ? '已拒绝' : '已完成'}`,
-              message: `您对域名 ${offerData.domain_listings.name} 的报价（¥${offerData.amount}）${actionMessages[action]}`,
+              title: titleMap[action] || `报价状态更新`,
+              message: actionMessages[action],
               type: 'offer',
               related_id: offerId,
               action_url: '/user-center?tab=transactions'
             });
         } catch (notifError) {
           console.error('Notification error:', notifError);
-          // 通知失败不影响主流程
         }
       }
       
