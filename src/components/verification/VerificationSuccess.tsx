@@ -14,10 +14,10 @@ export const VerificationSuccess = ({ domainName }: VerificationSuccessProps) =>
   const { t } = useTranslation();
   
   return (
-    <Card className="mb-8 border-green-200">
-      <CardHeader className="bg-green-50">
+    <Card className="mb-8 border-primary/20">
+      <CardHeader className="bg-primary/5">
         <div className="flex items-center gap-2">
-          <Check className="h-5 w-5 text-green-600" />
+          <Check className="h-5 w-5 text-primary" />
           <CardTitle>{t('verification.success.title')}</CardTitle>
         </div>
         <CardDescription>

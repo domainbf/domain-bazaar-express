@@ -27,12 +27,8 @@ export const FilterSection = ({ currentFilter, onFilterChange }: FilterSectionPr
           <Button
             key={category}
             onClick={() => onFilterChange(category)}
-            variant={currentFilter === category ? 'default' : 'secondary'}
-            className={`rounded-full backdrop-blur-md transition-all duration-300 ${
-              currentFilter === category 
-                ? 'bg-gradient-to-r from-violet-500 to-cyan-500 hover:from-violet-600 hover:to-cyan-600' 
-                : 'bg-white/10 hover:bg-white/20'
-            }`}
+            variant={currentFilter === category ? 'default' : 'outline'}
+            className="rounded-full transition-all duration-300"
           >
             {getFilterLabel(category)}
           </Button>

@@ -129,7 +129,7 @@ export const DomainCard = ({
         <div className="flex items-center gap-1.5">
           {highlight && <Badge className="bg-foreground text-background text-[10px] px-2 py-0.5">精选</Badge>}
           {isVerified && (
-            <Badge className="bg-green-600 text-white text-[10px] px-2 py-0.5 gap-0.5">
+            <Badge className="bg-primary text-primary-foreground text-[10px] px-2 py-0.5 gap-0.5">
               <Shield className="h-2.5 w-2.5" />已验证
             </Badge>
           )}
@@ -137,8 +137,8 @@ export const DomainCard = ({
         <Button
           variant="ghost" size="icon"
           className={`h-7 w-7 rounded-full transition-all ${
-            isFavorited ? 'text-red-500 hover:text-red-600 hover:bg-red-50' 
-            : 'text-muted-foreground hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100'
+            isFavorited ? 'text-destructive hover:text-destructive/80 hover:bg-destructive/10' 
+            : 'text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100'
           }`}
           onClick={handleToggleFavorite}
           disabled={isLoadingFavorite}
