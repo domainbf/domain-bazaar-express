@@ -395,41 +395,41 @@ const Index = () => {
               <p className="text-white text-sm md:text-base font-semibold">{t('homePage.step1Description')}</p>
             </div>
             
-            <div className="bg-gray-800 rounded-xl p-6 md:p-8 text-center">
-              <div className="bg-white text-gray-900 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">2</div>
-              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-white-enhanced">{t('homePage.step2Title')}</h3>
-              <p className="text-white text-sm md:text-base font-semibold">{t('homePage.step2Description')}</p>
+            <div className="bg-secondary rounded-xl p-6 md:p-8 text-center">
+              <div className="bg-primary text-primary-foreground w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">2</div>
+              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-foreground">{t('homePage.step2Title')}</h3>
+              <p className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.step2Description')}</p>
             </div>
             
-            <div className="bg-gray-800 rounded-xl p-6 md:p-8 text-center">
-              <div className="bg-white text-gray-900 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">3</div>
-              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-white-enhanced">{t('homePage.step3Title')}</h3>
-              <p className="text-white text-sm md:text-base font-semibold">{t('homePage.step3Description')}</p>
+            <div className="bg-secondary rounded-xl p-6 md:p-8 text-center">
+              <div className="bg-primary text-primary-foreground w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">3</div>
+              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-foreground">{t('homePage.step3Title')}</h3>
+              <p className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.step3Description')}</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Statistics Section */}
-      <section className="py-16 md:py-20 bg-white">
+      <section className="py-16 md:py-20 bg-card">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-dark-enhanced mb-10 md:mb-16">{t('homePage.platformStats')}</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-10 md:mb-16">{t('homePage.platformStats')}</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-            <div className="text-center p-4 md:p-6 bg-gray-100 rounded-lg shadow-sm">
-              <div className="text-2xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-3">50,000+</div>
-              <div className="text-gray-800 text-sm md:text-base font-semibold">{t('homePage.activeUsers')}</div>
+            <div className="text-center p-4 md:p-6 bg-muted rounded-lg shadow-sm">
+              <div className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-3">50,000+</div>
+              <div className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.activeUsers')}</div>
             </div>
-            <div className="text-center p-4 md:p-6 bg-gray-100 rounded-lg shadow-sm">
-              <div className="text-2xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-3">100+</div>
-              <div className="text-gray-800 text-sm md:text-base font-semibold">{t('homePage.countries')}</div>
+            <div className="text-center p-4 md:p-6 bg-muted rounded-lg shadow-sm">
+              <div className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-3">100+</div>
+              <div className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.countries')}</div>
             </div>
-            <div className="text-center p-4 md:p-6 bg-gray-100 rounded-lg shadow-sm">
-              <div className="text-2xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-3">$100M+</div>
-              <div className="text-gray-800 text-sm md:text-base font-semibold">{t('homePage.transactionVolume')}</div>
+            <div className="text-center p-4 md:p-6 bg-muted rounded-lg shadow-sm">
+              <div className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-3">$100M+</div>
+              <div className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.transactionVolume')}</div>
             </div>
-            <div className="text-center p-4 md:p-6 bg-gray-100 rounded-lg shadow-sm">
-              <div className="text-2xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-3">24/7</div>
-              <div className="text-gray-800 text-sm md:text-base font-semibold">{t('homePage.customerSupport')}</div>
+            <div className="text-center p-4 md:p-6 bg-muted rounded-lg shadow-sm">
+              <div className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-3">24/7</div>
+              <div className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.customerSupport')}</div>
             </div>
           </div>
         </div>
@@ -442,22 +442,22 @@ const Index = () => {
       <SoldDomains />
 
       {/* Call to Action */}
-      <section className="py-16 md:py-20 bg-gray-900 text-white">
+      <section className="py-16 md:py-20 bg-primary text-primary-foreground">
         <div className="max-w-4xl mx-auto px-4 md:px-8 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-white-enhanced">{t('homePage.ctaTitle')}</h2>
-          <p className="text-base md:text-xl text-white mb-8 md:mb-10 font-semibold">
+          <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">{t('homePage.ctaTitle')}</h2>
+          <p className="text-base md:text-xl opacity-80 mb-8 md:mb-10 font-semibold">
             {t('homePage.ctaDescription')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/marketplace" className="w-full sm:w-auto">
-              <Button className="w-full sm:w-auto bg-white text-gray-900 hover:bg-gray-100 px-6 py-2 md:px-6 md:py-3 text-base font-bold">
+              <Button className="w-full sm:w-auto bg-primary-foreground text-primary hover:bg-primary-foreground/90 px-6 py-2 md:px-6 md:py-3 text-base font-bold">
                 {t('homePage.browseDomains')}
               </Button>
             </Link>
             <Link to={user ? "/user-center" : "#"} onClick={user ? undefined : () => setIsAuthModalOpen(true)} className="w-full sm:w-auto">
               <Button 
                 variant="outline" 
-                className="w-full sm:w-auto border-white border-2 bg-transparent text-white hover:bg-gray-700 px-6 py-2 md:px-6 md:py-3 text-base font-bold"
+                className="w-full sm:w-auto border-primary-foreground border-2 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 px-6 py-2 md:px-6 md:py-3 text-base font-bold"
               >
                 {user ? t('homePage.visitUserCenter') : t('homePage.registerLogin')}
               </Button>
@@ -467,9 +467,9 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 md:py-12 bg-black text-white">
+      <footer className="py-8 md:py-12 bg-primary text-primary-foreground border-t border-border">
         <div className="max-w-6xl mx-auto px-4 md:px-8 text-center">
-          <p className="text-sm md:text-base font-semibold">© {new Date().getFullYear()} {siteConfig.footer_text}</p>
+          <p className="text-sm md:text-base font-semibold opacity-80">© {new Date().getFullYear()} {siteConfig.footer_text}</p>
         </div>
       </footer>
       </div>
