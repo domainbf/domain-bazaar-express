@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -25,35 +25,9 @@ export const Navbar = ({ unreadCount = 0 }: NavbarProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { config: siteConfig } = useSiteSettings();
-  const [actualUnreadCount, setActualUnreadCount] = useState(unreadCount);
+  const actualUnreadCount = unreadCount;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  useEffect(() => {
-    const fetchUnreadCount = async () => {
-      if (user) {
-        try {
-          const { count, error } = await supabase
-            .from('notifications')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id)
-            .eq('is_read', false);
-          
-          if (!error && count !== null) {
-            setActualUnreadCount(count);
-          }
-        } catch (error) {
-          console.error('Error fetching unread count:', error);
-        }
-      }
-    };
-
-    if (user && unreadCount === 0) {
-      fetchUnreadCount();
-    } else {
-      setActualUnreadCount(unreadCount);
-    }
-  }, [user, unreadCount]);
 
   const handleLogout = async () => {
     if (isLoggingOut) return;

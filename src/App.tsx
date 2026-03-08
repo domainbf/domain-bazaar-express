@@ -1,10 +1,8 @@
 
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { Toaster } from "sonner";
-import { useEffect, Suspense, lazy } from 'react';
+import { useEffect, Suspense, lazy, memo, useCallback } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
-import { LoadingSpinner } from './components/common/LoadingSpinner';
 
 // Route-based code splitting
 const Index = lazy(() => import('./pages/Index'));
@@ -26,28 +24,16 @@ const Community = lazy(() => import('./pages/Community'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
-  const handleGoHome = () => {
-    window.location.href = '/';
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="text-center p-8 bg-card rounded-lg shadow-lg max-w-md w-full border border-border">
         <h2 className="text-2xl font-bold text-destructive mb-4">页面加载出错</h2>
-        <p className="text-muted-foreground mb-6">
-          抱歉，页面遇到了问题。请尝试刷新页面或返回首页。
-        </p>
+        <p className="text-muted-foreground mb-6">抱歉，页面遇到了问题。请尝试刷新页面或返回首页。</p>
         <div className="space-y-3">
-          <button
-            onClick={resetErrorBoundary}
-            className="w-full px-4 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
-          >
+          <button onClick={resetErrorBoundary} className="w-full px-4 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium">
             重试
           </button>
-          <button
-            onClick={handleGoHome}
-            className="w-full px-4 py-3 border border-border rounded-lg hover:bg-accent transition-colors text-foreground"
-          >
+          <button onClick={() => window.location.href = '/'} className="w-full px-4 py-3 border border-border rounded-lg hover:bg-accent transition-colors text-foreground">
             返回首页
           </button>
         </div>
@@ -56,21 +42,28 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
   );
 }
 
-// 优化的加载组件
-function RouteLoadingFallback() {
-  return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <LoadingSpinner size="lg" text="加载中..." />
+// Minimal skeleton loading — no spinner, just structure
+const RouteLoadingFallback = memo(() => (
+  <div className="min-h-screen bg-background">
+    <div className="h-14 border-b border-border bg-card animate-pulse" />
+    <div className="max-w-6xl mx-auto px-4 pt-8">
+      <div className="h-8 w-48 bg-muted rounded animate-pulse mb-6" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="h-48 bg-muted rounded-xl animate-pulse" />
+        ))}
+      </div>
     </div>
-  );
-}
+  </div>
+));
+RouteLoadingFallback.displayName = 'RouteLoadingFallback';
 
-// 路由过渡包装器
-function AnimatedRoutes() {
+// Routes component — memoized to avoid re-renders from parent
+const AnimatedRoutes = memo(() => {
   const location = useLocation();
 
   return (
-    <div className="animate-in fade-in duration-300">
+    <div key={location.pathname} className="animate-in fade-in duration-200">
       <Routes location={location}>
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<AuthPage />} />
@@ -78,70 +71,14 @@ function AnimatedRoutes() {
         <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/domain/:domainName" element={<DomainDetailPage />} />
         <Route path="/domains/:domainName" element={<DomainDetailPage />} />
-        <Route 
-          path="/dashboard" 
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/user-center" 
-          element={
-            <ProtectedRoute>
-              <UserCenter />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/user-center/*" 
-          element={
-            <ProtectedRoute>
-              <UserCenter />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/domain-management" 
-          element={
-            <ProtectedRoute>
-              <DomainManagement />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/admin" 
-          element={
-            <ProtectedRoute adminOnly={true}>
-              <AdminPanel />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/admin/*" 
-          element={
-            <ProtectedRoute adminOnly={true}>
-              <AdminPanel />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/domain-verification/:domainId" 
-          element={
-            <ProtectedRoute>
-              <DomainVerification />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/profile" 
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          } 
-        />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/user-center" element={<ProtectedRoute><UserCenter /></ProtectedRoute>} />
+        <Route path="/user-center/*" element={<ProtectedRoute><UserCenter /></ProtectedRoute>} />
+        <Route path="/domain-management" element={<ProtectedRoute><DomainManagement /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute adminOnly={true}><AdminPanel /></ProtectedRoute>} />
+        <Route path="/admin/*" element={<ProtectedRoute adminOnly={true}><AdminPanel /></ProtectedRoute>} />
+        <Route path="/domain-verification/:domainId" element={<ProtectedRoute><DomainVerification /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/profile/:profileId" element={<UserProfilePage />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/reset-password/*" element={<ResetPassword />} />
@@ -153,28 +90,31 @@ function AnimatedRoutes() {
       </Routes>
     </div>
   );
-}
+});
+AnimatedRoutes.displayName = 'AnimatedRoutes';
 
 function App() {
   useEffect(() => {
-    // 预加载关键路由（延迟执行以避免阻塞初始渲染）
+    // Preload critical routes after first paint
     const timer = setTimeout(() => {
       import('./pages/Marketplace').catch(() => {});
-      import('./pages/Dashboard').catch(() => {});
       import('./components/domain/DomainDetailPage').catch(() => {});
-    }, 3000);
+    }, 1500);
     
-    return () => clearTimeout(timer);
+    // Preload secondary routes after idle
+    const timer2 = setTimeout(() => {
+      import('./pages/AuthPage').catch(() => {});
+      import('./pages/UserCenter').catch(() => {});
+      import('./pages/Dashboard').catch(() => {});
+    }, 4000);
+    
+    return () => { clearTimeout(timer); clearTimeout(timer2); };
   }, []);
 
   return (
-    <ErrorBoundary
-      FallbackComponent={ErrorFallback}
-      onReset={() => window.location.reload()}
-    >
+    <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => window.location.reload()}>
       <Suspense fallback={<RouteLoadingFallback />}>
         <AnimatedRoutes />
-        <Toaster position="top-right" />
       </Suspense>
     </ErrorBoundary>
   );
