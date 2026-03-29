@@ -5,7 +5,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-// Send email via the unified send-email edge function (which handles SMTP/Resend)
 async function sendEmail(to: string, subject: string, html: string): Promise<void> {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -26,66 +25,205 @@ async function sendEmail(to: string, subject: string, html: string): Promise<voi
   await resp.json();
 }
 
+const emailBase = (content: string, previewText: string) => `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="x-apple-disable-message-reformatting">
+  <title>${previewText}</title>
+  <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
+  <style>
+    body { margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+    .preheader { display: none !important; visibility: hidden; opacity: 0; color: transparent; height: 0; width: 0; }
+    * { box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <span class="preheader">${previewText}</span>
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#f1f5f9;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;width:100%;">
+          <!-- Header brand bar -->
+          <tr>
+            <td style="padding-bottom:24px;text-align:center;">
+              <table cellpadding="0" cellspacing="0" role="presentation" style="display:inline-table;">
+                <tr>
+                  <td style="background:#0f172a;border-radius:12px;padding:10px 20px;">
+                    <span style="color:#f8fafc;font-size:20px;font-weight:800;letter-spacing:-0.5px;">域见</span><span style="color:#94a3b8;font-size:20px;font-weight:800;">•</span><span style="color:#f8fafc;font-size:20px;font-weight:800;letter-spacing:-0.5px;">你</span>
+                    <span style="color:#64748b;font-size:12px;font-weight:500;margin-left:8px;letter-spacing:1px;">NIC.RW</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Main card -->
+          <tr>
+            <td style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.07),0 2px 4px -2px rgba(0,0,0,0.05);">
+              ${content}
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="padding:28px 20px 0;text-align:center;">
+              <p style="margin:0;font-size:13px;color:#94a3b8;">此邮件由 <strong style="color:#64748b;">域见•你 域名交易平台</strong> 发送</p>
+              <p style="margin:8px 0 0;font-size:12px;color:#cbd5e1;">如果您没有操作本平台，请忽略此邮件</p>
+              <p style="margin:16px 0 0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} 域见•你 · NIC.RW · All rights reserved</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
 function getPasswordResetHtml(token: string, baseUrl: string): string {
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>重置密码</title></head>
-<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;color:#333;background:#f8fafc;">
-<div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 25px rgba(0,0,0,0.1);">
-<div style="background:linear-gradient(135deg,#1f2937,#374151);padding:40px 20px;text-align:center;">
-<h1 style="color:#fff;margin:0;font-size:28px;font-weight:700;">🔐 重置密码</h1>
-<h2 style="color:#d1d5db;margin:10px 0 0;font-size:16px;font-weight:400;">Reset Your Password</h2></div>
-<div style="padding:40px 20px;">
-<div style="text-align:center;margin-bottom:30px;">
-<p style="font-size:16px;color:#374151;margin:0 0 20px;">您好！我们收到了重置您账户密码的请求。</p>
-<p style="font-size:14px;color:#6b7280;margin:0;">Hello! We received a request to reset your account password.</p></div>
-<div style="text-align:center;margin:30px 0;">
-<a href="${baseUrl}/reset-password#access_token=${token}&type=recovery" style="display:inline-block;background:linear-gradient(135deg,#1f2937,#374151);color:#fff;padding:16px 32px;text-decoration:none;border-radius:8px;font-weight:600;font-size:16px;">
-立即重置密码 | Reset Password Now</a></div>
-<div style="background:#f3f4f6;border-radius:8px;padding:20px;margin:30px 0;text-align:center;">
-<h3 style="margin:0 0 10px;color:#1f2937;font-size:16px;">🛡️ 安全提醒</h3>
-<p style="margin:0;font-size:14px;color:#6b7280;">如果您没有请求重置密码，请忽略此邮件。</p>
-<p style="margin:5px 0 0;font-size:14px;color:#6b7280;">If you didn't request this, please ignore this email.</p></div></div>
-<div style="background:#f8fafc;padding:30px 20px;text-align:center;border-top:1px solid #e5e7eb;">
-<p style="margin:0;font-size:14px;color:#6b7280;">此邮件由 <strong>域见•你 域名交易平台</strong> 发送</p>
-<p style="margin:15px 0 0;font-size:12px;color:#9ca3af;">© ${new Date().getFullYear()} 域见•你. All rights reserved.</p></div></div></body></html>`;
+  const resetUrl = `${baseUrl}/reset-password#access_token=${token}&type=recovery`;
+  const content = `
+    <!-- Top accent bar -->
+    <div style="height:4px;background:linear-gradient(90deg,#0f172a 0%,#1e293b 50%,#334155 100%);"></div>
+    <!-- Icon + heading -->
+    <div style="padding:40px 40px 32px;text-align:center;">
+      <div style="width:64px;height:64px;background:#f1f5f9;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;">
+        <span style="font-size:32px;line-height:1;">🔐</span>
+      </div>
+      <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#0f172a;letter-spacing:-0.5px;">重置您的密码</h1>
+      <p style="margin:0;font-size:15px;color:#64748b;line-height:1.6;">Reset Your Password</p>
+    </div>
+    <!-- Divider -->
+    <div style="height:1px;background:#f1f5f9;margin:0 40px;"></div>
+    <!-- Body -->
+    <div style="padding:32px 40px;">
+      <p style="margin:0 0 24px;font-size:15px;color:#334155;line-height:1.7;">您好，</p>
+      <p style="margin:0 0 24px;font-size:15px;color:#334155;line-height:1.7;">
+        我们收到了重置您 <strong style="color:#0f172a;">域见•你</strong> 账户密码的请求。点击下方按钮设置新密码：
+      </p>
+      <!-- CTA Button -->
+      <div style="text-align:center;margin:32px 0;">
+        <a href="${resetUrl}"
+           style="display:inline-block;background:#0f172a;color:#f8fafc;padding:16px 40px;border-radius:10px;font-size:16px;font-weight:600;text-decoration:none;letter-spacing:0.2px;box-shadow:0 4px 14px rgba(15,23,42,0.25);">
+          立即重置密码
+        </a>
+      </div>
+      <!-- Backup link -->
+      <div style="background:#f8fafc;border-radius:8px;padding:16px;margin:0 0 24px;">
+        <p style="margin:0 0 8px;font-size:12px;color:#94a3b8;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">如果按钮无法点击，请复制以下链接至浏览器：</p>
+        <p style="margin:0;font-size:12px;color:#0f172a;word-break:break-all;font-family:monospace;line-height:1.5;">${resetUrl}</p>
+      </div>
+      <!-- Security notice -->
+      <div style="background:#fefce8;border:1px solid #fef08a;border-radius:8px;padding:16px;">
+        <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#854d0e;">安全提醒</p>
+        <ul style="margin:0;padding-left:16px;font-size:13px;color:#713f12;line-height:1.8;">
+          <li>此链接 <strong>30 分钟内</strong>有效，且只能使用一次</li>
+          <li>如果您没有请求重置密码，请忽略此邮件，您的账户仍然安全</li>
+          <li>切勿将此链接分享给任何人</li>
+        </ul>
+      </div>
+    </div>
+    <!-- Footer inner -->
+    <div style="padding:20px 40px;background:#f8fafc;border-top:1px solid #f1f5f9;border-radius:0 0 16px 16px;">
+      <p style="margin:0;font-size:13px;color:#94a3b8;text-align:center;">遇到问题？请联系 <a href="mailto:support@nic.rw" style="color:#64748b;text-decoration:none;">support@nic.rw</a></p>
+    </div>`;
+  return emailBase(content, '重置您的域见•你账户密码');
 }
 
 function getEmailVerificationHtml(tokenHash: string, confirmUrl: string): string {
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>验证邮箱</title></head>
-<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;color:#333;background:#f8fafc;">
-<div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 25px rgba(0,0,0,0.1);">
-<div style="background:linear-gradient(135deg,#1f2937,#374151);padding:40px 20px;text-align:center;">
-<h1 style="color:#fff;margin:0;font-size:28px;font-weight:700;">🎉 欢迎加入 域见•你</h1>
-<h2 style="color:#d1d5db;margin:10px 0 0;font-size:16px;font-weight:400;">Welcome to 域见•你</h2></div>
-<div style="padding:40px 20px;">
-<div style="text-align:center;margin-bottom:30px;">
-<p style="font-size:16px;color:#374151;margin:0 0 20px;">感谢注册！请验证您的邮箱地址。</p>
-<p style="font-size:14px;color:#6b7280;margin:0;">Please verify your email address to complete registration.</p></div>
-<div style="text-align:center;margin:30px 0;">
-<a href="${confirmUrl}" style="display:inline-block;background:linear-gradient(135deg,#1f2937,#374151);color:#fff;padding:16px 32px;text-decoration:none;border-radius:8px;font-weight:600;font-size:16px;">
-验证邮箱 | Verify Email</a></div></div>
-<div style="background:#f8fafc;padding:30px 20px;text-align:center;border-top:1px solid #e5e7eb;">
-<p style="margin:0;font-size:14px;color:#6b7280;">此邮件由 <strong>域见•你 域名交易平台</strong> 发送</p>
-<p style="margin:15px 0 0;font-size:12px;color:#9ca3af;">© ${new Date().getFullYear()} 域见•你. All rights reserved.</p></div></div></body></html>`;
+  const content = `
+    <!-- Top accent bar -->
+    <div style="height:4px;background:linear-gradient(90deg,#0f172a 0%,#1e293b 50%,#334155 100%);"></div>
+    <!-- Icon + heading -->
+    <div style="padding:40px 40px 32px;text-align:center;">
+      <div style="width:64px;height:64px;background:#f0fdf4;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;">
+        <span style="font-size:32px;line-height:1;">🎉</span>
+      </div>
+      <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#0f172a;letter-spacing:-0.5px;">欢迎加入域见•你</h1>
+      <p style="margin:0;font-size:15px;color:#64748b;line-height:1.6;">Welcome to 域见•你 · NIC.RW</p>
+    </div>
+    <!-- Divider -->
+    <div style="height:1px;background:#f1f5f9;margin:0 40px;"></div>
+    <!-- Body -->
+    <div style="padding:32px 40px;">
+      <p style="margin:0 0 16px;font-size:15px;color:#334155;line-height:1.7;">您好，</p>
+      <p style="margin:0 0 24px;font-size:15px;color:#334155;line-height:1.7;">
+        感谢您注册 <strong style="color:#0f172a;">域见•你</strong> 域名交易平台！请点击下方按钮验证您的邮箱地址，完成账户激活：
+      </p>
+      <!-- CTA Button -->
+      <div style="text-align:center;margin:32px 0;">
+        <a href="${confirmUrl}"
+           style="display:inline-block;background:#0f172a;color:#f8fafc;padding:16px 40px;border-radius:10px;font-size:16px;font-weight:600;text-decoration:none;letter-spacing:0.2px;box-shadow:0 4px 14px rgba(15,23,42,0.25);">
+          验证邮箱地址
+        </a>
+      </div>
+      <!-- Features highlight -->
+      <div style="background:#f8fafc;border-radius:10px;padding:20px;margin:0 0 24px;">
+        <p style="margin:0 0 12px;font-size:13px;font-weight:600;color:#0f172a;">验证后您可以：</p>
+        <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
+          <tr>
+            <td style="padding:6px 0;font-size:13px;color:#475569;">
+              <span style="color:#0f172a;font-weight:600;margin-right:8px;">✓</span>上架出售您的域名资产
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;font-size:13px;color:#475569;">
+              <span style="color:#0f172a;font-weight:600;margin-right:8px;">✓</span>竞拍优质域名，安全托管交易
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;font-size:13px;color:#475569;">
+              <span style="color:#0f172a;font-weight:600;margin-right:8px;">✓</span>与买家/卖家实时沟通洽谈
+            </td>
+          </tr>
+        </table>
+      </div>
+      <!-- Notice -->
+      <p style="margin:0;font-size:13px;color:#94a3b8;text-align:center;">此验证链接 <strong style="color:#64748b;">24 小时内</strong>有效，如未申请请忽略此邮件。</p>
+    </div>
+    <!-- Footer inner -->
+    <div style="padding:20px 40px;background:#f8fafc;border-top:1px solid #f1f5f9;border-radius:0 0 16px 16px;">
+      <p style="margin:0;font-size:13px;color:#94a3b8;text-align:center;">遇到问题？请联系 <a href="mailto:support@nic.rw" style="color:#64748b;text-decoration:none;">support@nic.rw</a></p>
+    </div>`;
+  return emailBase(content, '验证您的域见•你账户邮箱');
 }
 
 function getMagicLinkHtml(confirmUrl: string): string {
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>登录链接</title></head>
-<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;color:#333;background:#f8fafc;">
-<div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 25px rgba(0,0,0,0.1);">
-<div style="background:linear-gradient(135deg,#1f2937,#374151);padding:40px 20px;text-align:center;">
-<h1 style="color:#fff;margin:0;font-size:28px;font-weight:700;">🔗 登录链接</h1>
-<h2 style="color:#d1d5db;margin:10px 0 0;font-size:16px;font-weight:400;">Magic Login Link</h2></div>
-<div style="padding:40px 20px;">
-<div style="text-align:center;margin-bottom:30px;">
-<p style="font-size:16px;color:#374151;margin:0 0 20px;">点击下方链接登录您的 域见•你 账户：</p></div>
-<div style="text-align:center;margin:30px 0;">
-<a href="${confirmUrl}" style="display:inline-block;background:linear-gradient(135deg,#1f2937,#374151);color:#fff;padding:16px 32px;text-decoration:none;border-radius:8px;font-weight:600;font-size:16px;">
-登录 域见•你 | Sign in</a></div>
-<div style="background:#f3f4f6;border-radius:8px;padding:20px;margin:30px 0;text-align:center;">
-<p style="margin:0;font-size:14px;color:#6b7280;">⏰ 此链接将在30分钟后过期</p></div></div>
-<div style="background:#f8fafc;padding:30px 20px;text-align:center;border-top:1px solid #e5e7eb;">
-<p style="margin:0;font-size:14px;color:#6b7280;">此邮件由 <strong>域见•你 域名交易平台</strong> 发送</p>
-<p style="margin:15px 0 0;font-size:12px;color:#9ca3af;">© ${new Date().getFullYear()} 域见•你. All rights reserved.</p></div></div></body></html>`;
+  const content = `
+    <!-- Top accent bar -->
+    <div style="height:4px;background:linear-gradient(90deg,#0f172a 0%,#1e293b 50%,#334155 100%);"></div>
+    <!-- Icon + heading -->
+    <div style="padding:40px 40px 32px;text-align:center;">
+      <div style="width:64px;height:64px;background:#eff6ff;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;">
+        <span style="font-size:32px;line-height:1;">🔗</span>
+      </div>
+      <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#0f172a;letter-spacing:-0.5px;">您的登录链接</h1>
+      <p style="margin:0;font-size:15px;color:#64748b;line-height:1.6;">Magic Login Link · 无密码登录</p>
+    </div>
+    <!-- Divider -->
+    <div style="height:1px;background:#f1f5f9;margin:0 40px;"></div>
+    <!-- Body -->
+    <div style="padding:32px 40px;">
+      <p style="margin:0 0 24px;font-size:15px;color:#334155;line-height:1.7;">
+        点击下方按钮，一键登录您的 <strong style="color:#0f172a;">域见•你</strong> 账户：
+      </p>
+      <!-- CTA Button -->
+      <div style="text-align:center;margin:32px 0;">
+        <a href="${confirmUrl}"
+           style="display:inline-block;background:#0f172a;color:#f8fafc;padding:16px 40px;border-radius:10px;font-size:16px;font-weight:600;text-decoration:none;letter-spacing:0.2px;box-shadow:0 4px 14px rgba(15,23,42,0.25);">
+          立即登录
+        </a>
+      </div>
+      <!-- Time limit notice -->
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:14px 16px;text-align:center;">
+        <p style="margin:0;font-size:13px;color:#b91c1c;font-weight:500;">此链接 <strong>15 分钟内</strong>有效，且只能使用一次</p>
+      </div>
+      <p style="margin:20px 0 0;font-size:13px;color:#94a3b8;text-align:center;">如果您没有请求此链接，请直接忽略此邮件，无需任何操作。</p>
+    </div>
+    <!-- Footer inner -->
+    <div style="padding:20px 40px;background:#f8fafc;border-top:1px solid #f1f5f9;border-radius:0 0 16px 16px;">
+      <p style="margin:0;font-size:13px;color:#94a3b8;text-align:center;">遇到问题？请联系 <a href="mailto:support@nic.rw" style="color:#64748b;text-decoration:none;">support@nic.rw</a></p>
+    </div>`;
+  return emailBase(content, '您的域见•你免密登录链接');
 }
 
 Deno.serve(async (req) => {
@@ -113,6 +251,9 @@ Deno.serve(async (req) => {
     } else if (site_url) {
       baseUrl = site_url.replace(/\/$/, '');
     }
+
+    if (!baseUrl) baseUrl = 'https://nic.rw';
+
     const userEmail = user.email;
 
     let subject = '';
@@ -120,25 +261,29 @@ Deno.serve(async (req) => {
 
     switch (email_action_type) {
       case 'recovery':
-        subject = '🔐 重置您的 域见•你 账户密码 | Reset your password';
+        subject = '重置您的 域见•你 账户密码';
         htmlContent = getPasswordResetHtml(token, baseUrl);
         break;
       case 'signup':
       case 'email_change': {
-        subject = '🎉 欢迎加入 域见•你 - 请验证邮箱 | Verify your email';
+        subject = '请验证您的 域见•你 账户邮箱';
         const confirmUrl = `${baseUrl}/auth/confirm?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to || baseUrl)}`;
         htmlContent = getEmailVerificationHtml(token_hash, confirmUrl);
         break;
       }
       case 'magiclink': {
-        subject = '🔗 您的 域见•你 登录链接 | Your login link';
+        subject = '您的 域见•你 一键登录链接';
         const magicUrl = `${baseUrl}/auth/confirm?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to || baseUrl)}`;
         htmlContent = getMagicLinkHtml(magicUrl);
         break;
       }
       default:
-        subject = '域见•你 通知';
-        htmlContent = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;"><h2>域见•你 通知</h2><p>您收到了一封来自 域见•你 的通知邮件。</p></div>`;
+        subject = '域见•你 平台通知';
+        htmlContent = emailBase(`
+          <div style="padding:40px;">
+            <h2 style="margin:0 0 16px;color:#0f172a;">域见•你 通知</h2>
+            <p style="margin:0;color:#475569;">您收到了一封来自 域见•你 平台的通知邮件。</p>
+          </div>`, '域见•你平台通知');
     }
 
     await sendEmail(userEmail, subject, htmlContent);

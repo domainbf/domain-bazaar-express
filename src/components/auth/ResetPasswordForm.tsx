@@ -1,127 +1,143 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, ArrowLeft, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Mail, ArrowLeft, Loader2, AlertCircle, CheckCircle, Send } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export const ResetPasswordForm = () => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const { resetPassword } = useAuth();
-  const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email.trim()) {
+      setErrorMessage('请输入邮箱地址');
+      return;
+    }
     setIsLoading(true);
-    
+    setErrorMessage('');
+
     try {
-      console.log('尝试重置密码，邮箱:', email);
-      await resetPassword(email);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
       setIsSubmitted(true);
       toast.success('密码重置链接已发送到您的邮箱');
     } catch (error: any) {
-      console.error('重置密码请求出错:', error);
-      toast.error(error.message || '发送重置邮件时出错');
+      let msg = '发送重置邮件时出错，请稍后再试';
+      if (error.message?.includes('rate limit') || error.message?.includes('Too many')) msg = '请求过于频繁，请稍后再试';
+      else if (error.message) msg = error.message;
+      setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }
   };
 
-  return (
-    <Card className="w-full shadow-md border border-gray-200">
-      <CardHeader className={isSubmitted ? "pb-2" : "pb-6"}>
-        <CardTitle className="text-2xl font-bold">重置密码</CardTitle>
-        <CardDescription>
-          {!isSubmitted 
-            ? "输入您的邮箱，我们将发送重置密码的说明" 
-            : "请查看您的邮箱获取重置指引"}
-        </CardDescription>
-      </CardHeader>
-      
-      <CardContent>
-        {!isSubmitted ? (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                <Mail className="w-4 h-4" /> 邮箱
-              </label>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="your@email.com"
-                className="w-full"
-                disabled={isLoading}
-              />
+  if (isSubmitted) {
+    return (
+      <div className="space-y-5">
+        <Alert className="border-primary/20 bg-primary/5">
+          <CheckCircle className="h-4 w-4 text-primary" />
+          <AlertDescription>
+            <div className="space-y-1.5">
+              <p className="font-semibold text-foreground">重置链接已发送！</p>
+              <p className="text-sm text-muted-foreground">
+                已发送至：<span className="font-medium text-foreground">{email}</span>
+              </p>
             </div>
-          </form>
-        ) : (
-          <div className="py-4">
-            <div className="bg-green-50 text-green-700 p-4 rounded-md mb-4 flex items-start">
-              <CheckCircle className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="font-medium">密码重置指引已发送至:</p>
-                <p className="mt-1">{email}</p>
-              </div>
-            </div>
-            <div className="bg-blue-50 text-blue-700 p-4 rounded-md mt-4 flex items-start">
-              <AlertCircle className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="font-medium">注意事项</p>
-                <ul className="mt-1 text-sm space-y-1 list-disc list-inside ml-1">
-                  <li>重置链接有效期为30分钟</li>
-                  <li>如果没有看到邮件，请检查垃圾邮件文件夹</li>
-                  <li>确保使用您注册时的邮箱地址</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        )}
-      </CardContent>
-      
-      <CardFooter className={isSubmitted ? "justify-center" : "justify-between"}>
-        {!isSubmitted ? (
-          <>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => navigate('/auth')}
-              disabled={isLoading}
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" /> 返回登录
-            </Button>
-            <Button 
-              type="submit" 
-              onClick={handleSubmit}
-              disabled={isLoading || !email}
-              className="bg-black hover:bg-gray-800"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> 发送中...
-                </>
-              ) : (
-                "重置密码"
-              )}
-            </Button>
-          </>
-        ) : (
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={() => navigate('/auth')}
-            className="w-full"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" /> 返回登录
+          </AlertDescription>
+        </Alert>
+
+        <div className="bg-muted/50 border border-border rounded-lg p-4 space-y-2">
+          <p className="text-sm font-medium text-foreground">请注意：</p>
+          <ul className="text-sm text-muted-foreground space-y-1.5 pl-1">
+            <li className="flex items-start gap-2">
+              <span className="text-primary font-bold mt-0.5">·</span>
+              重置链接有效期为 <strong className="text-foreground">30 分钟</strong>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary font-bold mt-0.5">·</span>
+              如未收到邮件，请检查垃圾邮件文件夹
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary font-bold mt-0.5">·</span>
+              链接只能使用一次，过期后需重新申请
+            </li>
+          </ul>
+        </div>
+
+        <Link to="/auth">
+          <Button variant="outline" className="w-full h-11">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            返回登录
           </Button>
-        )}
-      </CardFooter>
-    </Card>
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {errorMessage && (
+        <Alert variant="destructive" className="border-destructive/30 bg-destructive/5">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{errorMessage}</AlertDescription>
+        </Alert>
+      )}
+
+      <div className="space-y-2">
+        <label className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <Mail className="w-4 h-4 text-muted-foreground" />
+          注册邮箱地址
+          <span className="text-destructive">*</span>
+        </label>
+        <Input
+          type="email"
+          value={email}
+          onChange={(e) => { setEmail(e.target.value); setErrorMessage(''); }}
+          required
+          className="h-11 bg-background border-input focus:border-primary focus:ring-2 focus:ring-ring/20 transition-all duration-200"
+          placeholder="your@email.com"
+          disabled={isLoading}
+          autoFocus
+          data-testid="input-reset-email"
+        />
+        <p className="text-xs text-muted-foreground">请输入您注册时使用的邮箱地址</p>
+      </div>
+
+      <div className="flex gap-3">
+        <Link to="/auth" className="flex-1">
+          <Button type="button" variant="outline" className="w-full h-11" disabled={isLoading}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            返回登录
+          </Button>
+        </Link>
+        <Button
+          type="submit"
+          disabled={isLoading || !email}
+          className="flex-1 h-11 font-medium"
+          data-testid="button-send-reset"
+        >
+          {isLoading ? (
+            <span className="flex items-center gap-2">
+              <Loader2 className="animate-spin w-4 h-4" />
+              发送中...
+            </span>
+          ) : (
+            <span className="flex items-center gap-2">
+              <Send className="w-4 h-4" />
+              发送重置链接
+            </span>
+          )}
+        </Button>
+      </div>
+    </form>
   );
 };

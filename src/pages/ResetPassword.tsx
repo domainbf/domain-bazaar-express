@@ -1,90 +1,154 @@
-import { Navbar } from '@/components/Navbar';
 import { ResetPasswordForm } from '@/components/auth/ResetPasswordForm';
 import { ResetPasswordConfirmForm } from '@/components/auth/ResetPasswordConfirmForm';
-import { useTranslation } from 'react-i18next';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Globe, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export const ResetPassword = () => {
-  const { t } = useTranslation();
   const location = useLocation();
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [resetTokenData, setResetTokenData] = useState<{
     accessToken: string;
     refreshToken: string;
   } | null>(null);
-  
+
   useEffect(() => {
-    // Check if we have a session recovery (password reset) token in the URL
     const handlePasswordRecovery = async () => {
       setIsLoading(true);
       const hash = location.hash;
-      
+
       if (hash && hash.includes('type=recovery')) {
-        // 解析 URL 哈希参数
         const hashParams = new URLSearchParams(hash.replace(/^#/, ''));
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');
-        
+
         if (!accessToken) {
           toast.error('找不到重置令牌，请重新请求密码重置');
           setIsLoading(false);
           return;
         }
-        
-        // 清理 URL 中的哈希，防止泄露，但保留 token 数据用于后续使用
+
         window.history.replaceState({}, '', window.location.pathname + window.location.search);
-        
-        // 保存 token 数据，但不立即建立会话
-        // 只有当用户提交新密码时才使用这些 token
+
         setResetTokenData({
           accessToken,
           refreshToken: refreshToken || ''
         });
       }
-      
+
       setIsLoading(false);
     };
-    
+
     handlePasswordRecovery();
-  }, [location, navigate]);
-  
-  // Show loading state while checking token
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="max-w-4xl mx-auto px-4 py-12 flex justify-center">
-          <div className="w-full max-w-md flex flex-col items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">正在验证您的重置链接...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  
+  }, [location]);
+
+  const title = resetTokenData ? '设置新密码' : '找回密码';
+  const subtitle = resetTokenData
+    ? '请设置一个安全的新密码，设置后原密码立即失效'
+    : '输入您的注册邮箱，我们将发送密码重置链接';
+
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <div className="max-w-4xl mx-auto px-4 py-12 flex justify-center">
-        <div className="w-full max-w-md">
-          {resetTokenData ? (
-            <ResetPasswordConfirmForm tokenData={resetTokenData} />
-          ) : (
-            <>
-              <h1 className="text-3xl font-bold text-center mb-6 text-foreground">重置密码</h1>
-              <p className="text-muted-foreground text-center mb-8">
-                请输入您注册时使用的邮箱，我们将发送重置链接给您
-              </p>
-              <ResetPasswordForm />
-            </>
-          )}
+    <div className="min-h-screen bg-muted/50 flex flex-col">
+      {/* Header */}
+      <header className="bg-background border-b border-border px-4 py-4">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
+            <img
+              src="/lovable-uploads/nic.png"
+              alt="域见•你"
+              className="h-10 w-auto"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                if (fallback) fallback.style.display = 'block';
+              }}
+            />
+            <span className="text-2xl font-bold text-foreground" style={{ display: 'none' }}>域见•你</span>
+          </Link>
+          <Link to="/auth" className="text-muted-foreground hover:text-foreground text-sm font-medium flex items-center gap-1.5 transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            返回登录
+          </Link>
         </div>
+      </header>
+
+      {/* Main */}
+      <div className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
+        {isLoading ? (
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            <p className="text-muted-foreground text-sm">正在验证重置链接...</p>
+          </div>
+        ) : (
+          <motion.div
+            className="w-full max-w-md"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+          >
+            {/* Auth Card */}
+            <div className="bg-background rounded-xl shadow-lg border border-border overflow-hidden">
+              {/* Card Header */}
+              <div className="bg-primary text-primary-foreground px-8 py-8 text-center relative overflow-hidden">
+                <div className="absolute inset-0 opacity-5">
+                  <div className="absolute inset-0" style={{
+                    backgroundImage: 'radial-gradient(circle at 25% 25%, currentColor 1px, transparent 1px)',
+                    backgroundSize: '24px 24px'
+                  }} />
+                </div>
+                <div className="relative z-10">
+                  <div className="w-16 h-16 bg-primary-foreground/10 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
+                    {resetTokenData
+                      ? <ShieldCheck className="w-8 h-8" />
+                      : <Globe className="w-8 h-8" />
+                    }
+                  </div>
+                  <h1 className="text-2xl font-bold mb-2">{title}</h1>
+                  <p className="text-primary-foreground/70 text-sm">{subtitle}</p>
+                </div>
+              </div>
+
+              {/* Card Body */}
+              <div className="px-6 sm:px-8 py-8">
+                {resetTokenData ? (
+                  <ResetPasswordConfirmForm tokenData={resetTokenData} />
+                ) : (
+                  <ResetPasswordForm />
+                )}
+              </div>
+            </div>
+
+            {/* Trust badges */}
+            <motion.div
+              className="mt-8 grid grid-cols-3 gap-4 text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.4 }}
+            >
+              {[
+                { label: '加密传输', desc: 'SSL 全程保护' },
+                { label: '数据安全', desc: '企业级存储' },
+                { label: '隐私合规', desc: '严格保密' },
+              ].map(({ label, desc }) => (
+                <div key={label} className="flex flex-col items-center">
+                  <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center mb-2">
+                    <ShieldCheck className="w-5 h-5 text-primary-foreground" />
+                  </div>
+                  <span className="text-xs font-medium text-foreground">{label}</span>
+                  <span className="text-xs text-muted-foreground">{desc}</span>
+                </div>
+              ))}
+            </motion.div>
+          </motion.div>
+        )}
       </div>
+
+      {/* Footer */}
+      <footer className="bg-background border-t border-border px-4 py-4 text-center text-sm text-muted-foreground">
+        © {new Date().getFullYear()} 域见•你 - 专业域名交易平台
+      </footer>
     </div>
   );
 };
