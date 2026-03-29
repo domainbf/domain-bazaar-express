@@ -6,6 +6,7 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { CustomScripts } from './components/common/CustomScripts';
 import { PWAInstallBanner } from './components/pwa/PWAInstallBanner';
 import { TopProgressBar } from './components/common/TopProgressBar';
+import { GlobalBottomNav } from './components/mobile/GlobalBottomNav';
 
 // Route-based code splitting
 const Index = lazy(() => import('./pages/Index'));
@@ -148,6 +149,11 @@ function App() {
       <Suspense fallback={<RouteLoadingFallback />}>
         <AnimatedRoutes />
       </Suspense>
+      {/* GlobalBottomNav must be OUTSIDE the animated routes wrapper.
+          The animate-slide-up transform creates a new containing block
+          which breaks position:fixed on children. Rendering here ensures
+          the nav is always fixed to the viewport on mobile. */}
+      <GlobalBottomNav />
     </ErrorBoundary>
   );
 }

@@ -7,18 +7,21 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UserCenterStatsGrid } from '@/components/usercenter/UserCenterStatsGrid';
 import { UserCenterTabsContent } from '@/components/usercenter/UserCenterTabsContent';
+import { ProfileSettings } from '@/components/usercenter/ProfileSettings';
+import { AccountSecurity } from '@/components/usercenter/AccountSecurity';
 import { Button } from "@/components/ui/button";
 import {
   ClipboardList, User, Bell, MessageSquare, ArrowLeft,
-  Shield, Sparkles, ChevronRight, Globe, Settings
+  Shield, Sparkles, ChevronRight, Globe, Settings, HeadphonesIcon
 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { useNotifications } from '@/hooks/useNotifications';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { BottomNavigation } from '@/components/mobile/BottomNavigation';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from 'framer-motion';
+
+const VALID_TABS = ['domains', 'transactions', 'messages', 'profile', 'notifications', 'profile-settings', 'profile-security'];
 
 const SECTION_LABELS: Record<string, string> = {
   domains: '我的域名',
@@ -26,6 +29,8 @@ const SECTION_LABELS: Record<string, string> = {
   messages: '站内消息',
   notifications: '消息通知',
   profile: '个人中心',
+  'profile-settings': '个人资料',
+  'profile-security': '账户安全',
 };
 
 export const UserCenter = () => {
@@ -53,15 +58,13 @@ export const UserCenter = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tabParam = params.get('tab');
-    const validTabs = ['domains', 'transactions', 'messages', 'profile', 'notifications'];
-    if (tabParam && validTabs.includes(tabParam)) setActiveTab(tabParam);
+    if (tabParam && VALID_TABS.includes(tabParam)) setActiveTab(tabParam);
   }, []);
 
   useEffect(() => {
     const handleTabChange = (event: CustomEvent) => {
       const newTab = event.detail?.tab;
-      const validTabs = ['domains', 'transactions', 'messages', 'profile', 'notifications'];
-      if (newTab && validTabs.includes(newTab)) {
+      if (newTab && VALID_TABS.includes(newTab)) {
         setActiveTab(newTab);
         if (newTab === 'notifications') refreshNotifications();
       }
@@ -112,14 +115,16 @@ export const UserCenter = () => {
 
   /* ─── MOBILE LAYOUT ─────────────────────────────────────────── */
   if (isMobile) {
+    const isSubPage = activeTab === 'profile-settings' || activeTab === 'profile-security';
     return (
-      <div className="min-h-screen bg-muted/30 pb-[72px]">
+      <div className="min-h-screen bg-muted/30" style={{ paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}>
         {/* Mobile top bar — compact section header */}
         <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
           <div className="flex items-center h-12 px-4 gap-3">
             <button
-              onClick={() => navigate('/')}
+              onClick={() => isSubPage ? handleTabChange('profile') : navigate('/')}
               className="text-muted-foreground hover:text-foreground transition-colors -ml-1"
+              data-testid="mobile-back-btn"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
@@ -163,7 +168,6 @@ export const UserCenter = () => {
           </div>
         )}
 
-        <BottomNavigation unreadCount={unreadCount} unreadMessages={unreadMessages} />
       </div>
     );
   }
@@ -323,8 +327,6 @@ function MobileProfileSection({
 
   const handleItemTap = (tab: string) => {
     if (tab === '__admin') { navigate('/admin'); return; }
-    if (tab === 'profile-settings') { onTabChange('profile'); return; }
-    if (tab === 'profile-security') { onTabChange('profile'); return; }
     onTabChange(tab);
   };
 
@@ -424,16 +426,16 @@ function MobileProfileSection({
       >
         <div className="bg-card rounded-2xl border border-border overflow-hidden">
           <button
-            onClick={() => navigate('/auth')}
+            onClick={() => window.open('mailto:support@nic.bn', '_blank')}
             className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/50 active:bg-muted transition-colors text-left"
             data-testid="mobile-nav-support"
           >
             <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-              <MessageSquare className="w-4 h-4 text-muted-foreground" />
+              <HeadphonesIcon className="w-4 h-4 text-muted-foreground" />
             </div>
             <div className="flex-1">
               <p className="text-sm font-medium text-foreground">联系支持</p>
-              <p className="text-xs text-muted-foreground">遇到问题？联系我们</p>
+              <p className="text-xs text-muted-foreground">support@nic.bn</p>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
           </button>
@@ -447,6 +449,12 @@ function MobileProfileSection({
    Mobile: Tab content wrapper (no card wrapper, full bleed)
 ──────────────────────────────────────────────────────────────────── */
 function MobileTabContent({ activeTab }: { activeTab: string }) {
+  if (activeTab === 'profile-settings') {
+    return <div className="pb-4"><ProfileSettings /></div>;
+  }
+  if (activeTab === 'profile-security') {
+    return <div className="pb-4"><AccountSecurity /></div>;
+  }
   return (
     <Tabs value={activeTab} className="w-full">
       <UserCenterTabsContent />

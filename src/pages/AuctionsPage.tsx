@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navbar } from '@/components/Navbar';
-import { BottomNavigation } from '@/components/mobile/BottomNavigation';
+
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNotifications } from '@/hooks/useNotifications';
 import { DomainAuction } from '@/components/auction/DomainAuction';
@@ -255,7 +255,7 @@ export const AuctionsPage = () => {
         </div>
       </div>
 
-      {isMobile && <BottomNavigation unreadCount={unreadCount} />}
+      
     </div>
   );
 };

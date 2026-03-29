@@ -13,7 +13,7 @@ import { fallbackDomains } from '@/data/availableDomains';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { BottomNavigation } from '@/components/mobile/BottomNavigation';
+
 import { useNotifications } from '@/hooks/useNotifications';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { useDomainListings } from '@/hooks/useDomainListings';
@@ -283,7 +283,7 @@ const Index = () => {
         <Footer />
       </div>
 
-      {isMobile && <BottomNavigation unreadCount={unreadCount} />}
+      
       <AuthModal open={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </div>
   );

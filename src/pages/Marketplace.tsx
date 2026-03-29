@@ -3,7 +3,7 @@ import { Navbar } from '@/components/Navbar';
 import { DomainListings } from '@/components/marketplace/DomainListings';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTranslation } from 'react-i18next';
-import { BottomNavigation } from '@/components/mobile/BottomNavigation';
+
 import { SkeletonCardGrid } from '@/components/common/SkeletonCard';
 import { SoldDomains } from '@/components/sections/SoldDomains';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -302,7 +302,7 @@ export const Marketplace = () => {
         <SoldDomains />
       </div>
 
-      {isMobile && <BottomNavigation unreadCount={unreadCount} />}
+      
     </div>
   );
 };

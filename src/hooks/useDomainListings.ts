@@ -62,7 +62,7 @@ export const useDomainListings = () => {
     staleTime: 3 * 60 * 1000,      // 3 min — fresh enough, no unnecessary refetch
     gcTime:    15 * 60 * 1000,     // keep in memory 15 min
     refetchOnWindowFocus: false,
-    refetchOnMount: false,          // use cache if available
+    refetchOnMount: true,
     retry: 2,
   });
 };
