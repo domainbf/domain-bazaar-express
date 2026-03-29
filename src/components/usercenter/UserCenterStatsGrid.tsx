@@ -1,24 +1,25 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { User } from "@supabase/supabase-js";
 import { UserProfile } from "@/types/userProfile";
 import { 
   Globe, 
   DollarSign, 
-  TrendingUp, 
-  ShoppingCart,
   Eye,
   Heart,
   MessageSquare,
   Award,
-  Package,
+  ShoppingCart,
   CheckCircle,
-  Shield
+  CalendarDays,
+  TrendingUp
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { formatDistanceToNow } from "date-fns";
+import { zhCN } from "date-fns/locale";
 
 interface UserCenterStatsGridProps {
   profile: UserProfile | null;
@@ -182,74 +183,105 @@ export const UserCenterStatsGrid = ({ profile, user }: UserCenterStatsGridProps)
     }
   ];
 
+  const memberSince = profile?.created_at
+    ? formatDistanceToNow(new Date(profile.created_at), { addSuffix: false, locale: zhCN })
+    : null;
+
   if (isLoading) {
     return (
-      <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6'} gap-3`}>
-        {[...Array(6)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardContent className="p-4">
-              <div className="h-14 bg-muted rounded" />
-            </CardContent>
-          </Card>
-        ))}
+      <div className="space-y-3">
+        <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-3 lg:grid-cols-6'} gap-3`}>
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-4">
+                <div className="h-14 bg-muted rounded" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6'} gap-3`}>
-      {statsCards.map((stat, index) => {
-        const Icon = stat.icon;
-        return (
-          <Card key={index} className="hover:shadow-md transition-shadow duration-200 border-border/60">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className={`${stat.bgColor} p-2 rounded-lg`}>
-                  <Icon className={`h-4 w-4 ${stat.color}`} />
-                </div>
-              </div>
-              <p className={`text-xl font-bold ${stat.color}`}>{stat.value}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{stat.title}</p>
-            </CardContent>
-          </Card>
-        );
-      })}
-      
-      {profile?.is_seller && !isMobile && (
-        <Card className="hover:shadow-md transition-shadow duration-200 border-border/60 col-span-2 md:col-span-3 lg:col-span-6">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="bg-yellow-500/10 p-2 rounded-lg">
-                  <Award className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">卖家评分</h3>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-xl font-bold text-yellow-600 dark:text-yellow-400">
-                      {stats.avgRating > 0 ? stats.avgRating.toFixed(1) : '暂无'}
-                    </span>
-                    {stats.avgRating > 0 && (
-                      <div className="flex gap-0.5">
-                        {[...Array(5)].map((_, i) => (
-                          <div key={i} className={`w-2.5 h-2.5 rounded-full ${i < Math.round(stats.avgRating) ? 'bg-yellow-400' : 'bg-muted'}`} />
-                        ))}
-                      </div>
-                    )}
+    <div className="space-y-3">
+      <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-3 lg:grid-cols-6'} gap-3`}>
+        {statsCards.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <Card key={index} className="hover:shadow-md transition-shadow duration-200 border-border/60">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className={`${stat.bgColor} p-2 rounded-lg`}>
+                    <Icon className={`h-4 w-4 ${stat.color}`} />
                   </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
+                <p className={`text-xl font-bold ${stat.color}`}>{stat.value}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{stat.title}</p>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* 底部信息栏：卖家评分 + 加入时间 */}
+      <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-3`}>
+        {profile?.is_seller && (
+          <Card className="hover:shadow-md transition-shadow duration-200 border-border/60">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-yellow-500/10 p-2 rounded-lg">
+                    <Award className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">卖家评分</p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
+                        {stats.avgRating > 0 ? stats.avgRating.toFixed(1) : '暂无'}
+                      </span>
+                      {stats.avgRating > 0 && (
+                        <div className="flex gap-0.5">
+                          {[...Array(5)].map((_, i) => (
+                            <div key={i} className={`w-2 h-2 rounded-full ${i < Math.round(stats.avgRating) ? 'bg-yellow-400' : 'bg-muted'}`} />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
                 {profile.seller_verified && (
-                  <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
-                    <CheckCircle className="w-3 h-3 mr-1" /> 已认证卖家
+                  <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 text-xs">
+                    <CheckCircle className="w-3 h-3 mr-1" /> 已认证
                   </Badge>
                 )}
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
+        )}
+
+        {memberSince && (
+          <Card className="hover:shadow-md transition-shadow duration-200 border-border/60">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-teal-500/10 p-2 rounded-lg">
+                  <CalendarDays className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">加入时长</p>
+                  <p className="text-lg font-bold text-teal-600 dark:text-teal-400 mt-0.5">{memberSince}</p>
+                </div>
+                {profile?.total_sales !== null && profile?.total_sales !== undefined && profile.total_sales > 0 && (
+                  <div className="ml-auto text-right">
+                    <p className="text-xs text-muted-foreground">累计销售</p>
+                    <p className="text-lg font-bold text-green-600 dark:text-green-400">¥{Number(profile.total_sales).toLocaleString()}</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 };

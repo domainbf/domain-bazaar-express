@@ -91,6 +91,10 @@ export const NotificationsPanel = () => {
       case 'offer': return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20">报价</Badge>;
       case 'verification': return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20">验证</Badge>;
       case 'transaction': return <Badge className="bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20">交易</Badge>;
+      case 'message': return <Badge className="bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-500/20">消息</Badge>;
+      case 'dispute': return <Badge className="bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20">纠纷</Badge>;
+      case 'escrow': return <Badge className="bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-500/20">托管</Badge>;
+      case 'auction': return <Badge className="bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20">拍卖</Badge>;
       case 'system': return <Badge variant="secondary">系统</Badge>;
       default: return <Badge variant="secondary">通知</Badge>;
     }
@@ -150,8 +154,12 @@ export const NotificationsPanel = () => {
           <SelectContent>
             <SelectItem value="all">全部类型</SelectItem>
             <SelectItem value="offer">报价通知</SelectItem>
-            <SelectItem value="verification">验证通知</SelectItem>
             <SelectItem value="transaction">交易通知</SelectItem>
+            <SelectItem value="message">站内消息</SelectItem>
+            <SelectItem value="escrow">托管通知</SelectItem>
+            <SelectItem value="dispute">纠纷通知</SelectItem>
+            <SelectItem value="auction">拍卖通知</SelectItem>
+            <SelectItem value="verification">认证通知</SelectItem>
             <SelectItem value="system">系统通知</SelectItem>
           </SelectContent>
         </Select>

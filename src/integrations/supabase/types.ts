@@ -1113,6 +1113,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          balance: number | null
           bio: string | null
           company_name: string | null
           contact_email: string | null
@@ -1134,6 +1135,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          balance?: number | null
           bio?: string | null
           company_name?: string | null
           contact_email?: string | null
@@ -1155,6 +1157,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          balance?: number | null
           bio?: string | null
           company_name?: string | null
           contact_email?: string | null
@@ -1326,34 +1329,67 @@ export type Database = {
         Row: {
           amount: number
           buyer_id: string | null
+          buyer_confirmed_at: string | null
+          commission_amount: number | null
+          commission_rate: number | null
+          completed_at: string | null
           created_at: string
           domain_id: string
           id: string
+          notes: string | null
+          offer_id: string | null
           payment_id: string | null
           payment_method: string
+          seller_amount: number | null
+          seller_confirmed_at: string | null
+          seller_id: string | null
           status: string
+          transfer_confirmed_buyer: boolean | null
+          transfer_confirmed_seller: boolean | null
           updated_at: string
         }
         Insert: {
           amount: number
           buyer_id?: string | null
+          buyer_confirmed_at?: string | null
+          commission_amount?: number | null
+          commission_rate?: number | null
+          completed_at?: string | null
           created_at?: string
           domain_id: string
           id?: string
+          notes?: string | null
+          offer_id?: string | null
           payment_id?: string | null
-          payment_method: string
+          payment_method?: string
+          seller_amount?: number | null
+          seller_confirmed_at?: string | null
+          seller_id?: string | null
           status?: string
+          transfer_confirmed_buyer?: boolean | null
+          transfer_confirmed_seller?: boolean | null
           updated_at?: string
         }
         Update: {
           amount?: number
           buyer_id?: string | null
+          buyer_confirmed_at?: string | null
+          commission_amount?: number | null
+          commission_rate?: number | null
+          completed_at?: string | null
           created_at?: string
           domain_id?: string
           id?: string
+          notes?: string | null
+          offer_id?: string | null
           payment_id?: string | null
           payment_method?: string
+          seller_amount?: number | null
+          seller_confirmed_at?: string | null
+          seller_id?: string | null
           status?: string
+          transfer_confirmed_buyer?: boolean | null
+          transfer_confirmed_seller?: boolean | null
           updated_at?: string
         }
         Relationships: [

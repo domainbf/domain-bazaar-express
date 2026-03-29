@@ -129,8 +129,8 @@ export const WalletPanel = () => {
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
 
-      // Calculate balance from profile or transactions
-      const balance = (profile as any)?.balance || (totalDeposited + totalEarned - totalWithdrawn);
+      // Calculate balance from profile.balance (DB field) or fallback to transaction calculation
+      const balance = profile?.balance ?? (totalDeposited - totalWithdrawn);
 
       setStats({
         balance,
