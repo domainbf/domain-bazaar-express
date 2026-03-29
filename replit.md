@@ -78,6 +78,7 @@ A comprehensive domain name trading marketplace built with React, Vite, TypeScri
 - `src/components/reviews/ReviewSystem.tsx` — post-transaction reviews
 - `src/components/admin/CommissionSettings.tsx` — platform fee config
 - `src/components/auction/DomainAuction.tsx` — live auction with realtime bids
+- `src/components/auction/CreateAuctionDialog.tsx` — seller auction creation UI (in domain detail + domain table)
 - `src/components/usercenter/BulkDomainImport.tsx` — CSV bulk import
 - `src/components/pwa/PWAInstallBanner.tsx` — PWA install prompt
 - `supabase/migrations/add_trading_features.sql` — DB migration (run in Supabase Dashboard)
@@ -102,5 +103,7 @@ npm run build    # Build for production
 - The SQL migration in `supabase/migrations/add_trading_features.sql` must be run manually
   in Supabase Dashboard → SQL Editor before messages/disputes features work
 - Social login (Google/GitHub) requires enabling OAuth providers in Supabase Dashboard → Auth → Providers
+- Password reset emails require deploying the updated `auth-email-webhook` edge function in Supabase Dashboard
+- Admin email settings tab has Resend API key config + real test email button (calls `send-email` edge function directly)
 - `lovable-tagger` must remain installed — project is developed in Lovable
 - All logic goes through Supabase client directly (no Express backend)

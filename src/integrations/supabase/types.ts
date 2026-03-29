@@ -760,6 +760,57 @@ export type Database = {
         }
         Relationships: []
       }
+      disputes: {
+        Row: {
+          id: string
+          transaction_id: string | null
+          domain_id: string | null
+          initiator_id: string | null
+          respondent_id: string | null
+          reason: string
+          description: string | null
+          evidence_urls: string[] | null
+          status: string | null
+          admin_notes: string | null
+          resolved_by: string | null
+          resolved_at: string | null
+          created_at: string
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          transaction_id?: string | null
+          domain_id?: string | null
+          initiator_id?: string | null
+          respondent_id?: string | null
+          reason: string
+          description?: string | null
+          evidence_urls?: string[] | null
+          status?: string | null
+          admin_notes?: string | null
+          resolved_by?: string | null
+          resolved_at?: string | null
+          created_at?: string
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          transaction_id?: string | null
+          domain_id?: string | null
+          initiator_id?: string | null
+          respondent_id?: string | null
+          reason?: string
+          description?: string | null
+          evidence_urls?: string[] | null
+          status?: string | null
+          admin_notes?: string | null
+          resolved_by?: string | null
+          resolved_at?: string | null
+          created_at?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       escrow_services: {
         Row: {
           created_at: string | null
@@ -825,6 +876,42 @@ export type Database = {
           id?: string
           is_default?: boolean | null
           name?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          id: string
+          sender_id: string | null
+          receiver_id: string | null
+          domain_id: string | null
+          offer_id: string | null
+          transaction_id: string | null
+          content: string
+          is_read: boolean | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          sender_id?: string | null
+          receiver_id?: string | null
+          domain_id?: string | null
+          offer_id?: string | null
+          transaction_id?: string | null
+          content: string
+          is_read?: boolean | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          sender_id?: string | null
+          receiver_id?: string | null
+          domain_id?: string | null
+          offer_id?: string | null
+          transaction_id?: string | null
+          content?: string
+          is_read?: boolean | null
+          created_at?: string | null
         }
         Relationships: []
       }

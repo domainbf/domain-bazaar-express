@@ -8,7 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Settings, Globe, Mail, PieChart, Shield, Plus, Trash2, Save, RefreshCw, Database, Bell, Palette, Key, Eye, EyeOff } from 'lucide-react';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Settings, Globe, Mail, Shield, Plus, Trash2, Save, Database, Palette, Key, Eye, EyeOff, Send, CheckCircle, XCircle, Loader2, AlertCircle, Zap } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -63,6 +64,17 @@ export const SiteSettings = () => {
   const [targetEmail, setTargetEmail] = useState('');
   const [targetPassword, setTargetPassword] = useState('');
   const [isChangingUserPassword, setIsChangingUserPassword] = useState(false);
+
+  // Email config state
+  const [resendApiKey, setResendApiKey] = useState('');
+  const [resendApiKeyOriginal, setResendApiKeyOriginal] = useState('');
+  const [fromEmail, setFromEmail] = useState('noreply@nic.rw');
+  const [fromName, setFromName] = useState('域见•你');
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [testEmailAddr, setTestEmailAddr] = useState('');
+  const [isSendingTest, setIsSendingTest] = useState(false);
+  const [isSavingEmail, setIsSavingEmail] = useState(false);
+  const [emailTestResult, setEmailTestResult] = useState<'success' | 'error' | null>(null);
 
   const handleChangeOwnPassword = async () => {
     if (!newPassword || newPassword.length < 8) {
@@ -120,7 +132,67 @@ export const SiteSettings = () => {
   useEffect(() => {
     loadSettings();
     loadSmtpSettings();
+    loadEmailConfig();
   }, []);
+
+  const loadEmailConfig = async () => {
+    try {
+      const { data } = await supabase
+        .from('site_settings')
+        .select('key, value')
+        .in('key', ['resend_api_key', 'smtp_from_email', 'smtp_from_name']);
+      if (data) {
+        const map = Object.fromEntries(data.map((r: any) => [r.key, r.value]));
+        if (map['resend_api_key']) { setResendApiKey(map['resend_api_key']); setResendApiKeyOriginal(map['resend_api_key']); }
+        if (map['smtp_from_email']) setFromEmail(map['smtp_from_email']);
+        if (map['smtp_from_name']) setFromName(map['smtp_from_name']);
+      }
+    } catch (e) { console.error('loadEmailConfig error', e); }
+  };
+
+  const saveEmailConfig = async () => {
+    setIsSavingEmail(true);
+    try {
+      const rows = [
+        { key: 'resend_api_key', value: resendApiKey, description: 'Resend 邮件 API Key', section: 'email', type: 'text' },
+        { key: 'smtp_from_email', value: fromEmail, description: '发件邮箱地址', section: 'email', type: 'text' },
+        { key: 'smtp_from_name', value: fromName, description: '发件人名称', section: 'email', type: 'text' },
+      ];
+      for (const row of rows) {
+        await supabase.from('site_settings').upsert([row], { onConflict: 'key' });
+      }
+      setResendApiKeyOriginal(resendApiKey);
+      toast.success('邮件设置已保存');
+    } catch (e: any) {
+      toast.error('保存失败：' + e.message);
+    } finally {
+      setIsSavingEmail(false);
+    }
+  };
+
+  const sendTestEmail = async () => {
+    if (!testEmailAddr) { toast.error('请输入测试收件邮箱'); return; }
+    setIsSendingTest(true);
+    setEmailTestResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-email', {
+        body: {
+          to: testEmailAddr,
+          from: `${fromName} <${fromEmail}>`,
+          subject: '【域见•你】后台邮件系统测试',
+          html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="font-family:sans-serif;background:#f1f5f9;padding:32px 16px;"><div style="max-width:560px;margin:0 auto;"><div style="background:#0f172a;border-radius:12px;padding:10px 20px;display:inline-block;margin-bottom:24px;"><span style="color:#f8fafc;font-size:18px;font-weight:800;">域见•你</span><span style="color:#64748b;font-size:12px;margin-left:8px;">NIC.RW</span></div><div style="background:#fff;border-radius:16px;padding:40px;box-shadow:0 4px 6px rgba(0,0,0,0.07);"><div style="text-align:center;margin-bottom:24px;"><span style="font-size:48px;">✅</span><h2 style="margin:16px 0 8px;color:#0f172a;">邮件系统工作正常</h2><p style="color:#64748b;margin:0;">后台 SMTP/Resend 配置测试成功</p></div><div style="background:#f8fafc;border-radius:8px;padding:16px;font-size:13px;color:#475569;"><p style="margin:0 0 6px;"><strong>发件人：</strong>${fromName} &lt;${fromEmail}&gt;</p><p style="margin:0 0 6px;"><strong>收件人：</strong>${testEmailAddr}</p><p style="margin:0;"><strong>发送时间：</strong>${new Date().toLocaleString('zh-CN')}</p></div></div><p style="text-align:center;color:#94a3b8;font-size:12px;margin-top:20px;">© ${new Date().getFullYear()} 域见•你 · NIC.RW</p></div></body></html>`,
+        },
+      });
+      if (error || data?.success === false) throw new Error(error?.message || data?.error || '发送失败');
+      setEmailTestResult('success');
+      toast.success(`测试邮件已发送至 ${testEmailAddr}`);
+    } catch (e: any) {
+      setEmailTestResult('error');
+      toast.error('发送失败：' + (e.message || '未知错误'));
+    } finally {
+      setIsSendingTest(false);
+    }
+  };
 
   const loadSettings = async () => {
     setIsLoading(true);
@@ -250,13 +322,6 @@ export const SiteSettings = () => {
     return settings.filter(setting => setting.section === section);
   };
 
-  const testSmtpConnection = async () => {
-    toast.info('正在测试SMTP连接...');
-    // 这里可以调用边缘函数来测试SMTP连接
-    setTimeout(() => {
-      toast.success('SMTP连接测试成功');
-    }, 2000);
-  };
 
   if (isLoading) {
     return (
@@ -416,125 +481,143 @@ export const SiteSettings = () => {
         </TabsContent>
         
         <TabsContent value="email" className="space-y-6">
+          {/* Resend API Config Card */}
           <Card>
             <CardHeader>
-              <CardTitle>SMTP邮件服务器</CardTitle>
-              <CardDescription>配置邮件发送服务</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-primary" />
+                    Resend 邮件服务
+                  </CardTitle>
+                  <CardDescription className="mt-1">
+                    通过 Resend API 发送平台邮件（注册验证、密码重置、交易通知）
+                  </CardDescription>
+                </div>
+                {resendApiKeyOriginal && (
+                  <Badge variant="default" className="gap-1">
+                    <CheckCircle className="h-3 w-3" /> 已配置
+                  </Badge>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              {/* API Key */}
+              <div className="space-y-2">
+                <Label className="font-semibold">Resend API Key <span className="text-destructive">*</span></Label>
+                <div className="relative">
+                  <Input
+                    type={showApiKey ? 'text' : 'password'}
+                    value={resendApiKey}
+                    onChange={(e) => setResendApiKey(e.target.value)}
+                    placeholder="re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                    className="pr-10 font-mono text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  在 <a href="https://resend.com/api-keys" target="_blank" rel="noreferrer" className="text-primary underline">resend.com/api-keys</a> 获取
+                </p>
+              </div>
+
+              {/* From info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="font-semibold">发件邮箱</Label>
+                  <Input
+                    value={fromEmail}
+                    onChange={(e) => setFromEmail(e.target.value)}
+                    placeholder="noreply@nic.rw"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-semibold">发件人名称</Label>
+                  <Input
+                    value={fromName}
+                    onChange={(e) => setFromName(e.target.value)}
+                    placeholder="域见•你"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-1">
+                <Button onClick={saveEmailConfig} disabled={isSavingEmail} className="gap-2">
+                  {isSavingEmail ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  {isSavingEmail ? '保存中...' : '保存设置'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Test Email Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Send className="h-5 w-5" />
+                发送测试邮件
+              </CardTitle>
+              <CardDescription>验证邮件系统是否正常工作</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {smtpSettings ? (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label>SMTP主机</Label>
-                      <Input
-                        value={smtpSettings.host}
-                        onChange={(e) => setSmtpSettings({...smtpSettings, host: e.target.value})}
-                        placeholder="smtp.example.com"
-                      />
-                    </div>
-                    <div>
-                      <Label>端口</Label>
-                      <Input
-                        type="number"
-                        value={smtpSettings.port}
-                        onChange={(e) => setSmtpSettings({...smtpSettings, port: parseInt(e.target.value) || 587})}
-                        placeholder="587"
-                      />
-                    </div>
-                    <div>
-                      <Label>用户名</Label>
-                      <Input
-                        value={smtpSettings.username}
-                        onChange={(e) => setSmtpSettings({...smtpSettings, username: e.target.value})}
-                        placeholder="用户名"
-                      />
-                    </div>
-                    <div>
-                      <Label>密码</Label>
-                      <Input
-                        type="password"
-                        value={smtpSettings.password}
-                        onChange={(e) => setSmtpSettings({...smtpSettings, password: e.target.value})}
-                        placeholder="••••••••"
-                      />
-                    </div>
-                    <div>
-                      <Label>发件人邮箱</Label>
-                      <Input
-                        value={smtpSettings.from_email}
-                        onChange={(e) => setSmtpSettings({...smtpSettings, from_email: e.target.value})}
-                        placeholder="noreply@example.com"
-                      />
-                    </div>
-                    <div>
-                      <Label>发件人名称</Label>
-                      <Input
-                        value={smtpSettings.from_name}
-                        onChange={(e) => setSmtpSettings({...smtpSettings, from_name: e.target.value})}
-                        placeholder="域见•你"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      checked={smtpSettings.enabled}
-                      onCheckedChange={(checked) => setSmtpSettings({...smtpSettings, enabled: checked})}
-                    />
-                    <Label>启用邮件发送</Label>
-                  </div>
-                  <Separator />
-                  <div className="flex gap-2">
-                    <Button variant="outline" onClick={testSmtpConnection}>
-                      测试连接
-                    </Button>
-                    <Button onClick={saveSmtpSettings} disabled={isSaving}>
-                      保存SMTP设置
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Mail className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>尚未配置SMTP设置</p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="mt-2"
-                    onClick={() => setSmtpSettings({
-                      host: '', port: 587, username: '', password: '',
-                      from_email: '', from_name: '', enabled: false
-                    })}
-                  >
-                    配置SMTP
-                  </Button>
-                </div>
+              {emailTestResult === 'success' && (
+                <Alert className="border-primary/20 bg-primary/5">
+                  <CheckCircle className="h-4 w-4 text-primary" />
+                  <AlertDescription className="font-medium">测试邮件发送成功！请检查收件箱</AlertDescription>
+                </Alert>
+              )}
+              {emailTestResult === 'error' && (
+                <Alert variant="destructive" className="border-destructive/30 bg-destructive/5">
+                  <XCircle className="h-4 w-4" />
+                  <AlertDescription>发送失败，请检查 API Key 和发件邮箱设置</AlertDescription>
+                </Alert>
+              )}
+
+              <div className="flex gap-3">
+                <Input
+                  type="email"
+                  value={testEmailAddr}
+                  onChange={(e) => setTestEmailAddr(e.target.value)}
+                  placeholder="收件邮箱地址"
+                  className="flex-1"
+                />
+                <Button
+                  onClick={sendTestEmail}
+                  disabled={isSendingTest || !testEmailAddr || !resendApiKey}
+                  variant="outline"
+                  className="gap-2 shrink-0"
+                >
+                  {isSendingTest ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" />发送中...</>
+                  ) : (
+                    <><Send className="h-4 w-4" />发送测试</>
+                  )}
+                </Button>
+              </div>
+
+              {!resendApiKey && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  请先填写 Resend API Key 并保存后再发送测试邮件
+                </p>
               )}
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>邮件模板设置</CardTitle>
-              <CardDescription>配置邮件通知相关设置</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {getSettingsBySection('email').length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>尚未设置邮件相关配置</p>
-                </div>
-              ) : (
-                getSettingsBySection('email').map(setting => (
-                  <SettingItem 
-                    key={setting.id}
-                    setting={setting}
-                    onChange={(value) => handleSettingChange(setting.id, value)}
-                    onDelete={() => deleteSetting(setting.id)}
-                  />
-                ))
-              )}
-            </CardContent>
-          </Card>
+          {/* Password reset notice */}
+          <Alert className="border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30">
+            <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-500" />
+            <AlertDescription className="text-amber-800 dark:text-amber-400">
+              <strong>关于找回密码邮件：</strong>密码重置邮件通过 Supabase Auth Hook（auth-email-webhook 函数）发送。
+              如果找回密码邮件未收到，需要在 Supabase 控制台重新部署 auth-email-webhook 函数以使用最新配置。
+              平台内的交易通知、手动发送的邮件均通过上方 Resend 设置直接发送，无需额外操作。
+            </AlertDescription>
+          </Alert>
         </TabsContent>
         
         <TabsContent value="seo" className="space-y-6">

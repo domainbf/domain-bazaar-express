@@ -26,7 +26,8 @@ import {
   DollarSign,
   Share2,
   ChevronDown,
-  ShieldCheck
+  ShieldCheck,
+  Gavel
 } from "lucide-react";
 import { DomainOwnerInfo } from "./DomainOwnerInfo";
 import { DomainWhoisInfo } from "./DomainWhoisInfo";
@@ -37,6 +38,10 @@ import { DomainAnalytics } from "./DomainAnalytics";
 import { SimilarDomainsGrid } from "./SimilarDomainsGrid";
 import { DomainShareButtons } from "./DomainShareButtons";
 import { DomainValuationTool } from "./DomainValuationTool";
+import { DomainAuction } from "@/components/auction/DomainAuction";
+import { CreateAuctionDialog } from "@/components/auction/CreateAuctionDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { DomainAuction as AuctionType } from "@/types/domain";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Accordion,
@@ -80,14 +85,31 @@ export const DomainDetailPage = () => {
   const { domain, similarDomains, priceHistory, isLoading, error } = useDomainDetail();
   const { analytics, isFavorited, recordView, toggleFavorite } = useDomainAnalytics(domain?.id || '');
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
+  const [activeAuction, setActiveAuction] = useState<AuctionType | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (domain?.id) {
       recordView();
+      loadActiveAuction(domain.id);
     }
   }, [domain?.id]);
+
+  const loadActiveAuction = async (domainId: string) => {
+    try {
+      const { data } = await supabase
+        .from('domain_auctions')
+        .select('*')
+        .eq('domain_id', domainId)
+        .eq('status', 'active')
+        .gt('end_time', new Date().toISOString())
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (data) setActiveAuction(data as unknown as AuctionType);
+    } catch { /* gracefully ignore */ }
+  };
 
   // 使用骨架屏代替 LoadingSpinner
   if (isLoading) {
@@ -274,6 +296,20 @@ export const DomainDetailPage = () => {
                     <p className="text-sm text-green-600">您的域名所有权已通过验证</p>
                   </div>
                 )}
+                {!activeAuction && (
+                  <CreateAuctionDialog
+                    domainId={domain.id}
+                    domainName={domain.name}
+                    currentPrice={domain.price}
+                    onCreated={() => loadActiveAuction(domain.id)}
+                  />
+                )}
+                {activeAuction && (
+                  <div className="flex items-center justify-center gap-2 py-2 text-sm text-amber-600">
+                    <Gavel className="h-4 w-4" />
+                    此域名正在进行拍卖
+                  </div>
+                )}
                 <p className="text-xs text-center text-muted-foreground">
                   这是您的域名，您可以在用户中心管理更多设置
                 </p>
@@ -388,6 +424,23 @@ export const DomainDetailPage = () => {
             </AccordionItem>
           </Accordion>
         </motion.div>
+
+        {/* 拍卖区域 */}
+        {activeAuction && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.18 }}
+            className="mb-6"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <Gavel className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-bold text-foreground">正在进行的拍卖</h2>
+              <Badge variant="default" className="bg-red-500 hover:bg-red-500 animate-pulse text-xs">拍卖中</Badge>
+            </div>
+            <DomainAuction auction={activeAuction} onBidPlaced={() => loadActiveAuction(domain.id)} />
+          </motion.section>
+        )}
 
         {/* 相似域名推荐 */}
         {similarDomains.length > 0 && (

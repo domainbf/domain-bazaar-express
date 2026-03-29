@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from "@/components/ui/button";
 import { DomainActions } from '../DomainActions';
 import { DomainStatusManager } from '../DomainStatusManager';
+import { CreateAuctionDialog } from '@/components/auction/CreateAuctionDialog';
 import { Link } from 'react-router-dom';
 import { Eye, ExternalLink, Shield, Calendar, Star } from 'lucide-react';
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -176,6 +177,21 @@ export const DomainTable = ({ domains, onDomainUpdate, currentUserId }: DomainTa
                         </Link>
                       </TooltipTrigger>
                       <TooltipContent>查看域名详情页</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>
+                          <CreateAuctionDialog
+                            domainId={domain.id}
+                            domainName={domain.name}
+                            currentPrice={domain.price}
+                            onCreated={onDomainUpdate}
+                          />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>发起拍卖</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                   <DomainStatusManager domain={domain} onStatusChange={onDomainUpdate} />

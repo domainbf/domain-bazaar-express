@@ -38,7 +38,7 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       manifest: {
-        name: '域见•你 NIC.BN — 域名交易平台',
+        name: '域见•你 NIC.RW — 域名交易平台',
         short_name: '域见•你',
         description: '专业域名交易市场，买卖优质域名，安全托管，实时竞拍',
         theme_color: '#1a1a2e',
