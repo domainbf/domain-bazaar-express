@@ -190,8 +190,8 @@ async function sendViaSmtp(config: SmtpConfig, to: string[], subject: string, ht
 }
 
 // Fallback: send via Resend if SMTP is not configured
-async function sendViaResend(to: string[], subject: string, html: string, from?: string): Promise<{ success: boolean; error?: string; id?: string }> {
-  const resendApiKey = Deno.env.get("RESEND_API_KEY");
+async function sendViaResend(to: string[], subject: string, html: string, from?: string, dbApiKey?: string): Promise<{ success: boolean; error?: string; id?: string }> {
+  const resendApiKey = Deno.env.get("RESEND_API_KEY") || dbApiKey;
   if (!resendApiKey) {
     return { success: false, error: 'Neither SMTP nor RESEND_API_KEY is configured' };
   }
@@ -235,13 +235,31 @@ Deno.serve(async (req) => {
 
     console.log(`准备发送邮件到: ${recipients.join(', ')}, 主题: ${subject}`);
 
-    // Try SMTP first from database settings
+    // Read settings from database
     let smtpConfig: SmtpConfig | null = null;
+    let dbResendApiKey: string | undefined;
+    let dbFromEmail: string | undefined;
+    let dbFromName: string | undefined;
+
     try {
       const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
       const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
       const supabase = createClient(supabaseUrl, serviceRoleKey);
-      
+
+      // Read Resend API key and from settings from site_settings
+      const { data: settings } = await supabase
+        .from('site_settings')
+        .select('key, value')
+        .in('key', ['resend_api_key', 'smtp_from_email', 'smtp_from_name']);
+
+      if (settings) {
+        const settingsMap = Object.fromEntries(settings.map((s: any) => [s.key, s.value]));
+        dbResendApiKey = settingsMap['resend_api_key'];
+        dbFromEmail = settingsMap['smtp_from_email'];
+        dbFromName = settingsMap['smtp_from_name'];
+      }
+
+      // Also check smtp_settings if enabled
       const { data: smtp } = await supabase
         .from('smtp_settings')
         .select('*')
@@ -255,29 +273,30 @@ Deno.serve(async (req) => {
           port: smtp.port,
           username: smtp.username,
           password: smtp.password,
-          from_email: smtp.from_email,
-          from_name: smtp.from_name,
+          from_email: smtp.from_email || dbFromEmail || 'noreply@nic.rw',
+          from_name: smtp.from_name || dbFromName || '域见·你',
           enabled: true,
         };
       }
     } catch (e) {
-      console.log('No SMTP settings found, will try Resend fallback');
+      console.log('Could not load settings, using env vars');
     }
 
     let result: { success: boolean; error?: string; id?: string };
+    const defaultFrom = from || `${dbFromName || '域见·你'} <${dbFromEmail || 'noreply@nic.rw'}>`;
 
     if (smtpConfig) {
       console.log(`Using SMTP: ${smtpConfig.host}:${smtpConfig.port}`);
       const smtpFrom = from || `${smtpConfig.from_name} <${smtpConfig.from_email}>`;
       result = await sendViaSmtp(smtpConfig, recipients, subject, html, smtpFrom);
-      
+
       if (!result.success) {
         console.warn('SMTP failed, falling back to Resend:', result.error);
-        result = await sendViaResend(recipients, subject, html, smtpFrom);
+        result = await sendViaResend(recipients, subject, html, smtpFrom, dbResendApiKey);
       }
     } else {
       console.log('No SMTP configured, using Resend');
-      result = await sendViaResend(recipients, subject, html, from);
+      result = await sendViaResend(recipients, subject, html, defaultFrom, dbResendApiKey);
     }
 
     if (!result.success) {
