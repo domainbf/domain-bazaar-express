@@ -199,7 +199,7 @@ async function sendViaResend(to: string[], subject: string, html: string, from?:
   try {
     const { Resend } = await import("https://esm.sh/resend@4.1.2");
     const resend = new Resend(resendApiKey);
-    const fromEmail = from || "域见•你 <noreply@nic.bn>";
+    const fromEmail = from || "域见•你 <noreply@nic.rw>";
     
     const response = await resend.emails.send({
       from: fromEmail,
