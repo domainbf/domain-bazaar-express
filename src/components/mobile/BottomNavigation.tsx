@@ -1,12 +1,13 @@
-import { Home, Search, User, Bell } from 'lucide-react';
+import { Home, Search, User, Bell, MessageSquare } from 'lucide-react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface BottomNavigationProps {
   unreadCount?: number;
+  unreadMessages?: number;
 }
 
-export const BottomNavigation = ({ unreadCount = 0 }: BottomNavigationProps) => {
+export const BottomNavigation = ({ unreadCount = 0, unreadMessages = 0 }: BottomNavigationProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -30,6 +31,15 @@ export const BottomNavigation = ({ unreadCount = 0 }: BottomNavigationProps) => 
       authRequired: false 
     },
     { 
+      id: 'messages', 
+      label: '消息', 
+      icon: MessageSquare, 
+      path: '/user-center',
+      tab: 'messages',
+      authRequired: true,
+      showMessageBadge: true
+    },
+    { 
       id: 'notifications', 
       label: '通知', 
       icon: Bell, 
@@ -51,13 +61,9 @@ export const BottomNavigation = ({ unreadCount = 0 }: BottomNavigationProps) => 
   const isActive = (item: typeof navItems[0]) => {
     const currentTab = searchParams.get('tab');
     
-    // 对于首页
     if (item.path === '/' && location.pathname === '/') return true;
-    
-    // 对于市场
     if (item.path === '/marketplace' && location.pathname === '/marketplace') return true;
     
-    // 对于用户中心的标签页
     if (item.path === '/user-center' && location.pathname === '/user-center') {
       if (item.tab === currentTab) return true;
     }
@@ -66,25 +72,19 @@ export const BottomNavigation = ({ unreadCount = 0 }: BottomNavigationProps) => 
   };
 
   const handleNavigation = (item: typeof navItems[0]) => {
-    // 如果需要登录但未登录
     if (item.authRequired && !user) {
       navigate('/auth');
       return;
     }
     
-    // 对于用户中心的页面，未登录时跳转到登录
     if (item.path === '/user-center' && !user) {
       navigate('/auth');
       return;
     }
     
-    // 如果有 tab 参数
     if (item.tab) {
-      // 如果已经在用户中心页面，使用 replaceState 触发tab切换
       if (location.pathname === '/user-center') {
-        // 先导航然后刷新页面让React重新读取参数
         window.history.replaceState({}, '', `/user-center?tab=${item.tab}`);
-        // 触发自定义事件通知UserCenter组件切换tab
         window.dispatchEvent(new CustomEvent('tabChange', { detail: { tab: item.tab } }));
       } else {
         navigate(`${item.path}?tab=${item.tab}`);
@@ -100,20 +100,22 @@ export const BottomNavigation = ({ unreadCount = 0 }: BottomNavigationProps) => 
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item);
+          const badge = item.showBadge ? unreadCount : item.showMessageBadge ? unreadMessages : 0;
           
           return (
             <button
               key={item.id}
               onClick={() => handleNavigation(item)}
+              data-testid={`nav-${item.id}`}
               className={`flex flex-col items-center justify-center flex-1 h-full transition-colors relative ${
                 active ? 'text-primary' : 'text-muted-foreground'
               }`}
             >
               <div className="relative flex items-center justify-center">
                 <Icon className={`w-6 h-6 ${active ? 'stroke-[2.5]' : 'stroke-2'}`} />
-                {item.showBadge && unreadCount > 0 && (
+                {badge > 0 && (
                   <span className="absolute -top-1 -right-1 h-4 min-w-[16px] flex items-center justify-center bg-destructive text-destructive-foreground text-[10px] font-medium rounded-full px-1">
-                    {unreadCount > 99 ? '99+' : unreadCount}
+                    {badge > 99 ? '99+' : badge}
                   </span>
                 )}
               </div>

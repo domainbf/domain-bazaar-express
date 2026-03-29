@@ -10,7 +10,7 @@ import { EscrowService } from "@/components/escrow/EscrowService";
 import { DisputeCenter } from "@/components/disputes/DisputeCenter";
 import { MessagesPage } from "@/components/messages/MessageCenter";
 import React, { useState } from "react";
-import { User, Shield, Heart, Wallet, Link as LinkIcon, MessageSquare, Flag } from "lucide-react";
+import { User, Shield, Link as LinkIcon } from "lucide-react";
 import { CustomUrlSettings } from "@/components/usercenter/CustomUrlSettings";
 
 export const UserCenterTabsContent: React.FC = () => {

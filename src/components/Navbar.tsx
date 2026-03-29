@@ -10,18 +10,22 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast"
-import { LogOut, Settings, User, Bell, Menu, X } from "lucide-react";
+import { LogOut, Settings, User, Bell, Menu, X, MessageSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface NavbarProps {
   unreadCount?: number;
+  unreadMessages?: number;
 }
 
-export const Navbar = ({ unreadCount = 0 }: NavbarProps) => {
+export const Navbar = ({ unreadCount = 0, unreadMessages: unreadMessagesProp = 0 }: NavbarProps) => {
   const { user, logOut, isAdmin } = useAuth();
+  const { unreadMessages: fetchedUnreadMessages } = useUnreadMessages();
+  const unreadMessages = fetchedUnreadMessages || unreadMessagesProp;
   const navigate = useNavigate();
   const { toast } = useToast();
   const { config: siteConfig } = useSiteSettings();
@@ -73,6 +77,27 @@ export const Navbar = ({ unreadCount = 0 }: NavbarProps) => {
             <TooltipContent><p>用户中心</p></TooltipContent>
           </Tooltip>
           
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => handleNavigation('/user-center?tab=messages')}
+                className="relative flex items-center justify-center h-10 w-10 rounded-full hover:bg-accent transition-colors"
+                title="消息"
+                data-testid="navbar-messages"
+              >
+                <MessageSquare className="w-5 h-5 text-muted-foreground" />
+                {unreadMessages > 0 && (
+                  <Badge className="bg-destructive absolute -top-1 -right-1 px-1.5 py-0 text-xs font-bold flex items-center justify-center min-w-[1.25rem] h-5">
+                    {unreadMessages > 99 ? '99+' : unreadMessages}
+                  </Badge>
+                )}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>站内消息 {unreadMessages > 0 && `(${unreadMessages})`}</p>
+            </TooltipContent>
+          </Tooltip>
+
           <Tooltip>
             <TooltipTrigger asChild>
               <button

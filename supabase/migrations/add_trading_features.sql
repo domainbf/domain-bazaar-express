@@ -59,6 +59,10 @@ CREATE POLICY "Users can create disputes" ON public.disputes
 CREATE POLICY "Admins can update disputes" ON public.disputes
   FOR UPDATE USING (public.is_admin(auth.uid()));
 
+-- 3a. 给 domain_offers 表增加 transaction_id 字段（报价接受后关联交易）
+ALTER TABLE public.domain_offers
+  ADD COLUMN IF NOT EXISTS transaction_id UUID REFERENCES public.transactions(id) ON DELETE SET NULL;
+
 -- 3. 补充 transactions 表缺少的字段
 ALTER TABLE public.transactions
   ADD COLUMN IF NOT EXISTS seller_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,

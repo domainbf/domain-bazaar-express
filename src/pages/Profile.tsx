@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, User, Mail, Building, Phone } from 'lucide-react';
+import { Loader2, User, Mail, Building, Phone, Star } from 'lucide-react';
+import { UserReviews } from '@/components/reviews/ReviewSystem';
 
 export const Profile = () => {
   const { user, profile, refreshProfile } = useAuth();
@@ -72,6 +73,10 @@ export const Profile = () => {
             <TabsTrigger value="profile">基本信息</TabsTrigger>
             <TabsTrigger value="account">账户设置</TabsTrigger>
             <TabsTrigger value="seller">卖家设置</TabsTrigger>
+            <TabsTrigger value="reviews" className="flex items-center gap-1.5">
+              <Star className="h-3.5 w-3.5" />
+              我收到的评价
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="profile">
@@ -213,6 +218,17 @@ export const Profile = () => {
                 </div>
               )}
             </div>
+          </TabsContent>
+          <TabsContent value="reviews">
+            {user && (
+              <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+                  我收到的评价
+                </h2>
+                <UserReviews userId={user.id} />
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>

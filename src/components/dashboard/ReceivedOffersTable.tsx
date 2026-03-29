@@ -5,8 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { DomainOffer } from "@/types/domain";
-import { Check, X, Mail, AlertCircle, Clock, Package, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { Check, X, Mail, AlertCircle, Clock, Package, CheckCircle2, XCircle, Loader2, ArrowRight } from 'lucide-react';
 import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +25,7 @@ interface ReceivedOffersTableProps {
 }
 
 export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTableProps) => {
+  const navigate = useNavigate();
   const [processingOffers, setProcessingOffers] = useState<Record<string, boolean>>({});
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
@@ -103,12 +105,56 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
         throw new Error(`更新失败: ${updateError.message}`);
       }
         
+      // 接受报价时，创建交易记录
+      let newTransactionId: string | null = null;
+      if (action === 'accepted' && offerData.buyer_id && offerData.domain_listings) {
+        try {
+          // 获取平台手续费率
+          const { data: settingsData } = await supabase
+            .from('site_settings')
+            .select('value')
+            .eq('key', 'commission_rate')
+            .single();
+          const commissionRate = parseFloat(settingsData?.value || '0.05');
+          const amount = Number(offerData.amount);
+          const commissionAmount = Math.max(amount * commissionRate, 10);
+          const sellerAmount = amount - commissionAmount;
+
+          const { data: txData, error: txError } = await supabase
+            .from('transactions')
+            .insert({
+              buyer_id: offerData.buyer_id,
+              seller_id: user.id,
+              domain_id: offerData.domain_id,
+              offer_id: offerId,
+              amount,
+              status: 'pending',
+              commission_rate: commissionRate,
+              commission_amount: commissionAmount,
+              seller_amount: sellerAmount,
+            })
+            .select('id')
+            .single();
+
+          if (!txError && txData) {
+            newTransactionId = txData.id;
+            // 更新报价记录关联 transaction_id
+            await supabase
+              .from('domain_offers')
+              .update({ transaction_id: newTransactionId })
+              .eq('id', offerId);
+          }
+        } catch (txCreateError) {
+          console.error('Transaction creation error:', txCreateError);
+        }
+      }
+
       // 创建通知给买家
       if (offerData.buyer_id && offerData.domain_listings) {
         const currencySymbol = offerData.domain_listings.currency === 'USD' ? '$' : '¥';
         const formattedAmount = `${currencySymbol}${Number(offerData.amount).toLocaleString()}`;
         const actionMessages: Record<string, string> = {
-          accepted: `您对域名 ${offerData.domain_listings.name} 的 ${formattedAmount} 报价已被卖家接受！卖家将与您联系完成交易。`,
+          accepted: `您对域名 ${offerData.domain_listings.name} 的 ${formattedAmount} 报价已被卖家接受！请进入交易详情完成付款。`,
           rejected: `您对域名 ${offerData.domain_listings.name} 的 ${formattedAmount} 报价已被拒绝，您可以尝试提交新的报价。`,
           completed: `域名 ${offerData.domain_listings.name} 的 ${formattedAmount} 交易已完成！感谢您使用我们的平台。`
         };
@@ -128,7 +174,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
               message: actionMessages[action],
               type: 'offer',
               related_id: offerId,
-              action_url: '/user-center?tab=transactions'
+              action_url: newTransactionId ? `/transaction/${newTransactionId}` : '/user-center?tab=transactions'
             });
         } catch (notifError) {
           console.error('Notification error:', notifError);
@@ -139,6 +185,11 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
       toast.success(`报价${actionText}成功`);
       setConfirmDialog(null);
       await onRefresh();
+
+      // 接受后跳转到交易详情
+      if (action === 'accepted' && newTransactionId) {
+        navigate(`/transaction/${newTransactionId}`);
+      }
     } catch (error: any) {
       console.error('Error updating offer:', error);
       toast.error(error.message || '更新报价状态失败，请检查权限');
@@ -265,15 +316,26 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
                   )}
                   
                   {offer.status === 'accepted' && (
-                    <Button 
-                      size="sm" 
-                      onClick={() => setConfirmDialog({ open: true, offerId: offer.id, action: 'completed', domainName: offer.domain_name || '' })}
-                      className="w-full"
-                      disabled={isProcessing}
-                    >
-                      {isProcessing ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Package className="h-4 w-4 mr-1" />}
-                      标记为已完成
-                    </Button>
+                    <div className="flex flex-col gap-2 pt-2 border-t">
+                      {offer.transaction_id && (
+                        <Link to={`/transaction/${offer.transaction_id}`}>
+                          <Button size="sm" className="w-full gap-1.5">
+                            <ArrowRight className="h-4 w-4" />
+                            进入交易详情
+                          </Button>
+                        </Link>
+                      )}
+                      <Button 
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setConfirmDialog({ open: true, offerId: offer.id, action: 'completed', domainName: offer.domain_name || '' })}
+                        className="w-full"
+                        disabled={isProcessing}
+                      >
+                        {isProcessing ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Package className="h-4 w-4 mr-1" />}
+                        标记为已完成
+                      </Button>
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -354,14 +416,25 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
                         </div>
                       )}
                       {offer.status === 'accepted' && (
-                        <Button 
-                          size="sm" 
-                          onClick={() => setConfirmDialog({ open: true, offerId: offer.id, action: 'completed', domainName: offer.domain_name || '' })}
-                          disabled={isProcessing}
-                        >
-                          {isProcessing ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Package className="h-4 w-4 mr-1" />}
-                          标记完成
-                        </Button>
+                        <div className="flex gap-2">
+                          {offer.transaction_id && (
+                            <Link to={`/transaction/${offer.transaction_id}`}>
+                              <Button size="sm" className="gap-1.5">
+                                <ArrowRight className="h-4 w-4" />
+                                进入交易
+                              </Button>
+                            </Link>
+                          )}
+                          <Button 
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setConfirmDialog({ open: true, offerId: offer.id, action: 'completed', domainName: offer.domain_name || '' })}
+                            disabled={isProcessing}
+                          >
+                            {isProcessing ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Package className="h-4 w-4 mr-1" />}
+                            标记完成
+                          </Button>
+                        </div>
                       )}
                       {(offer.status === 'rejected' || offer.status === 'completed') && (
                         <span className="text-sm text-muted-foreground">无可用操作</span>

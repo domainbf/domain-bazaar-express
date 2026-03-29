@@ -14,6 +14,7 @@ import { HelpCircle, ClipboardList, User, Bell, MessageSquare, FileQuestion, Arr
 import { Link } from 'react-router-dom';
 import { Badge } from "@/components/ui/badge";
 import { useNotifications } from '@/hooks/useNotifications';
+import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { Card, CardContent } from "@/components/ui/card";
 import { BottomNavigation } from '@/components/mobile/BottomNavigation';
@@ -28,6 +29,7 @@ export const UserCenter = () => {
   const isMobile = useIsMobile();
 
   const { unreadCount, refreshNotifications } = useNotifications();
+  const { unreadMessages } = useUnreadMessages();
 
   const displayName = useMemo(() => {
     return profile?.full_name || profile?.username || user?.email?.split('@')[0] || '用户';
@@ -102,7 +104,7 @@ export const UserCenter = () => {
   const tabItems = [
     { value: 'domains', label: '我的域名', shortLabel: '域名', icon: ClipboardList },
     { value: 'transactions', label: '交易记录', shortLabel: '交易', icon: ClipboardList },
-    { value: 'messages', label: '站内消息', shortLabel: '消息', icon: MessageSquare },
+    { value: 'messages', label: '站内消息', shortLabel: '消息', icon: MessageSquare, badge: unreadMessages },
     { value: 'notifications', label: '消息通知', shortLabel: '通知', icon: Bell, badge: unreadCount },
     { value: 'profile', label: '个人资料', shortLabel: '我的', icon: User },
   ];
@@ -303,7 +305,7 @@ export const UserCenter = () => {
         </div>
       </div>
 
-      {isMobile && <BottomNavigation unreadCount={unreadCount} />}
+      {isMobile && <BottomNavigation unreadCount={unreadCount} unreadMessages={unreadMessages} />}
     </div>
   );
 };

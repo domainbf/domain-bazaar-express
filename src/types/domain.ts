@@ -49,6 +49,7 @@ export interface DomainOffer {
   seller_id?: string;
   buyer_id?: string;
   updated_at?: string;
+  transaction_id?: string;
 }
 
 export interface DomainVerification {

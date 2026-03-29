@@ -9,8 +9,9 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { Button } from '@/components/ui/button';
 import { UserProfile, ProfileDomain } from '@/types/userProfile';
 import { toast } from 'sonner';
-import { ArrowLeft, AlertCircle } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Star } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { UserReviews } from '@/components/reviews/ReviewSystem';
 
 export const UserProfilePage = () => {
   const { profileId } = useParams<{ profileId: string }>();
@@ -131,6 +132,14 @@ export const UserProfilePage = () => {
             </div>
           </div>
         )}
+
+        <div className="mt-10">
+          <div className="flex items-center gap-2 mb-4">
+            <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+            <h2 className="text-xl font-bold">用户评价</h2>
+          </div>
+          <UserReviews userId={profile.id} />
+        </div>
       </div>
     </div>
   );

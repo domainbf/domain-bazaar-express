@@ -2,7 +2,7 @@ import { DomainOffer } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mail, Clock, CheckCircle2, XCircle, Package, AlertCircle, ExternalLink, Trash2, Loader2, Eye } from "lucide-react";
+import { Mail, Clock, CheckCircle2, XCircle, Package, AlertCircle, ExternalLink, Trash2, Loader2, Eye, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -182,12 +182,21 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
                   )}
 
                   <div className="flex gap-2 pt-2 border-t">
-                    <Link to={`/domain/${offer.domain_name}`} className="flex-1">
-                      <Button variant="outline" size="sm" className="w-full">
-                        <Eye className="h-4 w-4 mr-1" />
-                        查看域名
-                      </Button>
-                    </Link>
+                    {offer.status === 'accepted' && offer.transaction_id ? (
+                      <Link to={`/transaction/${offer.transaction_id}`} className="flex-1">
+                        <Button size="sm" className="w-full gap-1.5">
+                          <ArrowRight className="h-4 w-4" />
+                          进入交易详情
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Link to={`/domain/${offer.domain_name}`} className="flex-1">
+                        <Button variant="outline" size="sm" className="w-full">
+                          <Eye className="h-4 w-4 mr-1" />
+                          查看域名
+                        </Button>
+                      </Link>
+                    )}
                     {offer.status === 'pending' && (
                       <Button 
                         size="sm" 
@@ -260,12 +269,21 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
                     </td>
                     <td className="p-4">
                       <div className="flex gap-2">
-                        <Link to={`/domain/${offer.domain_name}`}>
-                          <Button variant="outline" size="sm">
-                            <Eye className="h-4 w-4 mr-1" />
-                            查看
-                          </Button>
-                        </Link>
+                        {offer.status === 'accepted' && offer.transaction_id ? (
+                          <Link to={`/transaction/${offer.transaction_id}`}>
+                            <Button size="sm" className="gap-1.5">
+                              <ArrowRight className="h-4 w-4" />
+                              进入交易
+                            </Button>
+                          </Link>
+                        ) : (
+                          <Link to={`/domain/${offer.domain_name}`}>
+                            <Button variant="outline" size="sm">
+                              <Eye className="h-4 w-4 mr-1" />
+                              查看
+                            </Button>
+                          </Link>
+                        )}
                         {offer.status === 'pending' && (
                           <Button 
                             size="sm" 
