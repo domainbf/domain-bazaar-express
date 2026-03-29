@@ -6,8 +6,11 @@ import { ProfileSettings } from "@/components/usercenter/ProfileSettings";
 import { AccountSecurity } from "@/components/usercenter/AccountSecurity";
 import { FavoriteDomains } from "@/components/usercenter/FavoriteDomains";
 import { WalletPanel } from "@/components/usercenter/WalletPanel";
+import { EscrowService } from "@/components/escrow/EscrowService";
+import { DisputeCenter } from "@/components/disputes/DisputeCenter";
+import { MessagesPage } from "@/components/messages/MessageCenter";
 import React, { useState } from "react";
-import { User, Shield, Heart, Wallet, Link as LinkIcon } from "lucide-react";
+import { User, Shield, Heart, Wallet, Link as LinkIcon, MessageSquare, Flag } from "lucide-react";
 import { CustomUrlSettings } from "@/components/usercenter/CustomUrlSettings";
 
 export const UserCenterTabsContent: React.FC = () => {
@@ -18,16 +21,24 @@ export const UserCenterTabsContent: React.FC = () => {
       <TabsContent value="domains" className="mt-0">
         <DomainManagement />
       </TabsContent>
-      
+
       <TabsContent value="transactions" className="mt-0">
         <Tabs defaultValue="offers" className="w-full">
-          <TabsList className="mb-4">
+          <TabsList className="mb-4 flex-wrap">
             <TabsTrigger value="offers">交易报价</TabsTrigger>
+            <TabsTrigger value="escrow">资金托管</TabsTrigger>
+            <TabsTrigger value="disputes">纠纷申诉</TabsTrigger>
             <TabsTrigger value="wallet">我的钱包</TabsTrigger>
             <TabsTrigger value="favorites">我的收藏</TabsTrigger>
           </TabsList>
           <TabsContent value="offers">
             <TransactionHistory />
+          </TabsContent>
+          <TabsContent value="escrow">
+            <EscrowService />
+          </TabsContent>
+          <TabsContent value="disputes">
+            <DisputeCenter />
           </TabsContent>
           <TabsContent value="wallet">
             <WalletPanel />
@@ -37,11 +48,17 @@ export const UserCenterTabsContent: React.FC = () => {
           </TabsContent>
         </Tabs>
       </TabsContent>
-      
+
+      <TabsContent value="messages" className="mt-0">
+        <div className="h-[600px]">
+          <MessagesPage />
+        </div>
+      </TabsContent>
+
       <TabsContent value="notifications" className="mt-0">
         <NotificationsPanel />
       </TabsContent>
-      
+
       <TabsContent value="profile" className="mt-0">
         <Tabs value={profileTab} onValueChange={setProfileTab}>
           <TabsList className="mb-4 flex-wrap">

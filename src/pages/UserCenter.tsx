@@ -47,7 +47,7 @@ export const UserCenter = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tabParam = params.get('tab');
-    if (tabParam && ['domains', 'transactions', 'profile', 'notifications'].includes(tabParam)) {
+    if (tabParam && ['domains', 'transactions', 'messages', 'profile', 'notifications'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, []);
@@ -55,7 +55,7 @@ export const UserCenter = () => {
   useEffect(() => {
     const handleTabChange = (event: CustomEvent) => {
       const newTab = event.detail?.tab;
-      if (newTab && ['domains', 'transactions', 'profile', 'notifications'].includes(newTab)) {
+      if (newTab && ['domains', 'transactions', 'messages', 'profile', 'notifications'].includes(newTab)) {
         setActiveTab(newTab);
         if (newTab === 'notifications') refreshNotifications();
       }
@@ -102,6 +102,7 @@ export const UserCenter = () => {
   const tabItems = [
     { value: 'domains', label: '我的域名', shortLabel: '域名', icon: ClipboardList },
     { value: 'transactions', label: '交易记录', shortLabel: '交易', icon: ClipboardList },
+    { value: 'messages', label: '站内消息', shortLabel: '消息', icon: MessageSquare },
     { value: 'notifications', label: '消息通知', shortLabel: '通知', icon: Bell, badge: unreadCount },
     { value: 'profile', label: '个人资料', shortLabel: '我的', icon: User },
   ];

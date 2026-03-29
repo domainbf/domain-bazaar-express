@@ -7,6 +7,7 @@ import { EmptyDomainState } from './domain/EmptyDomainState';
 import { useDomainsData } from './domain/useDomainsData';
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Clock } from 'lucide-react';
+import { BulkDomainImport } from './BulkDomainImport';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -163,6 +164,7 @@ export const DomainManagement = () => {
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
             {isRefreshing ? '刷新中...' : '刷新'}
           </Button>
+          <BulkDomainImport onSuccess={loadDomains} />
           <DomainActions mode="add" onSuccess={loadDomains} />
         </div>
       </div>

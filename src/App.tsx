@@ -4,6 +4,7 @@ import { useEffect, Suspense, lazy, memo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { CustomScripts } from './components/common/CustomScripts';
+import { PWAInstallBanner } from './components/pwa/PWAInstallBanner';
 
 // Route-based code splitting
 const Index = lazy(() => import('./pages/Index'));
@@ -23,6 +24,7 @@ const FAQPage = lazy(() => import('./pages/FAQPage').then(m => ({ default: m.FAQ
 const SecurityCenter = lazy(() => import('./pages/SecurityCenter'));
 const Community = lazy(() => import('./pages/Community'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const TransactionDetail = lazy(() => import('./pages/TransactionDetail'));
 
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
   return (
@@ -91,6 +93,7 @@ const AnimatedRoutes = memo(() => {
         <Route path="/faq" element={<FAQPage />} />
         <Route path="/security-center" element={<SecurityCenter />} />
         <Route path="/community" element={<Community />} />
+        <Route path="/transaction/:id" element={<ProtectedRoute><TransactionDetail /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
@@ -119,6 +122,7 @@ function App() {
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => window.location.reload()}>
       <CustomScripts />
+      <PWAInstallBanner />
       <Suspense fallback={<RouteLoadingFallback />}>
         <AnimatedRoutes />
       </Suspense>

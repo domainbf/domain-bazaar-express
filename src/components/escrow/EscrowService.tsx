@@ -1,35 +1,35 @@
-
 import React, { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Shield, 
-  Clock, 
-  CheckCircle, 
-  AlertTriangle,
-  User,
-  FileText,
-  CreditCard,
-  ArrowRight
-} from 'lucide-react';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { toast } from 'sonner';
+import { Shield, Clock, CheckCircle, AlertTriangle, ArrowRight, Globe, Banknote } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-interface EscrowTransaction {
+interface EscrowRecord {
   id: string;
-  domainName: string;
-  buyerName: string;
-  sellerName: string;
-  amount: number;
-  status: 'initiated' | 'funded' | 'domain_transferred' | 'completed' | 'disputed';
-  createdAt: string;
-  steps: {
-    buyerFunded: boolean;
-    domainTransferred: boolean;
-    buyerApproved: boolean;
-    fundsReleased: boolean;
-  };
+  status: string | null;
+  funded_at: string | null;
+  domain_transferred_at: string | null;
+  buyer_approved_at: string | null;
+  released_at: string | null;
+  escrow_fee: number | null;
+  transaction_id: string | null;
+  transaction?: {
+    id: string;
+    amount: number;
+    status: string;
+    buyer_id: string | null;
+    seller_id: string | null;
+    domain_id: string;
+  } | null;
+  domain?: { name: string } | null;
+  buyer?: { full_name: string | null; username: string | null } | null;
+  seller?: { full_name: string | null; username: string | null } | null;
 }
 
 interface EscrowServiceProps {
@@ -37,383 +37,217 @@ interface EscrowServiceProps {
   isAdmin?: boolean;
 }
 
-export const EscrowService: React.FC<EscrowServiceProps> = ({
-  transactionId,
-  isAdmin = false
-}) => {
-  const [transactions, setTransactions] = useState<EscrowTransaction[]>([]);
-  const [selectedTransaction, setSelectedTransaction] = useState<EscrowTransaction | null>(null);
+const STATUS_CONFIG: Record<string, { label: string; progress: number }> = {
+  initiated: { label: '已创建', progress: 10 },
+  funded: { label: '资金托管中', progress: 40 },
+  domain_transferred: { label: '域名已转移', progress: 70 },
+  released: { label: '资金已释放', progress: 100 },
+  disputed: { label: '纠纷处理中', progress: 50 },
+};
+
+export const EscrowService: React.FC<EscrowServiceProps> = ({ transactionId, isAdmin = false }) => {
+  const { user } = useAuth();
+  const [records, setRecords] = useState<EscrowRecord[]>([]);
+  const [selected, setSelected] = useState<EscrowRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isActing, setIsActing] = useState(false);
 
-  useEffect(() => {
-    loadTransactions();
-  }, [transactionId]);
+  useEffect(() => { loadEscrowRecords(); }, [transactionId, user?.id]);
 
-  const loadTransactions = async () => {
+  const loadEscrowRecords = async () => {
     setIsLoading(true);
     try {
-      // 模拟加载托管交易数据
-      const mockTransactions: EscrowTransaction[] = [
-        {
-          id: '1',
-          domainName: 'example.com',
-          buyerName: '张先生',
-          sellerName: '李女士',
-          amount: 50000,
-          status: 'domain_transferred',
-          createdAt: '2024-01-15T10:30:00Z',
-          steps: {
-            buyerFunded: true,
-            domainTransferred: true,
-            buyerApproved: false,
-            fundsReleased: false
-          }
-        },
-        {
-          id: '2',
-          domainName: 'test.com',
-          buyerName: '王总',
-          sellerName: '赵总',
-          amount: 80000,
-          status: 'funded',
-          createdAt: '2024-01-10T14:20:00Z',
-          steps: {
-            buyerFunded: true,
-            domainTransferred: false,
-            buyerApproved: false,
-            fundsReleased: false
-          }
-        }
-      ];
+      let query = supabase
+        .from('escrow_services')
+        .select('*, transaction:transactions(id, amount, status, buyer_id, seller_id, domain_id)')
+        .order('created_at', { ascending: false });
 
-      setTransactions(mockTransactions);
-      
       if (transactionId) {
-        const transaction = mockTransactions.find(t => t.id === transactionId);
-        setSelectedTransaction(transaction || null);
+        query = query.eq('transaction_id', transactionId);
+      } else if (!isAdmin && user) {
+        const { data: txIds } = await supabase
+          .from('transactions')
+          .select('id')
+          .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`);
+        const ids = (txIds ?? []).map((t: { id: string }) => t.id);
+        if (ids.length === 0) { setRecords([]); setIsLoading(false); return; }
+        query = query.in('transaction_id', ids);
       }
-    } catch (error) {
-      console.error('Failed to load escrow transactions:', error);
-      toast.error('加载托管交易失败');
+
+      const { data, error } = await query.limit(20);
+      if (error) throw error;
+
+      const enriched = await Promise.all((data ?? []).map(async (r) => {
+        const tx = r.transaction as EscrowRecord['transaction'];
+        if (!tx) return r as EscrowRecord;
+        const [domainRes, buyerRes, sellerRes] = await Promise.all([
+          supabase.from('domain_listings').select('name').eq('id', tx.domain_id).single(),
+          tx.buyer_id ? supabase.from('profiles').select('full_name, username').eq('id', tx.buyer_id).single() : Promise.resolve({ data: null }),
+          tx.seller_id ? supabase.from('profiles').select('full_name, username').eq('id', tx.seller_id).single() : Promise.resolve({ data: null }),
+        ]);
+        return { ...r, domain: domainRes.data, buyer: buyerRes.data, seller: sellerRes.data } as EscrowRecord;
+      }));
+
+      setRecords(enriched);
+      if (transactionId && enriched.length > 0) setSelected(enriched[0]);
+    } catch {
+      toast.error('加载托管记录失败');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleStepAction = async (action: string, transactionId: string) => {
+  const handleReleaseFunds = async (record: EscrowRecord) => {
+    if (!record.transaction_id) return;
+    setIsActing(true);
     try {
-      // 模拟执行托管步骤
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setTransactions(prev => prev.map(transaction => {
-        if (transaction.id === transactionId) {
-          const updatedSteps = { ...transaction.steps };
-          
-          switch (action) {
-            case 'approve_domain':
-              updatedSteps.buyerApproved = true;
-              break;
-            case 'release_funds':
-              updatedSteps.fundsReleased = true;
-              break;
-          }
-          
-          return {
-            ...transaction,
-            steps: updatedSteps,
-            status: updatedSteps.fundsReleased ? 'completed' : transaction.status
-          };
-        }
-        return transaction;
-      }));
-      
-      toast.success('操作成功');
-    } catch (error) {
-      console.error('Escrow action failed:', error);
+      await supabase.from('escrow_services').update({
+        status: 'released',
+        released_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }).eq('id', record.id);
+      await supabase.from('transactions').update({
+        status: 'completed',
+        completed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }).eq('id', record.transaction_id);
+      toast.success('资金已释放给卖家');
+      loadEscrowRecords();
+    } catch {
       toast.error('操作失败');
+    } finally {
+      setIsActing(false);
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      initiated: { label: '已创建', variant: 'secondary' as const },
-      funded: { label: '已付款', variant: 'default' as const },
-      domain_transferred: { label: '域名已转移', variant: 'default' as const },
-      completed: { label: '已完成', variant: 'default' as const },
-      disputed: { label: '争议中', variant: 'destructive' as const }
-    };
-    
-    const config = statusConfig[status as keyof typeof statusConfig];
-    return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
+  const getSteps = (record: EscrowRecord) => [
+    { label: '资金托管', done: !!record.funded_at, time: record.funded_at },
+    { label: '域名转移', done: !!record.domain_transferred_at, time: record.domain_transferred_at },
+    { label: '买家确认', done: !!record.buyer_approved_at, time: record.buyer_approved_at },
+    { label: '资金释放', done: !!record.released_at, time: record.released_at },
+  ];
 
-  const getProgressPercentage = (steps: EscrowTransaction['steps']) => {
-    const completedSteps = Object.values(steps).filter(Boolean).length;
-    return (completedSteps / 4) * 100;
-  };
+  if (isLoading) return <div className="flex justify-center py-8"><LoadingSpinner /></div>;
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="animate-pulse space-y-4">
-          <div className="h-48 bg-muted rounded"></div>
-          <div className="h-32 bg-muted rounded"></div>
-        </div>
-      </div>
-    );
-  }
+  const displayRecord = selected ?? records[0] ?? null;
 
-  // 单个交易详情视图
-  if (selectedTransaction) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            托管交易详情 - {selectedTransaction.domainName}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* 交易信息 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-              <User className="h-5 w-5" />
-              <div>
-                <div className="text-sm text-muted-foreground">买方</div>
-                <div className="font-medium">{selectedTransaction.buyerName}</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-              <User className="h-5 w-5" />
-              <div>
-                <div className="text-sm text-muted-foreground">卖方</div>
-                <div className="font-medium">{selectedTransaction.sellerName}</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-              <CreditCard className="h-5 w-5" />
-              <div>
-                <div className="text-sm text-muted-foreground">交易金额</div>
-                <div className="font-medium">¥{selectedTransaction.amount.toLocaleString()}</div>
-              </div>
-            </div>
-          </div>
-
-          {/* 进度条 */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">交易进度</span>
-              <span className="text-sm text-muted-foreground">
-                {getProgressPercentage(selectedTransaction.steps).toFixed(0)}%
-              </span>
-            </div>
-            <Progress value={getProgressPercentage(selectedTransaction.steps)} />
-          </div>
-
-          {/* 交易步骤 */}
-          <div className="space-y-4">
-            <h3 className="font-semibold">交易步骤</h3>
-            
-            <div className="space-y-3">
-              {/* 步骤1：买方付款 */}
-              <div className="flex items-center gap-3 p-3 border rounded-lg">
-                <div className={`p-2 rounded-full ${
-                  selectedTransaction.steps.buyerFunded 
-                    ? 'bg-green-100 text-green-600' 
-                    : 'bg-muted text-muted-foreground'
-                }`}>
-                  {selectedTransaction.steps.buyerFunded ? (
-                    <CheckCircle className="h-4 w-4" />
-                  ) : (
-                    <Clock className="h-4 w-4" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <div className="font-medium">买方付款到托管账户</div>
-                  <div className="text-sm text-muted-foreground">
-                    资金安全托管，等待域名转移
-                  </div>
-                </div>
-                {selectedTransaction.steps.buyerFunded && (
-                  <Badge variant="default">已完成</Badge>
-                )}
-              </div>
-
-              {/* 步骤2：域名转移 */}
-              <div className="flex items-center gap-3 p-3 border rounded-lg">
-                <div className={`p-2 rounded-full ${
-                  selectedTransaction.steps.domainTransferred 
-                    ? 'bg-green-100 text-green-600' 
-                    : selectedTransaction.steps.buyerFunded
-                    ? 'bg-blue-100 text-blue-600'
-                    : 'bg-muted text-muted-foreground'
-                }`}>
-                  {selectedTransaction.steps.domainTransferred ? (
-                    <CheckCircle className="h-4 w-4" />
-                  ) : selectedTransaction.steps.buyerFunded ? (
-                    <Clock className="h-4 w-4" />
-                  ) : (
-                    <Clock className="h-4 w-4" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <div className="font-medium">卖方转移域名</div>
-                  <div className="text-sm text-muted-foreground">
-                    域名管理权转移给买方
-                  </div>
-                </div>
-                {selectedTransaction.steps.domainTransferred && (
-                  <Badge variant="default">已完成</Badge>
-                )}
-              </div>
-
-              {/* 步骤3：买方确认 */}
-              <div className="flex items-center gap-3 p-3 border rounded-lg">
-                <div className={`p-2 rounded-full ${
-                  selectedTransaction.steps.buyerApproved 
-                    ? 'bg-green-100 text-green-600' 
-                    : selectedTransaction.steps.domainTransferred
-                    ? 'bg-blue-100 text-blue-600'
-                    : 'bg-muted text-muted-foreground'
-                }`}>
-                  {selectedTransaction.steps.buyerApproved ? (
-                    <CheckCircle className="h-4 w-4" />
-                  ) : selectedTransaction.steps.domainTransferred ? (
-                    <Clock className="h-4 w-4" />
-                  ) : (
-                    <Clock className="h-4 w-4" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <div className="font-medium">买方确认收到域名</div>
-                  <div className="text-sm text-muted-foreground">
-                    确认域名转移成功
-                  </div>
-                </div>
-                {selectedTransaction.steps.buyerApproved ? (
-                  <Badge variant="default">已完成</Badge>
-                ) : selectedTransaction.steps.domainTransferred ? (
-                  <Button
-                    size="sm"
-                    onClick={() => handleStepAction('approve_domain', selectedTransaction.id)}
-                  >
-                    确认收到
-                  </Button>
-                ) : null}
-              </div>
-
-              {/* 步骤4：资金释放 */}
-              <div className="flex items-center gap-3 p-3 border rounded-lg">
-                <div className={`p-2 rounded-full ${
-                  selectedTransaction.steps.fundsReleased 
-                    ? 'bg-green-100 text-green-600' 
-                    : selectedTransaction.steps.buyerApproved
-                    ? 'bg-blue-100 text-blue-600'
-                    : 'bg-muted text-muted-foreground'
-                }`}>
-                  {selectedTransaction.steps.fundsReleased ? (
-                    <CheckCircle className="h-4 w-4" />
-                  ) : selectedTransaction.steps.buyerApproved ? (
-                    <Clock className="h-4 w-4" />
-                  ) : (
-                    <Clock className="h-4 w-4" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <div className="font-medium">资金释放给卖方</div>
-                  <div className="text-sm text-muted-foreground">
-                    交易完成，资金转账给卖方
-                  </div>
-                </div>
-                {selectedTransaction.steps.fundsReleased ? (
-                  <Badge variant="default">已完成</Badge>
-                ) : selectedTransaction.steps.buyerApproved && isAdmin ? (
-                  <Button
-                    size="sm"
-                    onClick={() => handleStepAction('release_funds', selectedTransaction.id)}
-                  >
-                    释放资金
-                  </Button>
-                ) : null}
-              </div>
-            </div>
-          </div>
-
-          {/* 争议处理 */}
-          {selectedTransaction.status !== 'completed' && (
-            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                <span className="font-medium text-yellow-800">需要帮助？</span>
-              </div>
-              <p className="text-sm text-yellow-700 mb-3">
-                如果您在交易过程中遇到问题，可以联系我们的客服团队
-              </p>
-              <Button variant="outline" size="sm">
-                联系客服
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // 交易列表视图
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            托管服务交易
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {transactions.map((transaction) => (
-              <div
-                key={transaction.id}
-                className="p-4 border rounded-lg hover:bg-muted/30 cursor-pointer transition-colors"
-                onClick={() => setSelectedTransaction(transaction)}
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="font-semibold">{transaction.domainName}</div>
-                    {getStatusBadge(transaction.status)}
-                  </div>
-                  <div className="text-right">
-                    <div className="font-bold">¥{transaction.amount.toLocaleString()}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {new Date(transaction.createdAt).toLocaleDateString()}
+    <div className="space-y-4">
+      {!transactionId && (
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold flex items-center gap-2">
+            <Shield className="w-4 h-4 text-green-500" />
+            资金托管记录
+          </h3>
+          <Badge variant="secondary">{records.length} 条</Badge>
+        </div>
+      )}
+
+      {records.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground">
+          <Shield className="w-12 h-12 mx-auto mb-3 opacity-30" />
+          <p className="font-medium">暂无托管记录</p>
+        </div>
+      ) : (
+        <>
+          {!transactionId && (
+            <div className="space-y-2">
+              {records.map(r => {
+                const cfg = STATUS_CONFIG[r.status ?? 'initiated'];
+                return (
+                  <div
+                    key={r.id}
+                    className={`p-4 border rounded-lg cursor-pointer hover:border-primary/40 transition-colors ${selected?.id === r.id ? 'border-primary bg-primary/5' : ''}`}
+                    onClick={() => setSelected(r)}
+                    data-testid={`escrow-record-${r.id}`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-medium text-sm">{r.domain?.name ?? '未知域名'}</span>
+                      </div>
+                      <Badge variant={r.status === 'released' ? 'default' : 'secondary'}>
+                        {cfg?.label ?? r.status}
+                      </Badge>
+                    </div>
+                    <Progress value={cfg?.progress ?? 0} className="h-1.5 mb-2" />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>{r.buyer?.full_name ?? r.buyer?.username ?? '买家'}</span>
+                      <ArrowRight className="w-3 h-3" />
+                      <span>{r.seller?.full_name ?? r.seller?.username ?? '卖家'}</span>
                     </div>
                   </div>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-muted-foreground">
-                    {transaction.buyerName} → {transaction.sellerName}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Progress 
-                      value={getProgressPercentage(transaction.steps)} 
-                      className="w-20 h-2"
-                    />
-                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                </div>
-              </div>
-            ))}
+                );
+              })}
+            </div>
+          )}
 
-            {transactions.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>暂无托管交易记录</p>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+          {displayRecord && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-green-500" />
+                    {displayRecord.domain?.name ?? '托管详情'}
+                  </span>
+                  {displayRecord.transaction_id && (
+                    <Link to={`/transaction/${displayRecord.transaction_id}`} className="text-xs text-primary hover:underline">
+                      查看交易
+                    </Link>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {displayRecord.transaction && (
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <div className="p-2 bg-muted/40 rounded text-center">
+                      <p className="text-muted-foreground text-xs">托管金额</p>
+                      <p className="font-bold">¥{displayRecord.transaction.amount?.toLocaleString()}</p>
+                    </div>
+                    {displayRecord.escrow_fee != null && (
+                      <div className="p-2 bg-muted/40 rounded text-center">
+                        <p className="text-muted-foreground text-xs">托管费</p>
+                        <p className="font-bold">¥{displayRecord.escrow_fee}</p>
+                      </div>
+                    )}
+                    <div className="p-2 bg-muted/40 rounded text-center">
+                      <p className="text-muted-foreground text-xs">进度</p>
+                      <p className="font-bold">{STATUS_CONFIG[displayRecord.status ?? 'initiated']?.progress ?? 0}%</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  {getSteps(displayRecord).map((step, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${step.done ? 'bg-green-500 text-white' : 'bg-muted text-muted-foreground'}`}>
+                        {step.done ? <CheckCircle className="w-3.5 h-3.5" /> : <Clock className="w-3 h-3" />}
+                      </div>
+                      <div className="flex-1">
+                        <p className={`text-sm font-medium ${step.done ? '' : 'text-muted-foreground'}`}>{step.label}</p>
+                        {step.time && <p className="text-xs text-muted-foreground">{new Date(step.time).toLocaleString('zh-CN')}</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {isAdmin && displayRecord.status === 'domain_transferred' && (
+                  <Button onClick={() => handleReleaseFunds(displayRecord)} disabled={isActing} className="w-full">
+                    {isActing ? <LoadingSpinner size="sm" /> : <><Banknote className="w-4 h-4 mr-2" />管理员释放资金</>}
+                  </Button>
+                )}
+
+                {displayRecord.status === 'disputed' && (
+                  <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-sm">
+                    <AlertTriangle className="w-4 h-4 text-destructive shrink-0" />
+                    <span>该交易存在纠纷，平台正在介入处理</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </>
+      )}
     </div>
   );
 };

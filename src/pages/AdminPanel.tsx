@@ -10,7 +10,7 @@ import { UserManagement } from '@/components/admin/UserManagement';
 import { ContentManagement } from '@/components/admin/ContentManagement';
 import { SeoConfiguration } from '@/components/admin/SeoConfiguration';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Settings, RefreshCw, FileText, Layers, Search, Home, Users, Globe, CheckSquare, BarChart3, CreditCard, MessageSquare } from 'lucide-react';
+import { Shield, Settings, RefreshCw, FileText, Layers, Search, Home, Users, Globe, CheckSquare, BarChart3, CreditCard, MessageSquare, Percent, AlertTriangle } from 'lucide-react';
 import { SiteSettings } from '@/components/admin/SiteSettings';
 import { HomeContentManagement } from '@/components/admin/HomeContentManagement';
 import { FrontendContentManager } from '@/components/admin/FrontendContentManager';
@@ -19,6 +19,9 @@ import { QuickSettingsPanel } from '@/components/admin/QuickSettingsPanel';
 import { AdminActivityLog } from '@/components/admin/AdminActivityLog';
 import { PaymentGatewaySettings } from '@/components/admin/PaymentGatewaySettings';
 import { OffersManagement } from '@/components/admin/OffersManagement';
+import { CommissionSettings } from '@/components/admin/CommissionSettings';
+import { DisputeCenter } from '@/components/disputes/DisputeCenter';
+import { EscrowService } from '@/components/escrow/EscrowService';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -171,6 +174,9 @@ export const AdminPanel = () => {
     { value: 'seo', label: 'SEO配置', icon: Search },
     { value: 'frontend', label: '前台管理', icon: Home },
     { value: 'payment', label: '支付配置', icon: CreditCard },
+    { value: 'commission', label: '手续费', icon: Percent },
+    { value: 'disputes', label: '纠纷处理', icon: AlertTriangle },
+    { value: 'escrow', label: '资金托管', icon: Shield },
     { value: 'quick-settings', label: '快速设置', icon: Settings },
     { value: 'settings', label: '系统设置', icon: Settings },
   ];
@@ -291,6 +297,18 @@ export const AdminPanel = () => {
 
           <TabsContent value="payment" className="mt-0">
             <PaymentGatewaySettings />
+          </TabsContent>
+
+          <TabsContent value="commission" className="mt-0">
+            <CommissionSettings />
+          </TabsContent>
+
+          <TabsContent value="disputes" className="mt-0">
+            <DisputeCenter isAdmin={true} />
+          </TabsContent>
+
+          <TabsContent value="escrow" className="mt-0">
+            <EscrowService isAdmin={true} />
           </TabsContent>
 
           <TabsContent value="quick-settings" className="mt-0">
