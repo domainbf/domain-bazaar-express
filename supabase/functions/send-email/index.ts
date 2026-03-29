@@ -199,7 +199,7 @@ async function sendViaResend(to: string[], subject: string, html: string, from?:
   try {
     const { Resend } = await import("https://esm.sh/resend@4.1.2");
     const resend = new Resend(resendApiKey);
-    const fromEmail = from || "域见•你 域名交易平台 <noreply@noreply.example.com>";
+    const fromEmail = from || "域见•你 <noreply@nic.bn>";
     
     const response = await resend.emails.send({
       from: fromEmail,
@@ -273,7 +273,7 @@ Deno.serve(async (req) => {
       
       if (!result.success) {
         console.warn('SMTP failed, falling back to Resend:', result.error);
-        result = await sendViaResend(recipients, subject, html, from);
+        result = await sendViaResend(recipients, subject, html, smtpFrom);
       }
     } else {
       console.log('No SMTP configured, using Resend');
