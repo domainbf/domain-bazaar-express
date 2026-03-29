@@ -27,6 +27,7 @@ const Community = lazy(() => import('./pages/Community'));
 const SellDomainPage = lazy(() => import('./pages/SellDomain').then(m => ({ default: m.SellDomainPage })));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const TransactionDetail = lazy(() => import('./pages/TransactionDetail'));
+const AuctionsPage = lazy(() => import('./pages/AuctionsPage').then(m => ({ default: m.AuctionsPage })));
 
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
   return (
@@ -113,6 +114,7 @@ const AnimatedRoutes = memo(() => {
         <Route path="/community" element={<Community />} />
         <Route path="/sell" element={<SellDomainPage />} />
         <Route path="/transaction/:id" element={<ProtectedRoute><TransactionDetail /></ProtectedRoute>} />
+        <Route path="/auctions" element={<AuctionsPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       </div>

@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -10,12 +10,14 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast"
-import { LogOut, Settings, User, Bell, Menu, X, MessageSquare, Globe, Tag } from "lucide-react";
+import { LogOut, Settings, User, Bell, Menu, X, MessageSquare, Globe, Tag, Gavel } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useQueryClient } from '@tanstack/react-query';
+import { prefetchDomainListings } from '@/hooks/useDomainListings';
 
 interface NavbarProps {
   unreadCount?: number;
@@ -32,6 +34,12 @@ export const Navbar = ({ unreadCount = 0, unreadMessages: unreadMessagesProp = 0
   const actualUnreadCount = unreadCount;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Prefetch marketplace data on nav link hover for instant navigation
+  const handleMarketplaceHover = useCallback(() => {
+    prefetchDomainListings(queryClient);
+  }, [queryClient]);
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
@@ -178,9 +186,18 @@ export const Navbar = ({ unreadCount = 0, unreadMessages: unreadMessagesProp = 0
             to="/marketplace"
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-accent transition-colors"
             data-testid="nav-marketplace"
+            onMouseEnter={handleMarketplaceHover}
           >
             <Globe className="h-4 w-4" />
             域名市场
+          </Link>
+          <Link
+            to="/auctions"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-accent transition-colors"
+            data-testid="nav-auctions"
+          >
+            <Gavel className="h-4 w-4" />
+            域名竞拍
           </Link>
           <Link
             to="/sell"
@@ -214,6 +231,9 @@ export const Navbar = ({ unreadCount = 0, unreadMessages: unreadMessagesProp = 0
           <div className="px-4 py-4 space-y-2">
             <Button variant="ghost" className="w-full justify-start" onClick={() => handleNavigation('/marketplace')}>
               <Globe className="h-4 w-4 mr-2" />域名市场
+            </Button>
+            <Button variant="ghost" className="w-full justify-start" onClick={() => handleNavigation('/auctions')}>
+              <Gavel className="h-4 w-4 mr-2" />域名竞拍
             </Button>
             <Button variant="ghost" className="w-full justify-start" onClick={() => handleNavigation('/sell')}>
               <Tag className="h-4 w-4 mr-2" />出售域名

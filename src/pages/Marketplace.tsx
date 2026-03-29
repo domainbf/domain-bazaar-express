@@ -1,26 +1,21 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useState, useMemo } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { DomainListings } from '@/components/marketplace/DomainListings';
-import { Domain } from '@/types/domain';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTranslation } from 'react-i18next';
 import { BottomNavigation } from '@/components/mobile/BottomNavigation';
 import { SkeletonCardGrid } from '@/components/common/SkeletonCard';
 import { SoldDomains } from '@/components/sections/SoldDomains';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useDomainListings } from '@/hooks/useDomainListings';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, SlidersHorizontal, X, ArrowUpDown, TrendingUp, Clock, Eye, Star, Flame } from 'lucide-react';
+import { Search, X, ArrowUpDown, TrendingUp, Clock, Eye, Star, Flame, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const getDomainNameWithoutExtension = (domain: string): string => {
-  const lastDot = domain.lastIndexOf('.');
-  if (lastDot === -1) return domain;
-  return domain.substring(0, lastDot);
-};
+import { useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { DOMAIN_LISTINGS_KEY } from '@/hooks/useDomainListings';
 
 const getDomainExtension = (domain: string): string => {
   const match = domain.match(/(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?$/);
@@ -56,125 +51,61 @@ const SORT_OPTIONS = [
 ];
 
 export const Marketplace = () => {
-  const [domains, setDomains] = useState<Domain[]>([]);
-  const [featuredDomains, setFeaturedDomains] = useState<Domain[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [tldFilter, setTldFilter] = useState('all');
   const [priceChip, setPriceChip] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [verifiedOnly, setVerifiedOnly] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const isMobile = useIsMobile();
   const { t } = useTranslation();
   const { unreadCount } = useNotifications();
+  const queryClient = useQueryClient();
 
-  const loadDomains = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const { data: listingsData, error: listingsError } = await supabase
-        .from('domain_listings')
-        .select('*')
-        .eq('status', 'available')
-        .order('created_at', { ascending: false })
-        .limit(200);
+  // ── React Query — cached, parallel fetch, no waterfall ──────
+  const { data: allDomains = [], isLoading, isError, refetch } = useDomainListings();
 
-      if (listingsError) throw new Error(`加载域名列表失败: ${listingsError.message}`);
-      if (!listingsData || listingsData.length === 0) { setDomains([]); setFeaturedDomains([]); return; }
-
-      const domainIds = listingsData.map(d => d.id);
-      const { data: analyticsData } = await supabase
-        .from('domain_analytics')
-        .select('domain_id, views, favorites, offers')
-        .in('domain_id', domainIds);
-
-      const analyticsMap = new Map();
-      analyticsData?.forEach(item => analyticsMap.set(item.domain_id, item));
-
-      const processedDomains: Domain[] = listingsData.map(domain => {
-        const analytics = analyticsMap.get(domain.id);
-        const viewsValue = typeof analytics?.views === 'number' ? analytics.views : parseInt(String(analytics?.views ?? '0'), 10) || 0;
-        return {
-          id: domain.id,
-          name: domain.name || '',
-          price: Number(domain.price) || 0,
-          category: domain.category || 'standard',
-          description: domain.description || '',
-          status: domain.status || 'available',
-          highlight: Boolean(domain.highlight),
-          owner_id: domain.owner_id || '',
-          created_at: domain.created_at || new Date().toISOString(),
-          is_verified: Boolean(domain.is_verified),
-          verification_status: domain.verification_status || 'pending',
-          views: viewsValue,
-        };
-      });
-
-      setFeaturedDomains(processedDomains.filter(d => d.highlight || (d as any).is_featured).slice(0, 6));
-      setDomains(processedDomains);
-    } catch (error: any) {
-      const msg = error.message || '加载域名列表失败，请刷新页面重试';
-      setError(msg);
-      toast.error(msg);
-      setDomains([]);
-    } finally {
-      setIsLoading(false);
-    }
+  // Read search param from URL on mount
+  useEffect(() => {
+    const s = new URLSearchParams(window.location.search).get('search');
+    if (s) setSearchQuery(s);
   }, []);
 
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const searchParam = urlParams.get('search');
-    if (searchParam) setSearchQuery(searchParam);
-    const timer = setTimeout(() => loadDomains(), 100);
-    return () => clearTimeout(timer);
-  }, [loadDomains]);
-
-  useEffect(() => {
-    const channel = supabase
-      .channel('domain_listings_public')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'domain_listings' }, () => loadDomains())
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [loadDomains]);
+  const featuredDomains = useMemo(
+    () => allDomains.filter(d => d.highlight).slice(0, 6),
+    [allDomains]
+  );
 
   const filteredDomains = useMemo(() => {
-    let result = [...domains];
-
-    if (tldFilter !== 'all') {
+    let result = [...allDomains];
+    if (tldFilter !== 'all')
       result = result.filter(d => getDomainExtension(d.name) === tldFilter || getDomainExtension(d.name).endsWith(tldFilter));
-    }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       result = result.filter(d => d.name?.toLowerCase().includes(q) || d.description?.toLowerCase().includes(q));
     }
-    const priceOption = PRICE_CHIPS.find(p => p.id === priceChip);
-    if (priceOption && priceOption.id !== 'all') {
-      result = result.filter(d => d.price >= priceOption.min && d.price <= priceOption.max);
-    }
+    const pc = PRICE_CHIPS.find(p => p.id === priceChip);
+    if (pc && pc.id !== 'all')
+      result = result.filter(d => d.price >= pc.min && d.price <= pc.max);
     if (verifiedOnly) result = result.filter(d => d.is_verified);
-
     result.sort((a, b) => {
       switch (sortBy) {
-        case 'price_asc': return a.price - b.price;
+        case 'price_asc':  return a.price - b.price;
         case 'price_desc': return b.price - a.price;
-        case 'views': return (b.views || 0) - (a.views || 0);
-        default: return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case 'views':      return (b.views || 0) - (a.views || 0);
+        default:           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       }
     });
     return result;
-  }, [domains, tldFilter, searchQuery, priceChip, verifiedOnly, sortBy]);
+  }, [allDomains, tldFilter, searchQuery, priceChip, verifiedOnly, sortBy]);
 
   const hasActiveFilters = tldFilter !== 'all' || priceChip !== 'all' || verifiedOnly || sortBy !== 'newest' || searchQuery.trim();
 
   const clearAll = () => {
-    setTldFilter('all');
-    setPriceChip('all');
-    setSortBy('newest');
-    setVerifiedOnly(false);
-    setSearchQuery('');
+    setTldFilter('all'); setPriceChip('all'); setSortBy('newest'); setVerifiedOnly(false); setSearchQuery('');
+  };
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: DOMAIN_LISTINGS_KEY });
   };
 
   return (
@@ -212,16 +143,14 @@ export const Marketplace = () => {
         {/* TLD Filter Row */}
         <section className="border-b border-border bg-card">
           <div className={isMobile ? 'px-3 py-2.5' : 'max-w-6xl mx-auto px-6 py-2.5'}>
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
               {TLD_FILTERS.map(tld => (
                 <button
                   key={tld.id}
                   data-testid={`filter-tld-${tld.id}`}
                   onClick={() => setTldFilter(tld.id)}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
-                    tldFilter === tld.id
-                      ? 'bg-foreground text-background'
-                      : 'bg-muted text-muted-foreground hover:bg-accent'
+                    tldFilter === tld.id ? 'bg-foreground text-background' : 'bg-muted text-muted-foreground hover:bg-accent'
                   }`}
                 >
                   {tld.label}
@@ -235,25 +164,20 @@ export const Marketplace = () => {
         <section className="border-b border-border bg-background/60 backdrop-blur-sm sticky top-0 z-10">
           <div className={isMobile ? 'px-3 py-2.5' : 'max-w-6xl mx-auto px-6 py-2.5'}>
             <div className="flex items-center justify-between gap-3">
-              {/* Price chips */}
-              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+              <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
                 {PRICE_CHIPS.map(chip => (
                   <button
                     key={chip.id}
                     data-testid={`filter-price-${chip.id}`}
                     onClick={() => setPriceChip(chip.id)}
                     className={`px-3 py-1 rounded-full text-xs whitespace-nowrap transition-colors shrink-0 ${
-                      priceChip === chip.id
-                        ? 'bg-primary text-primary-foreground font-medium'
-                        : 'bg-muted text-muted-foreground hover:bg-accent'
+                      priceChip === chip.id ? 'bg-primary text-primary-foreground font-medium' : 'bg-muted text-muted-foreground hover:bg-accent'
                     }`}
                   >
                     {chip.label}
                   </button>
                 ))}
               </div>
-
-              {/* Sort + clear */}
               <div className="flex items-center gap-1.5 shrink-0">
                 {SORT_OPTIONS.map(opt => (
                   <button
@@ -261,9 +185,7 @@ export const Marketplace = () => {
                     data-testid={`sort-${opt.id}`}
                     onClick={() => setSortBy(opt.id)}
                     className={`px-2.5 py-1 rounded text-xs whitespace-nowrap transition-colors ${
-                      sortBy === opt.id
-                        ? 'bg-foreground text-background font-medium'
-                        : 'text-muted-foreground hover:text-foreground'
+                      sortBy === opt.id ? 'bg-foreground text-background font-medium' : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     {opt.label}
@@ -282,7 +204,7 @@ export const Marketplace = () => {
         {/* Main Content */}
         <div className={isMobile ? 'px-3 pt-5 pb-6' : 'max-w-6xl mx-auto px-6 pt-8 pb-12'}>
 
-          {/* Featured / Highlighted Domains */}
+          {/* Featured Domains */}
           {!isLoading && featuredDomains.length > 0 && tldFilter === 'all' && priceChip === 'all' && !searchQuery && (
             <section className="mb-10">
               <div className="flex items-center gap-2 mb-4">
@@ -300,16 +222,13 @@ export const Marketplace = () => {
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="text-xs font-medium text-orange-600 dark:text-orange-400 flex items-center gap-1">
-                        <Star className="h-3 w-3 fill-current" />
-                        精选
+                        <Star className="h-3 w-3 fill-current" />精选
                       </div>
                       {domain.is_verified && (
                         <Badge variant="outline" className="text-[10px] px-1 py-0 border-green-400 text-green-600">已验证</Badge>
                       )}
                     </div>
-                    <p className="font-bold text-foreground group-hover:text-primary transition-colors truncate">
-                      {domain.name}
-                    </p>
+                    <p className="font-bold text-foreground group-hover:text-primary transition-colors truncate">{domain.name}</p>
                     {domain.description && (
                       <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{domain.description}</p>
                     )}
@@ -327,32 +246,41 @@ export const Marketplace = () => {
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-muted-foreground" data-testid="text-domain-count">
                 共 <span className="font-semibold text-foreground">{filteredDomains.length}</span> 个域名
-                {filteredDomains.length !== domains.length && (
-                  <span className="ml-1 text-xs">(共 {domains.length} 个)</span>
+                {filteredDomains.length !== allDomains.length && (
+                  <span className="ml-1 text-xs">(共 {allDomains.length} 个)</span>
                 )}
               </p>
-              <button
-                data-testid="toggle-verified-only"
-                onClick={() => setVerifiedOnly(!verifiedOnly)}
-                className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full transition-colors ${
-                  verifiedOnly ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <TrendingUp className="h-3 w-3" />
-                仅已验证
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  data-testid="toggle-verified-only"
+                  onClick={() => setVerifiedOnly(!verifiedOnly)}
+                  className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full transition-colors ${
+                    verifiedOnly ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <TrendingUp className="h-3 w-3" />仅已验证
+                </button>
+                <button
+                  onClick={handleRefresh}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  title="刷新数据"
+                  data-testid="button-refresh-domains"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
           )}
 
           {/* Domain Listings */}
-          {error ? (
+          {isError ? (
             <div className="text-center py-16">
-              <p className="text-destructive mb-4">{error}</p>
-              <Button onClick={() => { setError(null); loadDomains(); }} variant="outline" size="sm">重新加载</Button>
+              <p className="text-muted-foreground mb-4">加载域名失败，请重试</p>
+              <Button onClick={() => refetch()} variant="outline" size="sm">重新加载</Button>
             </div>
           ) : isLoading ? (
             <SkeletonCardGrid count={isMobile ? 6 : 9} />
-          ) : filteredDomains.length === 0 && domains.length === 0 ? (
+          ) : filteredDomains.length === 0 && allDomains.length === 0 ? (
             <div className="text-center py-20">
               <div className="text-5xl mb-4">🔍</div>
               <h3 className="text-lg font-semibold mb-2">暂无在售域名</h3>
@@ -367,7 +295,7 @@ export const Marketplace = () => {
               <Button onClick={clearAll} variant="outline" size="sm">清空筛选</Button>
             </div>
           ) : (
-            <DomainListings isLoading={isLoading} domains={filteredDomains} isMobile={isMobile} />
+            <DomainListings isLoading={false} domains={filteredDomains} isMobile={isMobile} />
           )}
         </div>
 

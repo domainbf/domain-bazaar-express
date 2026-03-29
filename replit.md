@@ -6,11 +6,18 @@ A comprehensive domain name trading marketplace built with React, Vite, TypeScri
 
 - **Frontend**: React 18 + TypeScript + Vite SPA (pure frontend — no Express)
 - **Styling**: Tailwind CSS + shadcn/ui components
-- **State**: TanStack Query for server state, React Context for auth
+- **State**: TanStack Query (15min staleTime, all pages migrated) + React Context for auth
 - **Backend**: Supabase (auth, database, realtime, edge functions)
 - **Routing**: React Router v6 with lazy-loaded routes
 - **i18n**: i18next with Chinese/English support
 - **PWA**: vite-plugin-pwa with workbox service worker
+
+## Performance Architecture
+
+- `src/hooks/useDomainListings.ts` — React Query hook for marketplace data. Parallel fetch (listings + analytics simultaneously). Shared queryKey `['domains', 'available']` means Marketplace and Index share cache — instant re-visits.
+- `src/hooks/useUserStats.ts` — React Query hook for user center stats. Three queries parallel (domains, transactions, reviews), analytics after domains resolve.
+- `src/components/Navbar.tsx` — Prefetches marketplace data on `onMouseEnter` of nav link.
+- All pages use `staleTime: 3min` so data is fresh but not refetched on every visit.
 
 ## Key Features
 

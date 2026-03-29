@@ -1,230 +1,87 @@
-import { useState, useEffect, lazy, Suspense, useCallback, useMemo } from 'react';
+import { useState, useEffect, lazy, Suspense, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { DomainCard } from '@/components/DomainCard';
-import { Search, User, ClipboardList, ArrowRight, Bell, TrendingUp, Calculator, Eye } from 'lucide-react';
+import { Search, TrendingUp, Calculator, Eye } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/Navbar';
 import { HeroSection } from '@/components/sections/HeroSection';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthModal } from '@/components/AuthModal';
-import { supabase } from '@/integrations/supabase/client';
 import { Domain } from '@/types/domain';
-import { toast } from 'sonner';
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { fallbackDomains } from '@/data/availableDomains';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { BottomNavigation } from '@/components/mobile/BottomNavigation';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { useDomainListings } from '@/hooks/useDomainListings';
+import { SkeletonCardGrid } from '@/components/common/SkeletonCard';
 
 import { Footer } from '@/components/sections/Footer';
 import { HowItWorksSection } from '@/components/sections/HowItWorksSection';
 
-// 懒加载组件
 const DomainEstimator = lazy(() => import('@/components/tools/DomainEstimator').then(m => ({ default: m.DomainEstimator })));
 const DomainMonitor = lazy(() => import('@/components/tools/DomainMonitor').then(m => ({ default: m.DomainMonitor })));
 const SoldDomains = lazy(() => import('@/components/sections/SoldDomains').then(m => ({ default: m.SoldDomains })));
 const SupportSection = lazy(() => import('@/components/sections/SupportSection'));
 
+const FALLBACK_DOMAINS: Domain[] = fallbackDomains.slice(0, 9).map((d, i) => ({
+  id: `fallback-${i}`,
+  name: d.name,
+  price: parseInt(d.price),
+  category: d.category,
+  description: d.description || '',
+  status: 'available',
+  highlight: d.highlight,
+  owner_id: '',
+  created_at: new Date().toISOString(),
+  is_verified: true,
+  verification_status: 'verified',
+  views: 0,
+}));
+
 const Index = () => {
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [domains, setDomains] = useState<Domain[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('marketplace');
-  const [myDomainsCount, setMyDomainsCount] = useState(0);
-  const { user, profile, isLoading: authLoading } = useAuth();
+  const { user } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { unreadCount } = useNotifications();
   const { config: siteConfig } = useSiteSettings();
 
-  // 优化的域名加载函数 - 减少复杂度，提高加载速度
-  const loadDomains = async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      console.log('Loading domains for homepage...');
-      
-      // 获取域名列表
-      const { data: listingsData, error: listingsError } = await supabase
-        .from('domain_listings')
-        .select(`
-          id,
-          name,
-          price,
-          category,
-          description,
-          status,
-          highlight,
-          is_verified
-        `)
-        .in('status', ['available', 'reserved'])
-        .limit(50);
-      
-      if (listingsError) {
-        throw listingsError;
-      }
+  // ── React Query — shares cache with Marketplace page ──────────
+  const { data: allDomains, isLoading } = useDomainListings();
 
-      if (!listingsData || listingsData.length === 0) {
-        console.log('No domains found, using fallback data');
-        const fallbackData = fallbackDomains.slice(0, 9).map((domain, index) => ({
-          id: `fallback-${index}`,
-          name: domain.name,
-          price: parseInt(domain.price),
-          category: domain.category,
-          description: domain.description || '',
-          status: 'available',
-          highlight: domain.highlight,
-          owner_id: '',
-          created_at: new Date().toISOString(),
-          is_verified: true,
-          verification_status: 'verified',
-          views: 0
-        }));
-        setDomains(fallbackData);
-        setIsLoading(false);
-        return;
-      }
-
-      // 获取浏览量数据
-      const domainIds = listingsData.map(d => d.id);
-      const { data: analyticsData } = await supabase
-        .from('domain_analytics')
-        .select('domain_id, views')
-        .in('domain_id', domainIds);
-
-      const viewsMap = new Map<string, number>();
-      analyticsData?.forEach(a => viewsMap.set(a.domain_id!, a.views || 0));
-      
-      // 处理并按浏览量排序
-      const processedDomains: Domain[] = listingsData.map(domain => ({
-        id: domain.id,
-        name: domain.name || '',
-        price: Number(domain.price) || 0,
-        category: domain.category || 'standard',
-        description: domain.description || '',
-        status: domain.status || 'available',
-        highlight: Boolean(domain.highlight),
-        owner_id: '',
-        created_at: new Date().toISOString(),
-        is_verified: Boolean(domain.is_verified),
-        verification_status: domain.is_verified ? 'verified' : 'pending',
-        views: viewsMap.get(domain.id) || 0
-      }));
-
-      // 按浏览量降序排序，取前9个
-      processedDomains.sort((a, b) => (b.views || 0) - (a.views || 0));
-      const topDomains = processedDomains.slice(0, 9);
-      
-      console.log('Loaded domains successfully:', topDomains.length);
-      setDomains(topDomains);
-      
-    } catch (error: any) {
-      console.error('Error loading domains:', error);
-      
-      // 发生错误时使用备用数据，确保页面正常显示
-      console.warn('Using fallback data due to error');
-      const fallbackData = fallbackDomains.slice(0, 9).map((domain, index) => ({
-        id: `fallback-${index}`,
-        name: domain.name,
-        price: parseInt(domain.price),
-        category: domain.category,
-        description: domain.description || '',
-        status: 'available',
-        highlight: domain.highlight,
-        owner_id: '',
-        created_at: new Date().toISOString(),
-        is_verified: true,
-        verification_status: 'verified',
-        views: 0
-      }));
-      setDomains(fallbackData);
-      
-      // 不设置错误状态，让页面正常显示备用数据
-      setError(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // URL search param
   useEffect(() => {
-    // 从 URL 获取搜索参数
-    const urlParams = new URLSearchParams(window.location.search);
-    const searchParam = urlParams.get('search');
-    if (searchParam) {
-      setSearchQuery(searchParam);
-    }
+    const s = new URLSearchParams(window.location.search).get('search');
+    if (s) setSearchQuery(s);
+  }, []);
 
-    // 只在组件首次挂载时加载数据
-    loadDomains();
-  }, []); // 移除所有依赖项，防止无限循环
+  // Show top-9 by views, with fallback when DB is empty
+  const domains: Domain[] = useMemo(() => {
+    if (!allDomains?.length) return isLoading ? [] : FALLBACK_DOMAINS;
+    return [...allDomains].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 9);
+  }, [allDomains, isLoading]);
 
-  // 实时统计我的域名数量，修复首页与管理页面数量不一致
-  useEffect(() => {
-    let channel: ReturnType<typeof supabase.channel> | null = null;
-
-    const fetchCount = async () => {
-      if (!user?.id) { setMyDomainsCount(0); return; }
-      const { count, error } = await supabase
-        .from('domain_listings')
-        .select('*', { count: 'exact', head: true })
-        .eq('owner_id', user.id);
-      if (!error && typeof count === 'number') {
-        setMyDomainsCount(count || 0);
-      }
-    };
-
-    fetchCount();
-
-    if (user?.id) {
-      channel = supabase
-        .channel(`domain_count_${user.id}`)
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'domain_listings', filter: `owner_id=eq.${user.id}` },
-          () => fetchCount()
-        )
-        .subscribe();
-    }
-
-    return () => { if (channel) supabase.removeChannel(channel); };
-  }, [user?.id]);
-
-  // 优化的过滤逻辑
   const filteredDomains = useMemo(() => domains
-    .filter(domain => {
-      if (filter !== 'all' && domain.category !== filter) return false;
+    .filter(d => {
+      if (filter !== 'all' && d.category !== filter) return false;
       if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase().trim();
-        return (
-          domain.name?.toLowerCase().includes(query) || 
-          domain.description?.toLowerCase().includes(query)
-        );
+        const q = searchQuery.toLowerCase().trim();
+        return d.name?.toLowerCase().includes(q) || d.description?.toLowerCase().includes(q);
       }
       return true;
-    })
-    .slice(0, 9), [domains, filter, searchQuery]);
+    }), [domains, filter, searchQuery]);
 
   const handleSellDomains = () => {
-    if (user) {
-      navigate('/user-center?tab=domains');
-    } else {
-      setIsAuthModalOpen(true);
-    }
-  };
-
-  const handleRetry = () => {
-    setError(null);
-    loadDomains();
+    if (user) navigate('/user-center?tab=domains');
+    else setIsAuthModalOpen(true);
   };
 
   return (
@@ -232,244 +89,198 @@ const Index = () => {
       <Navbar unreadCount={unreadCount} />
       
       <div className={isMobile ? 'pb-20' : ''}>
-      {/* Hero Section */}
-      <HeroSection />
+        <HeroSection />
 
-      {/* 主要内容区域 - 使用标签页 */}
-      <section className="py-12 md:py-16 bg-card">
-        <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="flex justify-center mb-8">
-              <TabsList className="grid grid-cols-3 w-full max-w-md">
-                <TabsTrigger value="marketplace" className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4" />
-                  域名市场
-                </TabsTrigger>
-                <TabsTrigger value="estimator" className="flex items-center gap-2">
-                  <Calculator className="w-4 h-4" />
-                  价值评估
-                </TabsTrigger>
-                <TabsTrigger value="monitor" className="flex items-center gap-2">
-                  <Eye className="w-4 h-4" />
-                  域名监控
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            <TabsContent value="marketplace">
-              <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-8 md:mb-10">{t('homePage.featuredDomains')}</h2>
-              
-              {/* Filter buttons */}
-              <div className="overflow-x-auto pb-4 mb-8">
-                <div className="flex gap-2 md:gap-3 md:flex-wrap md:justify-center min-w-max px-4">
-                  {[
-                    { key: 'all', label: t('common.all') },
-                    { key: 'premium', label: t('domains.categories.premium') },
-                    { key: 'short', label: t('domains.categories.short') },
-                    { key: 'dev', label: t('domains.categories.tech') },
-                  ].map(f => (
-                    <Button
-                      key={f.key}
-                      variant={filter === f.key ? 'default' : 'outline'}
-                      onClick={() => setFilter(f.key)}
-                      size="sm"
-                      className="font-bold"
-                    >
-                      {f.label}
-                    </Button>
-                  ))}
-                </div>
+        {/* Domain Tabs Section */}
+        <section className="py-12 md:py-16 bg-card">
+          <div className="max-w-6xl mx-auto px-4 md:px-8">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <div className="flex justify-center mb-8">
+                <TabsList className="grid grid-cols-3 w-full max-w-md">
+                  <TabsTrigger value="marketplace" className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4" />域名市场
+                  </TabsTrigger>
+                  <TabsTrigger value="estimator" className="flex items-center gap-2">
+                    <Calculator className="w-4 h-4" />价值评估
+                  </TabsTrigger>
+                  <TabsTrigger value="monitor" className="flex items-center gap-2">
+                    <Eye className="w-4 h-4" />域名监控
+                  </TabsTrigger>
+                </TabsList>
               </div>
 
-              <div className="max-w-md mx-auto mb-10">
-                <div className="relative">
-                  <Input
-                    type="text"
-                    placeholder={t('marketplace.searchPlaceholder')}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full h-10 md:h-12 pl-12 pr-4 bg-background border-border focus:border-ring text-foreground font-medium"
-                  />
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-                </div>
-              </div>
+              <TabsContent value="marketplace">
+                <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-8 md:mb-10">
+                  {t('homePage.featuredDomains')}
+                </h2>
 
-              {/* Domain Cards Grid */}
-              {error ? (
-                <div className="text-center py-16 bg-destructive/5 rounded-2xl border border-destructive/20 mb-12">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-destructive/10 rounded-full flex items-center justify-center">
-                    <svg className="w-8 h-8 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-2xl font-semibold text-destructive mb-2">加载遇到问题</h3>
-                  <p className="text-destructive/80 mb-6 max-w-md mx-auto leading-relaxed">{error}</p>
-                  <div className="space-x-4">
-                    <Button onClick={handleRetry} variant="destructive" className="px-6 py-2">
-                      重新加载
-                    </Button>
-                    <Button variant="outline" onClick={() => window.location.reload()}>
-                      刷新页面
-                    </Button>
-                  </div>
-                </div>
-              ) : isLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-8 px-2 md:px-0">
-                  {[1, 2, 3, 4, 5, 6].map((i) => (
-                    <div key={i} className="animate-pulse">
-                      <div className="bg-muted rounded-lg h-48 mb-4"></div>
-                      <div className="bg-muted h-4 rounded mb-2"></div>
-                      <div className="bg-muted h-3 rounded w-2/3"></div>
-                    </div>
-                  ))}
-                </div>
-              ) : filteredDomains.length > 0 ? (
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-8 px-2 md:px-0">
-                    {filteredDomains.map((domain) => (
-                      <DomainCard 
-                        key={domain.id} 
-                        domain={domain.name} 
-                        price={domain.price}
-                        highlight={domain.highlight || false}
-                        description={domain.description || ''}
-                        category={domain.category || ''}
-                        domainId={domain.id}
-                        sellerId={domain.owner_id || ''}
-                      />
+                {/* Filters */}
+                <div className="overflow-x-auto pb-4 mb-8">
+                  <div className="flex gap-2 md:gap-3 md:flex-wrap md:justify-center min-w-max px-4">
+                    {[
+                      { key: 'all', label: t('common.all') },
+                      { key: 'premium', label: t('domains.categories.premium') },
+                      { key: 'short', label: t('domains.categories.short') },
+                      { key: 'dev', label: t('domains.categories.tech') },
+                    ].map(f => (
+                      <Button
+                        key={f.key}
+                        variant={filter === f.key ? 'default' : 'outline'}
+                        onClick={() => setFilter(f.key)}
+                        size="sm"
+                        className="font-bold"
+                      >
+                        {f.label}
+                      </Button>
                     ))}
                   </div>
-                  
-                  <div className="text-center">
-                    <Link to="/marketplace">
-                      <Button className="px-8 py-3">
-                        查看更多域名
-                      </Button>
-                    </Link>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-16 bg-muted rounded-lg border border-border mb-12">
-                  <h3 className="text-2xl font-medium text-muted-foreground mb-4">
-                    {domains.length === 0 ? '暂无域名' : t('marketplace.noDomainsFound')}
-                  </h3>
-                  <p className="text-muted-foreground mb-4">
-                    {domains.length === 0 ? '看起来还没有域名添加到平台中' : t('homePage.tryAdjustingFilters')}
-                  </p>
-                  <div className="space-x-4">
-                    <Button onClick={handleSellDomains}>
-                      {t('homePage.addYourDomain')}
-                    </Button>
-                    <Button variant="outline" onClick={handleRetry}>
-                      刷新页面
-                    </Button>
+                </div>
+
+                <div className="max-w-md mx-auto mb-10">
+                  <div className="relative">
+                    <Input
+                      type="text"
+                      placeholder={t('marketplace.searchPlaceholder')}
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full h-10 md:h-12 pl-12 pr-4 bg-background border-border focus:border-ring text-foreground font-medium"
+                    />
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                   </div>
                 </div>
-              )}
-            </TabsContent>
 
-            <TabsContent value="estimator">
-              <Suspense fallback={<div className="flex justify-center py-12"><LoadingSpinner /></div>}>
-                <DomainEstimator />
-              </Suspense>
-            </TabsContent>
+                {/* Domain Cards */}
+                {isLoading ? (
+                  <SkeletonCardGrid count={6} />
+                ) : filteredDomains.length > 0 ? (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-8 px-2 md:px-0">
+                      {filteredDomains.map((domain) => (
+                        <DomainCard
+                          key={domain.id}
+                          domain={domain.name}
+                          price={domain.price}
+                          highlight={domain.highlight || false}
+                          description={domain.description || ''}
+                          category={domain.category || ''}
+                          domainId={domain.id}
+                          sellerId={domain.owner_id || ''}
+                        />
+                      ))}
+                    </div>
+                    <div className="text-center">
+                      <Link to="/marketplace">
+                        <Button className="px-8 py-3">查看更多域名</Button>
+                      </Link>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-16 bg-muted rounded-lg border border-border mb-12">
+                    <h3 className="text-2xl font-medium text-muted-foreground mb-4">
+                      {domains.length === 0 ? '暂无域名' : t('marketplace.noDomainsFound')}
+                    </h3>
+                    <p className="text-muted-foreground mb-4">
+                      {domains.length === 0 ? '看起来还没有域名添加到平台中' : t('homePage.tryAdjustingFilters')}
+                    </p>
+                    <Button onClick={handleSellDomains}>{t('homePage.addYourDomain')}</Button>
+                  </div>
+                )}
+              </TabsContent>
 
-            <TabsContent value="monitor">
-              <Suspense fallback={<div className="flex justify-center py-12"><LoadingSpinner /></div>}>
-                <DomainMonitor />
-              </Suspense>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </section>
+              <TabsContent value="estimator">
+                <Suspense fallback={<div className="flex justify-center py-12"><div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
+                  <DomainEstimator />
+                </Suspense>
+              </TabsContent>
 
-      {/* How It Works */}
-      <HowItWorksSection />
+              <TabsContent value="monitor">
+                <Suspense fallback={<div className="flex justify-center py-12"><div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
+                  <DomainMonitor />
+                </Suspense>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </section>
 
-      {/* Features Section */}
-      <section className="py-16 md:py-20 bg-primary text-primary-foreground">
-        <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-10 md:mb-16">{siteConfig.how_it_works_title || t('homePage.howItWorks')}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
-            <div className="bg-secondary rounded-xl p-6 md:p-8 text-center">
-              <div className="bg-primary text-primary-foreground w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">1</div>
-              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-foreground">{siteConfig.step1_title || t('homePage.step1Title')}</h3>
-              <p className="text-muted-foreground text-sm md:text-base font-semibold">{siteConfig.step1_desc || t('homePage.step1Description')}</p>
-            </div>
-            
-            <div className="bg-secondary rounded-xl p-6 md:p-8 text-center">
-              <div className="bg-primary text-primary-foreground w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">2</div>
-              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-foreground">{siteConfig.step2_title || t('homePage.step2Title')}</h3>
-              <p className="text-muted-foreground text-sm md:text-base font-semibold">{siteConfig.step2_desc || t('homePage.step2Description')}</p>
-            </div>
-            
-            <div className="bg-secondary rounded-xl p-6 md:p-8 text-center">
-              <div className="bg-primary text-primary-foreground w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">3</div>
-              <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-foreground">{siteConfig.step3_title || t('homePage.step3Title')}</h3>
-              <p className="text-muted-foreground text-sm md:text-base font-semibold">{siteConfig.step3_desc || t('homePage.step3Description')}</p>
+        <HowItWorksSection />
+
+        {/* Features */}
+        <section className="py-16 md:py-20 bg-primary text-primary-foreground">
+          <div className="max-w-6xl mx-auto px-4 md:px-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-center mb-10 md:mb-16">
+              {siteConfig.how_it_works_title || t('homePage.howItWorks')}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
+              {[
+                { step: '1', title: siteConfig.step1_title || t('homePage.step1Title'), desc: siteConfig.step1_desc || t('homePage.step1Description') },
+                { step: '2', title: siteConfig.step2_title || t('homePage.step2Title'), desc: siteConfig.step2_desc || t('homePage.step2Description') },
+                { step: '3', title: siteConfig.step3_title || t('homePage.step3Title'), desc: siteConfig.step3_desc || t('homePage.step3Description') },
+              ].map(({ step, title, desc }) => (
+                <div key={step} className="bg-secondary rounded-xl p-6 md:p-8 text-center">
+                  <div className="bg-primary text-primary-foreground w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">
+                    {step}
+                  </div>
+                  <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-foreground">{title}</h3>
+                  <p className="text-muted-foreground text-sm md:text-base font-semibold">{desc}</p>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Statistics Section */}
-      <section className="py-16 md:py-20 bg-card">
-        <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-10 md:mb-16">{siteConfig.stats_title || t('homePage.platformStats')}</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-            <div className="text-center p-4 md:p-6 bg-muted rounded-lg shadow-sm">
-              <div className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-3">{siteConfig.stat_users || '50,000+'}</div>
-              <div className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.activeUsers')}</div>
-            </div>
-            <div className="text-center p-4 md:p-6 bg-muted rounded-lg shadow-sm">
-              <div className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-3">{siteConfig.stat_countries || '100+'}</div>
-              <div className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.countries')}</div>
-            </div>
-            <div className="text-center p-4 md:p-6 bg-muted rounded-lg shadow-sm">
-              <div className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-3">{siteConfig.stat_volume || '$100M+'}</div>
-              <div className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.transactionVolume')}</div>
-            </div>
-            <div className="text-center p-4 md:p-6 bg-muted rounded-lg shadow-sm">
-              <div className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-3">{siteConfig.stat_support || '24/7'}</div>
-              <div className="text-muted-foreground text-sm md:text-base font-semibold">{t('homePage.customerSupport')}</div>
+        {/* Stats */}
+        <section className="py-16 md:py-20 bg-card">
+          <div className="max-w-6xl mx-auto px-4 md:px-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-10 md:mb-16">
+              {siteConfig.stats_title || t('homePage.platformStats')}
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+              {[
+                { value: siteConfig.stat_users || '50,000+', label: t('homePage.activeUsers') },
+                { value: siteConfig.stat_countries || '100+', label: t('homePage.countries') },
+                { value: siteConfig.stat_volume || '$100M+', label: t('homePage.transactionVolume') },
+                { value: siteConfig.stat_support || '24/7', label: t('homePage.customerSupport') },
+              ].map(({ value, label }) => (
+                <div key={label} className="text-center p-4 md:p-6 bg-muted rounded-lg shadow-sm">
+                  <div className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-3">{value}</div>
+                  <div className="text-muted-foreground text-sm md:text-base font-semibold">{label}</div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Support Section */}
-      <SupportSection />
+        <Suspense fallback={null}><SupportSection /></Suspense>
+        <Suspense fallback={null}><SoldDomains /></Suspense>
 
-      {/* Sold Domains Section */}
-      <SoldDomains />
-
-      {/* Call to Action */}
-      <section className="py-16 md:py-20 bg-primary text-primary-foreground">
-        <div className="max-w-4xl mx-auto px-4 md:px-8 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">{siteConfig.cta_title || t('homePage.ctaTitle')}</h2>
-          <p className="text-base md:text-xl opacity-80 mb-8 md:mb-10 font-semibold">
-            {siteConfig.cta_description || t('homePage.ctaDescription')}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/marketplace" className="w-full sm:w-auto">
-              <Button className="w-full sm:w-auto bg-primary-foreground text-primary hover:bg-primary-foreground/90 px-6 py-2 md:px-6 md:py-3 text-base font-bold">
-                {siteConfig.cta_btn_primary || t('homePage.browseDomains')}
-              </Button>
-            </Link>
-            <Link to={user ? "/user-center" : "#"} onClick={user ? undefined : () => setIsAuthModalOpen(true)} className="w-full sm:w-auto">
-              <Button 
-                variant="outline" 
-                className="w-full sm:w-auto border-primary-foreground border-2 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 px-6 py-2 md:px-6 md:py-3 text-base font-bold"
-              >
-                {user ? (siteConfig.cta_btn_secondary || t('homePage.visitUserCenter')) : t('homePage.registerLogin')}
-              </Button>
-            </Link>
+        {/* CTA */}
+        <section className="py-16 md:py-20 bg-primary text-primary-foreground">
+          <div className="max-w-4xl mx-auto px-4 md:px-8 text-center">
+            <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">
+              {siteConfig.cta_title || t('homePage.ctaTitle')}
+            </h2>
+            <p className="text-base md:text-xl opacity-80 mb-8 md:mb-10 font-semibold">
+              {siteConfig.cta_description || t('homePage.ctaDescription')}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/marketplace" className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto bg-primary-foreground text-primary hover:bg-primary-foreground/90 px-6 py-2 md:px-6 md:py-3 text-base font-bold">
+                  {siteConfig.cta_btn_primary || t('homePage.browseDomains')}
+                </Button>
+              </Link>
+              <Link to={user ? "/user-center" : "#"} onClick={user ? undefined : () => setIsAuthModalOpen(true)} className="w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  className="w-full sm:w-auto border-primary-foreground border-2 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 px-6 py-2 md:px-6 md:py-3 text-base font-bold"
+                >
+                  {user ? (siteConfig.cta_btn_secondary || t('homePage.visitUserCenter')) : t('homePage.registerLogin')}
+                </Button>
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Footer */}
-      <Footer />
+        <Footer />
       </div>
 
       {isMobile && <BottomNavigation unreadCount={unreadCount} />}

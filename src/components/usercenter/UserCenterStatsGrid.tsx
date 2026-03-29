@@ -5,70 +5,24 @@ import { UserProfile } from "@/types/userProfile";
 import {
   Globe, DollarSign, Eye, Heart, MessageSquare, ShoppingCart, Award, CheckCircle, CalendarDays
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
+import { useUserStats } from "@/hooks/useUserStats";
 
 interface UserCenterStatsGridProps {
   profile: UserProfile | null;
   user: User;
-  compact?: boolean;   // only show 3 key stats
-  mobileRow?: boolean; // render as horizontal row inside a card (for profile page)
-}
-
-interface UserStats {
-  totalDomains: number;
-  totalValue: number;
-  totalViews: number;
-  totalOffers: number;
-  totalFavorites: number;
-  completedTransactions: number;
-  activeListings: number;
-  avgRating: number;
+  compact?: boolean;
+  mobileRow?: boolean;
 }
 
 export const UserCenterStatsGrid = ({ profile, user, compact = false, mobileRow = false }: UserCenterStatsGridProps) => {
-  const [stats, setStats] = useState<UserStats>({
+  // ── React Query — parallel fetch, 2-min cache ────────────────
+  const { data, isLoading } = useUserStats(user?.id);
+  const stats = data ?? {
     totalDomains: 0, totalValue: 0, totalViews: 0, totalOffers: 0,
     totalFavorites: 0, completedTransactions: 0, activeListings: 0, avgRating: 0,
-  });
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetch = async () => {
-      if (!user?.id) return;
-      setIsLoading(true);
-      try {
-        const { data: domains } = await supabase
-          .from('domain_listings').select('id, price, status').eq('owner_id', user.id);
-        const totalDomains = domains?.length || 0;
-        const activeListings = domains?.filter(d => d.status === 'available').length || 0;
-        const totalValue = domains?.reduce((s, d) => s + (Number(d.price) || 0), 0) || 0;
-
-        const domainIds = domains?.map(d => d.id) || [];
-        const { data: analytics } = domainIds.length
-          ? await supabase.from('domain_analytics').select('views, offers, favorites').in('domain_id', domainIds)
-          : { data: [] };
-        const totalViews = analytics?.reduce((s, i) => s + (i.views || 0), 0) || 0;
-        const totalOffers = analytics?.reduce((s, i) => s + (i.offers || 0), 0) || 0;
-        const totalFavorites = analytics?.reduce((s, i) => s + (i.favorites || 0), 0) || 0;
-
-        const { data: txns } = await supabase
-          .from('transactions').select('status').eq('buyer_id', user.id);
-        const completedTransactions = txns?.filter(t => t.status === 'completed').length || 0;
-
-        const { data: reviews } = await supabase
-          .from('user_reviews').select('rating').eq('reviewed_user_id', user.id);
-        const avgRating = reviews?.length
-          ? reviews.reduce((s, r) => s + (r.rating || 0), 0) / reviews.length : 0;
-
-        setStats({ totalDomains, totalValue, totalViews, totalOffers, totalFavorites, completedTransactions, activeListings, avgRating });
-      } catch (e) { console.error(e); }
-      finally { setIsLoading(false); }
-    };
-    fetch();
-  }, [user?.id]);
+  };
 
   const fmtCny = (v: number) => new Intl.NumberFormat('zh-CN', {
     style: 'currency', currency: 'CNY', minimumFractionDigits: 0, maximumFractionDigits: 0,
