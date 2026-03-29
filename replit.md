@@ -14,7 +14,7 @@ A comprehensive domain name trading marketplace built with React, Vite, TypeScri
 
 ## Key Features
 
-### Marketplace
+### Marketplace & Frontend
 - Domain listing marketplace with search and filtering
 - User authentication via Supabase Auth (email + Google/GitHub OAuth)
 - Domain ownership verification via DNS TXT records
@@ -22,12 +22,32 @@ A comprehensive domain name trading marketplace built with React, Vite, TypeScri
 - Domain value estimation with AI (Alibaba Bailian API)
 - WHOIS lookup integration
 - Domain monitoring and alerts
+- `HowItWorksSection` — 4-step flow explainer on homepage
+- `Footer` — rich footer with links, stats, copyright
+- Domain auctions with real-time bidding
 
 ### Trading
 - Full transaction lifecycle: offer → payment → escrow → transfer → confirm
 - `/transaction/:id` page with step-by-step flow
+- `MyTransactions` — user center transaction view with role/status filter
 - Escrow service with Supabase-backed records
 - Dispute filing and admin resolution center
+
+### User Center
+- `ProfileCompletion` — completion percentage widget shown until 100%
+- `MyTransactions` — real transactions from DB (buyer/seller view)
+- `NotificationsPanel` — 8 notification type filters (offer, transaction, message, escrow, dispute, auction, verification, system)
+- `UserCenterStatsGrid` — member since date, seller rating, total sales
+- `WalletPanel` — balance from `profiles.balance` DB column
+
+### Admin Panel (Sidebar Layout)
+- Restructured to use left sidebar navigation instead of horizontal tabs
+- Navigation grouped into: 数据概览, 域名管理, 交易管理, 用户管理, 内容管理, 系统设置
+- `AdminTransactionManagement` — full transaction table with admin actions (confirm payment, release escrow, mark disputed, cancel)
+- `AdminAuctionManagement` — auction list with bid history view, end/cancel actions
+- `AdminReviewManagement` — review moderation (hide/show/delete)
+- Badge indicators on sidebar items for pending counts
+- Mobile: Sheet/drawer for sidebar on small screens
 - Post-transaction 5-star review system
 
 ### Real-time

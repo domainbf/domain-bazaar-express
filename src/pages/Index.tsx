@@ -21,6 +21,9 @@ import { BottomNavigation } from '@/components/mobile/BottomNavigation';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 
+import { Footer } from '@/components/sections/Footer';
+import { HowItWorksSection } from '@/components/sections/HowItWorksSection';
+
 // 懒加载组件
 const DomainEstimator = lazy(() => import('@/components/tools/DomainEstimator').then(m => ({ default: m.DomainEstimator })));
 const DomainMonitor = lazy(() => import('@/components/tools/DomainMonitor').then(m => ({ default: m.DomainMonitor })));
@@ -380,6 +383,9 @@ const Index = () => {
         </div>
       </section>
 
+      {/* How It Works */}
+      <HowItWorksSection />
+
       {/* Features Section */}
       <section className="py-16 md:py-20 bg-primary text-primary-foreground">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
@@ -463,11 +469,7 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 md:py-12 bg-primary text-primary-foreground border-t border-border">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 text-center">
-          <p className="text-sm md:text-base font-semibold opacity-80">© {new Date().getFullYear()} {siteConfig.footer_text}</p>
-        </div>
-      </footer>
+      <Footer />
       </div>
 
       {isMobile && <BottomNavigation unreadCount={unreadCount} />}
