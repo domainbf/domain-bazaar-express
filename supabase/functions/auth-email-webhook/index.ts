@@ -1,57 +1,7 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
-
-// Read Resend API key: env var first, then database fallback
-async function getResendApiKey(): Promise<string | null> {
-  const fromEnv = Deno.env.get('RESEND_API_KEY');
-  if (fromEnv) return fromEnv;
-
-  try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
-    const { data } = await supabase
-      .from('site_settings')
-      .select('value')
-      .eq('key', 'resend_api_key')
-      .single();
-    return data?.value || null;
-  } catch {
-    return null;
-  }
-}
-
-// Send email directly via Resend API (no dependency on send-email function)
-async function sendViaResend(
-  apiKey: string,
-  to: string,
-  subject: string,
-  html: string
-): Promise<void> {
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from: '域见•你 <noreply@nic.rw>',
-      to: [to],
-      subject,
-      html,
-    }),
-  });
-
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Resend API error ${res.status}: ${body}`);
-  }
-}
 
 // ─── Email Templates ─────────────────────────────────────────────────────────
 
@@ -68,7 +18,6 @@ const emailBase = (content: string, previewText: string) => `<!DOCTYPE html>
   <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#f1f5f9;padding:32px 16px;">
     <tr><td align="center">
       <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;width:100%;">
-        <!-- Brand bar -->
         <tr><td style="padding-bottom:24px;text-align:center;">
           <table cellpadding="0" cellspacing="0" role="presentation" style="display:inline-table;">
             <tr><td style="background:#0f172a;border-radius:12px;padding:10px 20px;">
@@ -77,11 +26,9 @@ const emailBase = (content: string, previewText: string) => `<!DOCTYPE html>
             </td></tr>
           </table>
         </td></tr>
-        <!-- Card -->
         <tr><td style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.07);">
           ${content}
         </td></tr>
-        <!-- Footer -->
         <tr><td style="padding:28px 20px 0;text-align:center;">
           <p style="margin:0;font-size:13px;color:#94a3b8;">此邮件由 <strong style="color:#64748b;">域见•你 域名交易平台</strong> 发送</p>
           <p style="margin:6px 0 0;font-size:12px;color:#cbd5e1;">如果您没有操作本平台，请忽略此邮件</p>
@@ -192,7 +139,6 @@ Deno.serve(async (req) => {
     const { user, email_data } = data;
     const { token, token_hash, redirect_to, email_action_type, site_url } = email_data;
 
-    // Resolve base URL from redirect_to or site_url
     let baseUrl = 'https://nic.rw';
     if (redirect_to) {
       try { baseUrl = new URL(redirect_to).origin; } catch { /* keep default */ }
@@ -202,10 +148,6 @@ Deno.serve(async (req) => {
 
     const userEmail = user?.email;
     if (!userEmail) throw new Error('No user email in payload');
-
-    // Get Resend API key
-    const apiKey = await getResendApiKey();
-    if (!apiKey) throw new Error('Resend API key not configured — set RESEND_API_KEY in Edge Function secrets or add resend_api_key to site_settings table');
 
     let subject = '';
     let html = '';
@@ -236,19 +178,36 @@ Deno.serve(async (req) => {
         html = emailBase(`<div style="padding:40px;"><h2 style="color:#0f172a;">域见•你 通知</h2><p style="color:#475569;">您收到了一封来自 域见•你 平台的通知邮件。</p></div>`, '域见•你平台通知');
     }
 
-    await sendViaResend(apiKey, userEmail, subject, html);
+    // Delegate to send-email function which handles SMTP config from site_settings
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    const res = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${serviceRoleKey}`,
+      },
+      body: JSON.stringify({ to: userEmail, subject, html }),
+    });
+
+    const result = await res.json();
+    if (!res.ok || result.success === false) {
+      throw new Error(result.error || `send-email returned ${res.status}`);
+    }
+
     console.log(`[auth-email-webhook] Sent ${email_action_type} email to ${userEmail}`);
 
     return new Response(
       JSON.stringify({ success: true }),
-      { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } },
     );
 
   } catch (err: any) {
     console.error('[auth-email-webhook] Error:', err?.message || err);
     return new Response(
       JSON.stringify({ error: err?.message || 'Internal error' }),
-      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } },
     );
   }
 });
