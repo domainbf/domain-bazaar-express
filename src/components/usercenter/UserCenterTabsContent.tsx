@@ -1,4 +1,4 @@
-import { TabsContent, Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsContent } from "@/components/ui/tabs";
 import { DomainManagement } from "@/components/usercenter/DomainManagement";
 import { TransactionHistory } from "@/components/usercenter/TransactionHistory";
 import { MyTransactions } from "@/components/usercenter/MyTransactions";
@@ -12,130 +12,182 @@ import { EscrowService } from "@/components/escrow/EscrowService";
 import { DisputeCenter } from "@/components/disputes/DisputeCenter";
 import { MessagesPage } from "@/components/messages/MessageCenter";
 import { useState } from "react";
-import { User, Shield, Link as LinkIcon, ShoppingBag, FileText, Wallet, Heart, AlertTriangle } from "lucide-react";
+import {
+  User, Shield, Link as LinkIcon, ShoppingBag, FileText,
+  Wallet, Heart, AlertTriangle
+} from "lucide-react";
 import { CustomUrlSettings } from "@/components/usercenter/CustomUrlSettings";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+/* ─── Transaction sub-tabs ────────────────────────────────────────
+   Mobile: horizontally scrollable pill row (no nested Tabs)
+   Desktop: normal Tabs component
+────────────────────────────────────────────────────────────────── */
+const TX_TABS = [
+  { id: 'transactions', label: '我的交易', shortLabel: '交易', icon: ShoppingBag },
+  { id: 'offers',       label: '交易报价', shortLabel: '报价', icon: FileText },
+  { id: 'wallet',       label: '我的钱包', shortLabel: '钱包', icon: Wallet },
+  { id: 'escrow',       label: '资金托管', shortLabel: '托管', icon: Shield },
+  { id: 'disputes',     label: '纠纷申诉', shortLabel: '纠纷', icon: AlertTriangle },
+  { id: 'favorites',    label: '我的收藏', shortLabel: '收藏', icon: Heart },
+];
+
+const PROFILE_TABS = [
+  { id: 'info',      label: '个人信息', icon: User },
+  { id: 'security',  label: '账户安全', icon: Shield },
+  { id: 'customurl', label: '个性链接', icon: LinkIcon },
+];
+
+function TxContent({ tab }: { tab: string }) {
+  if (tab === 'transactions') return <MyTransactions />;
+  if (tab === 'offers')       return <TransactionHistory />;
+  if (tab === 'escrow')       return <EscrowService />;
+  if (tab === 'disputes')     return <DisputeCenter />;
+  if (tab === 'wallet')       return <WalletPanel />;
+  if (tab === 'favorites')    return <FavoriteDomains />;
+  return null;
+}
+
+function ProfileContent({ tab }: { tab: string }) {
+  if (tab === 'info')      return <ProfileSettings />;
+  if (tab === 'security')  return <AccountSecurity />;
+  if (tab === 'customurl') return <CustomUrlSettings />;
+  return null;
+}
+
+/* Mobile pill selector — horizontal scroll, no overflow clipping */
+function MobilePillNav({
+  items, active, onChange,
+}: {
+  items: { id: string; shortLabel: string; icon: React.ElementType }[];
+  active: string;
+  onChange: (id: string) => void;
+}) {
+  return (
+    <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide -mx-4 px-4">
+      {items.map((item) => {
+        const Icon = item.icon;
+        const sel = active === item.id;
+        return (
+          <button
+            key={item.id}
+            onClick={() => onChange(item.id)}
+            className={`flex items-center gap-1.5 shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all
+              ${sel
+                ? 'bg-foreground text-background shadow-sm'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              }`}
+          >
+            <Icon className="w-3.5 h-3.5" />
+            {item.shortLabel}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export const UserCenterTabsContent = () => {
-  const [profileTab, setProfileTab] = useState('info');
   const [txTab, setTxTab] = useState('transactions');
+  const [profileTab, setProfileTab] = useState('info');
   const isMobile = useIsMobile();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* ── Domains ─────────────────────────────────────────────── */}
       <TabsContent value="domains" className="mt-0">
         <DomainManagement />
       </TabsContent>
 
+      {/* ── Transactions ─────────────────────────────────────────── */}
       <TabsContent value="transactions" className="mt-0">
-        <Tabs value={txTab} onValueChange={setTxTab} className="w-full">
-          <TabsList className={`mb-4 ${isMobile ? 'w-full grid grid-cols-3' : 'flex flex-wrap'}`}>
-            <TabsTrigger value="transactions" className={`flex items-center gap-1.5 ${isMobile ? 'text-xs' : ''}`}>
-              <ShoppingBag className="h-3.5 w-3.5" />
-              {isMobile ? '交易' : '我的交易'}
-            </TabsTrigger>
-            <TabsTrigger value="offers" className={`flex items-center gap-1.5 ${isMobile ? 'text-xs' : ''}`}>
-              <FileText className="h-3.5 w-3.5" />
-              {isMobile ? '报价' : '交易报价'}
-            </TabsTrigger>
-            <TabsTrigger value="wallet" className={`flex items-center gap-1.5 ${isMobile ? 'text-xs' : ''}`}>
-              <Wallet className="h-3.5 w-3.5" />
-              {isMobile ? '钱包' : '我的钱包'}
-            </TabsTrigger>
-            {!isMobile && (
-              <>
-                <TabsTrigger value="escrow" className="flex items-center gap-1.5">
-                  <Shield className="h-3.5 w-3.5" />
-                  资金托管
-                </TabsTrigger>
-                <TabsTrigger value="disputes" className="flex items-center gap-1.5">
-                  <AlertTriangle className="h-3.5 w-3.5" />
-                  纠纷申诉
-                </TabsTrigger>
-                <TabsTrigger value="favorites" className="flex items-center gap-1.5">
-                  <Heart className="h-3.5 w-3.5" />
-                  我的收藏
-                </TabsTrigger>
-              </>
-            )}
-          </TabsList>
-
-          {/* 移动端第二行标签 */}
-          {isMobile && (
-            <TabsList className="mb-4 w-full grid grid-cols-3">
-              <TabsTrigger value="escrow" className="text-xs flex items-center gap-1">
-                <Shield className="h-3 w-3" />
-                托管
-              </TabsTrigger>
-              <TabsTrigger value="disputes" className="text-xs flex items-center gap-1">
-                <AlertTriangle className="h-3 w-3" />
-                纠纷
-              </TabsTrigger>
-              <TabsTrigger value="favorites" className="text-xs flex items-center gap-1">
-                <Heart className="h-3 w-3" />
-                收藏
-              </TabsTrigger>
-            </TabsList>
-          )}
-
-          <TabsContent value="transactions">
-            <MyTransactions />
-          </TabsContent>
-          <TabsContent value="offers">
-            <TransactionHistory />
-          </TabsContent>
-          <TabsContent value="escrow">
-            <EscrowService />
-          </TabsContent>
-          <TabsContent value="disputes">
-            <DisputeCenter />
-          </TabsContent>
-          <TabsContent value="wallet">
-            <WalletPanel />
-          </TabsContent>
-          <TabsContent value="favorites">
-            <FavoriteDomains />
-          </TabsContent>
-        </Tabs>
+        {isMobile ? (
+          <>
+            <MobilePillNav
+              items={TX_TABS.map(t => ({ id: t.id, shortLabel: t.shortLabel, icon: t.icon }))}
+              active={txTab}
+              onChange={setTxTab}
+            />
+            <TxContent tab={txTab} />
+          </>
+        ) : (
+          <>
+            {/* Desktop: classic tab bar */}
+            <div className="flex flex-wrap gap-1 mb-5 border-b border-border pb-3">
+              {TX_TABS.map((tab) => {
+                const Icon = tab.icon;
+                const sel = txTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setTxTab(tab.id)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all
+                      ${sel
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+            <TxContent tab={txTab} />
+          </>
+        )}
       </TabsContent>
 
+      {/* ── Messages ─────────────────────────────────────────────── */}
       <TabsContent value="messages" className="mt-0">
-        <div className="h-[600px]">
+        <div className={isMobile ? 'h-[calc(100vh-200px)]' : 'h-[600px]'}>
           <MessagesPage />
         </div>
       </TabsContent>
 
+      {/* ── Notifications ────────────────────────────────────────── */}
       <TabsContent value="notifications" className="mt-0">
         <NotificationsPanel />
       </TabsContent>
 
+      {/* ── Profile ──────────────────────────────────────────────── */}
       <TabsContent value="profile" className="mt-0">
         <ProfileCompletion onNavigateTab={() => setProfileTab('info')} />
-        <Tabs value={profileTab} onValueChange={setProfileTab}>
-          <TabsList className="mb-4 flex-wrap">
-            <TabsTrigger value="info" className="flex items-center gap-2">
-              <User className="w-4 h-4" />
-              个人信息
-            </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center gap-2">
-              <Shield className="w-4 h-4" />
-              账户安全
-            </TabsTrigger>
-            <TabsTrigger value="customurl" className="flex items-center gap-2">
-              <LinkIcon className="w-4 h-4" />
-              个性链接
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="info">
-            <ProfileSettings />
-          </TabsContent>
-          <TabsContent value="security">
-            <AccountSecurity />
-          </TabsContent>
-          <TabsContent value="customurl">
-            <CustomUrlSettings />
-          </TabsContent>
-        </Tabs>
+
+        {isMobile ? (
+          <>
+            <MobilePillNav
+              items={PROFILE_TABS.map(t => ({ id: t.id, shortLabel: t.label, icon: t.icon }))}
+              active={profileTab}
+              onChange={setProfileTab}
+            />
+            <ProfileContent tab={profileTab} />
+          </>
+        ) : (
+          <>
+            <div className="flex gap-1 mb-5 border-b border-border pb-3">
+              {PROFILE_TABS.map((tab) => {
+                const Icon = tab.icon;
+                const sel = profileTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setProfileTab(tab.id)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all
+                      ${sel
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+            <ProfileContent tab={profileTab} />
+          </>
+        )}
       </TabsContent>
     </div>
   );

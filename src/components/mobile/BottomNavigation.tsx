@@ -1,6 +1,7 @@
-import { Home, Search, User, Bell, MessageSquare } from 'lucide-react';
+import { Home, Search, Globe, MessageSquare, User } from 'lucide-react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface BottomNavigationProps {
   unreadCount?: number;
@@ -14,74 +15,66 @@ export const BottomNavigation = ({ unreadCount = 0, unreadMessages = 0 }: Bottom
   const { user } = useAuth();
 
   const navItems = [
-    { 
-      id: 'home', 
-      label: '首页', 
-      icon: Home, 
+    {
+      id: 'home',
+      label: '首页',
+      icon: Home,
       path: '/',
       tab: null,
-      authRequired: false 
+      authRequired: false,
     },
-    { 
-      id: 'marketplace', 
-      label: '市场', 
-      icon: Search, 
+    {
+      id: 'marketplace',
+      label: '市场',
+      icon: Search,
       path: '/marketplace',
       tab: null,
-      authRequired: false 
+      authRequired: false,
     },
-    { 
-      id: 'messages', 
-      label: '消息', 
-      icon: MessageSquare, 
+    {
+      id: 'domains',
+      label: '域名',
+      icon: Globe,
+      path: '/user-center',
+      tab: 'domains',
+      authRequired: true,
+    },
+    {
+      id: 'messages',
+      label: '消息',
+      icon: MessageSquare,
       path: '/user-center',
       tab: 'messages',
       authRequired: true,
-      showMessageBadge: true
+      badge: unreadMessages,
     },
-    { 
-      id: 'notifications', 
-      label: '通知', 
-      icon: Bell, 
-      path: '/user-center',
-      tab: 'notifications',
-      authRequired: true,
-      showBadge: true
-    },
-    { 
-      id: 'profile', 
-      label: '我的', 
-      icon: User, 
+    {
+      id: 'profile',
+      label: '我的',
+      icon: User,
       path: '/user-center',
       tab: 'profile',
-      authRequired: false 
+      authRequired: false,
+      badge: unreadCount,
     },
   ];
 
   const isActive = (item: typeof navItems[0]) => {
     const currentTab = searchParams.get('tab');
-    
     if (item.path === '/' && location.pathname === '/') return true;
     if (item.path === '/marketplace' && location.pathname === '/marketplace') return true;
-    
     if (item.path === '/user-center' && location.pathname === '/user-center') {
       if (item.tab === currentTab) return true;
+      if (!currentTab && item.tab === 'domains') return true;
     }
-    
     return false;
   };
 
   const handleNavigation = (item: typeof navItems[0]) => {
-    if (item.authRequired && !user) {
+    if ((item.authRequired || item.path === '/user-center') && !user) {
       navigate('/auth');
       return;
     }
-    
-    if (item.path === '/user-center' && !user) {
-      navigate('/auth');
-      return;
-    }
-    
     if (item.tab) {
       if (location.pathname === '/user-center') {
         window.history.replaceState({}, '', `/user-center?tab=${item.tab}`);
@@ -95,31 +88,53 @@ export const BottomNavigation = ({ unreadCount = 0, unreadMessages = 0 }: Bottom
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50 safe-area-inset-bottom md:hidden">
-      <nav className="flex justify-around items-center h-16">
+    <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-50 md:hidden"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <nav className="flex justify-around items-stretch h-[56px]">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item);
-          const badge = item.showBadge ? unreadCount : item.showMessageBadge ? unreadMessages : 0;
-          
+          const badge = item.badge ?? 0;
+
           return (
             <button
               key={item.id}
               onClick={() => handleNavigation(item)}
               data-testid={`nav-${item.id}`}
-              className={`flex flex-col items-center justify-center flex-1 h-full transition-colors relative ${
-                active ? 'text-primary' : 'text-muted-foreground'
-              }`}
+              className="relative flex flex-col items-center justify-center flex-1 h-full gap-0.5 transition-colors"
             >
-              <div className="relative flex items-center justify-center">
-                <Icon className={`w-6 h-6 ${active ? 'stroke-[2.5]' : 'stroke-2'}`} />
+              {/* Active pill indicator */}
+              <AnimatePresence>
+                {active && (
+                  <motion.div
+                    layoutId="bottom-nav-pill"
+                    className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-8 rounded-full bg-primary"
+                    initial={{ opacity: 0, scaleX: 0 }}
+                    animate={{ opacity: 1, scaleX: 1 }}
+                    exit={{ opacity: 0, scaleX: 0 }}
+                    transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                  />
+                )}
+              </AnimatePresence>
+
+              <div className="relative">
+                <Icon
+                  className={`w-[22px] h-[22px] transition-all duration-200 ${
+                    active
+                      ? 'text-primary stroke-[2.5]'
+                      : 'text-muted-foreground stroke-[1.8]'
+                  }`}
+                />
                 {badge > 0 && (
-                  <span className="absolute -top-1 -right-1 h-4 min-w-[16px] flex items-center justify-center bg-destructive text-destructive-foreground text-[10px] font-medium rounded-full px-1">
+                  <span className="absolute -top-1.5 -right-2.5 h-[16px] min-w-[16px] flex items-center justify-center bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full px-1 leading-none">
                     {badge > 99 ? '99+' : badge}
                   </span>
                 )}
               </div>
-              <span className={`text-xs mt-1 ${active ? 'font-semibold' : 'font-normal'}`}>
+
+              <span className={`text-[10px] leading-none transition-colors duration-200 ${
+                active ? 'text-primary font-semibold' : 'text-muted-foreground'
+              }`}>
                 {item.label}
               </span>
             </button>

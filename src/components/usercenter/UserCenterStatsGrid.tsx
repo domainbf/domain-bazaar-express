@@ -1,29 +1,20 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { User } from "@supabase/supabase-js";
 import { UserProfile } from "@/types/userProfile";
-import { 
-  Globe, 
-  DollarSign, 
-  Eye,
-  Heart,
-  MessageSquare,
-  Award,
-  ShoppingCart,
-  CheckCircle,
-  CalendarDays,
-  TrendingUp
+import {
+  Globe, DollarSign, Eye, Heart, MessageSquare, ShoppingCart, Award, CheckCircle, CalendarDays
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 
 interface UserCenterStatsGridProps {
   profile: UserProfile | null;
   user: User;
+  compact?: boolean;   // only show 3 key stats
+  mobileRow?: boolean; // render as horizontal row inside a card (for profile page)
 }
 
 interface UserStats {
@@ -37,165 +28,137 @@ interface UserStats {
   avgRating: number;
 }
 
-export const UserCenterStatsGrid = ({ profile, user }: UserCenterStatsGridProps) => {
-  const isMobile = useIsMobile();
+export const UserCenterStatsGrid = ({ profile, user, compact = false, mobileRow = false }: UserCenterStatsGridProps) => {
   const [stats, setStats] = useState<UserStats>({
-    totalDomains: 0,
-    totalValue: 0,
-    totalViews: 0,
-    totalOffers: 0,
-    totalFavorites: 0,
-    completedTransactions: 0,
-    activeListings: 0,
-    avgRating: 0
+    totalDomains: 0, totalValue: 0, totalViews: 0, totalOffers: 0,
+    totalFavorites: 0, completedTransactions: 0, activeListings: 0, avgRating: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserStats = async () => {
+    const fetch = async () => {
       if (!user?.id) return;
-      
       setIsLoading(true);
       try {
-        // 获取用户域名统计
-        const { data: domains, error: domainsError } = await supabase
-          .from('domain_listings')
-          .select('id, price, status')
-          .eq('owner_id', user.id);
-
-        if (domainsError) throw domainsError;
-
+        const { data: domains } = await supabase
+          .from('domain_listings').select('id, price, status').eq('owner_id', user.id);
         const totalDomains = domains?.length || 0;
         const activeListings = domains?.filter(d => d.status === 'available').length || 0;
-        const totalValue = domains?.reduce((sum, domain) => sum + (Number(domain.price) || 0), 0) || 0;
+        const totalValue = domains?.reduce((s, d) => s + (Number(d.price) || 0), 0) || 0;
 
-        // 获取域名分析数据
-        const { data: analytics, error: analyticsError } = await supabase
-          .from('domain_analytics')
-          .select('views, offers, favorites')
-          .in('domain_id', domains?.map(d => d.id) || []);
+        const domainIds = domains?.map(d => d.id) || [];
+        const { data: analytics } = domainIds.length
+          ? await supabase.from('domain_analytics').select('views, offers, favorites').in('domain_id', domainIds)
+          : { data: [] };
+        const totalViews = analytics?.reduce((s, i) => s + (i.views || 0), 0) || 0;
+        const totalOffers = analytics?.reduce((s, i) => s + (i.offers || 0), 0) || 0;
+        const totalFavorites = analytics?.reduce((s, i) => s + (i.favorites || 0), 0) || 0;
 
-        if (analyticsError) throw analyticsError;
+        const { data: txns } = await supabase
+          .from('transactions').select('status').eq('buyer_id', user.id);
+        const completedTransactions = txns?.filter(t => t.status === 'completed').length || 0;
 
-        const totalViews = analytics?.reduce((sum, item) => sum + (item.views || 0), 0) || 0;
-        const totalOffers = analytics?.reduce((sum, item) => sum + (item.offers || 0), 0) || 0;
-        const totalFavorites = analytics?.reduce((sum, item) => sum + (item.favorites || 0), 0) || 0;
+        const { data: reviews } = await supabase
+          .from('user_reviews').select('rating').eq('reviewed_user_id', user.id);
+        const avgRating = reviews?.length
+          ? reviews.reduce((s, r) => s + (r.rating || 0), 0) / reviews.length : 0;
 
-        // 获取交易统计
-        const { data: transactions, error: transactionsError } = await supabase
-          .from('transactions')
-          .select('status')
-          .eq('buyer_id', user.id);
-
-        if (transactionsError) throw transactionsError;
-
-        const completedTransactions = transactions?.filter(t => t.status === 'completed').length || 0;
-
-        // 获取用户评分
-        const { data: reviews, error: reviewsError } = await supabase
-          .from('user_reviews')
-          .select('rating')
-          .eq('reviewed_user_id', user.id);
-
-        if (reviewsError) throw reviewsError;
-
-        const avgRating = reviews?.length 
-          ? reviews.reduce((sum, review) => sum + (review.rating || 0), 0) / reviews.length 
-          : 0;
-
-        setStats({
-          totalDomains,
-          totalValue,
-          totalViews,
-          totalOffers,
-          totalFavorites,
-          completedTransactions,
-          activeListings,
-          avgRating
-        });
-      } catch (error) {
-        console.error('Error fetching user stats:', error);
-      } finally {
-        setIsLoading(false);
-      }
+        setStats({ totalDomains, totalValue, totalViews, totalOffers, totalFavorites, completedTransactions, activeListings, avgRating });
+      } catch (e) { console.error(e); }
+      finally { setIsLoading(false); }
     };
-
-    fetchUserStats();
+    fetch();
   }, [user?.id]);
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('zh-CN', {
-      style: 'currency',
-      currency: 'CNY',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
-
-  const statsCards = [
-    {
-      title: '我的域名',
-      value: stats.totalDomains.toString(),
-      icon: Globe,
-      description: `${stats.activeListings} 个正在出售`,
-      color: 'text-primary',
-      bgColor: 'bg-primary/10'
-    },
-    {
-      title: '总价值',
-      value: formatCurrency(stats.totalValue),
-      icon: DollarSign,
-      description: '所有域名估值总和',
-      color: 'text-green-600 dark:text-green-400',
-      bgColor: 'bg-green-500/10'
-    },
-    {
-      title: '总浏览量',
-      value: stats.totalViews.toLocaleString(),
-      icon: Eye,
-      description: '域名页面总访问次数',
-      color: 'text-purple-600 dark:text-purple-400',
-      bgColor: 'bg-purple-500/10'
-    },
-    {
-      title: '收到报价',
-      value: stats.totalOffers.toString(),
-      icon: MessageSquare,
-      description: '买家发送的报价数量',
-      color: 'text-orange-600 dark:text-orange-400',
-      bgColor: 'bg-orange-500/10'
-    },
-    {
-      title: '被收藏',
-      value: stats.totalFavorites.toString(),
-      icon: Heart,
-      description: '域名被收藏的次数',
-      color: 'text-red-600 dark:text-red-400',
-      bgColor: 'bg-red-500/10'
-    },
-    {
-      title: '完成交易',
-      value: stats.completedTransactions.toString(),
-      icon: ShoppingCart,
-      description: '成功完成的交易数量',
-      color: 'text-indigo-600 dark:text-indigo-400',
-      bgColor: 'bg-indigo-500/10'
-    }
-  ];
+  const fmtCny = (v: number) => new Intl.NumberFormat('zh-CN', {
+    style: 'currency', currency: 'CNY', minimumFractionDigits: 0, maximumFractionDigits: 0,
+  }).format(v);
 
   const memberSince = profile?.created_at
     ? formatDistanceToNow(new Date(profile.created_at), { addSuffix: false, locale: zhCN })
     : null;
 
+  const allCards = [
+    { title: '域名', value: stats.totalDomains.toString(), sub: `${stats.activeListings}个出售中`, icon: Globe, color: 'text-primary', bg: 'bg-primary/10' },
+    { title: '总价值', value: fmtCny(stats.totalValue), sub: '持有估值', icon: DollarSign, color: 'text-green-600 dark:text-green-400', bg: 'bg-green-500/10' },
+    { title: '浏览量', value: stats.totalViews.toLocaleString(), sub: '累计访问', icon: Eye, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-500/10' },
+    { title: '收到报价', value: stats.totalOffers.toString(), sub: '买家报价', icon: MessageSquare, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-500/10' },
+    { title: '被收藏', value: stats.totalFavorites.toString(), sub: '收藏次数', icon: Heart, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-500/10' },
+    { title: '完成交易', value: stats.completedTransactions.toString(), sub: '成功成交', icon: ShoppingCart, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-500/10' },
+  ];
+
+  const cards = compact ? allCards.slice(0, 3) : allCards;
+
+  /* ── Mobile row mode (inside profile card) ─────────────────── */
+  if (mobileRow) {
+    if (isLoading) {
+      return (
+        <div className="flex border-t border-border divide-x divide-border">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="flex-1 flex flex-col items-center py-3 gap-1.5">
+              <div className="h-5 w-10 rounded skeleton-shimmer" />
+              <div className="h-3 w-8 rounded skeleton-shimmer" />
+            </div>
+          ))}
+        </div>
+      );
+    }
+    const rowItems = [
+      { label: '域名', value: stats.totalDomains },
+      { label: '浏览', value: stats.totalViews },
+      { label: '交易', value: stats.completedTransactions },
+    ];
+    return (
+      <div className="flex border-t border-border divide-x divide-border">
+        {rowItems.map(item => (
+          <div key={item.label} className="flex-1 flex flex-col items-center py-3">
+            <span className="text-base font-bold text-foreground tabular-nums">{item.value}</span>
+            <span className="text-[11px] text-muted-foreground mt-0.5">{item.label}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  /* ── Compact horizontal scroll (domains/transactions mobile) ─ */
+  if (compact) {
+    if (isLoading) {
+      return (
+        <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="flex-none w-28 h-20 rounded-xl border border-border bg-card skeleton-shimmer" />
+          ))}
+        </div>
+      );
+    }
+    return (
+      <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+        {cards.map((c, i) => {
+          const Icon = c.icon;
+          return (
+            <Card key={i} className="flex-none w-28 border-border/60 shadow-none">
+              <CardContent className="p-3">
+                <div className={`${c.bg} w-7 h-7 rounded-lg flex items-center justify-center mb-2`}>
+                  <Icon className={`h-3.5 w-3.5 ${c.color}`} />
+                </div>
+                <p className={`text-base font-bold ${c.color} leading-tight`}>{c.value}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">{c.title}</p>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    );
+  }
+
+  /* ── Desktop full grid ─────────────────────────────────────── */
   if (isLoading) {
     return (
       <div className="space-y-3">
-        <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-3 lg:grid-cols-6'} gap-3`}>
+        <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
           {[...Array(6)].map((_, i) => (
             <Card key={i} className="animate-pulse">
-              <CardContent className="p-4">
-                <div className="h-14 bg-muted rounded" />
-              </CardContent>
+              <CardContent className="p-4"><div className="h-14 bg-muted rounded" /></CardContent>
             </Card>
           ))}
         </div>
@@ -205,27 +168,27 @@ export const UserCenterStatsGrid = ({ profile, user }: UserCenterStatsGridProps)
 
   return (
     <div className="space-y-3">
-      <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-3 lg:grid-cols-6'} gap-3`}>
-        {statsCards.map((stat, index) => {
-          const Icon = stat.icon;
+      <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
+        {allCards.map((c, i) => {
+          const Icon = c.icon;
           return (
-            <Card key={index} className="hover:shadow-md transition-shadow duration-200 border-border/60">
+            <Card key={i} className="hover:shadow-md transition-shadow duration-200 border-border/60">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <div className={`${stat.bgColor} p-2 rounded-lg`}>
-                    <Icon className={`h-4 w-4 ${stat.color}`} />
+                  <div className={`${c.bg} p-2 rounded-lg`}>
+                    <Icon className={`h-4 w-4 ${c.color}`} />
                   </div>
                 </div>
-                <p className={`text-xl font-bold ${stat.color}`}>{stat.value}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{stat.title}</p>
+                <p className={`text-xl font-bold ${c.color}`}>{c.value}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{c.title}</p>
               </CardContent>
             </Card>
           );
         })}
       </div>
 
-      {/* 底部信息栏：卖家评分 + 加入时间 */}
-      <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-3`}>
+      {/* Bottom info bar */}
+      <div className="grid grid-cols-2 gap-3">
         {profile?.is_seller && (
           <Card className="hover:shadow-md transition-shadow duration-200 border-border/60">
             <CardContent className="p-4">
@@ -251,15 +214,14 @@ export const UserCenterStatsGrid = ({ profile, user }: UserCenterStatsGridProps)
                   </div>
                 </div>
                 {profile.seller_verified && (
-                  <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 text-xs">
-                    <CheckCircle className="w-3 h-3 mr-1" /> 已认证
-                  </Badge>
+                  <span className="text-[10px] font-medium text-green-700 dark:text-green-400 bg-green-500/10 px-2 py-1 rounded-full flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3" />已认证
+                  </span>
                 )}
               </div>
             </CardContent>
           </Card>
         )}
-
         {memberSince && (
           <Card className="hover:shadow-md transition-shadow duration-200 border-border/60">
             <CardContent className="p-4">
@@ -271,7 +233,7 @@ export const UserCenterStatsGrid = ({ profile, user }: UserCenterStatsGridProps)
                   <p className="text-xs text-muted-foreground">加入时长</p>
                   <p className="text-lg font-bold text-teal-600 dark:text-teal-400 mt-0.5">{memberSince}</p>
                 </div>
-                {profile?.total_sales !== null && profile?.total_sales !== undefined && profile.total_sales > 0 && (
+                {profile?.total_sales != null && profile.total_sales > 0 && (
                   <div className="ml-auto text-right">
                     <p className="text-xs text-muted-foreground">累计销售</p>
                     <p className="text-lg font-bold text-green-600 dark:text-green-400">¥{Number(profile.total_sales).toLocaleString()}</p>
