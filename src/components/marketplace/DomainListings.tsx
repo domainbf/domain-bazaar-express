@@ -127,12 +127,6 @@ export const DomainListings = ({ domains, isLoading, isMobile }: DomainListingsP
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          共 <span className="font-semibold text-foreground">{domains.length}</span> 个域名
-        </p>
-      </div>
-
       <div className={`grid ${isMobile ? 'grid-cols-1 gap-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'}`}>
         {domains.map((domain, i) => (
           <motion.div

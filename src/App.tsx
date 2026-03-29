@@ -23,6 +23,7 @@ const ContactPage = lazy(() => import('./pages/ContactPage').then(m => ({ defaul
 const FAQPage = lazy(() => import('./pages/FAQPage').then(m => ({ default: m.FAQPage })));
 const SecurityCenter = lazy(() => import('./pages/SecurityCenter'));
 const Community = lazy(() => import('./pages/Community'));
+const SellDomainPage = lazy(() => import('./pages/SellDomain').then(m => ({ default: m.SellDomainPage })));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const TransactionDetail = lazy(() => import('./pages/TransactionDetail'));
 
@@ -93,6 +94,7 @@ const AnimatedRoutes = memo(() => {
         <Route path="/faq" element={<FAQPage />} />
         <Route path="/security-center" element={<SecurityCenter />} />
         <Route path="/community" element={<Community />} />
+        <Route path="/sell" element={<SellDomainPage />} />
         <Route path="/transaction/:id" element={<ProtectedRoute><TransactionDetail /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>

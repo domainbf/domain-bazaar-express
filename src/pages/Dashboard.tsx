@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2, Plus, Package, Inbox, Send, Eye, TrendingUp, CheckCircle2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Navbar } from '@/components/Navbar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,103 +12,87 @@ import { ReceivedOffersTable } from '@/components/dashboard/ReceivedOffersTable'
 import { SentOffersTable } from '@/components/dashboard/SentOffersTable';
 import { DomainForm } from '@/components/dashboard/DomainForm';
 import { DomainListing, DomainOffer } from '@/types/domain';
+import { Badge } from '@/components/ui/badge';
+
+interface DashboardStats {
+  totalListings: number;
+  pendingOffers: number;
+  totalViews: number;
+  completedDeals: number;
+}
 
 export const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [myDomains, setMyDomains] = useState<DomainListing[]>([]);
   const [receivedOffers, setReceivedOffers] = useState<DomainOffer[]>([]);
   const [sentOffers, setSentOffers] = useState<DomainOffer[]>([]);
+  const [stats, setStats] = useState<DashboardStats>({ totalListings: 0, pendingOffers: 0, totalViews: 0, completedDeals: 0 });
   const [isAddDomainOpen, setIsAddDomainOpen] = useState(false);
   const [editingDomain, setEditingDomain] = useState<DomainListing | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    checkAuth();
-    loadData();
-  }, []);
-
   const checkAuth = async () => {
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) {
-      toast.error('请先登录以访问控制台');
-      navigate('/auth');
-    }
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { navigate('/auth'); return; }
   };
 
   const loadData = async () => {
-    setIsLoading(true);
     try {
-      // 获取当前用户
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error('请先登录');
-        navigate('/auth');
-        return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { navigate('/auth'); return; }
+      const userId = session.user.id;
+
+      const [domainRes, receivedRes, sentRes, txRes] = await Promise.all([
+        supabase.from('domain_listings').select('*').eq('owner_id', userId).order('created_at', { ascending: false }),
+        supabase.from('domain_offers').select('*').eq('seller_id', userId).order('created_at', { ascending: false }),
+        supabase.from('domain_offers').select('*').eq('buyer_id', userId).order('created_at', { ascending: false }),
+        supabase.from('transactions').select('id').eq('seller_id', userId).eq('status', 'completed'),
+      ]);
+
+      const domains = domainRes.data || [];
+      const received = receivedRes.data || [];
+      const sent = sentRes.data || [];
+
+      setMyDomains(domains as unknown as DomainListing[]);
+
+      const domainIds = domains.map(d => d.id);
+      const domainNameMap = new Map(domains.map(d => [d.id, d.name]));
+
+      const receivedWithDomains = await Promise.all(
+        received.map(async (offer) => {
+          const name = domainNameMap.get(offer.domain_id);
+          if (name) return { ...offer, domain_name: name };
+          const { data: domain } = await supabase.from('domain_listings').select('name').eq('id', offer.domain_id).single();
+          return { ...offer, domain_name: domain?.name || 'Unknown domain' };
+        })
+      );
+
+      const sentWithDomains = await Promise.all(
+        sent.map(async (offer) => {
+          const { data: domain } = await supabase.from('domain_listings').select('name').eq('id', offer.domain_id).single();
+          return { ...offer, domain_name: domain?.name || 'Unknown domain' };
+        })
+      );
+
+      setReceivedOffers(receivedWithDomains as unknown as DomainOffer[]);
+      setSentOffers(sentWithDomains as unknown as DomainOffer[]);
+
+      let totalViews = 0;
+      if (domains.length > 0) {
+        const domainIds = domains.map(d => d.id);
+        const { data: analyticsData } = await supabase.from('domain_analytics').select('views').in('domain_id', domainIds);
+        totalViews = (analyticsData || []).reduce((sum, a) => {
+          const v = typeof a.views === 'number' ? a.views : parseInt(String(a.views ?? '0'), 10) || 0;
+          return sum + v;
+        }, 0);
       }
 
-      // 仅加载当前用户的域名
-      const { data: domains, error: domainsError } = await supabase
-        .from('domain_listings')
-        .select('*')
-        .eq('owner_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (domainsError) throw domainsError;
-      setMyDomains(domains as unknown as DomainListing[] || []);
-
-      // Load received offers (for domains user owns)
-      const { data: received, error: receivedError } = await supabase
-        .from('domain_offers')
-        .select('*')
-        .eq('seller_id', (await supabase.auth.getUser()).data.user?.id)
-        .order('created_at', { ascending: false });
-      
-      if (receivedError) throw receivedError;
-      
-      // Get domain names for received offers
-      const receivedWithDomains = await Promise.all(
-        (received || []).map(async (offer) => {
-          const { data: domain } = await supabase
-            .from('domain_listings')
-            .select('name')
-            .eq('id', offer.domain_id)
-            .single();
-          
-          return {
-            ...offer,
-            domain_name: domain?.name || 'Unknown domain'
-          };
-        })
-      );
-      
-      setReceivedOffers(receivedWithDomains as unknown as DomainOffer[]);
-
-      // Load sent offers
-      const { data: sent, error: sentError } = await supabase
-        .from('domain_offers')
-        .select('*')
-        .eq('buyer_id', (await supabase.auth.getUser()).data.user?.id)
-        .order('created_at', { ascending: false });
-      
-      if (sentError) throw sentError;
-      
-      // Get domain names for sent offers
-      const sentWithDomains = await Promise.all(
-        (sent || []).map(async (offer) => {
-          const { data: domain } = await supabase
-            .from('domain_listings')
-            .select('name')
-            .eq('id', offer.domain_id)
-            .single();
-          
-          return {
-            ...offer,
-            domain_name: domain?.name || 'Unknown domain'
-          };
-        })
-      );
-      
-      setSentOffers(sentWithDomains as unknown as DomainOffer[]);
+      setStats({
+        totalListings: domains.length,
+        pendingOffers: received.filter(o => o.status === 'pending').length,
+        totalViews,
+        completedDeals: txRes.data?.length || 0,
+      });
     } catch (error: any) {
       console.error('Error loading dashboard data:', error);
       toast.error(error.message || 'Failed to load dashboard data');
@@ -118,6 +101,8 @@ export const Dashboard = () => {
     }
   };
 
+  useEffect(() => { checkAuth(); loadData(); }, []);
+
   const handleEditDomain = (domain: DomainListing) => {
     setEditingDomain(domain);
     setIsAddDomainOpen(true);
@@ -125,10 +110,10 @@ export const Dashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <Navbar />
         <div className="max-w-6xl mx-auto px-4 py-16 flex justify-center items-center">
-          <Loader2 className="w-8 h-8 animate-spin text-black" />
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       </div>
     );
@@ -137,69 +122,139 @@ export const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">控制台</h1>
-          <Button 
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-2xl font-bold">卖家控制台</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">管理您的域名和交易</p>
+          </div>
+          <Button
             id="add-domain-button"
-            onClick={() => {
-              setEditingDomain(null);
-              setIsAddDomainOpen(true);
-            }}
+            data-testid="button-add-domain"
+            onClick={() => { setEditingDomain(null); setIsAddDomainOpen(true); }}
           >
             <Plus className="w-4 h-4 mr-2" />
-            添加域名
+            上架域名
           </Button>
         </div>
 
+        {/* Stats Banner */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+          <div className="bg-card border border-border rounded-xl p-4" data-testid="stat-listings">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                <Package className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <span className="text-xs text-muted-foreground">在售域名</span>
+            </div>
+            <p className="text-2xl font-bold">{stats.totalListings}</p>
+          </div>
+
+          <div className="bg-card border border-border rounded-xl p-4 relative" data-testid="stat-pending-offers">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-7 h-7 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                <Inbox className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+              </div>
+              <span className="text-xs text-muted-foreground">待处理报价</span>
+              {stats.pendingOffers > 0 && (
+                <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4 ml-auto">
+                  {stats.pendingOffers}
+                </Badge>
+              )}
+            </div>
+            <p className="text-2xl font-bold">{stats.pendingOffers}</p>
+          </div>
+
+          <div className="bg-card border border-border rounded-xl p-4" data-testid="stat-views">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-7 h-7 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                <Eye className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+              </div>
+              <span className="text-xs text-muted-foreground">总浏览量</span>
+            </div>
+            <p className="text-2xl font-bold">{stats.totalViews.toLocaleString()}</p>
+          </div>
+
+          <div className="bg-card border border-border rounded-xl p-4" data-testid="stat-completed">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-7 h-7 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+              </div>
+              <span className="text-xs text-muted-foreground">已完成交易</span>
+            </div>
+            <p className="text-2xl font-bold">{stats.completedDeals}</p>
+          </div>
+        </div>
+
+        {/* Pending offers alert */}
+        {stats.pendingOffers > 0 && (
+          <div className="mb-6 p-4 rounded-xl bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900/50 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-orange-600" />
+              <p className="text-sm font-medium text-orange-800 dark:text-orange-300">
+                您有 <strong>{stats.pendingOffers}</strong> 条待回复的报价，请及时处理
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-orange-700 border-orange-300 hover:bg-orange-100 dark:text-orange-400 dark:border-orange-700"
+              onClick={() => document.querySelector('[data-value="received"]')?.dispatchEvent(new MouseEvent('click', { bubbles: true }))}
+            >
+              立即查看
+            </Button>
+          </div>
+        )}
+
+        {/* Tabs */}
         <Tabs defaultValue="domains" className="w-full">
           <TabsList className="mb-6">
-            <TabsTrigger value="domains">
+            <TabsTrigger value="domains" data-testid="tab-my-domains">
+              <Package className="h-4 w-4 mr-1.5" />
               我的域名
+              {myDomains.length > 0 && (
+                <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5">{myDomains.length}</Badge>
+              )}
             </TabsTrigger>
-            <TabsTrigger value="received">
+            <TabsTrigger value="received" data-value="received" data-testid="tab-received-offers">
+              <Inbox className="h-4 w-4 mr-1.5" />
               收到的报价
+              {stats.pendingOffers > 0 && (
+                <Badge variant="destructive" className="ml-1.5 text-[10px] px-1.5">{stats.pendingOffers}</Badge>
+              )}
             </TabsTrigger>
-            <TabsTrigger value="sent">
+            <TabsTrigger value="sent" data-testid="tab-sent-offers">
+              <Send className="h-4 w-4 mr-1.5" />
               发出的报价
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="domains">
-            <DomainListingsTable 
-              domains={myDomains} 
-              onEdit={handleEditDomain} 
-              onRefresh={loadData} 
-            />
+            <DomainListingsTable domains={myDomains} onEdit={handleEditDomain} onRefresh={loadData} />
           </TabsContent>
-
           <TabsContent value="received">
-            <ReceivedOffersTable 
-              offers={receivedOffers} 
-              onRefresh={loadData} 
-            />
+            <ReceivedOffersTable offers={receivedOffers} onRefresh={loadData} />
           </TabsContent>
-
           <TabsContent value="sent">
             <SentOffersTable offers={sentOffers} />
           </TabsContent>
         </Tabs>
       </div>
 
-      {/* Add/Edit Domain Dialog */}
       <Dialog open={isAddDomainOpen} onOpenChange={setIsAddDomainOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-center">
-              {editingDomain ? '编辑域名' : '添加新域名'}
+              {editingDomain ? '编辑域名' : '上架新域名'}
             </DialogTitle>
           </DialogHeader>
-          <DomainForm 
-            isOpen={isAddDomainOpen} 
-            onClose={() => setIsAddDomainOpen(false)} 
-            onSuccess={loadData} 
-            editingDomain={editingDomain} 
+          <DomainForm
+            isOpen={isAddDomainOpen}
+            onClose={() => setIsAddDomainOpen(false)}
+            onSuccess={loadData}
+            editingDomain={editingDomain}
           />
         </DialogContent>
       </Dialog>

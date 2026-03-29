@@ -40,6 +40,40 @@ A comprehensive domain name trading marketplace built with React, Vite, TypeScri
 - `UserCenterStatsGrid` — member since date, seller rating, total sales
 - `WalletPanel` — balance from `profiles.balance` DB column
 
+### Marketplace UX Improvements
+- TLD quick-filter chips (.com .net .cn .io .ai .app .org .co .me)
+- Price range quick-chips (不限/5千以下/5千~2万/2万~10万/10万以上)
+- Visible sort bar (最新上架/价格↑/价格↓/最多浏览)
+- Result count display with verified-only toggle
+- Featured/highlighted domains section at top of listing
+- Clear empty states for no results / no data
+
+### Seller Dashboard (Control Panel)
+- Stats banner: 在售域名/待处理报价/总浏览量/已完成交易
+- Pending offers alert bar with quick-action button
+- Tabs with badge counts for pending offers
+
+### Seller Profile Public Page (UserProfile)
+- Professional banner with gradient background
+- Avatar with verified badge overlay
+- Trust stats: listings, total views, completed deals
+- Tabs: 在售域名 / 用户评价
+- Domain grid with category badges, price, verified indicator
+- Domain search within seller's listings
+- "联系卖家" button
+
+### Navigation
+- Desktop navbar: text links for 域名市场 and 出售域名
+- Mobile menu: same links added
+
+### Sell Your Domain Landing Page (/sell)
+- Hero with CTA buttons, key stats (5% fee, 24h, 100% safe)
+- 4-step process explainer
+- 6-feature highlight grid
+- 3-tier pricing comparison
+- Seller testimonials
+- Final CTA section
+
 ### Admin Panel (Sidebar Layout)
 - Restructured to use left sidebar navigation instead of horizontal tabs
 - Navigation grouped into: 数据概览, 域名管理, 交易管理, 用户管理, 内容管理, 系统设置

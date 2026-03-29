@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast"
-import { LogOut, Settings, User, Bell, Menu, X, MessageSquare } from "lucide-react";
+import { LogOut, Settings, User, Bell, Menu, X, MessageSquare, Globe, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from '@/hooks/useSiteSettings';
@@ -172,6 +172,26 @@ export const Navbar = ({ unreadCount = 0, unreadMessages: unreadMessagesProp = 0
           </span>
         </Link>
 
+        {/* Desktop Center Nav Links */}
+        <div className="hidden md:flex items-center gap-1">
+          <Link
+            to="/marketplace"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-accent transition-colors"
+            data-testid="nav-marketplace"
+          >
+            <Globe className="h-4 w-4" />
+            域名市场
+          </Link>
+          <Link
+            to="/sell"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-accent transition-colors"
+            data-testid="nav-sell"
+          >
+            <Tag className="h-4 w-4" />
+            出售域名
+          </Link>
+        </div>
+
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center">
           <TooltipProvider>
@@ -192,8 +212,15 @@ export const Navbar = ({ unreadCount = 0, unreadMessages: unreadMessagesProp = 0
       {isMobileMenuOpen && (
         <div className="md:hidden border-t border-border bg-background">
           <div className="px-4 py-4 space-y-2">
+            <Button variant="ghost" className="w-full justify-start" onClick={() => handleNavigation('/marketplace')}>
+              <Globe className="h-4 w-4 mr-2" />域名市场
+            </Button>
+            <Button variant="ghost" className="w-full justify-start" onClick={() => handleNavigation('/sell')}>
+              <Tag className="h-4 w-4 mr-2" />出售域名
+            </Button>
             {user ? (
               <>
+                <div className="border-t border-border my-2" />
                 <Button variant="ghost" className="w-full justify-start" onClick={() => handleNavigation('/dashboard')}>
                   <Settings className="h-4 w-4 mr-2" />控制面板
                 </Button>
