@@ -17,11 +17,15 @@ export interface DomainListingsProps {
 }
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 12 },
+  hidden: { opacity: 0, y: 18 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.02, duration: 0.2, ease: "easeOut" },
+    transition: {
+      delay: Math.min(i * 0.04, 0.28),
+      duration: 0.38,
+      ease: [0.22, 1, 0.36, 1],
+    },
   }),
 };
 

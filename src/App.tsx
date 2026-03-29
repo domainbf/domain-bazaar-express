@@ -5,6 +5,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { CustomScripts } from './components/common/CustomScripts';
 import { PWAInstallBanner } from './components/pwa/PWAInstallBanner';
+import { TopProgressBar } from './components/common/TopProgressBar';
 
 // Route-based code splitting
 const Index = lazy(() => import('./pages/Index'));
@@ -49,12 +50,26 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
 // Minimal skeleton loading — no spinner, just structure
 const RouteLoadingFallback = memo(() => (
   <div className="min-h-screen bg-background">
-    <div className="h-14 border-b border-border bg-card animate-pulse" />
+    <div className="h-14 border-b border-border skeleton-shimmer" />
     <div className="max-w-6xl mx-auto px-4 pt-8">
-      <div className="h-8 w-48 bg-muted rounded animate-pulse mb-6" />
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[1, 2, 3].map(i => (
-          <div key={i} className="h-48 bg-muted rounded-xl animate-pulse" />
+      <div className="h-8 w-48 rounded-lg skeleton-shimmer mb-6" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {[1, 2, 3, 4, 5, 6].map(i => (
+          <div key={i} className="rounded-xl border border-border bg-card p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-4 w-14 rounded-full skeleton-shimmer" />
+              <div className="h-6 w-6 rounded-full skeleton-shimmer" />
+            </div>
+            <div className="flex flex-col items-center gap-3 py-4">
+              <div className="h-10 w-4/5 rounded-lg skeleton-shimmer" />
+              <div className="h-4 w-20 rounded skeleton-shimmer" />
+              <div className="h-3 w-3/4 rounded skeleton-shimmer" />
+            </div>
+            <div className="flex gap-2 mt-4 pt-3 border-t border-border/50">
+              <div className="flex-1 h-8 rounded-lg skeleton-shimmer" />
+              <div className="flex-1 h-8 rounded-lg skeleton-shimmer" />
+            </div>
+          </div>
         ))}
       </div>
     </div>
@@ -67,11 +82,13 @@ const AnimatedRoutes = memo(() => {
   const location = useLocation();
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }, [location.pathname]);
 
   return (
-    <div key={location.pathname} className="animate-in fade-in duration-200">
+    <>
+      <TopProgressBar />
+      <div key={location.pathname} className="animate-slide-up" style={{ animationDuration: '0.3s' }}>
       <Routes location={location}>
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<AuthPage />} />
@@ -98,7 +115,8 @@ const AnimatedRoutes = memo(() => {
         <Route path="/transaction/:id" element={<ProtectedRoute><TransactionDetail /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </div>
+      </div>
+    </>
   );
 });
 AnimatedRoutes.displayName = 'AnimatedRoutes';
