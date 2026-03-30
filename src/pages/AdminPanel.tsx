@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { PendingVerifications } from '@/components/admin/PendingVerifications';
 import { AllDomainListings } from '@/components/admin/AllDomainListings';
@@ -55,7 +54,7 @@ interface NavGroup {
 }
 
 export const AdminPanel = () => {
-  const { user, isAdmin, isLoading: authLoading } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const isMobile = useIsMobile();
@@ -67,18 +66,11 @@ export const AdminPanel = () => {
   const [pendingOffers, setPendingOffers] = useState(0);
   const [pendingTickets, setPendingTickets] = useState(0);
 
+  // ProtectedRoute (adminOnly) already verified auth + admin status.
+  // No need for a second is_admin RPC — just load badges immediately.
   useEffect(() => {
-    const checkAdmin = async () => {
-      if (authLoading) return;
-      if (!user) { toast.error('请先登录'); navigate('/auth'); return; }
-      try {
-        const { data: isAdminUser } = await supabase.rpc('is_admin', { user_id: user.id });
-        if (!isAdminUser) { toast.error('您没有管理员权限'); navigate('/'); return; }
-        loadBadges();
-      } catch { toast.error('权限验证失败'); navigate('/'); }
-    };
-    checkAdmin();
-  }, [user, authLoading]);
+    if (user && isAdmin) loadBadges();
+  }, [user, isAdmin]);
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -262,29 +254,6 @@ export const AdminPanel = () => {
       default: return <AdminDashboard />;
     }
   };
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">正在验证身份...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-4">
-          <Shield className="h-12 w-12 mx-auto text-muted-foreground" />
-          <h1 className="text-2xl font-bold">需要登录</h1>
-          <Button onClick={() => navigate('/auth')}>前往登录</Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-muted/30 flex flex-col">

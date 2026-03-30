@@ -19,7 +19,6 @@ import { SupportTickets } from '@/components/support/SupportTickets';
 import { Badge } from "@/components/ui/badge";
 import { useNotifications } from '@/hooks/useNotifications';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from 'framer-motion';
 
@@ -82,17 +81,6 @@ export const UserCenter = () => {
     window.history.replaceState({}, '', `/user-center?tab=${value}`);
     if (value === 'notifications') refreshNotifications();
   }, [refreshNotifications]);
-
-  if (isAuthLoading) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center">
-          <LoadingSpinner size="lg" />
-        </div>
-      </div>
-    );
-  }
 
   if (!user) {
     return (

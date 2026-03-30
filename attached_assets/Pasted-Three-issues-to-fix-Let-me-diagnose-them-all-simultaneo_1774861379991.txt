@@ -1,0 +1,44 @@
+Three issues to fix. Let me diagnose them all simultaneously:
+Let me check the production logs to identify the exact crash:
+Now I understand all three issues clearly. Let me fix them:
+
+Recovery link bug: Supabase processes the URL hash before React renders, so our hash interceptor in App.tsx always misses it. We need to use onAuthStateChange to catch PASSWORD_RECOVERY instead.
+"页面加载出错": The SupportTickets component in production (where tables don't exist yet) needs a safe error boundary.
+Email link shows supabase.co: Requires a custom email template + /auth/callback handler.
+Now I'll fix all three issues at once:
+Now replace the hash-only interceptor with one that also listens to auth events:
+Now let me add an error boundary wrapper around SupportTickets in UserCenter to prevent total page crash if the table doesn't exist:
+Now I'll fix SupportTickets' React import, add protection in UserCenter, and create the /auth/callback page all at once:
+Now add the SupportTicketsSafe wrapper component to UserCenter (error boundary wrapper):
+Need to add React import and HeadphonesIcon usage to UserCenter:
+Now create the /auth/callback page that handles custom email template links (so the link goes to nic.rw directly instead of supabase.co):
+Now register the route and add a flag so the ResetPassword page knows it was reached via the auth event:
+Now update the PASSWORD_RECOVERY navigation to pass state, and update ResetPassword to handle it:
+Now update ResetPassword to use the navigation state and current session as a third method:
+Now suppress any redirect-to-home behavior in AuthContext when the recovery session is set up — the PASSWORD_RECOVERY event should just quietly set user data without redirecting:
+Good — PASSWORD_RECOVERY already falls into the silent else branch (no toast). Let me verify TypeScript and restart:
+Clean! Let me restart:
+Here's what was fixed and what you still need to do in Supabase:
+
+Fixes applied (code level):
+
+1. Password reset flow now works reliably — The old interceptor checked the URL hash, but the Supabase SDK erases the hash before React even renders. Now there are 4 fallback methods in order:
+
+Tokens passed directly via router state from the global auth event listener
+PASSWORD_RECOVERY event on the reset-password page itself
+Hash parsing (if hash somehow survives)
+Session check with fromRecovery flag
+The key addition: App.tsx now listens to Supabase auth events and when PASSWORD_RECOVERY fires, it navigates to /reset-password passing the access token through router state — so the form always receives it.
+
+2. "页面加载出错" protected — Added a React error boundary around the support tickets component in UserCenter. If the database tables don't exist (production), it shows a friendly "暂时不可用" message instead of crashing the whole page.
+
+Action needed in Supabase to remove the supabase.co link from emails:
+
+Go to Supabase Dashboard → Authentication → Email Templates → Reset Password, and change the button URL from the default to:
+
+{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=recovery
+The app now has an /auth/callback page that receives this link, verifies the token on your side, and redirects to the reset password form — the link in the email will show nic.rw instead of supabase.co.
+
+Do the same for Confirm signup (change type to signup) and Change email (type email_change) if you want those links to use your domain too.
+
+Also, don't forget to run the support tickets SQL migration in Supabase SQL Editor when ready.
