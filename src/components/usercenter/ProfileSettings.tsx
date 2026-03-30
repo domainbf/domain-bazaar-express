@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useTranslationHelper } from '@/hooks/useTranslationHelper';
 import { supabase } from '@/integrations/supabase/client';
+import { uploadAvatar, validateImageFile } from '@/lib/blobUpload';
 import { 
   User, 
   Mail, 
@@ -51,62 +52,22 @@ export const ProfileSettings = () => {
     preferred_payment_methods: profile?.preferred_payment_methods || ['paypal', 'bank_transfer']
   });
 
-  // 头像上传配置
-  const MAX_FILE_SIZE = 500 * 1024; // 500KB 限制
-  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // 验证文件类型
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      toast.error('仅支持 JPG、PNG、GIF、WebP 格式的图片');
-      return;
-    }
-
-    // 验证文件大小
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error(`图片大小不能超过 ${MAX_FILE_SIZE / 1024}KB，当前大小为 ${Math.round(file.size / 1024)}KB`);
+    const validationError = validateImageFile(file);
+    if (validationError) {
+      toast.error(validationError);
       return;
     }
 
     setIsUploadingAvatar(true);
-    
     try {
-      // 生成唯一文件名
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user?.id}-${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const publicUrl = await uploadAvatar(file);
 
-      // 上传到 Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
-
-      if (uploadError) {
-        // 如果 bucket 不存在，提示用户
-        if (uploadError.message.includes('not found') || uploadError.message.includes('Bucket')) {
-          toast.error('头像存储功能正在配置中，请稍后再试');
-          console.error('Storage bucket "avatars" may not exist:', uploadError);
-        } else {
-          throw uploadError;
-        }
-        return;
-      }
-
-      // 获取公共URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      // 更新表单数据
       setFormData(prev => ({ ...prev, avatar_url: publicUrl }));
-      
-      // 立即保存到数据库
+
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
@@ -121,7 +82,6 @@ export const ProfileSettings = () => {
       toast.error(`头像上传失败: ${error.message}`);
     } finally {
       setIsUploadingAvatar(false);
-      // 清空文件输入
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
