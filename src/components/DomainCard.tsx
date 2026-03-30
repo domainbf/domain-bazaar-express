@@ -187,7 +187,7 @@ export const DomainCard = ({
             <Link to={`/domain/${domain}`} className="flex-1" data-testid={`link-domain-detail-${domainId}`}>
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.94 }} className="w-full">
                 <Button
-                  className="w-full text-xs transition-colors bg-foreground/75 text-background hover:bg-foreground/90 border-0"
+                  className="w-full text-xs transition-colors bg-foreground text-background hover:bg-foreground/90 border-0"
                   size="sm"
                 >
                   查看详情 →
