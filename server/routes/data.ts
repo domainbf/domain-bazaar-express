@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { db } from '../db.js';
 import { requireAuth, getAuth } from '../middleware/auth.js';
 import { bus } from '../eventBus.js';
+import { cacheGet, cacheSet, cacheDel } from '../redis.js';
 
 const app = new Hono();
 
@@ -34,11 +35,16 @@ app.get('/domain-listings', async (c) => {
   const status = c.req.query('status') || 'active';
   const limit = parseInt(c.req.query('limit') || '50');
   const offset = parseInt(c.req.query('offset') || '0');
+  const cacheKey = `domain_listings:${status}:${limit}:${offset}`;
+  const cached = await cacheGet<unknown[]>(cacheKey);
+  if (cached) return c.json(cached);
   const r = await db.execute({
     sql: 'SELECT * FROM domain_listings WHERE status = ? ORDER BY created_at DESC LIMIT ? OFFSET ?',
     args: [status, limit, offset]
   });
-  return c.json(r.rows.map(rowToObj));
+  const rows = r.rows.map(rowToObj);
+  await cacheSet(cacheKey, rows, 60); // 1 min cache
+  return c.json(rows);
 });
 
 app.get('/domain-listings/:id', async (c) => {
@@ -99,10 +105,14 @@ app.get('/transactions', requireAuth, async (c) => {
   return c.json(r.rows.map(rowToObj));
 });
 
-// ---- Site Settings (public read) ----
+// ---- Site Settings (public read, heavily cached) ----
 app.get('/site-settings', async (c) => {
+  const cached = await cacheGet<unknown>('site_settings');
+  if (cached) return c.json(cached);
   const r = await db.execute({ sql: 'SELECT * FROM site_settings LIMIT 1', args: [] });
-  return c.json(r.rows[0] ? rowToObj(r.rows[0]) : {});
+  const data = r.rows[0] ? rowToObj(r.rows[0]) : {};
+  await cacheSet('site_settings', data, 300); // 5 min cache
+  return c.json(data);
 });
 
 // ---- Wallet ----

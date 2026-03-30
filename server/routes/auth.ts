@@ -5,12 +5,15 @@ import { db } from '../db.js';
 import { signAccessToken, signRefreshToken, verifyToken } from '../jwt.js';
 import { requireAuth, getAuth } from '../middleware/auth.js';
 import { bus } from '../eventBus.js';
+import {
+  saveSession, getSession, deleteSession,
+  deleteAllUserSessions, getUserSessionIds,
+  checkRateLimit, cacheGet, cacheSet, cacheDel
+} from '../redis.js';
 
 const app = new Hono();
 
-function now() {
-  return new Date().toISOString();
-}
+function now() { return new Date().toISOString(); }
 
 async function findAuthUser(email: string) {
   const r = await db.execute({
@@ -29,19 +32,34 @@ async function findAuthUserById(id: string) {
 }
 
 async function getProfile(userId: string) {
+  // Try cache first
+  const cached = await cacheGet<Record<string, unknown>>(`profile:${userId}`);
+  if (cached) return cached;
+
   const r = await db.execute({
     sql: 'SELECT * FROM profiles WHERE id = ?',
     args: [userId]
   });
-  return r.rows[0] || null;
+  const profile = r.rows[0] || null;
+  if (profile) await cacheSet(`profile:${userId}`, profile, 300); // 5 min cache
+  return profile;
+}
+
+async function invalidateProfileCache(userId: string) {
+  await cacheDel(`profile:${userId}`);
 }
 
 async function checkIsAdmin(userId: string): Promise<boolean> {
+  const cached = await cacheGet<boolean>(`is_admin:${userId}`);
+  if (cached !== null) return cached;
+
   const r = await db.execute({
     sql: "SELECT 1 FROM admin_roles WHERE user_id = ? AND role = 'admin'",
     args: [userId]
   });
-  return r.rows.length > 0;
+  const isAdmin = r.rows.length > 0;
+  await cacheSet(`is_admin:${userId}`, isAdmin, 600); // 10 min cache
+  return isAdmin;
 }
 
 async function issueTokenPair(userId: string, email: string, isAdmin: boolean, userAgent?: string) {
@@ -52,10 +70,15 @@ async function issueTokenPair(userId: string, email: string, isAdmin: boolean, u
   const sessionId = uuidv4();
   const refreshHash = await bcrypt.hash(refreshToken, 6);
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-  await db.execute({
-    sql: 'INSERT INTO app_sessions (id, user_id, refresh_token_hash, expires_at, user_agent, created_at) VALUES (?,?,?,?,?,?)',
-    args: [sessionId, userId, refreshHash, expiresAt, userAgent || null, now()]
+
+  // Store session in Redis
+  await saveSession(sessionId, {
+    userId,
+    refreshTokenHash: refreshHash,
+    userAgent,
+    expiresAt
   });
+
   return { accessToken, refreshToken, sessionId };
 }
 
@@ -64,6 +87,11 @@ app.post('/register', async (c) => {
   const { email, password, full_name } = await c.req.json();
   if (!email || !password) return c.json({ error: '邮箱和密码不能为空' }, 400);
   if (password.length < 6) return c.json({ error: '密码至少 6 位' }, 400);
+
+  // Rate limit: 5 registrations per IP per hour
+  const ip = c.req.header('x-forwarded-for') || 'unknown';
+  const rl = await checkRateLimit(`register:${ip}`, 5, 3600);
+  if (!rl.allowed) return c.json({ error: '注册过于频繁，请稍后再试' }, 429);
 
   const existing = await findAuthUser(email);
   if (existing) return c.json({ error: '该邮箱已注册，请直接登录' }, 409);
@@ -78,15 +106,11 @@ app.post('/register', async (c) => {
     args: [id, emailLower, hash, t, t]
   });
 
-  // Create profile
   const displayName = full_name || emailLower.split('@')[0];
-  const existingProfile = await getProfile(id);
-  if (!existingProfile) {
-    await db.execute({
-      sql: 'INSERT OR IGNORE INTO profiles (id, full_name, created_at, updated_at) VALUES (?,?,?,?)',
-      args: [id, displayName, t, t]
-    });
-  }
+  await db.execute({
+    sql: 'INSERT OR IGNORE INTO profiles (id, full_name, created_at, updated_at) VALUES (?,?,?,?)',
+    args: [id, displayName, t, t]
+  });
 
   const isAdmin = await checkIsAdmin(id);
   const ua = c.req.header('User-Agent');
@@ -103,16 +127,22 @@ app.post('/login', async (c) => {
   const { email, password } = await c.req.json();
   if (!email || !password) return c.json({ error: '请输入邮箱和密码' }, 400);
 
-  let authUser = await findAuthUser(email);
+  // Rate limit: 10 login attempts per IP per 15 min
+  const ip = c.req.header('x-forwarded-for') || 'unknown';
+  const rl = await checkRateLimit(`login:${ip}`, 10, 900);
+  if (!rl.allowed) return c.json({ error: '登录尝试过多，请15分钟后再试' }, 429);
 
-  if (!authUser) {
-    // Try to migrate from Supabase profiles (user exists there but not in app_auth_users yet)
-    // We can't verify password against Supabase without calling their API
-    return c.json({ error: '账号不存在，请先注册' }, 401);
-  }
+  const authUser = await findAuthUser(email);
+  if (!authUser) return c.json({ error: '账号不存在，请先注册' }, 401);
 
   const valid = await bcrypt.compare(password, authUser.password_hash as string);
-  if (!valid) return c.json({ error: '密码错误' }, 401);
+  if (!valid) {
+    // Per-account lockout tracking
+    const lockKey = `login_fail:${authUser.id}`;
+    const fails = await checkRateLimit(lockKey, 5, 300); // 5 fails per 5 min
+    if (!fails.allowed) return c.json({ error: '密码错误次数过多，账户已暂时锁定（5分钟）' }, 429);
+    return c.json({ error: '密码错误' }, 401);
+  }
 
   const userId = authUser.id as string;
   const emailStr = authUser.email as string;
@@ -137,21 +167,21 @@ app.post('/refresh', async (c) => {
     return c.json({ error: 'refresh token 无效或已过期' }, 401);
   }
 
-  const sessions = await db.execute({
-    sql: 'SELECT * FROM app_sessions WHERE user_id = ? AND expires_at > ?',
-    args: [payload.sub, now()]
-  });
+  // Find matching session in Redis
+  const sessionIds = await getUserSessionIds(payload.sub);
+  let validSessionId: string | null = null;
 
-  let validSession = null;
-  for (const s of sessions.rows) {
-    if (await bcrypt.compare(refreshToken, s.refresh_token_hash as string)) {
-      validSession = s;
+  for (const sid of sessionIds) {
+    const session = await getSession(sid);
+    if (!session) continue;
+    if (await bcrypt.compare(refreshToken, session.refreshTokenHash)) {
+      validSessionId = sid;
       break;
     }
   }
-  if (!validSession) return c.json({ error: '会话已失效，请重新登录' }, 401);
 
-  await db.execute({ sql: 'DELETE FROM app_sessions WHERE id = ?', args: [validSession.id] });
+  if (!validSessionId) return c.json({ error: '会话已失效，请重新登录' }, 401);
+  await deleteSession(validSessionId, payload.sub);
 
   const isAdmin = await checkIsAdmin(payload.sub);
   const ua = c.req.header('User-Agent');
@@ -163,22 +193,23 @@ app.post('/refresh', async (c) => {
 // POST /api/auth/logout
 app.post('/logout', requireAuth, async (c) => {
   const { sub } = getAuth(c);
-  const { refreshToken } = await c.req.json().catch(() => ({}));
+  const { refreshToken, allDevices } = await c.req.json().catch(() => ({}));
 
-  if (refreshToken) {
-    const sessions = await db.execute({
-      sql: 'SELECT * FROM app_sessions WHERE user_id = ?',
-      args: [sub]
-    });
-    for (const s of sessions.rows) {
-      if (await bcrypt.compare(refreshToken, s.refresh_token_hash as string)) {
-        await db.execute({ sql: 'DELETE FROM app_sessions WHERE id = ?', args: [s.id] });
+  if (allDevices) {
+    await deleteAllUserSessions(sub);
+  } else if (refreshToken) {
+    const sessionIds = await getUserSessionIds(sub);
+    for (const sid of sessionIds) {
+      const session = await getSession(sid);
+      if (session && await bcrypt.compare(refreshToken, session.refreshTokenHash)) {
+        await deleteSession(sid, sub);
         break;
       }
     }
   } else {
-    await db.execute({ sql: 'DELETE FROM app_sessions WHERE user_id = ?', args: [sub] });
+    await deleteAllUserSessions(sub);
   }
+
   return c.json({ success: true });
 });
 
@@ -209,6 +240,7 @@ app.patch('/profile', requireAuth, async (c) => {
   args.push(now());
   args.push(sub);
   await db.execute({ sql: `UPDATE profiles SET ${updates.join(', ')} WHERE id = ?`, args });
+  await invalidateProfileCache(sub);
   const profile = await getProfile(sub);
   bus.publish({ table: 'profiles', eventType: 'UPDATE', new: profile as Record<string, unknown>, userId: sub });
   return c.json({ profile });
@@ -229,7 +261,8 @@ app.post('/change-password', requireAuth, async (c) => {
 
   const hash = await bcrypt.hash(newPassword, 12);
   await db.execute({ sql: 'UPDATE app_auth_users SET password_hash = ?, updated_at = ? WHERE id = ?', args: [hash, now(), sub] });
-  await db.execute({ sql: 'DELETE FROM app_sessions WHERE user_id = ?', args: [sub] });
+  // Invalidate all sessions on password change
+  await deleteAllUserSessions(sub);
   return c.json({ success: true });
 });
 
@@ -237,8 +270,12 @@ app.post('/change-password', requireAuth, async (c) => {
 app.post('/request-reset', async (c) => {
   const { email } = await c.req.json();
   if (!email) return c.json({ error: '请输入邮箱' }, 400);
+
+  // Rate limit: 3 resets per email per hour
+  const rl = await checkRateLimit(`reset:${email.toLowerCase()}`, 3, 3600);
+  if (!rl.allowed) return c.json({ error: '请求过于频繁，请稍后再试' }, 429);
+
   const authUser = await findAuthUser(email);
-  // Always return success to prevent enumeration
   if (authUser) {
     const token = uuidv4().replace(/-/g, '');
     const expires = new Date(Date.now() + 60 * 60 * 1000).toISOString();
@@ -246,7 +283,6 @@ app.post('/request-reset', async (c) => {
       sql: 'UPDATE app_auth_users SET reset_token = ?, reset_token_expires = ?, updated_at = ? WHERE id = ?',
       args: [token, expires, now(), authUser.id]
     });
-    // In production: send email with reset link. For now, log it.
     console.log(`[PASSWORD RESET] token for ${email}: ${token}`);
   }
   return c.json({ success: true, message: '如果该邮箱已注册，您将收到重置密码邮件' });
@@ -270,7 +306,7 @@ app.post('/reset-password', async (c) => {
     sql: 'UPDATE app_auth_users SET password_hash = ?, reset_token = NULL, reset_token_expires = NULL, updated_at = ? WHERE id = ?',
     args: [hash, now(), user.id]
   });
-  await db.execute({ sql: 'DELETE FROM app_sessions WHERE user_id = ?', args: [user.id] });
+  await deleteAllUserSessions(user.id as string);
   return c.json({ success: true });
 });
 

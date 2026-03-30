@@ -3,6 +3,8 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { initDb } from './db.js';
+import { connectRedis } from './redis.js';
+import { setupRedisBridge } from './eventBus.js';
 import authRoutes from './routes/auth.js';
 import realtimeRoutes from './routes/realtime.js';
 import dataRoutes from './routes/data.js';
@@ -22,11 +24,17 @@ app.route('/api/auth', authRoutes);
 app.route('/api/realtime', realtimeRoutes);
 app.route('/api/data', dataRoutes);
 
-app.get('/api/health', (c) => c.json({ ok: true, ts: new Date().toISOString() }));
+app.get('/api/health', async (c) => {
+  const { redis } = await import('./redis.js');
+  let redisOk = false;
+  try { await redis.ping(); redisOk = true; } catch { /* ignore */ }
+  return c.json({ ok: true, ts: new Date().toISOString(), redis: redisOk });
+});
 
 const PORT = parseInt(process.env.API_PORT || '3001');
 
 async function main() {
+  // 1. Init Turso schema
   try {
     await initDb();
     console.log('[server] Turso DB initialised');
@@ -34,6 +42,16 @@ async function main() {
     console.error('[server] DB init failed:', err);
   }
 
+  // 2. Connect Redis + start pub/sub bridge
+  try {
+    await connectRedis();
+    await setupRedisBridge();
+    console.log('[server] Redis connected');
+  } catch (err) {
+    console.error('[server] Redis connection failed (continuing without Redis):', err);
+  }
+
+  // 3. Start HTTP server
   serve({ fetch: app.fetch, port: PORT }, () => {
     console.log(`[server] API server running on port ${PORT}`);
   });
