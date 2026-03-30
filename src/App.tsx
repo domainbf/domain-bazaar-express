@@ -29,6 +29,14 @@ const SellDomainPage = lazy(() => import('./pages/SellDomain').then(m => ({ defa
 const NotFound = lazy(() => import('./pages/NotFound'));
 const TransactionDetail = lazy(() => import('./pages/TransactionDetail'));
 const AuctionsPage = lazy(() => import('./pages/AuctionsPage').then(m => ({ default: m.AuctionsPage })));
+const ValuationPage = lazy(() => import('./pages/ValuationPage'));
+const DomainMonitorPage = lazy(() => import('./pages/DomainMonitorPage'));
+const EscrowPage = lazy(() => import('./pages/EscrowPage'));
+const SellerPage = lazy(() => import('./pages/SellerPage'));
+const BulkListingPage = lazy(() => import('./pages/BulkListingPage'));
+const DisputePage = lazy(() => import('./pages/DisputePage'));
+const PlatformServicesPage = lazy(() => import('./pages/PlatformServicesPage'));
+const HelpPage = lazy(() => import('./pages/HelpPage'));
 
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
   return (
@@ -116,6 +124,14 @@ const AnimatedRoutes = memo(() => {
         <Route path="/sell" element={<SellDomainPage />} />
         <Route path="/transaction/:id" element={<ProtectedRoute><TransactionDetail /></ProtectedRoute>} />
         <Route path="/auctions" element={<AuctionsPage />} />
+        <Route path="/valuation" element={<ValuationPage />} />
+        <Route path="/domain-monitor" element={<DomainMonitorPage />} />
+        <Route path="/escrow" element={<EscrowPage />} />
+        <Route path="/seller" element={<SellerPage />} />
+        <Route path="/bulk-listing" element={<BulkListingPage />} />
+        <Route path="/dispute" element={<DisputePage />} />
+        <Route path="/platform-services" element={<PlatformServicesPage />} />
+        <Route path="/help" element={<HelpPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       </div>

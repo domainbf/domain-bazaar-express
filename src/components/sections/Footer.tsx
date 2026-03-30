@@ -10,15 +10,17 @@ export const Footer = () => {
   const links = {
     marketplace: [
       { label: '域名市场', to: '/marketplace' },
-      { label: '价值评估', to: '/marketplace?tab=valuation' },
-      { label: '域名监控', to: '/marketplace?tab=monitor' },
-      { label: '拍卖列表', to: '/marketplace?tab=auction' },
+      { label: '价值评估', to: '/valuation' },
+      { label: '域名监控', to: '/domain-monitor' },
+      { label: '拍卖列表', to: '/auctions' },
+      { label: '平台服务', to: '/platform-services' },
     ],
     services: [
-      { label: '资金托管', to: '/user-center?tab=transactions' },
-      { label: '卖家入驻', to: '/user-center?tab=profile' },
-      { label: '批量上架', to: '/user-center?tab=domains' },
-      { label: '纠纷申诉', to: '/user-center?tab=transactions' },
+      { label: '资金托管', to: '/escrow' },
+      { label: '卖家入驻', to: '/seller' },
+      { label: '批量上架', to: '/bulk-listing' },
+      { label: '纠纷申诉', to: '/dispute' },
+      { label: '帮助支持', to: '/help' },
     ],
     support: [
       { label: '常见问题', to: '/faq' },
