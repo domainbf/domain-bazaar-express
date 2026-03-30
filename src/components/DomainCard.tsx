@@ -106,15 +106,17 @@ export const DomainCard = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -5, scale: 1.015 }}
+      whileTap={{ scale: 0.985 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: Math.min(index * 0.05, 0.3) }}
-      className={`relative border rounded-xl p-5 transition-all duration-250 group cursor-default
-        hover:shadow-lg hover:-translate-y-0.5
+      className={`relative border rounded-xl p-5 cursor-default group
         ${highlight
           ? 'border-foreground border-2 bg-muted/30 shadow-md'
-          : 'border-border bg-card hover:border-primary/30'
+          : 'border-border bg-card'
         }
         ${isSold ? 'opacity-60' : ''}
       `}
+      style={{ willChange: 'transform' }}
     >
       {/* Top row: badges + favorite */}
       <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
@@ -183,24 +185,28 @@ export const DomainCard = ({
         ) : (
           <>
             <Link to={`/domain/${domain}`} className="flex-1" data-testid={`link-domain-detail-${domainId}`}>
-              <Button
-                variant="outline"
-                className="w-full text-xs transition-all active:scale-95 border-foreground text-foreground hover:bg-foreground hover:text-background"
-                size="sm"
-              >
-                查看详情 →
-              </Button>
+              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.94 }} className="w-full">
+                <Button
+                  variant="outline"
+                  className="w-full text-xs transition-colors border-foreground text-foreground hover:bg-foreground hover:text-background"
+                  size="sm"
+                >
+                  查看详情 →
+                </Button>
+              </motion.div>
             </Link>
             <Dialog open={isDialogOpen} onOpenChange={(open) => !open && setIsDialogOpen(false)}>
               <DialogTrigger asChild>
-                <Button
-                  className="flex-1 bg-foreground text-background hover:bg-foreground/90 text-xs transition-all active:scale-95"
-                  size="sm"
-                  onClick={handleOpenDialog}
-                  data-testid={`button-offer-${domainId}`}
-                >
-                  报价
-                </Button>
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.94 }} className="flex-1">
+                  <Button
+                    className="w-full bg-foreground text-background hover:bg-foreground/90 text-xs transition-colors"
+                    size="sm"
+                    onClick={handleOpenDialog}
+                    data-testid={`button-offer-${domainId}`}
+                  >
+                    报价
+                  </Button>
+                </motion.div>
               </DialogTrigger>
               <DialogContent className="bg-background border-border max-w-md">
                 <DialogHeader>

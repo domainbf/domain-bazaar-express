@@ -30,6 +30,12 @@ const steps = [
   },
 ];
 
+const trustItems = [
+  { icon: Shield,        label: '资金托管保障', desc: '买家付款资金安全托管，转移完成前不放款' },
+  { icon: CheckCircle,   label: '域名验证服务', desc: '卖家域名所有权经过平台实名验证' },
+  { icon: MessageSquare, label: '专业纠纷调解', desc: '遇到问题申请平台介入，公平公正解决' },
+];
+
 export const HowItWorksSection = () => {
   return (
     <section className="py-16 md:py-24 bg-background relative overflow-hidden">
@@ -62,18 +68,28 @@ export const HowItWorksSection = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.12 }}
                 viewport={{ once: true }}
-                className="relative z-10 text-center"
+                className="relative z-10 text-center group"
               >
-                {/* icon circle */}
-                <div className="relative inline-flex mb-6">
-                  <div className="w-[104px] h-[104px] rounded-full bg-muted border border-border flex items-center justify-center mx-auto">
+                {/* icon circle — springs on hover */}
+                <motion.div
+                  className="relative inline-flex mb-6"
+                  whileHover={{ scale: 1.1, rotate: 6 }}
+                  whileTap={{ scale: 0.93 }}
+                  transition={{ type: 'spring', stiffness: 320, damping: 18 }}
+                >
+                  <div className="w-[104px] h-[104px] rounded-full bg-muted border border-border flex items-center justify-center mx-auto transition-colors duration-200 group-hover:border-foreground/30">
                     <Icon className="h-9 w-9 text-foreground" />
                   </div>
                   {/* step badge */}
-                  <span className="absolute -top-1 -right-1 bg-foreground text-background text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shadow-md">
+                  <motion.span
+                    className="absolute -top-1 -right-1 bg-foreground text-background text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shadow-md"
+                    whileInView={{ scale: [0, 1.3, 1] }}
+                    transition={{ duration: 0.45, delay: index * 0.12 + 0.25, ease: 'backOut' }}
+                    viewport={{ once: true }}
+                  >
                     {index + 1}
-                  </span>
-                </div>
+                  </motion.span>
+                </motion.div>
 
                 {/* divider */}
                 <div className="h-px w-10 mx-auto mb-4 rounded-full bg-border" />
@@ -82,7 +98,7 @@ export const HowItWorksSection = () => {
                 <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
 
                 {index < steps.length - 1 && (
-                  <ArrowRight className="h-5 w-5 text-muted-foreground/40 mx-auto mt-4 hidden md:block lg:hidden" />
+                  <ArrowRight className="h-5 w-5 text-muted-foreground/60 mx-auto mt-4 hidden md:block lg:hidden" />
                 )}
               </motion.div>
             );
@@ -97,22 +113,28 @@ export const HowItWorksSection = () => {
           viewport={{ once: true }}
           className="mt-14 grid grid-cols-1 sm:grid-cols-3 gap-4"
         >
-          {[
-            { icon: Shield,        label: '资金托管保障', desc: '买家付款资金安全托管，转移完成前不放款' },
-            { icon: CheckCircle,   label: '域名验证服务', desc: '卖家域名所有权经过平台实名验证' },
-            { icon: MessageSquare, label: '专业纠纷调解', desc: '遇到问题申请平台介入，公平公正解决' },
-          ].map((item, i) => {
+          {trustItems.map((item, i) => {
             const Icon = item.icon;
             return (
-              <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-muted/40 border border-border/60 hover:border-border transition-colors">
-                <div className="bg-muted p-2.5 rounded-xl shrink-0 mt-0.5">
+              <motion.div
+                key={i}
+                whileHover={{ y: -4, scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: 'spring', stiffness: 280, damping: 20 }}
+                className="flex items-start gap-3 p-4 rounded-xl bg-muted/60 border border-border hover:border-foreground/30 hover:bg-muted/80 transition-colors duration-200 cursor-default"
+              >
+                <motion.div
+                  className="bg-background p-2.5 rounded-xl shrink-0 mt-0.5 border border-border"
+                  whileHover={{ rotate: [0, -8, 8, -4, 0] }}
+                  transition={{ duration: 0.5 }}
+                >
                   <Icon className="h-4 w-4 text-foreground" />
-                </div>
+                </motion.div>
                 <div>
-                  <p className="text-sm font-semibold">{item.label}</p>
+                  <p className="text-sm font-semibold text-foreground">{item.label}</p>
                   <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{item.desc}</p>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </motion.div>
@@ -125,9 +147,17 @@ export const HowItWorksSection = () => {
           className="text-center mt-10"
         >
           <Link to="/marketplace">
-            <Button size="lg" className="gap-2 bg-foreground text-background hover:bg-foreground/90 border-0">
-              立即开始 <ArrowRight className="h-4 w-4" />
-            </Button>
+            <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} className="inline-block">
+              <Button size="lg" className="gap-2 bg-foreground text-background hover:bg-foreground/90 border-0">
+                立即开始
+                <motion.span
+                  animate={{ x: [0, 4, 0] }}
+                  transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <ArrowRight className="h-4 w-4" />
+                </motion.span>
+              </Button>
+            </motion.div>
           </Link>
         </motion.div>
       </div>

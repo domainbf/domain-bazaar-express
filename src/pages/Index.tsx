@@ -13,6 +13,7 @@ import { fallbackDomains } from '@/data/availableDomains';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { motion } from 'framer-motion';
 
 import { useNotifications } from '@/hooks/useNotifications';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
@@ -99,13 +100,13 @@ const Index = () => {
               <div className="flex justify-center mb-8">
                 <TabsList className="grid grid-cols-3 w-full max-w-md">
                   <TabsTrigger value="marketplace" className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4" />域名市场
+                    <TrendingUp className="w-4 h-4 tab-icon" />域名市场
                   </TabsTrigger>
                   <TabsTrigger value="estimator" className="flex items-center gap-2">
-                    <Calculator className="w-4 h-4" />价值评估
+                    <Calculator className="w-4 h-4 tab-icon" />价值评估
                   </TabsTrigger>
                   <TabsTrigger value="monitor" className="flex items-center gap-2">
-                    <Eye className="w-4 h-4" />域名监控
+                    <Eye className="w-4 h-4 tab-icon" />域名监控
                   </TabsTrigger>
                 </TabsList>
               </div>
@@ -234,22 +235,36 @@ const Index = () => {
         {/* Stats */}
         <section className="py-16 md:py-20 bg-card relative overflow-hidden">
           <div className="relative max-w-6xl mx-auto px-4 md:px-8 z-10">
-            <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-10 md:mb-14">
+            <motion.h2
+              className="text-2xl md:text-3xl font-bold text-center text-foreground mb-10 md:mb-14"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45 }}
+              viewport={{ once: true }}
+            >
               {siteConfig.stats_title || t('homePage.platformStats')}
-            </h2>
+            </motion.h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
               {[
                 { value: siteConfig.stat_users || '50,000+', label: t('homePage.activeUsers') },
                 { value: siteConfig.stat_countries || '100+', label: t('homePage.countries') },
                 { value: siteConfig.stat_volume || '$100M+', label: t('homePage.transactionVolume') },
                 { value: siteConfig.stat_support || '24/7', label: t('homePage.customerSupport') },
-              ].map(({ value, label }) => (
-                <div key={label} className="text-center p-4 md:p-6 bg-background border border-border rounded-2xl">
+              ].map(({ value, label }, i) => (
+                <motion.div
+                  key={label}
+                  className="text-center p-4 md:p-6 bg-background border border-border rounded-2xl hover-lift"
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.45, delay: i * 0.09 }}
+                  viewport={{ once: true }}
+                  whileHover={{ scale: 1.03 }}
+                >
                   <div className="text-2xl md:text-4xl font-bold mb-2 md:mb-3 text-foreground">
                     {value}
                   </div>
                   <div className="text-muted-foreground text-xs md:text-sm font-medium">{label}</div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -276,7 +291,7 @@ const Index = () => {
               <Link to={user ? "/user-center" : "#"} onClick={user ? undefined : () => setIsAuthModalOpen(true)} className="w-full sm:w-auto">
                 <Button
                   variant="outline"
-                  className="w-full sm:w-auto px-8 py-3 text-base font-bold transition-all active:scale-[0.97]"
+                  className="w-full sm:w-auto px-8 py-3 text-base font-bold transition-all active:scale-[0.97] border-2 border-foreground text-foreground hover:bg-foreground hover:text-background"
                 >
                   {user ? (siteConfig.cta_btn_secondary || t('homePage.visitUserCenter')) : t('homePage.registerLogin')}
                 </Button>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 interface SoldDomain {
   id: string;
@@ -58,11 +59,11 @@ function SoldCard({ item, onClick }: { item: SoldDomain; onClick: () => void }) 
           {ext && <span className="text-[10px] text-muted-foreground font-medium tracking-widest">{ext.toUpperCase()}</span>}
         </div>
       )}
-      <span className="absolute bottom-1.5 right-2 text-[10px] text-muted-foreground/60 font-mono tabular-nums">
+      <span className="absolute bottom-1.5 right-2 text-[10px] text-muted-foreground font-mono tabular-nums">
         {formatPrice(item.price)}
       </span>
       <span className="absolute top-1.5 left-1.5">
-        <CheckCircle className="h-2.5 w-2.5 text-foreground/30" />
+        <CheckCircle className="h-2.5 w-2.5 text-foreground/55" />
       </span>
     </button>
   );
@@ -146,15 +147,26 @@ export function DealsShowcaseSection() {
   return (
     <section className="py-10 md:py-14 border-y border-border bg-background overflow-hidden">
       <div className="max-w-5xl mx-auto px-4 mb-6">
-        <div className="flex items-center gap-3">
-          <TrendingUp className="h-5 w-5 text-foreground/60" />
+        <motion.div
+          className="flex items-center gap-3"
+          initial={{ opacity: 0, x: -16 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.45 }}
+          viewport={{ once: true }}
+        >
+          <motion.div
+            animate={{ y: [0, -4, 0] }}
+            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <TrendingUp className="h-5 w-5 text-foreground/70" />
+          </motion.div>
           <div>
             <h2 className="text-lg font-bold text-foreground">成交案例</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
               已有 <span className="font-semibold text-foreground">{totalSold}</span> 个域名在平台成功交易
             </p>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       <div className="space-y-3">
