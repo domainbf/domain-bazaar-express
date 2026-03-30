@@ -50,6 +50,10 @@ export interface DomainOffer {
   buyer_id?: string;
   updated_at?: string;
   transaction_id?: string;
+  // Counter-offer fields (decoded from JSON message when status='countered')
+  counter_amount?: number;
+  counter_note?: string;
+  buyer_message?: string;
 }
 
 export interface DomainVerification {
