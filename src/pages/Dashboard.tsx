@@ -144,7 +144,7 @@ export const Dashboard = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
           <div className="bg-card border border-border rounded-xl p-4" data-testid="stat-listings">
             <div className="flex items-center gap-2 mb-1">
-              <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+              <div className="w-7 h-7 rounded-lg bg-blue-500/15 dark:bg-blue-900/30 flex items-center justify-center">
                 <Package className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               </div>
               <span className="text-xs text-muted-foreground">在售域名</span>
@@ -169,7 +169,7 @@ export const Dashboard = () => {
 
           <div className="bg-card border border-border rounded-xl p-4" data-testid="stat-views">
             <div className="flex items-center gap-2 mb-1">
-              <div className="w-7 h-7 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+              <div className="w-7 h-7 rounded-lg bg-purple-500/15 dark:bg-purple-900/30 flex items-center justify-center">
                 <Eye className="h-4 w-4 text-purple-600 dark:text-purple-400" />
               </div>
               <span className="text-xs text-muted-foreground">总浏览量</span>
@@ -179,7 +179,7 @@ export const Dashboard = () => {
 
           <div className="bg-card border border-border rounded-xl p-4" data-testid="stat-completed">
             <div className="flex items-center gap-2 mb-1">
-              <div className="w-7 h-7 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+              <div className="w-7 h-7 rounded-lg bg-green-500/15 dark:bg-green-900/30 flex items-center justify-center">
                 <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
               </div>
               <span className="text-xs text-muted-foreground">已完成交易</span>
@@ -190,7 +190,7 @@ export const Dashboard = () => {
 
         {/* Pending offers alert */}
         {stats.pendingOffers > 0 && (
-          <div className="mb-6 p-4 rounded-xl bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900/50 flex items-center justify-between">
+          <div className="mb-6 p-4 rounded-xl bg-orange-500/10 dark:bg-orange-950/30 border border-orange-500/30 dark:border-orange-900/50 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-orange-600" />
               <p className="text-sm font-medium text-orange-800 dark:text-orange-300">

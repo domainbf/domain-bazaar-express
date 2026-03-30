@@ -22,12 +22,12 @@ interface ActivityLog {
 }
 
 const activityConfig: Record<string, { icon: any; label: string; color: string }> = {
-  'login': { icon: User, label: '用户登录', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+  'login': { icon: User, label: '用户登录', color: 'bg-blue-500/15 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
   'view_domain': { icon: Eye, label: '查看域名', color: 'bg-muted text-muted-foreground' },
-  'create_offer': { icon: MessageSquare, label: '提交报价', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
+  'create_offer': { icon: MessageSquare, label: '提交报价', color: 'bg-purple-500/15 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
   'favorite_domain': { icon: Heart, label: '收藏域名', color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400' },
-  'purchase': { icon: DollarSign, label: '完成购买', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
-  'verify_domain': { icon: Shield, label: '域名验证', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
+  'purchase': { icon: DollarSign, label: '完成购买', color: 'bg-green-500/15 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
+  'verify_domain': { icon: Shield, label: '域名验证', color: 'bg-yellow-500/15 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
 };
 
 const PAGE_SIZE = 20;

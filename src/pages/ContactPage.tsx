@@ -426,7 +426,7 @@ export const ContactPage: React.FC = () => {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 gap-3">
                   <a href="/faq" className="block">
-                    <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer">
+                    <div className="flex items-center gap-3 p-3 bg-blue-500/10 rounded-lg hover:bg-blue-500/15 transition-colors cursor-pointer">
                       <Globe className="h-6 w-6 text-blue-500" />
                       <div className="flex-1">
                         <div className="font-medium">在线帮助中心</div>
@@ -436,7 +436,7 @@ export const ContactPage: React.FC = () => {
                   </a>
 
                   <a href="/community" className="block">
-                    <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors cursor-pointer">
+                    <div className="flex items-center gap-3 p-3 bg-green-500/10 rounded-lg hover:bg-green-500/15 transition-colors cursor-pointer">
                       <Users className="h-6 w-6 text-green-500" />
                       <div className="flex-1">
                         <div className="font-medium">用户社区</div>
@@ -446,7 +446,7 @@ export const ContactPage: React.FC = () => {
                   </a>
 
                   <a href="/security-center" className="block">
-                    <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer">
+                    <div className="flex items-center gap-3 p-3 bg-purple-500/10 rounded-lg hover:bg-purple-500/15 transition-colors cursor-pointer">
                       <Shield className="h-6 w-6 text-purple-500" />
                       <div className="flex-1">
                         <div className="font-medium">安全中心</div>
@@ -460,7 +460,7 @@ export const ContactPage: React.FC = () => {
 
             {/* 紧急联系 */}
             {config.emergency_phone && (
-              <Card className="border-red-200 bg-red-50">
+              <Card className="border-red-500/30 bg-red-500/10">
                 <CardHeader>
                   <CardTitle className="text-red-700 flex items-center gap-2">
                     <Building className="h-5 w-5" />
@@ -472,7 +472,7 @@ export const ContactPage: React.FC = () => {
                     如遇到账户安全问题或紧急交易纠纷，
                     请立即拨打紧急热线：
                   </p>
-                  <div className="font-bold text-red-800 text-lg mt-2">
+                  <div className="font-bold text-red-600 dark:text-red-400 text-lg mt-2">
                     {config.emergency_phone}
                   </div>
                   <p className="text-red-600 text-xs mt-1">

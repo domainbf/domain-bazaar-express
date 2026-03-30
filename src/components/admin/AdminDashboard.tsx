@@ -220,7 +220,7 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
       changeLabel: '今日新增',
       icon: Users,
       color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
+      bgColor: 'bg-blue-500/10',
       trend: stats.newUsersToday > 0 ? 'up' : 'stable'
     },
     {
@@ -230,7 +230,7 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
       changeLabel: '今日新增',
       icon: Globe,
       color: 'text-green-600',
-      bgColor: 'bg-green-50',
+      bgColor: 'bg-green-500/10',
       trend: stats.newDomainsToday > 0 ? 'up' : 'stable'
     },
     {
@@ -240,7 +240,7 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
       changeLabel: '占总数',
       icon: TrendingUp,
       color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
+      bgColor: 'bg-purple-500/10',
       trend: 'stable'
     },
     {
@@ -250,7 +250,7 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
       changeLabel: '笔交易',
       icon: DollarSign,
       color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
+      bgColor: 'bg-orange-500/10',
       trend: stats.completedTransactions > 0 ? 'up' : 'stable'
     }
   ];
@@ -383,7 +383,7 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
                 用户管理
               </span>
               {stats.newUsersToday > 0 && (
-                <Badge className="bg-blue-100 text-blue-800">+{stats.newUsersToday}</Badge>
+                <Badge className="bg-blue-500/15 text-blue-600 dark:text-blue-400">+{stats.newUsersToday}</Badge>
               )}
             </Button>
             
@@ -397,7 +397,7 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
                 域名管理
               </span>
               {stats.newDomainsToday > 0 && (
-                <Badge className="bg-green-100 text-green-800">+{stats.newDomainsToday}</Badge>
+                <Badge className="bg-green-500/15 text-green-600 dark:text-green-400">+{stats.newDomainsToday}</Badge>
               )}
             </Button>
             
@@ -411,7 +411,7 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
                 域名验证
               </span>
               {stats.pendingVerifications > 0 && (
-                <Badge className="bg-yellow-100 text-yellow-800">{stats.pendingVerifications}</Badge>
+                <Badge className="bg-yellow-500/15 text-yellow-600 dark:text-yellow-400">{stats.pendingVerifications}</Badge>
               )}
             </Button>
             
@@ -479,9 +479,9 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 系统警告 */}
         {(stats.pendingVerifications > 10 || stats.pendingOffers > 20) && (
-          <Card className="border-yellow-200 bg-yellow-50">
+          <Card className="border-yellow-500/30 bg-yellow-500/10">
             <CardHeader>
-              <CardTitle className="text-yellow-800 flex items-center gap-2">
+              <CardTitle className="text-yellow-600 dark:text-yellow-400 flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5" />
                 系统提醒
               </CardTitle>
@@ -515,9 +515,9 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
         )}
 
         {/* 系统健康状态 */}
-        <Card className="border-green-200 bg-green-50">
+        <Card className="border-green-500/30 bg-green-500/10">
           <CardHeader>
-            <CardTitle className="text-green-800 flex items-center gap-2">
+            <CardTitle className="text-green-600 dark:text-green-400 flex items-center gap-2">
               <CheckCircle className="h-5 w-5" />
               系统状态
             </CardTitle>

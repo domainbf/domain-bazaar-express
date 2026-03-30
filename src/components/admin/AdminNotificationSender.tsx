@@ -313,7 +313,7 @@ export const AdminNotificationSender = () => {
               </div>
 
               {form.sendToAll ? (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900">
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-500/10 dark:bg-blue-950/20 border border-blue-500/30 dark:border-blue-900">
                   <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   <span className="text-sm text-blue-700 dark:text-blue-300">
                     将向全部 <strong>{users.length}</strong> 位注册用户发送通知

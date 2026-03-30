@@ -44,9 +44,9 @@ export const VerificationResult = ({ success, message, onDismiss }: Verification
   
   if (success) {
     return (
-      <Alert className="border-green-500 bg-green-50 mb-6">
+      <Alert className="border-green-500 bg-green-500/10 mb-6">
         <CheckCircle className="h-5 w-5 text-green-600" />
-        <AlertTitle className="text-green-800 text-lg">验证成功！</AlertTitle>
+        <AlertTitle className="text-green-600 dark:text-green-400 text-lg">验证成功！</AlertTitle>
         <AlertDescription className="text-green-700 mt-2">
           {mainMessage}
         </AlertDescription>
@@ -55,12 +55,12 @@ export const VerificationResult = ({ success, message, onDismiss }: Verification
   }
   
   return (
-    <Card className="mb-6 border-red-200">
+    <Card className="mb-6 border-red-500/30">
       <CardContent className="pt-6">
         <div className="flex items-start gap-3 mb-4">
           <XCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
           <div className="flex-1">
-            <h3 className="font-semibold text-red-800 text-lg mb-2">验证失败</h3>
+            <h3 className="font-semibold text-red-600 dark:text-red-400 text-lg mb-2">验证失败</h3>
             <p className="text-red-700 mb-4">{mainMessage}</p>
           </div>
         </div>
@@ -83,7 +83,7 @@ export const VerificationResult = ({ success, message, onDismiss }: Verification
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">
               <AlertTriangle className="h-4 w-4 text-yellow-600" />
-              <span className="text-sm font-semibold text-yellow-800">可能原因</span>
+              <span className="text-sm font-semibold text-yellow-600 dark:text-yellow-400">可能原因</span>
             </div>
             <ul className="space-y-2 ml-6">
               {reasons.map((reason, idx) => (
@@ -97,7 +97,7 @@ export const VerificationResult = ({ success, message, onDismiss }: Verification
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Info className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-semibold text-blue-800">操作建议</span>
+              <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">操作建议</span>
             </div>
             <ul className="space-y-2 ml-6">
               {suggestions.map((suggestion, idx) => (

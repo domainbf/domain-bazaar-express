@@ -7,10 +7,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 const STEPS = [
-  { icon: CreditCard, title: '买家付款', desc: '买家将购买款项支付至平台资金托管账户，资金由平台安全保管。', color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400' },
+  { icon: CreditCard, title: '买家付款', desc: '买家将购买款项支付至平台资金托管账户，资金由平台安全保管。', color: 'text-blue-600 bg-blue-500/15 dark:bg-blue-900/30 dark:text-blue-400' },
   { icon: RefreshCw, title: '域名转移', desc: '卖家在确认收到资金托管通知后，将域名转移至买家指定账户。', color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/30 dark:text-orange-400' },
-  { icon: CheckCircle2, title: '确认完成', desc: '买家确认域名收到后，平台将托管资金释放至卖家账户。', color: 'text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400' },
-  { icon: Shield, title: '纠纷保障', desc: '若出现争议，平台介入调查，保障双方权益，资金在争议解决前冻结。', color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400' },
+  { icon: CheckCircle2, title: '确认完成', desc: '买家确认域名收到后，平台将托管资金释放至卖家账户。', color: 'text-green-600 bg-green-500/15 dark:bg-green-900/30 dark:text-green-400' },
+  { icon: Shield, title: '纠纷保障', desc: '若出现争议，平台介入调查，保障双方权益，资金在争议解决前冻结。', color: 'text-purple-600 bg-purple-500/15 dark:bg-purple-900/30 dark:text-purple-400' },
 ];
 
 const GUARANTEES = [
@@ -58,7 +58,7 @@ export default function EscrowPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
               {STEPS.map((s, i) => (
                 <div key={s.title} className="bg-card rounded-xl border border-border p-5 relative">
-                  <div className="absolute -top-3 left-5 h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
+                  <div className="absolute -top-3 left-5 h-6 w-6 rounded-full bg-foreground text-background text-xs font-bold flex items-center justify-center">
                     {i + 1}
                   </div>
                   <div className={`inline-flex items-center justify-center h-11 w-11 rounded-xl mb-3 ${s.color}`}>
@@ -84,11 +84,11 @@ export default function EscrowPage() {
               ))}
             </div>
 
-            <div className="mt-6 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 p-5">
+            <div className="mt-6 bg-amber-500/10 dark:bg-amber-900/20 rounded-xl border border-amber-500/30 dark:border-amber-800 p-5">
               <div className="flex items-start gap-3">
                 <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <div>
-                  <h3 className="font-semibold text-amber-800 dark:text-amber-300 mb-1">注意事项</h3>
+                  <h3 className="font-semibold text-amber-600 dark:text-amber-400 dark:text-amber-300 mb-1">注意事项</h3>
                   <p className="text-sm text-amber-700 dark:text-amber-400 leading-relaxed">
                     资金托管仅适用于通过平台达成的交易。私下交易不受平台保护，若出现纠纷平台无法介入。请始终通过平台内完成交易流程。
                   </p>

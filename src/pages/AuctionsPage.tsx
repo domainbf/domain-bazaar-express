@@ -87,7 +87,7 @@ export const AuctionsPage = () => {
 
       <div className={isMobile ? 'pb-20' : ''}>
         {/* Header */}
-        <section className={`bg-primary text-primary-foreground ${isMobile ? 'py-8 px-4' : 'py-12'}`}>
+        <section className={`bg-gradient-to-br from-foreground to-foreground/90 text-background dark:from-card dark:to-muted dark:text-foreground ${isMobile ? 'py-8 px-4' : 'py-12'}`}>
           <div className={isMobile ? '' : 'max-w-5xl mx-auto px-6'}>
             <div className="flex items-center justify-between">
               <div>

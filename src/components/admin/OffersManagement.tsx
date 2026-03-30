@@ -35,9 +35,9 @@ const statusLabels: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-  accepted: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-  rejected: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+  pending: 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 dark:bg-yellow-900/30 dark:text-yellow-400',
+  accepted: 'bg-green-500/15 text-green-600 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400',
+  rejected: 'bg-red-500/15 text-red-600 dark:text-red-400 dark:bg-red-900/30 dark:text-red-400',
   expired: 'bg-muted text-muted-foreground',
   cancelled: 'bg-muted text-muted-foreground',
 };

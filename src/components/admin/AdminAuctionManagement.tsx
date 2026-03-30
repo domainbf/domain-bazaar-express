@@ -39,11 +39,11 @@ interface AuctionBid {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  active: { label: '进行中', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
+  active: { label: '进行中', color: 'bg-green-500/15 text-green-600 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400' },
   ended: { label: '已结束', color: 'bg-muted text-foreground dark:bg-gray-800 dark:text-gray-300' },
-  cancelled: { label: '已取消', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
-  completed: { label: '已完成', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
-  pending: { label: '待开始', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' },
+  cancelled: { label: '已取消', color: 'bg-red-500/15 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+  completed: { label: '已完成', color: 'bg-blue-500/15 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+  pending: { label: '待开始', color: 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 dark:bg-yellow-900/30 dark:text-yellow-400' },
 };
 
 export const AdminAuctionManagement = () => {
@@ -301,7 +301,7 @@ export const AdminAuctionManagement = () => {
                     </TableHeader>
                     <TableBody>
                       {bids.map((bid, i) => (
-                        <TableRow key={bid.id} className={i === 0 ? 'bg-green-50 dark:bg-green-900/20' : ''}>
+                        <TableRow key={bid.id} className={i === 0 ? 'bg-green-500/10 dark:bg-green-900/20' : ''}>
                           <TableCell className="text-xs">{i === 0 ? '🏆' : i + 1}</TableCell>
                           <TableCell className="text-sm">{bid.bidder_email}</TableCell>
                           <TableCell className={`text-right font-semibold ${i === 0 ? 'text-green-600' : ''}`}>¥{Number(bid.amount).toLocaleString()}</TableCell>

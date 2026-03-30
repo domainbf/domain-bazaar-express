@@ -224,7 +224,7 @@ export const TwoFactorAuth = ({ onStatusChange }: TwoFactorAuthProps) => {
             <>
               <Alert className="border-green-500/30 bg-green-500/5">
                 <ShieldCheck className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <AlertDescription className="text-green-800 dark:text-green-300">
+                <AlertDescription className="text-green-600 dark:text-green-400 dark:text-green-300">
                   您的账户已启用两步验证保护。每次登录时，您需要输入身份验证器应用生成的验证码。
                 </AlertDescription>
               </Alert>
@@ -378,7 +378,7 @@ export const TwoFactorAuth = ({ onStatusChange }: TwoFactorAuthProps) => {
             <div className="space-y-4">
               <Alert className="border-yellow-500/30 bg-yellow-500/5">
                 <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-                <AlertDescription className="text-yellow-800 dark:text-yellow-300">
+                <AlertDescription className="text-yellow-600 dark:text-yellow-400 dark:text-yellow-300">
                   请妥善保存这些恢复码！如果您无法访问身份验证器应用，可以使用恢复码登录。
                 </AlertDescription>
               </Alert>

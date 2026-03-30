@@ -58,7 +58,7 @@ const SecurityCenter: React.FC = () => {
                 <Mail className="h-8 w-8 text-green-500" />
                 <div>
                   <div className="font-medium">邮箱验证</div>
-                  <Badge variant="outline" className="mt-1 bg-green-50 text-green-700 border-green-200">已验证</Badge>
+                  <Badge variant="outline" className="mt-1 bg-green-500/10 text-green-700 border-green-500/30">已验证</Badge>
                 </div>
               </div>
             </div>
@@ -91,8 +91,8 @@ const SecurityCenter: React.FC = () => {
                     <li>不与其他网站使用相同密码</li>
                     <li>定期更换密码（建议3-6个月更换一次）</li>
                   </ul>
-                  <div className="bg-amber-50 p-3 rounded-lg mt-3 border border-amber-200">
-                    <p className="text-amber-800 text-sm flex items-start gap-2">
+                  <div className="bg-amber-500/10 p-3 rounded-lg mt-3 border border-amber-500/30">
+                    <p className="text-amber-600 dark:text-amber-400 text-sm flex items-start gap-2">
                       <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                       <span>建议使用密码管理器来生成和存储复杂密码</span>
                     </p>
@@ -116,8 +116,8 @@ const SecurityCenter: React.FC = () => {
                     <li>使用验证器应用（如Google Authenticator）扫描二维码</li>
                     <li>输入验证码完成设置</li>
                   </ol>
-                  <div className="bg-blue-50 p-3 rounded-lg mt-3 border border-blue-200">
-                    <p className="text-blue-800 text-sm">
+                  <div className="bg-blue-500/10 p-3 rounded-lg mt-3 border border-blue-500/30">
+                    <p className="text-blue-600 dark:text-blue-400 text-sm">
                       推荐使用：Google Authenticator、Microsoft Authenticator 或 Authy
                     </p>
                   </div>
@@ -140,8 +140,8 @@ const SecurityCenter: React.FC = () => {
                     <li>要求提供密码、验证码等敏感信息</li>
                     <li>存在拼写或语法错误</li>
                   </ul>
-                  <div className="bg-red-50 p-3 rounded-lg mt-3 border border-red-200">
-                    <p className="text-red-800 text-sm font-medium">
+                  <div className="bg-red-500/10 p-3 rounded-lg mt-3 border border-red-500/30">
+                    <p className="text-red-600 dark:text-red-400 text-sm font-medium">
                       重要提醒：域见•你 永远不会通过邮件要求您提供密码或验证码！
                     </p>
                   </div>
@@ -209,8 +209,8 @@ const SecurityCenter: React.FC = () => {
                     <li>保留所有交易记录和沟通证据</li>
                     <li>遇到纠纷及时联系平台客服</li>
                   </ul>
-                  <div className="bg-amber-50 p-3 rounded-lg mt-3 border border-amber-200">
-                    <p className="text-amber-800 text-sm">
+                  <div className="bg-amber-500/10 p-3 rounded-lg mt-3 border border-amber-500/30">
+                    <p className="text-amber-600 dark:text-amber-400 text-sm">
                       任何要求线下转账或绕过平台交易的行为都可能是诈骗！
                     </p>
                   </div>
@@ -221,14 +221,14 @@ const SecurityCenter: React.FC = () => {
         </Card>
 
         {/* 紧急情况处理 */}
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-red-500/30 bg-red-500/10">
           <CardHeader>
             <CardTitle className="text-red-700 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
               账户被盗或发现可疑活动？
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-red-800">
+          <CardContent className="text-red-600 dark:text-red-400">
             <p className="mb-3">如果您发现账户异常或疑似被盗，请立即采取以下措施：</p>
             <ol className="list-decimal list-inside space-y-1 mb-4">
               <li>立即更改密码</li>
@@ -237,7 +237,7 @@ const SecurityCenter: React.FC = () => {
               <li>联系紧急服务热线</li>
             </ol>
             {config.emergency_phone && (
-              <div className="bg-red-100 p-4 rounded-lg border border-red-300">
+              <div className="bg-red-500/15 p-4 rounded-lg border border-red-300">
                 <div className="flex items-center gap-2 mb-2">
                   <HelpCircle className="h-5 w-5" />
                   <span className="font-bold text-lg">紧急服务热线</span>

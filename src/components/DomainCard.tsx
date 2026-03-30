@@ -125,7 +125,7 @@ export const DomainCard = ({
             <Badge className="bg-foreground text-background text-[10px] px-2 py-0.5">精选</Badge>
           )}
           {isVerified && (
-            <Badge className="bg-primary text-primary-foreground text-[10px] px-2 py-0.5 gap-0.5">
+            <Badge className="bg-foreground text-background text-[10px] px-2 py-0.5 gap-0.5">
               <Shield className="h-2.5 w-2.5" />已验证
             </Badge>
           )}
@@ -134,8 +134,8 @@ export const DomainCard = ({
           key={heartKey}
           className={`h-7 w-7 rounded-full flex items-center justify-center transition-all
             ${isFavorited
-              ? 'text-red-500 hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30'
-              : 'text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 opacity-0 group-hover:opacity-100'
+              ? 'text-red-500 hover:text-red-400 hover:bg-red-500/10 dark:hover:bg-red-950/30'
+              : 'text-muted-foreground hover:text-red-500 hover:bg-red-500/10 dark:hover:bg-red-950/30 opacity-0 group-hover:opacity-100'
             }
             ${heartKey > 0 ? 'animate-heart' : ''}
           `}

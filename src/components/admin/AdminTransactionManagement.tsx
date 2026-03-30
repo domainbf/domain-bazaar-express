@@ -34,13 +34,13 @@ interface AdminTransaction {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-  paid: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-  in_escrow: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
+  pending: 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 dark:bg-yellow-900/30 dark:text-yellow-400',
+  paid: 'bg-blue-500/15 text-blue-600 dark:text-blue-400 dark:bg-blue-900/30 dark:text-blue-400',
+  in_escrow: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 dark:bg-purple-900/30 dark:text-purple-400',
   domain_transferred: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400',
-  completed: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+  completed: 'bg-green-500/15 text-green-600 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400',
   cancelled: 'bg-muted text-foreground dark:bg-gray-900/30 dark:text-muted-foreground',
-  disputed: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+  disputed: 'bg-red-500/15 text-red-600 dark:text-red-400 dark:bg-red-900/30 dark:text-red-400',
   refunded: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
 };
 

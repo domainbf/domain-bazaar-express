@@ -214,7 +214,7 @@ export const AdminLegalPagesManager = () => {
                     </div>
                   )}
                   {isPreviewingThis && !hasCustomContent(page.key) && (
-                    <div className="rounded-lg border bg-amber-50 dark:bg-amber-950/20 p-4">
+                    <div className="rounded-lg border bg-amber-500/10 dark:bg-amber-950/20 p-4">
                       <p className="text-sm text-amber-700 dark:text-amber-400">当前使用系统默认内容，在下方输入自定义内容后保存即可覆盖。</p>
                     </div>
                   )}

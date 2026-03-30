@@ -113,12 +113,12 @@ export const DnsRecordChecker = ({ recordName, expectedValue, domainName }: DnsR
         {result && (
           <div className="space-y-3">
             {result.found ? (
-              <Alert className="border-green-500 bg-green-50">
+              <Alert className="border-green-500 bg-green-500/10">
                 <CheckCircle className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-800">
+                <AlertDescription className="text-green-600 dark:text-green-400">
                   <strong>验证成功！</strong> DNS记录已找到且值匹配。
                   <div className="mt-2 text-sm">
-                    找到的记录值: <code className="bg-green-100 px-2 py-1 rounded">{expectedValue}</code>
+                    找到的记录值: <code className="bg-green-500/15 px-2 py-1 rounded">{expectedValue}</code>
                   </div>
                 </AlertDescription>
               </Alert>
@@ -131,14 +131,14 @@ export const DnsRecordChecker = ({ recordName, expectedValue, domainName }: DnsR
                 </AlertDescription>
               </Alert>
             ) : (
-              <Alert className="border-yellow-500 bg-yellow-50">
+              <Alert className="border-yellow-500 bg-yellow-500/10">
                 <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                <AlertDescription className="text-yellow-800">
+                <AlertDescription className="text-yellow-600 dark:text-yellow-400">
                   <strong>DNS记录未找到或值不匹配</strong>
                   {result.values && result.values.length > 0 ? (
                     <div className="mt-2 text-sm space-y-1">
                       <div>找到了TXT记录，但值不匹配：</div>
-                      <div className="bg-yellow-100 p-2 rounded">
+                      <div className="bg-yellow-500/15 p-2 rounded">
                         <div>期望值: <code className="text-xs">{expectedValue}</code></div>
                         <div className="mt-1">实际值: {result.values.map((v, i) => (
                           <code key={i} className="text-xs block">{v}</code>
@@ -147,7 +147,7 @@ export const DnsRecordChecker = ({ recordName, expectedValue, domainName }: DnsR
                     </div>
                   ) : (
                     <div className="mt-2 text-sm">
-                      <div>未找到 <code className="bg-yellow-100 px-1 rounded">{recordName}</code> 的TXT记录</div>
+                      <div>未找到 <code className="bg-yellow-500/15 px-1 rounded">{recordName}</code> 的TXT记录</div>
                       <div className="mt-2 space-y-1">
                         <div><strong>可能原因：</strong></div>
                         <ul className="list-disc list-inside ml-2 space-y-1">

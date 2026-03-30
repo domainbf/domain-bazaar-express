@@ -224,7 +224,7 @@ export const FavoriteDomains = () => {
                       variant="ghost"
                       size="icon"
                       onClick={() => handleRemoveFavorite(favorite.id, favorite.domain.name)}
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                      className="text-red-500 hover:text-red-700 hover:bg-red-500/10"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

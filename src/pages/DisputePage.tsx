@@ -163,7 +163,7 @@ export default function DisputePage() {
                 <div className="space-y-3">
                   {PROCESS_STEPS.map((s, i) => (
                     <div key={s.title} className="flex gap-3 items-start bg-card rounded-xl border border-border p-4">
-                      <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold shrink-0">
+                      <div className="h-8 w-8 rounded-full bg-foreground text-background flex items-center justify-center text-xs font-bold shrink-0">
                         {i + 1}
                       </div>
                       <div>
@@ -175,11 +175,11 @@ export default function DisputePage() {
                 </div>
               </div>
 
-              <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 p-5">
+              <div className="bg-amber-500/10 dark:bg-amber-900/20 rounded-xl border border-amber-500/30 dark:border-amber-800 p-5">
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-amber-800 dark:text-amber-300 text-sm mb-1">申诉前请注意</p>
+                    <p className="font-semibold text-amber-600 dark:text-amber-400 dark:text-amber-300 text-sm mb-1">申诉前请注意</p>
                     <ul className="text-xs text-amber-700 dark:text-amber-400 space-y-1">
                       <li>• 请先尝试与对方直接沟通协商</li>
                       <li>• 准备好相关截图和交易记录</li>

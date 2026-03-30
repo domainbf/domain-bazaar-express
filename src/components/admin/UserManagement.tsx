@@ -594,13 +594,13 @@ export const UserManagement = () => {
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {user.verification_status === 'suspended' && (
-                        <Badge className="bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300">
+                        <Badge className="bg-red-500/15 text-red-600 dark:text-red-400 dark:bg-red-950 dark:text-red-300">
                           <Ban className="h-3 w-3 mr-1" />
                           已封号
                         </Badge>
                       )}
                       {user.is_admin && (
-                        <Badge className="bg-yellow-100 text-yellow-800">
+                        <Badge className="bg-yellow-500/15 text-yellow-600 dark:text-yellow-400">
                           <Crown className="h-3 w-3 mr-1" />
                           管理员
                         </Badge>
@@ -615,7 +615,7 @@ export const UserManagement = () => {
                   </TableCell>
                   <TableCell>
                     {user.seller_verified ? (
-                      <Badge className="bg-green-100 text-green-800">
+                      <Badge className="bg-green-500/15 text-green-600 dark:text-green-400">
                         <CheckCircle className="h-3 w-3 mr-1" />
                         已验证
                       </Badge>
@@ -625,7 +625,7 @@ export const UserManagement = () => {
                   </TableCell>
                   <TableCell>
                     {user.has_2fa ? (
-                      <Badge className="bg-blue-100 text-blue-800">
+                      <Badge className="bg-blue-500/15 text-blue-600 dark:text-blue-400">
                         <Shield className="h-3 w-3 mr-1" />
                         已启用
                       </Badge>
@@ -859,9 +859,9 @@ export const UserManagement = () => {
                 </SelectContent>
               </Select>
             </div>
-            <Card className="bg-yellow-50 border-yellow-200">
+            <Card className="bg-yellow-500/10 border-yellow-500/30">
               <CardContent className="py-3">
-                <p className="text-sm text-yellow-800">
+                <p className="text-sm text-yellow-600 dark:text-yellow-400">
                   ⚠️ 管理员角色拥有系统最高权限，请谨慎设置
                 </p>
               </CardContent>

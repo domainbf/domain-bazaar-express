@@ -192,6 +192,25 @@ npm run build    # Build for production
   - `VITE_SUPABASE_PROJECT_ID`
 - **Deployment**: Static build via `npm run build` → `dist/` folder
 
+## Dark Mode Rules (Critical — March 2026)
+
+The theme has `--primary: 0 0% 94%` in dark mode (near-WHITE). This causes any `bg-primary` or `from-primary` to render as a white/light section on the dark page.
+
+**NEVER use these directly:**
+- `bg-primary`, `from-primary`, `via-primary`, `to-primary` for large areas
+- `bg-white`, `bg-gray-50/100/200`, `text-gray-800/900` without `dark:` override
+- `bg-blue-50/100`, `bg-green-50`, `bg-yellow-50` etc. without `dark:` override
+- `text-blue-800`, `text-green-900` etc. (too dark for dark bg)
+
+**ALWAYS use:**
+- `bg-card`, `bg-muted`, `bg-background`, `border-border` for container backgrounds
+- `text-foreground`, `text-muted-foreground` for text
+- `bg-blue-500/10`, `bg-green-500/10` etc. for colored info panels
+- For hero/CTA gradients: `bg-gradient-to-br from-foreground to-foreground/90 text-background dark:from-card dark:to-muted dark:text-foreground`
+- Primary buttons: `bg-foreground text-background` (NOT `bg-primary`)
+
+**ProtectedRoute** (`src/components/auth/ProtectedRoute.tsx`): Uses `<Navigate>` (NOT `useEffect`+navigate). This eliminates the "验证权限" spinner and toast.error on every protected page visit. Do not revert to the useEffect pattern.
+
 ## Important Notes
 
 - The SQL migration in `supabase/migrations/add_trading_features.sql` must be run manually

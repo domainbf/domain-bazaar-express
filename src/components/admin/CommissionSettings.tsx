@@ -176,7 +176,7 @@ export const CommissionSettings = () => {
             <Button onClick={saveSettings} disabled={isSaving} data-testid="button-save-commission">
               {isSaving ? <LoadingSpinner size="sm" /> : <><Save className="w-4 h-4 mr-2" />保存设置</>}
             </Button>
-            <Badge variant="outline" className="text-green-600 border-green-200">
+            <Badge variant="outline" className="text-green-600 border-green-500/30">
               <DollarSign className="w-3 h-3 mr-1" />
               当前费率：{ratePercent}%
             </Badge>

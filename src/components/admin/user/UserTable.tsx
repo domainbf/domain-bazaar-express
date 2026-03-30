@@ -83,12 +83,12 @@ export const UserTable = ({
               <td className="p-4">
                 <div className="flex flex-col gap-1">
                   {user.is_seller && (
-                    <span className="inline-flex items-center text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700">
+                    <span className="inline-flex items-center text-xs px-2 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
                       Seller
                     </span>
                   )}
                   {user.seller_verified && (
-                    <span className="inline-flex items-center text-xs px-2 py-1 rounded-full bg-green-50 text-green-700">
+                    <span className="inline-flex items-center text-xs px-2 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
                       <Check className="h-3 w-3 mr-1" />
                       Verified
                     </span>

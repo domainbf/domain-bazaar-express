@@ -121,7 +121,7 @@ export const ResetPassword = () => {
             {/* Auth Card */}
             <div className="bg-background rounded-xl shadow-lg border border-border overflow-hidden">
               {/* Card Header */}
-              <div className="bg-primary text-primary-foreground px-8 py-8 text-center relative overflow-hidden">
+              <div className="bg-gradient-to-br from-foreground to-foreground/90 text-background dark:from-card dark:to-muted dark:text-foreground px-8 py-8 text-center relative overflow-hidden">
                 <div className="absolute inset-0 opacity-5">
                   <div className="absolute inset-0" style={{
                     backgroundImage: 'radial-gradient(circle at 25% 25%, currentColor 1px, transparent 1px)',
@@ -166,7 +166,7 @@ export const ResetPassword = () => {
                 { label: '隐私合规', desc: '严格保密' },
               ].map(({ label, desc }) => (
                 <div key={label} className="flex flex-col items-center">
-                  <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center mb-2">
+                  <div className="w-10 h-10 bg-background/20 dark:bg-foreground/20 rounded-full flex items-center justify-center mb-2">
                     <ShieldCheck className="w-5 h-5 text-primary-foreground" />
                   </div>
                   <span className="text-xs font-medium text-foreground">{label}</span>

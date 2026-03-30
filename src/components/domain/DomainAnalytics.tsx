@@ -103,7 +103,7 @@ export const DomainAnalytics = ({
           onClick={toggleFavorite}
           className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 ${
             isFavorited
-              ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
+              ? 'bg-red-500/10 text-red-600 border-red-500/30 hover:bg-red-500/15'
               : 'bg-muted text-muted-foreground border-border hover:bg-accent'
           }`}
         >

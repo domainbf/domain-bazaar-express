@@ -88,7 +88,7 @@ export const SimilarDomainsGrid: React.FC<SimilarDomainsGridProps> = ({
                     </Badge>
                   )}
                   {domain.is_verified && (
-                    <Badge className="bg-green-500/10 text-green-600 border-green-200 text-xs">
+                    <Badge className="bg-green-500/10 text-green-600 border-green-500/30 text-xs">
                       <Shield className="h-3 w-3 mr-1" />
                       已验证
                     </Badge>

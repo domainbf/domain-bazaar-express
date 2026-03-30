@@ -27,7 +27,7 @@ export const UserCenterLayout = ({ profile, user, children }: UserCenterLayoutPr
   
   const getVerificationBadge = () => {
     if (profile?.seller_verified) {
-      return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 text-xs">已认证卖家</Badge>;
+      return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30 dark:border-green-800 text-xs">已认证卖家</Badge>;
     }
     if (profile?.is_seller) {
       return <Badge variant="secondary" className="text-xs">卖家</Badge>;
@@ -49,7 +49,7 @@ export const UserCenterLayout = ({ profile, user, children }: UserCenterLayoutPr
   return (
     <div className="max-w-7xl mx-auto px-4 py-4 md:py-6">
       {/* 用户信息头部 */}
-      <Card className="mb-6 md:mb-8 border-border bg-gradient-to-r from-primary/5 via-card to-accent/5 shadow-sm">
+      <Card className="mb-6 md:mb-8 border-border bg-card shadow-sm">
         <CardContent className={isMobile ? "p-4" : "p-6"}>
           <div className="flex flex-col lg:flex-row lg:items-center gap-4 md:gap-6">
             {/* 用户头像和基本信息 */}
@@ -62,7 +62,7 @@ export const UserCenterLayout = ({ profile, user, children }: UserCenterLayoutPr
                     className={`${isMobile ? 'w-14 h-14' : 'w-16 h-16'} rounded-full object-cover border-2 border-background shadow-md`}
                   />
                 ) : (
-                  <div className={`${isMobile ? 'w-14 h-14' : 'w-16 h-16'} rounded-full bg-primary flex items-center justify-center text-primary-foreground`}>
+                  <div className={`${isMobile ? 'w-14 h-14' : 'w-16 h-16'} rounded-full bg-foreground flex items-center justify-center text-background`}>
                     <UserCircle className={isMobile ? 'w-7 h-7' : 'w-8 h-8'} />
                   </div>
                 )}

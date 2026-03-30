@@ -322,7 +322,7 @@ export const ReferralSystem: React.FC = () => {
               </span>
             </div>
             
-            <div className="p-3 bg-blue-50 rounded-lg">
+            <div className="p-3 bg-blue-500/10 rounded-lg">
               <div className="text-sm">
                 <strong>升级奖励：</strong>
                 每成功推荐从 ¥{referralData.currentTier.reward} 提升到 ¥{referralData.currentTier.nextTier.reward}

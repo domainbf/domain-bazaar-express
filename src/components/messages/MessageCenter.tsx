@@ -168,7 +168,7 @@ export const MessageCenter = ({ otherUserId, transactionId, domainId, offerId }:
                 </Avatar>
                 <div className={`max-w-[75%] ${isMine ? 'items-end' : 'items-start'} flex flex-col`}>
                   <div className={`px-3 py-2 rounded-2xl text-sm ${
-                    isMine ? 'bg-primary text-primary-foreground rounded-tr-sm' : 'bg-muted rounded-tl-sm'
+                    isMine ? 'bg-foreground text-background dark:bg-foreground dark:text-background rounded-tr-sm' : 'bg-muted rounded-tl-sm'
                   }`}>
                     {msg.content}
                   </div>
@@ -292,7 +292,7 @@ export const MessagesPage = () => {
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-sm truncate">{conv.userName}</span>
                   {conv.unread > 0 && (
-                    <span className="bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center shrink-0">
+                    <span className="bg-foreground text-background text-xs rounded-full w-5 h-5 flex items-center justify-center shrink-0">
                       {conv.unread}
                     </span>
                   )}

@@ -15,7 +15,7 @@ export const VerificationStatus = ({ domain }: VerificationStatusProps) => {
   
   if (domain.verification_status === 'verified') {
     return (
-      <Alert className={`mb-8 bg-green-50 border-green-200 ${isMobile ? 'text-sm' : ''}`}>
+      <Alert className={`mb-8 bg-green-500/10 border-green-500/30 ${isMobile ? 'text-sm' : ''}`}>
         <Check className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} text-green-600`} />
         <AlertTitle className="text-green-600">{t('verification.status.verified')}</AlertTitle>
         <AlertDescription className="text-green-700">
@@ -27,7 +27,7 @@ export const VerificationStatus = ({ domain }: VerificationStatusProps) => {
 
   if (domain.verification_status === 'pending') {
     return (
-      <Alert className={`mb-8 bg-yellow-50 border-yellow-200 ${isMobile ? 'text-sm' : ''}`}>
+      <Alert className={`mb-8 bg-yellow-500/10 border-yellow-500/30 ${isMobile ? 'text-sm' : ''}`}>
         <AlertTriangle className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} text-yellow-600`} />
         <AlertTitle className="text-yellow-600">{t('verification.status.pending')}</AlertTitle>
         <AlertDescription className="text-yellow-700">

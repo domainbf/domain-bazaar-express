@@ -231,7 +231,7 @@ export const PaymentIntegration: React.FC<PaymentIntegrationProps> = ({
                 <div className="text-sm text-muted-foreground">资金托管，确保交易安全</div>
               </div>
             </div>
-            <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+            <Badge variant="default" className="bg-green-500/15 text-green-600 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400">
               <CheckCircle className="h-3 w-3 mr-1" />推荐
             </Badge>
           </div>

@@ -13,21 +13,21 @@ const HELP_SECTIONS = [
     title: '常见问题',
     desc: '快速找到注册、交易、域名验证等高频问题的解答。',
     href: '/faq',
-    color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400',
+    color: 'text-blue-600 bg-blue-500/15 dark:bg-blue-900/30 dark:text-blue-400',
   },
   {
     icon: Mail,
     title: '联系我们',
     desc: '发送邮件或填写联系表单，我们在工作日 24 小时内回复。',
     href: '/contact',
-    color: 'text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400',
+    color: 'text-green-600 bg-green-500/15 dark:bg-green-900/30 dark:text-green-400',
   },
   {
     icon: Users,
     title: '用户社区',
     desc: '加入域名交易者社区，分享经验、获取建议、结交同好。',
     href: '/community',
-    color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400',
+    color: 'text-purple-600 bg-purple-500/15 dark:bg-purple-900/30 dark:text-purple-400',
   },
   {
     icon: Shield,
@@ -41,7 +41,7 @@ const HELP_SECTIONS = [
     title: '纠纷申诉',
     desc: '遇到交易纠纷？提交申诉，平台介入保障你的权益。',
     href: '/dispute',
-    color: 'text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400',
+    color: 'text-red-600 bg-red-500/15 dark:bg-red-900/30 dark:text-red-400',
   },
   {
     icon: HelpCircle,

@@ -516,9 +516,9 @@ export const HomeContentManagement = () => {
         </TabsList>
         
         <TabsContent value="sections" className="space-y-4">
-          <Card className="bg-blue-50 border-blue-200">
+          <Card className="bg-blue-500/10 border-blue-500/30">
             <CardContent className="py-4">
-              <p className="text-sm text-blue-700">
+              <p className="text-sm text-blue-600 dark:text-blue-400">
                 💡 提示：拖拽左侧抓取图标可以调整区块顺序，点击编辑按钮使用富文本编辑器修改内容
               </p>
             </CardContent>

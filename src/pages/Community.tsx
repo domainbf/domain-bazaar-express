@@ -243,11 +243,11 @@ const Community: React.FC = () => {
         </div>
 
         {/* 提示信息 */}
-        <Card className="mt-8 bg-blue-50 border-blue-200">
+        <Card className="mt-8 bg-blue-500/10 border-blue-500/30">
           <CardContent className="pt-6">
             <div className="flex items-start gap-3">
               <Lightbulb className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-blue-800">
+              <div className="text-sm text-blue-600 dark:text-blue-400">
                 <p className="font-medium mb-1">社区功能开发中</p>
                 <p>我们正在打造一个活跃的域名交易社区，敬请期待！如有建议或想法，欢迎通过客服联系我们。</p>
               </div>

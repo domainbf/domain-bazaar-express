@@ -57,12 +57,12 @@ const activityLabels: Record<string, string> = {
 };
 
 const activityColors: Record<string, string> = {
-  'login': 'bg-blue-100 text-blue-700',
+  'login': 'bg-blue-500/15 text-blue-700',
   'view_domain': 'bg-muted text-foreground',
-  'create_offer': 'bg-purple-100 text-purple-700',
+  'create_offer': 'bg-purple-500/15 text-purple-700',
   'favorite_domain': 'bg-pink-100 text-pink-700',
-  'purchase': 'bg-green-100 text-green-700',
-  'verify_domain': 'bg-yellow-100 text-yellow-700'
+  'purchase': 'bg-green-500/15 text-green-700',
+  'verify_domain': 'bg-yellow-500/15 text-yellow-700'
 };
 
 export const AdminActivityLog = () => {

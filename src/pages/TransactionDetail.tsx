@@ -407,8 +407,8 @@ export default function TransactionDetail() {
                 </div>
 
                 {isSeller && (
-                  <div className="p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg text-sm space-y-1">
-                    <p className="font-medium text-green-800 dark:text-green-400 flex items-center gap-1">
+                  <div className="p-3 bg-green-500/10 dark:bg-green-950/20 border border-green-500/30 dark:border-green-800 rounded-lg text-sm space-y-1">
+                    <p className="font-medium text-green-600 dark:text-green-400 dark:text-green-400 flex items-center gap-1">
                       <Banknote className="w-4 h-4" /> 收益明细
                     </p>
                     <div className="flex justify-between text-muted-foreground">
@@ -477,14 +477,14 @@ export default function TransactionDetail() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {canBuyerPay && (
-                    <div className="p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-300 dark:border-yellow-700 rounded-lg">
+                    <div className="p-4 bg-yellow-500/10 dark:bg-yellow-950/20 border border-yellow-300 dark:border-yellow-700 rounded-lg">
                       <p className="text-sm font-semibold text-yellow-900 dark:text-yellow-300 mb-1 flex items-center gap-2">
                         <CreditCard className="w-4 h-4" /> 买家操作：完成付款
                       </p>
                       <p className="text-xs text-muted-foreground mb-3">
                         请通过平台指定方式将 <strong>{txCurrency}{transaction.amount.toLocaleString()}</strong> 汇入托管账户，资金确认后交易将自动进入托管阶段。
                       </p>
-                      <div className="text-xs bg-card dark:bg-black/20 rounded-lg p-3 space-y-1.5 border border-yellow-200 dark:border-yellow-800 mb-3">
+                      <div className="text-xs bg-card dark:bg-black/20 rounded-lg p-3 space-y-1.5 border border-yellow-500/30 dark:border-yellow-800 mb-3">
                         <p className="font-semibold text-foreground">付款步骤：</p>
                         <p className="text-muted-foreground">① 通过平台内消息联系客服获取收款账户信息</p>
                         <p className="text-muted-foreground">② 按照指定金额付款，备注填写交易ID</p>
@@ -498,8 +498,8 @@ export default function TransactionDetail() {
                   )}
 
                   {canSellerConfirm && (
-                    <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                      <p className="text-sm font-medium text-blue-800 dark:text-blue-400 mb-2">卖家操作：确认域名已转移</p>
+                    <div className="p-4 bg-blue-500/10 dark:bg-blue-950/20 border border-blue-500/30 dark:border-blue-800 rounded-lg">
+                      <p className="text-sm font-medium text-blue-600 dark:text-blue-400 dark:text-blue-400 mb-2">卖家操作：确认域名已转移</p>
                       <p className="text-xs text-muted-foreground mb-3">请确认您已将域名转移至买家指定账户，确认后买家将验证并释放资金。</p>
                       <Button onClick={handleSellerConfirmTransfer} disabled={actionLoading} data-testid="button-confirm-transfer">
                         {actionLoading ? <LoadingSpinner size="sm" /> : <CheckCircle className="w-4 h-4 mr-2" />}
@@ -509,8 +509,8 @@ export default function TransactionDetail() {
                   )}
 
                   {canBuyerConfirm && (
-                    <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
-                      <p className="text-sm font-medium text-green-800 dark:text-green-400 mb-2">买家操作：确认收到域名</p>
+                    <div className="p-4 bg-green-500/10 dark:bg-green-950/20 border border-green-500/30 dark:border-green-800 rounded-lg">
+                      <p className="text-sm font-medium text-green-600 dark:text-green-400 dark:text-green-400 mb-2">买家操作：确认收到域名</p>
                       <p className="text-xs text-muted-foreground mb-3">请确认域名已成功转移至您的账户。确认后资金将自动释放给卖家，此操作不可撤销。</p>
                       <Button onClick={handleBuyerConfirmReceived} disabled={actionLoading} data-testid="button-confirm-received">
                         {actionLoading ? <LoadingSpinner size="sm" /> : <CheckCheck className="w-4 h-4 mr-2" />}
@@ -551,7 +551,7 @@ export default function TransactionDetail() {
                               data-testid="input-dispute-description"
                             />
                           </div>
-                          <div className="p-3 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 rounded-lg text-xs text-muted-foreground">
+                          <div className="p-3 bg-yellow-500/10 dark:bg-yellow-950/20 border border-yellow-500/30 rounded-lg text-xs text-muted-foreground">
                             <AlertTriangle className="w-3 h-3 inline mr-1 text-yellow-600" />
                             提交纠纷后，交易将暂停，平台将在24小时内介入调查。请确保您提供的信息真实准确。
                           </div>
@@ -567,9 +567,9 @@ export default function TransactionDetail() {
                   )}
 
                   {isCompleted && (
-                    <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg text-center">
+                    <div className="p-4 bg-green-500/10 dark:bg-green-950/20 border border-green-500/30 dark:border-green-800 rounded-lg text-center">
                       <CheckCheck className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                      <p className="font-medium text-green-800 dark:text-green-400">交易已完成</p>
+                      <p className="font-medium text-green-600 dark:text-green-400 dark:text-green-400">交易已完成</p>
                       <p className="text-xs text-muted-foreground mt-1">完成于 {transaction.completed_at ? new Date(transaction.completed_at).toLocaleString('zh-CN') : '—'}</p>
                       <Button
                         variant="outline"

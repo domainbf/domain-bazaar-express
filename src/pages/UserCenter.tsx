@@ -342,10 +342,10 @@ function MobileProfileSection({
         transition={{ duration: 0.35 }}
         className="bg-card rounded-2xl border border-border overflow-hidden"
       >
-        <div className="bg-gradient-to-br from-primary via-primary/90 to-primary/70 px-5 py-5">
+        <div className="bg-gradient-to-br from-foreground to-foreground/90 dark:from-card dark:via-muted dark:to-card px-5 py-5">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <Avatar className="h-[60px] w-[60px] border-2 border-background dark:border-foreground/20-foreground/20 shadow-lg">
+              <Avatar className="h-[60px] w-[60px] border-2 border-background/30 dark:border-foreground/20 shadow-lg">
                 <AvatarImage src={profile?.avatar_url || ''} />
                 <AvatarFallback className="bg-background/20 dark:bg-foreground/20 text-background dark:text-foreground text-xl font-bold">
                   {avatarInitial}
@@ -359,16 +359,16 @@ function MobileProfileSection({
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-lg font-bold text-primary-foreground truncate">{displayName}</span>
+                <span className="text-lg font-bold text-background dark:text-foreground truncate">{displayName}</span>
                 {isAdmin && (
                   <Badge className="bg-background/20 dark:bg-foreground/20 text-background dark:text-foreground border-none text-[10px] px-1.5 h-5 shrink-0">
                     <Sparkles className="w-2.5 h-2.5 mr-0.5" />管理员
                   </Badge>
                 )}
               </div>
-              <p className="text-xs text-primary-foreground/60 mt-0.5 truncate">{user?.email}</p>
+              <p className="text-xs text-background/60 dark:text-foreground/60 mt-0.5 truncate">{user?.email}</p>
               {profile?.is_seller && (
-                <Badge className="mt-1.5 bg-primary-foreground/15 text-primary-foreground border-none text-[10px] h-5">
+                <Badge className="mt-1.5 bg-background/15 dark:bg-foreground/15 text-background dark:text-foreground border-none text-[10px] h-5">
                   认证卖家
                 </Badge>
               )}

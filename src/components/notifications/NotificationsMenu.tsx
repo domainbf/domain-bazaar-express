@@ -99,7 +99,7 @@ export const NotificationsMenu = () => {
               notifications.map((notification) => (
                 <DropdownMenuItem 
                   key={notification.id} 
-                  className={`px-4 py-3 cursor-pointer ${notification.is_read ? '' : 'bg-blue-50'}`}
+                  className={`px-4 py-3 cursor-pointer ${notification.is_read ? '' : 'bg-blue-500/10'}`}
                   onClick={() => handleNotificationClick(notification)}
                 >
                   <Link 

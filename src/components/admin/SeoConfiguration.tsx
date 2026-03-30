@@ -166,10 +166,10 @@ export const SeoConfiguration = () => {
         </div>
       </div>
 
-      <Card className="bg-blue-50 border-blue-200">
+      <Card className="bg-blue-500/10 border-blue-500/30">
         <CardContent className="py-4 flex items-start gap-3">
           <Info className="h-5 w-5 text-blue-600 mt-0.5" />
-          <div className="text-sm text-blue-800">
+          <div className="text-sm text-blue-600 dark:text-blue-400">
             <p className="font-medium mb-1">SEO优化提示</p>
             <ul className="list-disc list-inside space-y-1 text-blue-700">
               <li>标题长度建议在50-60个字符之间</li>

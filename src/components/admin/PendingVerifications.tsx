@@ -149,11 +149,11 @@ export const PendingVerifications = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'verified':
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />已验证</Badge>;
+        return <Badge className="bg-green-500/15 text-green-600 dark:text-green-400"><CheckCircle className="h-3 w-3 mr-1" />已验证</Badge>;
       case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="h-3 w-3 mr-1" />待审核</Badge>;
+        return <Badge className="bg-yellow-500/15 text-yellow-600 dark:text-yellow-400"><Clock className="h-3 w-3 mr-1" />待审核</Badge>;
       case 'rejected':
-        return <Badge className="bg-red-100 text-red-800"><XCircle className="h-3 w-3 mr-1" />已拒绝</Badge>;
+        return <Badge className="bg-red-500/15 text-red-600 dark:text-red-400"><XCircle className="h-3 w-3 mr-1" />已拒绝</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -201,19 +201,19 @@ export const PendingVerifications = () => {
             <p className="text-xs text-muted-foreground">总请求数</p>
           </CardContent>
         </Card>
-        <Card className="border-yellow-200">
+        <Card className="border-yellow-500/30">
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
             <p className="text-xs text-muted-foreground">待审核</p>
           </CardContent>
         </Card>
-        <Card className="border-green-200">
+        <Card className="border-green-500/30">
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-green-600">{stats.verified}</p>
             <p className="text-xs text-muted-foreground">已通过</p>
           </CardContent>
         </Card>
-        <Card className="border-red-200">
+        <Card className="border-red-500/30">
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-red-600">{stats.rejected}</p>
             <p className="text-xs text-muted-foreground">已拒绝</p>
@@ -270,7 +270,7 @@ export const PendingVerifications = () => {
       ) : (
         <div className="space-y-4">
           {filteredVerifications.map((verification) => (
-            <Card key={verification.id} className={verification.status === 'pending' ? 'border-yellow-200' : ''}>
+            <Card key={verification.id} className={verification.status === 'pending' ? 'border-yellow-500/30' : ''}>
               <CardHeader>
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                   <div className="flex-1">

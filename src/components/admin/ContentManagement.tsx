@@ -443,7 +443,7 @@ export const ContentManagement = () => {
 
         <TabsContent value="pages">
           <div className="space-y-6">
-            <Card className="bg-blue-50 border-blue-200">
+            <Card className="bg-blue-500/10 border-blue-500/30">
               <CardContent className="py-4 flex items-center justify-between">
                 <p className="text-sm text-blue-700">
                   💡 拖拽页面卡片可以调整显示顺序
@@ -499,7 +499,7 @@ export const ContentManagement = () => {
 
         <TabsContent value="content">
           <div className="space-y-6">
-            <Card className="bg-blue-50 border-blue-200">
+            <Card className="bg-blue-500/10 border-blue-500/30">
               <CardContent className="py-4 flex items-center justify-between">
                 <p className="text-sm text-blue-700">
                   💡 站点内容用于存储可复用的文本块，如页脚信息、公告等

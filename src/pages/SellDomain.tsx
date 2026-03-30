@@ -16,21 +16,21 @@ const STEPS = [
     icon: Upload,
     title: '上架域名',
     desc: '填写域名信息、定价策略，几分钟完成上架。支持固定价格或接受报价两种模式。',
-    color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+    color: 'bg-blue-500/15 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
   },
   {
     step: '02',
     icon: ShieldCheck,
     title: '验证所有权',
     desc: '通过 DNS TXT 记录一键验证，获得"已认证"标识，买家更信任，成交率更高。',
-    color: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
+    color: 'bg-green-500/15 text-green-600 dark:bg-green-900/30 dark:text-green-400',
   },
   {
     step: '03',
     icon: MessageSquare,
     title: '与买家沟通',
     desc: '买家发起报价后，通过内置消息系统直接沟通，平台提供交易记录留存保障。',
-    color: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
+    color: 'bg-purple-500/15 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
   },
   {
     step: '04',
@@ -193,7 +193,7 @@ export const SellDomainPage = () => {
                 }`}
               >
                 {tier.highlight && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs px-3">
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs px-3">
                     推荐
                   </Badge>
                 )}
@@ -254,7 +254,7 @@ export const SellDomainPage = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="py-16 md:py-20 bg-primary text-primary-foreground">
+      <section className="py-16 md:py-20 bg-gradient-to-br from-foreground to-foreground/90 text-background dark:from-card dark:to-muted dark:text-foreground">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <Tag className="h-12 w-12 mx-auto mb-4 opacity-80" />
           <h2 className="text-2xl md:text-3xl font-bold mb-3">准备好出售您的域名了吗？</h2>

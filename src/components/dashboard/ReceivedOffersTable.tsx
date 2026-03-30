@@ -349,15 +349,15 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
   const getStatusConfig = (status: string) => {
     switch (status) {
       case 'pending':
-        return { label: '待处理', className: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800', icon: <Clock className="h-3 w-3" /> };
+        return { label: '待处理', className: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/30 dark:border-yellow-800', icon: <Clock className="h-3 w-3" /> };
       case 'countered':
-        return { label: '已还价', className: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800', icon: <ArrowLeftRight className="h-3 w-3" /> };
+        return { label: '已还价', className: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30 dark:border-blue-800', icon: <ArrowLeftRight className="h-3 w-3" /> };
       case 'accepted':
-        return { label: '已接受', className: 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800', icon: <CheckCircle2 className="h-3 w-3" /> };
+        return { label: '已接受', className: 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30 dark:border-green-800', icon: <CheckCircle2 className="h-3 w-3" /> };
       case 'rejected':
-        return { label: '已拒绝', className: 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800', icon: <XCircle className="h-3 w-3" /> };
+        return { label: '已拒绝', className: 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/30 dark:border-red-800', icon: <XCircle className="h-3 w-3" /> };
       case 'completed':
-        return { label: '已完成', className: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800', icon: <Package className="h-3 w-3" /> };
+        return { label: '已完成', className: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30 dark:border-blue-800', icon: <Package className="h-3 w-3" /> };
       case 'cancelled':
         return { label: '已取消', className: 'bg-muted text-muted-foreground border-border', icon: <XCircle className="h-3 w-3" /> };
       default:
@@ -407,7 +407,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
                   </div>
 
                   {offer.status === 'countered' && parsed.counterAmount && (
-                    <div className="flex items-center justify-between bg-blue-50 dark:bg-blue-950/30 rounded-lg px-3 py-2">
+                    <div className="flex items-center justify-between bg-blue-500/10 dark:bg-blue-950/30 rounded-lg px-3 py-2">
                       <span className="text-sm text-blue-700 dark:text-blue-400 font-medium flex items-center gap-1">
                         <ArrowLeftRight className="h-3.5 w-3.5" />您的还价
                       </span>
@@ -425,7 +425,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
                   {parsed.counterNote && (
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">您的还价备注</p>
-                      <p className="text-sm bg-blue-50 dark:bg-blue-950/30 p-2 rounded text-blue-700 dark:text-blue-400">{parsed.counterNote}</p>
+                      <p className="text-sm bg-blue-500/10 dark:bg-blue-950/30 p-2 rounded text-blue-700 dark:text-blue-400">{parsed.counterNote}</p>
                     </div>
                   )}
 

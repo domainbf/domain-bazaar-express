@@ -168,7 +168,7 @@ export const PaymentGatewaySettings = () => {
                   <Icon className={`h-5 w-5 ${color}`} />
                   {gateway.display_name}
                   {gateway.is_enabled ? (
-                    <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                    <Badge variant="default" className="bg-green-500/15 text-green-600 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400">
                       <CheckCircle className="h-3 w-3 mr-1" />
                       已启用
                     </Badge>

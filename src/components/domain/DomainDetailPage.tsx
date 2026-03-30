@@ -200,7 +200,7 @@ export const DomainDetailPage = () => {
                 transition={{ delay: 0.2, duration: 0.4 }}
               >
                 {domain.is_verified && (
-                  <Badge className="bg-green-500/10 text-green-600 border-green-200 animate-fade-in">
+                  <Badge className="bg-green-500/10 text-green-600 border-green-500/30 animate-fade-in">
                     <Shield className="h-3 w-3 mr-1" />
                     已验证
                   </Badge>
@@ -268,7 +268,7 @@ export const DomainDetailPage = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    className={`h-12 font-semibold ${isFavorited ? "text-red-500 border-red-200 bg-red-50" : ""}`}
+                    className={`h-12 font-semibold ${isFavorited ? "text-red-500 border-red-500/30 bg-red-500/10" : ""}`}
                     onClick={toggleFavorite}
                   >
                     <Heart className={`h-4 w-4 mr-2 ${isFavorited ? "fill-current" : ""}`} />
@@ -288,10 +288,10 @@ export const DomainDetailPage = () => {
                   </Button>
                 )}
                 {domain.is_verified && (
-                  <div className="text-center p-4 bg-green-50 rounded-xl border border-green-200">
+                  <div className="text-center p-4 bg-green-500/10 rounded-xl border border-green-500/30">
                     <div className="flex items-center justify-center mb-1">
                       <ShieldCheck className="h-5 w-5 text-green-600 mr-2" />
-                      <span className="font-semibold text-green-800">域名已验证</span>
+                      <span className="font-semibold text-green-600 dark:text-green-400">域名已验证</span>
                     </div>
                     <p className="text-sm text-green-600">您的域名所有权已通过验证</p>
                   </div>

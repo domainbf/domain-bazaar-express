@@ -83,10 +83,10 @@ export const DomainValuationTool: React.FC<DomainValuationToolProps> = ({
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600 bg-green-50';
-    if (score >= 60) return 'text-blue-600 bg-blue-50';
-    if (score >= 40) return 'text-yellow-600 bg-yellow-50';
-    return 'text-red-600 bg-red-50';
+    if (score >= 80) return 'text-green-600 bg-green-500/10';
+    if (score >= 60) return 'text-blue-600 bg-blue-500/10';
+    if (score >= 40) return 'text-yellow-600 bg-yellow-500/10';
+    return 'text-red-600 bg-red-500/10';
   };
 
   const getScoreLabel = (score: number) => {
@@ -169,19 +169,19 @@ export const DomainValuationTool: React.FC<DomainValuationToolProps> = ({
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div className="text-center p-4 bg-green-50 rounded-lg">
+                <div className="text-center p-4 bg-green-500/10 rounded-lg">
                   <div className="text-sm text-muted-foreground mb-1">最低估值</div>
                   <div className="text-2xl font-bold text-green-600">
                     ${evaluation.valueRange.min.toLocaleString()}
                   </div>
                 </div>
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <div className="text-center p-4 bg-blue-500/10 rounded-lg">
                   <div className="text-sm text-muted-foreground mb-1">建议价格</div>
                   <div className="text-2xl font-bold text-blue-600">
                     ${evaluation.estimatedValue.toLocaleString()}
                   </div>
                 </div>
-                <div className="text-center p-4 bg-purple-50 rounded-lg">
+                <div className="text-center p-4 bg-purple-500/10 rounded-lg">
                   <div className="text-sm text-muted-foreground mb-1">最高估值</div>
                   <div className="text-2xl font-bold text-purple-600">
                     ${evaluation.valueRange.max.toLocaleString()}

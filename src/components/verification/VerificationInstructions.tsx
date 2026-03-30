@@ -43,8 +43,8 @@ export const VerificationInstructions = ({
     
     if (daysLeft <= 2) {
       return (
-        <Alert className="mb-4 border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/20">
-          <AlertDescription className="text-yellow-800 dark:text-yellow-300">
+        <Alert className="mb-4 border-yellow-500/50 bg-yellow-500/10 dark:bg-yellow-950/20">
+          <AlertDescription className="text-yellow-600 dark:text-yellow-400 dark:text-yellow-300">
             此验证将在 {daysLeft} 天后过期。请尽快完成验证。
           </AlertDescription>
         </Alert>
@@ -127,12 +127,12 @@ export const VerificationInstructions = ({
                   </div>
                 </div>
 
-                <Alert className="border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/20">
+                <Alert className="border-yellow-500/50 bg-yellow-500/10 dark:bg-yellow-950/20">
                   <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-                  <AlertDescription className="text-sm text-yellow-800 dark:text-yellow-300">
+                  <AlertDescription className="text-sm text-yellow-600 dark:text-yellow-400 dark:text-yellow-300">
                     <strong>重要提示：</strong>
                     <ul className="mt-2 space-y-1 list-disc list-inside">
-                      <li><strong>主机记录</strong>只需填写 <code className="bg-yellow-100 dark:bg-yellow-900/50 px-1 rounded">_domainverify</code></li>
+                      <li><strong>主机记录</strong>只需填写 <code className="bg-yellow-500/15 dark:bg-yellow-900/50 px-1 rounded">_domainverify</code></li>
                       <li>不要填写完整域名（如 _domainverify.{domainName}）</li>
                       <li>大多数DNS服务商会自动添加域名后缀</li>
                       <li>有些服务商显示"主机记录"，有些显示"名称"或"Host"</li>
@@ -241,7 +241,7 @@ export const VerificationInstructions = ({
                   <li>验证完成后，返回此页面点击"检查验证"按钮</li>
                 </ol>
               </div>
-              <div className="flex items-center mt-3 p-2 bg-yellow-50 dark:bg-yellow-950/20 rounded border border-yellow-200 dark:border-yellow-800">
+              <div className="flex items-center mt-3 p-2 bg-yellow-500/10 dark:bg-yellow-950/20 rounded border border-yellow-500/30 dark:border-yellow-800">
                 <Mail className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mr-2 shrink-0" />
                 <p className="text-xs text-yellow-700 dark:text-yellow-300">
                   如果您没有收到验证邮件，可以点击下方"重新发送验证邮件"按钮。

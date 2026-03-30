@@ -12,7 +12,7 @@ const SERVICES = [
     desc: '买家付款后资金由平台安全保管，域名完成转移后自动释放，买卖双方零风险。',
     href: '/escrow',
     badge: '核心服务',
-    color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400',
+    color: 'text-blue-600 bg-blue-500/15 dark:bg-blue-900/30 dark:text-blue-400',
   },
   {
     icon: Upload,
@@ -20,7 +20,7 @@ const SERVICES = [
     desc: '注册成为认证卖家，上架域名触达平台全量买家，完整卖家数据看板助力决策。',
     href: '/seller',
     badge: '免费入驻',
-    color: 'text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400',
+    color: 'text-green-600 bg-green-500/15 dark:bg-green-900/30 dark:text-green-400',
   },
   {
     icon: BarChart3,
@@ -36,7 +36,7 @@ const SERVICES = [
     desc: '通过公开竞拍方式出售或购买域名，价高者得，平台监管确保拍卖公平公正。',
     href: '/auctions',
     badge: '竞价模式',
-    color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400',
+    color: 'text-purple-600 bg-purple-500/15 dark:bg-purple-900/30 dark:text-purple-400',
   },
   {
     icon: CheckCircle2,
@@ -52,7 +52,7 @@ const SERVICES = [
     desc: '遇到交易争议？平台介入调查，资金冻结保护，7 个工作日内出具公正裁决。',
     href: '/dispute',
     badge: '权益保障',
-    color: 'text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400',
+    color: 'text-red-600 bg-red-500/15 dark:bg-red-900/30 dark:text-red-400',
   },
 ];
 

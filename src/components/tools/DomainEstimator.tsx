@@ -78,10 +78,10 @@ export const DomainEstimator = () => {
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600 bg-green-50';
-    if (score >= 60) return 'text-blue-600 bg-blue-50';
-    if (score >= 40) return 'text-yellow-600 bg-yellow-50';
-    return 'text-red-600 bg-red-50';
+    if (score >= 80) return 'text-green-600 bg-green-500/10';
+    if (score >= 60) return 'text-blue-600 bg-blue-500/10';
+    if (score >= 40) return 'text-yellow-600 bg-yellow-500/10';
+    return 'text-red-600 bg-red-500/10';
   };
 
   const getScoreLabel = (score: number) => {

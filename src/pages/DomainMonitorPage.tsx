@@ -11,7 +11,7 @@ const FEATURES = [
     icon: Eye,
     title: '实时价格监控',
     desc: '追踪目标域名的价格变化，当价格下调或接近预算时立即通知你。',
-    color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+    color: 'bg-blue-500/15 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
   },
   {
     icon: Bell,
@@ -23,13 +23,13 @@ const FEATURES = [
     icon: TrendingDown,
     title: '市场动态推送',
     desc: '同类域名新上架、同类价格变化，帮你掌握市场行情。',
-    color: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
+    color: 'bg-green-500/15 text-green-600 dark:bg-green-900/30 dark:text-green-400',
   },
   {
     icon: Shield,
     title: '品牌保护监控',
     desc: '监控与你品牌相关的域名注册动态，防止他人抢注。',
-    color: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
+    color: 'bg-purple-500/15 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
   },
 ];
 
@@ -101,7 +101,7 @@ export default function DomainMonitorPage() {
             <div className="space-y-4">
               {HOW_IT_WORKS.map((s, i) => (
                 <div key={s.step} className="flex gap-4 items-start bg-card rounded-xl border border-border p-5">
-                  <div className="h-9 w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shrink-0">
+                  <div className="h-9 w-9 rounded-full bg-foreground text-background flex items-center justify-center text-sm font-bold shrink-0">
                     {s.step}
                   </div>
                   <div>

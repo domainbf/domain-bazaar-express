@@ -60,13 +60,13 @@ export const LanguageSwitcher = ({ className = "", iconOnly = false }: LanguageS
         <DropdownMenuContent align="end" className="bg-popover">
           <DropdownMenuItem 
             onClick={() => handleLanguageChange('zh')}
-            className={i18n.language === 'zh' ? 'bg-gray-100' : ''}
+            className={i18n.language === 'zh' ? 'bg-muted' : ''}
           >
             中文
           </DropdownMenuItem>
           <DropdownMenuItem 
             onClick={() => handleLanguageChange('en')}
-            className={i18n.language === 'en' ? 'bg-gray-100' : ''}
+            className={i18n.language === 'en' ? 'bg-muted' : ''}
           >
             English
           </DropdownMenuItem>
@@ -93,13 +93,13 @@ export const LanguageSwitcher = ({ className = "", iconOnly = false }: LanguageS
       <DropdownMenuContent align="end" className="bg-popover">
         <DropdownMenuItem 
           onClick={() => handleLanguageChange('zh')}
-          className={i18n.language === 'zh' ? 'bg-gray-100' : ''}
+          className={i18n.language === 'zh' ? 'bg-muted' : ''}
         >
           中文
         </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={() => handleLanguageChange('en')}
-          className={i18n.language === 'en' ? 'bg-gray-100' : ''}
+          className={i18n.language === 'en' ? 'bg-muted' : ''}
         >
           English
         </DropdownMenuItem>

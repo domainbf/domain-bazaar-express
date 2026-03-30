@@ -128,7 +128,7 @@ export const UserProfilePage = () => {
       <Navbar />
 
       {/* Profile Banner */}
-      <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border-b border-border">
+      <div className="bg-muted/30 border-b border-border">
         <div className="max-w-5xl mx-auto px-4 py-10">
           <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
             <ArrowLeft className="h-4 w-4" />
@@ -154,7 +154,7 @@ export const UserProfilePage = () => {
               <div className="flex flex-wrap items-center gap-2 mb-1">
                 <h1 className="text-2xl font-bold truncate">{profile.full_name || profile.username || '域名卖家'}</h1>
                 {profile.seller_verified && (
-                  <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-300 dark:border-green-700 text-xs">
+                  <Badge className="bg-green-500/15 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-300 dark:border-green-700 text-xs">
                     <ShieldCheck className="h-3 w-3 mr-1" />已认证卖家
                   </Badge>
                 )}
@@ -271,7 +271,7 @@ export const UserProfilePage = () => {
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-1.5">
                         {domain.highlight && (
-                          <Badge className="text-[10px] px-1.5 py-0 bg-orange-100 text-orange-600 border-orange-200">精选</Badge>
+                          <Badge className="text-[10px] px-1.5 py-0 bg-orange-100 text-orange-600 border-orange-500/30">精选</Badge>
                         )}
                         {domain.is_verified && (
                           <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green-400 text-green-600">已验证</Badge>

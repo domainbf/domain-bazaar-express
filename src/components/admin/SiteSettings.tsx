@@ -825,9 +825,9 @@ export const SiteSettings = () => {
             </CardHeader>
             <CardContent className="space-y-5">
               {/* All-emails-use-this-SMTP notice */}
-              <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 px-4 py-3 flex gap-3">
+              <div className="rounded-lg bg-blue-500/10 dark:bg-blue-950/30 border border-blue-500/30 dark:border-blue-800 px-4 py-3 flex gap-3">
                 <Info className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
-                <div className="text-xs text-blue-800 dark:text-blue-300 space-y-0.5">
+                <div className="text-xs text-blue-600 dark:text-blue-400 dark:text-blue-300 space-y-0.5">
                   <p className="font-semibold">此 SMTP 是系统唯一邮件出口</p>
                   <p>交易通知、出价提醒、密码重置等<strong>所有系统邮件</strong>均通过此处配置的 SMTP 发送。更换服务商只需修改下方参数并保存，立即生效，无需任何额外操作。</p>
                 </div>
@@ -972,9 +972,9 @@ export const SiteSettings = () => {
             <CardContent className="space-y-4">
               {emailTestResult && (
                 emailTestResult.ok ? (
-                  <Alert className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30">
+                  <Alert className="border-green-500/30 bg-green-500/10 dark:border-green-900 dark:bg-green-950/30">
                     <CheckCircle className="h-4 w-4 text-green-600" />
-                    <AlertDescription className="text-green-800 dark:text-green-300 font-medium">{emailTestResult.msg}</AlertDescription>
+                    <AlertDescription className="text-green-600 dark:text-green-400 dark:text-green-300 font-medium">{emailTestResult.msg}</AlertDescription>
                   </Alert>
                 ) : (
                   <Alert variant="destructive">
@@ -1238,7 +1238,7 @@ export const SiteSettings = () => {
                 <Globe className="h-5 w-5 text-primary" />
                 WHOIS / RDAP API（www.x.rw）
                 {whoisApiKey && (
-                  <Badge className="bg-green-500/10 text-green-600 border-green-200 ml-auto">已配置</Badge>
+                  <Badge className="bg-green-500/10 text-green-600 border-green-500/30 ml-auto">已配置</Badge>
                 )}
               </CardTitle>
               <CardDescription>
@@ -1307,7 +1307,7 @@ export const SiteSettings = () => {
                 </div>
 
                 {whoisTestResult && (
-                  <Alert className={whoisTestResult.ok ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
+                  <Alert className={whoisTestResult.ok ? 'border-green-500/30 bg-green-500/10' : 'border-red-500/30 bg-red-500/10'}>
                     {whoisTestResult.ok
                       ? <CheckCircle className="h-4 w-4 text-green-600" />
                       : <XCircle className="h-4 w-4 text-red-600" />}
@@ -1337,7 +1337,7 @@ export const SiteSettings = () => {
                 <Zap className="h-5 w-5 text-primary" />
                 ModelScope 魔搭 AI 图像生成
                 {msApiKey && (
-                  <Badge className="bg-green-500/10 text-green-600 border-green-200 ml-auto">已配置</Badge>
+                  <Badge className="bg-green-500/10 text-green-600 border-green-500/30 ml-auto">已配置</Badge>
                 )}
               </CardTitle>
               <CardDescription>
@@ -1417,7 +1417,7 @@ export const SiteSettings = () => {
               </div>
 
               {msTestResult && (
-                <Alert className={msTestResult.ok ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30' : 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30'}>
+                <Alert className={msTestResult.ok ? 'border-green-500/30 bg-green-500/10 dark:border-green-800 dark:bg-green-950/30' : 'border-red-500/30 bg-red-500/10 dark:border-red-800 dark:bg-red-950/30'}>
                   {msTestResult.ok
                     ? <CheckCircle className="h-4 w-4 text-green-600" />
                     : <XCircle className="h-4 w-4 text-red-600" />}

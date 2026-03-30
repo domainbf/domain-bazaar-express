@@ -189,7 +189,7 @@ export const AdminReviewManagement = () => {
                       </TableCell>
                       <TableCell>
                         {r.is_visible
-                          ? <Badge className="text-xs bg-green-100 text-green-700">已显示</Badge>
+                          ? <Badge className="text-xs bg-green-500/15 text-green-700">已显示</Badge>
                           : <Badge variant="secondary" className="text-xs">已隐藏</Badge>
                         }
                       </TableCell>

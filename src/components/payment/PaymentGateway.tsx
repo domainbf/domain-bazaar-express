@@ -278,7 +278,7 @@ export const PaymentGateway = ({
 
   const renderAmountInput = () => (
     <div className="space-y-6">
-      <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+      <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
         {selectedMethodDetails?.icon}
         <div>
           <div className="font-medium">{selectedMethodDetails?.name}</div>
@@ -471,7 +471,7 @@ export const PaymentGateway = ({
 
   const renderSuccess = () => (
     <div className="py-8 text-center space-y-6">
-      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+      <div className="w-16 h-16 bg-green-500/15 rounded-full flex items-center justify-center mx-auto">
         <Check className="w-8 h-8 text-green-600" />
       </div>
 

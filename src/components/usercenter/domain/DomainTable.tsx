@@ -52,13 +52,13 @@ export const DomainTable = ({ domains, onDomainUpdate, currentUserId }: DomainTa
   const renderDomainStatus = (status?: string) => {
     switch (status) {
       case 'available':
-        return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">可售</Badge>;
+        return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30 dark:border-green-800">可售</Badge>;
       case 'pending':
-        return <Badge className="bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800">暂不出售</Badge>;
+        return <Badge className="bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/30 dark:border-yellow-800">暂不出售</Badge>;
       case 'sold':
-        return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800">已售</Badge>;
+        return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30 dark:border-blue-800">已售</Badge>;
       case 'reserved':
-        return <Badge className="bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-800">保留</Badge>;
+        return <Badge className="bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30 dark:border-purple-800">保留</Badge>;
       default:
         return <Badge variant="secondary">未知</Badge>;
     }
