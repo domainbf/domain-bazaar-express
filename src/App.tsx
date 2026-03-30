@@ -44,6 +44,38 @@ const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
 const DisclaimerPage = lazy(() => import('./pages/DisclaimerPage'));
 
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
+  // Detect chunk-load / dynamic-import failures (stale service worker cache)
+  const isChunkError = !!(
+    error?.message?.includes('dynamically imported module') ||
+    error?.message?.includes('Loading chunk') ||
+    error?.message?.includes('Failed to fetch') ||
+    error?.name === 'ChunkLoadError'
+  );
+
+  // Auto-reload once when a chunk error is detected
+  useEffect(() => {
+    if (!isChunkError) return;
+    const reloaded = sessionStorage.getItem('_chunk_reload');
+    if (!reloaded) {
+      sessionStorage.setItem('_chunk_reload', '1');
+      window.location.reload();
+    }
+  }, [isChunkError]);
+
+  if (isChunkError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="text-center p-8 bg-card rounded-lg shadow-lg max-w-md w-full border border-border">
+          <h2 className="text-xl font-bold text-foreground mb-3">正在更新…</h2>
+          <p className="text-muted-foreground text-sm mb-4">检测到新版本，页面将自动刷新。</p>
+          <button onClick={() => window.location.reload()} className="w-full px-4 py-3 bg-foreground text-background rounded-lg font-medium">
+            立即刷新
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="text-center p-8 bg-card rounded-lg shadow-lg max-w-md w-full border border-border">
