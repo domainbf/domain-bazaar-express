@@ -1,20 +1,19 @@
 /**
- * Canonical production URL.
- * Set VITE_SITE_URL in your environment (Vercel / Replit secrets) to override.
- * Auth emails (reset-password, signup verification) always use this URL so
- * the token redirect lands on the correct page regardless of where the code runs.
+ * Current deployment origin — dynamically follows wherever the app is hosted.
+ * On Vercel (nic.rw) → "https://nic.rw"
+ * On a preview/staging URL → that URL
+ * On Replit dev → the Replit dev URL
+ * Supabase is just the auth backend; the domain is fully controlled by the deployment.
  */
-export const SITE_URL: string =
-  (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/$/, '') ||
-  'https://nic.rw';
+export const SITE_URL: string = window.location.origin;
 
 /**
- * Redirect URL sent to Supabase for auth emails.
- * Must match exactly one of the URLs in the Supabase "Redirect URLs" allowlist.
- * Supabase appends the token as a hash (#access_token=...&type=recovery|signup).
- * A global hash interceptor in App.tsx then routes the user to the correct page.
+ * Auth email redirect URL.
+ * Always the base origin so it matches Supabase's redirect allowlist entry for this domain.
+ * The global hash interceptor in App.tsx routes the user to /reset-password, /auth, etc.
+ * based on the #type= hash param that Supabase appends.
  */
 export const RESET_PASSWORD_URL = SITE_URL;
 
-/** Full URL for signup email-verification redirect. */
+/** Signup / OAuth redirect URL — same base origin. */
 export const SIGNUP_REDIRECT_URL = SITE_URL;
