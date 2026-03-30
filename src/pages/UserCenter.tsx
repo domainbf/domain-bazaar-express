@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -457,6 +457,25 @@ function MobileProfileSection({
 /* ──────────────────────────────────────────────────────────────────
    Mobile: Tab content wrapper (no card wrapper, full bleed)
 ──────────────────────────────────────────────────────────────────── */
+class SupportTicketsSafe extends React.Component<Record<string, never>, { hasError: boolean }> {
+  constructor(props: Record<string, never>) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center flex-1 py-20 px-6 text-center gap-3">
+          <HeadphonesIcon className="w-10 h-10 text-muted-foreground" />
+          <p className="text-muted-foreground text-sm">支持系统暂时不可用，请稍后再试</p>
+        </div>
+      );
+    }
+    return <SupportTickets />;
+  }
+}
+
 function MobileTabContent({ activeTab }: { activeTab: string }) {
   if (activeTab === 'profile-settings') {
     return <div className="pb-4"><ProfileSettings /></div>;
@@ -467,7 +486,7 @@ function MobileTabContent({ activeTab }: { activeTab: string }) {
   if (activeTab === 'support') {
     return (
       <div className="flex flex-col" style={{ minHeight: 'calc(100vh - 120px)' }}>
-        <SupportTickets />
+        <SupportTicketsSafe />
       </div>
     );
   }

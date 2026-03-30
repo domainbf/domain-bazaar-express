@@ -20,26 +20,33 @@ export const ResetPassword = () => {
   useEffect(() => {
     let settled = false;
 
-    // Method 1: Listen for Supabase PASSWORD_RECOVERY auth event.
-    // This fires automatically when Supabase processes a valid recovery link
-    // that contains proper JWT tokens in the URL hash (the standard flow via
-    // the /auth/v1/verify endpoint).
+    const settle = (accessToken: string, refreshToken = '') => {
+      if (settled) return;
+      settled = true;
+      setRecoverySessionReady(true);
+      setResetTokenData({ accessToken, refreshToken });
+      window.history.replaceState({}, '', window.location.pathname);
+      setIsLoading(false);
+    };
+
+    // Method 1: Navigated here by App.tsx global interceptor which caught the
+    // PASSWORD_RECOVERY auth event and passed session tokens via router state.
+    const navState = location.state as { fromRecovery?: boolean; accessToken?: string; refreshToken?: string } | null;
+    if (navState?.fromRecovery && navState.accessToken) {
+      settle(navState.accessToken, navState.refreshToken ?? '');
+    }
+
+    // Method 2: Listen for Supabase PASSWORD_RECOVERY auth event directly.
+    // Fires when the Supabase SDK processes a valid recovery hash in the URL
+    // (works even if App.tsx interceptor hasn't navigated here yet).
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
-        settled = true;
-        setRecoverySessionReady(true);
-        setResetTokenData({
-          accessToken: session?.access_token ?? '',
-          refreshToken: session?.refresh_token ?? '',
-        });
-        // Clean the URL so the tokens don't stay visible
-        window.history.replaceState({}, '', window.location.pathname);
-        setIsLoading(false);
+        settle(session?.access_token ?? '', session?.refresh_token ?? '');
       }
     });
 
-    // Method 2: Manually parse hash params as a fallback (handles both the
-    // standard redirect-back format and any legacy formats).
+    // Method 3: Manually parse hash params as a fallback (hash still present
+    // on slower environments / first-paint before SDK clears it).
     const hash = location.hash;
     if (hash && hash.includes('type=recovery')) {
       const hashParams = new URLSearchParams(hash.replace(/^#/, ''));
@@ -47,25 +54,31 @@ export const ResetPassword = () => {
       const refreshToken = hashParams.get('refresh_token') ?? '';
 
       if (accessToken) {
-        settled = true;
-        setResetTokenData({ accessToken, refreshToken });
-        window.history.replaceState({}, '', window.location.pathname);
-        setIsLoading(false);
+        settle(accessToken, refreshToken);
       } else {
-        // Hash had type=recovery but no access_token — invalid/expired link
         settled = true;
         toast.error('重置链接无效或已过期，请重新申请');
         setIsLoading(false);
       }
     }
 
-    // If nothing was found in the hash, stop loading after a short grace
-    // period (in case the onAuthStateChange fires just after mount).
+    // Method 4: Check the current Supabase session. If we have a live session
+    // and came here via recovery flow (even if auth event already fired), show form.
+    if (!settled) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session && navState?.fromRecovery) {
+          settle(session.access_token, session.refresh_token);
+        }
+      });
+    }
+
+    // Fallback: stop spinner after grace period.
     const timeout = setTimeout(() => {
       if (!settled) {
+        settled = true;
         setIsLoading(false);
       }
-    }, 1500);
+    }, 2000);
 
     return () => {
       subscription.unsubscribe();

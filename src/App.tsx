@@ -1,6 +1,7 @@
 
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, Suspense, lazy, memo } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { CustomScripts } from './components/common/CustomScripts';
@@ -17,6 +18,7 @@ const AdminPanel = lazy(() => import('./pages/AdminPanel').then(m => ({ default:
 const DomainVerification = lazy(() => import('./pages/DomainVerification').then(m => ({ default: m.DomainVerification })));
 const Profile = lazy(() => import('./pages/Profile').then(m => ({ default: m.Profile })));
 const ResetPassword = lazy(() => import('./pages/ResetPassword').then(m => ({ default: m.ResetPassword })));
+const AuthCallback = lazy(() => import('./pages/AuthCallback').then(m => ({ default: m.AuthCallback })));
 const UserCenter = lazy(() => import('./pages/UserCenter').then(m => ({ default: m.UserCenter })));
 const UserProfilePage = lazy(() => import('./pages/UserProfile').then(m => ({ default: m.UserProfilePage })));
 const DomainDetailPage = lazy(() => import('./components/domain/DomainDetailPage').then(m => ({ default: m.DomainDetailPage })));
@@ -97,28 +99,45 @@ const AnimatedRoutes = memo(() => {
   const navigate = useNavigate();
 
   // Global Supabase auth-callback interceptor.
-  // Supabase emails redirect to the base site URL with a hash like:
-  //   #access_token=...&type=recovery   → send to /reset-password
-  //   #access_token=...&type=signup     → send to /auth (handles confirmation)
-  //   #access_token=...&type=email_change → send to /user-center
-  // Without this, users land on the homepage and nothing happens.
+  // Supabase JS SDK processes URL hash fragments synchronously at module load time,
+  // BEFORE React renders — so window.location.hash is already cleared by the time
+  // useEffect runs. We must also listen to onAuthStateChange for PASSWORD_RECOVERY.
   useEffect(() => {
+    // --- Method A: hash is still present (slower environments / first render) ---
     const hash = window.location.hash;
-    if (!hash) return;
-
-    const params = new URLSearchParams(hash.replace(/^#/, ''));
-    const type = params.get('type');
-    if (!type) return;
-
-    // Only intercept when not already on the correct page
-    const path = window.location.pathname;
-    if (type === 'recovery' && path !== '/reset-password') {
-      navigate('/reset-password' + hash, { replace: true });
-    } else if (type === 'signup' && path !== '/auth') {
-      navigate('/auth' + hash, { replace: true });
-    } else if (type === 'email_change' && path !== '/user-center') {
-      navigate('/user-center' + hash, { replace: true });
+    if (hash) {
+      const params = new URLSearchParams(hash.replace(/^#/, ''));
+      const type = params.get('type');
+      const path = window.location.pathname;
+      if (type === 'recovery' && path !== '/reset-password') {
+        navigate('/reset-password' + hash, { replace: true });
+        return;
+      } else if (type === 'signup' && path !== '/auth') {
+        navigate('/auth' + hash, { replace: true });
+        return;
+      } else if (type === 'email_change' && path !== '/user-center') {
+        navigate('/user-center' + hash, { replace: true });
+        return;
+      }
     }
+
+    // --- Method B: Supabase already consumed the hash — catch via auth events ---
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        if (window.location.pathname !== '/reset-password') {
+          navigate('/reset-password', {
+            replace: true,
+            state: {
+              fromRecovery: true,
+              accessToken: session?.access_token,
+              refreshToken: session?.refresh_token,
+            },
+          });
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -148,6 +167,7 @@ const AnimatedRoutes = memo(() => {
         <Route path="/profile/:profileId" element={<UserProfilePage />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/reset-password/*" element={<ResetPassword />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/faq" element={<FAQPage />} />
         <Route path="/security-center" element={<SecurityCenter />} />
