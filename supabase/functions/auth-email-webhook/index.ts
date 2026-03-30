@@ -266,14 +266,15 @@ Deno.serve(async (req) => {
       switch (email_action_type) {
         case 'recovery': {
           subject = `重置您的${site.siteName}账户密码`;
-          // Build a direct link to the app's reset-password page with the token_hash
-          // as a query param. The app verifies the token client-side via verifyOtp().
-          // This shows the nic.rw domain in the email instead of the Supabase domain.
+          // Use Supabase's own verify endpoint so the token is validated server-side,
+          // then redirect to the app's /reset-password page with the session in the hash.
+          // This works with both old and new Vercel deployments.
           let recoveryOrigin = baseUrl;
           if (redirect_to) {
             try { recoveryOrigin = new URL(redirect_to).origin; } catch { /* keep baseUrl */ }
           }
-          const verifyUrl = `${recoveryOrigin}/reset-password?token_hash=${token_hash}&type=recovery`;
+          const appRedirectTo = `${recoveryOrigin}/reset-password`;
+          const verifyUrl = `${supabaseUrl}/auth/v1/verify?token=${token_hash}&type=recovery&redirect_to=${encodeURIComponent(appRedirectTo)}`;
           html = getPasswordResetHtml(verifyUrl, site);
           break;
         }
