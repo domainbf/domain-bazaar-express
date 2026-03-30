@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Settings, Globe, Mail, Shield, Plus, Trash2, Save, Database, Palette, Key, Eye, EyeOff, Send, CheckCircle, XCircle, Loader2, AlertCircle, Phone, Puzzle, TestTube2 } from 'lucide-react';
+import { Settings, Globe, Mail, Shield, Plus, Trash2, Save, Database, Palette, Key, Eye, EyeOff, Send, CheckCircle, XCircle, Loader2, AlertCircle, Phone, Puzzle, TestTube2, Zap, Info } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -48,6 +48,23 @@ interface SmtpForm {
   from_name: string;
 }
 
+const SMTP_PRESETS: Array<{
+  label: string;
+  hint: string;
+  host: string;
+  port: string;
+  note?: string;
+}> = [
+  { label: 'QQ 邮箱',        hint: 'qq.com',          host: 'smtp.qq.com',           port: '465', note: '密码处填授权码，非QQ密码' },
+  { label: '163 / 网易',     hint: '163.com',          host: 'smtp.163.com',          port: '465', note: '密码处填授权码' },
+  { label: '126 邮箱',       hint: '126.com',          host: 'smtp.126.com',          port: '465', note: '密码处填授权码' },
+  { label: '腾讯企业邮',     hint: 'exmail.qq.com',    host: 'smtp.exmail.qq.com',    port: '465' },
+  { label: '阿里云邮件推送', hint: 'smtpdm.aliyun.com',host: 'smtpdm.aliyun.com',    port: '465', note: '用户名为发信地址' },
+  { label: 'Gmail',           hint: 'gmail.com',        host: 'smtp.gmail.com',        port: '465', note: '需开启两步验证并生成应用密码' },
+  { label: 'Outlook / 365',  hint: 'office365.com',    host: 'smtp.office365.com',    port: '587', note: '587 端口使用 STARTTLS' },
+  { label: 'Resend',          hint: 'smtp.resend.com',  host: 'smtp.resend.com',       port: '465', note: '用户名固定为 resend，密码为 API Key' },
+];
+
 export const SiteSettings = () => {
   const { user } = useAuth();
   const [settings, setSettings] = useState<SiteSetting[]>([]);
@@ -69,6 +86,7 @@ export const SiteSettings = () => {
   });
   const [smtpSaved, setSmtpSaved] = useState(false);
   const [showSmtpPass, setShowSmtpPass] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
   const [testEmailAddr, setTestEmailAddr] = useState('');
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [isSavingEmail, setIsSavingEmail] = useState(false);
@@ -214,15 +232,20 @@ export const SiteSettings = () => {
         .in('key', ['smtp_host', 'smtp_port', 'smtp_username', 'smtp_password', 'smtp_from_email', 'smtp_from_name']);
       if (data && data.length > 0) {
         const map = Object.fromEntries(data.map((r: any) => [r.key, r.value]));
+        const loadedHost = map['smtp_host'] || '';
         setSmtp({
-          host: map['smtp_host'] || '',
+          host: loadedHost,
           port: map['smtp_port'] || '465',
           username: map['smtp_username'] || '',
           password: map['smtp_password'] || '',
           from_email: map['smtp_from_email'] || '',
           from_name: map['smtp_from_name'] || '域见•你',
         });
-        if (map['smtp_host'] && map['smtp_username']) setSmtpSaved(true);
+        if (loadedHost && map['smtp_username']) {
+          setSmtpSaved(true);
+          const matched = SMTP_PRESETS.find(p => p.host === loadedHost);
+          if (matched) setSelectedPreset(matched.label);
+        }
       }
     } catch (e) { console.error('loadSmtpConfig error', e); }
   };
@@ -717,17 +740,51 @@ export const SiteSettings = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-5">
-              {/* Common provider hints */}
-              <div className="rounded-lg bg-muted/50 border px-4 py-3 text-xs text-muted-foreground space-y-1">
-                <p className="font-medium text-foreground mb-1">常用服务商参数参考</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-0.5">
-                  <span>Gmail: smtp.gmail.com · 465 (SSL)</span>
-                  <span>QQ 邮箱: smtp.qq.com · 465 (SSL)</span>
-                  <span>163 邮箱: smtp.163.com · 465 (SSL)</span>
-                  <span>Outlook: smtp.office365.com · 587 (TLS)</span>
-                  <span>阿里云 DirectMail: smtpdm.aliyun.com · 465</span>
-                  <span>自建 Postfix: 你的域名 · 587 (TLS)</span>
+              {/* All-emails-use-this-SMTP notice */}
+              <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 px-4 py-3 flex gap-3">
+                <Info className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+                <div className="text-xs text-blue-800 dark:text-blue-300 space-y-0.5">
+                  <p className="font-semibold">此 SMTP 是系统唯一邮件出口</p>
+                  <p>交易通知、出价提醒、密码重置等<strong>所有系统邮件</strong>均通过此处配置的 SMTP 发送。更换服务商只需修改下方参数并保存，立即生效，无需任何额外操作。</p>
                 </div>
+              </div>
+
+              {/* Quick-fill presets */}
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                  <Zap className="h-3 w-3" /> 快速填充服务商参数（点击自动填入主机和端口）
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {SMTP_PRESETS.map((p) => (
+                    <button
+                      key={p.label}
+                      type="button"
+                      onClick={() => {
+                        setSmtp(s => ({ ...s, host: p.host, port: p.port }));
+                        setSelectedPreset(p.label);
+                      }}
+                      className={`px-3 py-1.5 rounded-md border text-xs font-medium transition-colors ${
+                        selectedPreset === p.label
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-background hover:bg-muted border-border text-foreground'
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+                {selectedPreset && (() => {
+                  const p = SMTP_PRESETS.find(x => x.label === selectedPreset);
+                  return p ? (
+                    <div className="rounded-md bg-muted/60 px-3 py-2 text-xs text-muted-foreground flex gap-2 items-start">
+                      <CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0 mt-0.5" />
+                      <span>
+                        <strong>{p.label}</strong>：{p.host} · 端口 {p.port}
+                        {p.note ? <span className="ml-2 text-amber-600 dark:text-amber-400">⚠ {p.note}</span> : null}
+                      </span>
+                    </div>
+                  ) : null;
+                })()}
               </div>
 
               {/* Host + Port */}
@@ -874,15 +931,26 @@ export const SiteSettings = () => {
             </CardContent>
           </Card>
 
-          {/* Password reset notice */}
-          <Alert className="border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30">
-            <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-500" />
-            <AlertDescription className="text-amber-800 dark:text-amber-400">
-              <strong>关于找回密码邮件：</strong>密码重置邮件由 Supabase Auth Hook 触发。
-              如需密码重置走本站 SMTP，请在 Supabase 控制台将 auth-email-webhook 函数重新部署（使用最新代码）。
-              平台内的交易通知邮件均通过上方 SMTP 配置直接发送。
-            </AlertDescription>
-          </Alert>
+          {/* Email scope info */}
+          <div className="rounded-lg border px-4 py-3 space-y-2 text-sm">
+            <p className="font-semibold flex items-center gap-2">
+              <Mail className="h-4 w-4 text-primary" />
+              通过此 SMTP 发送的邮件类型
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1 text-xs text-muted-foreground pl-1">
+              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-green-500" /> 用户注册欢迎邮件</span>
+              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-green-500" /> 找回密码 / 重置密码</span>
+              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-green-500" /> 新报价通知（卖家）</span>
+              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-green-500" /> 还价 / 反还价通知</span>
+              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-green-500" /> 报价被接受 / 拒绝通知</span>
+              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-green-500" /> 交易状态更新通知</span>
+              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-green-500" /> 付款确认 / 转移完成</span>
+              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-green-500" /> 争议受理通知</span>
+            </div>
+            <p className="text-xs text-muted-foreground pt-1 border-t">
+              保存配置后立即生效，切换任意服务商无需重启或额外操作。
+            </p>
+          </div>
         </TabsContent>
         
         <TabsContent value="seo" className="space-y-6">
