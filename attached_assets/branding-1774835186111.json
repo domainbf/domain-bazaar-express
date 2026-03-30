@@ -1,0 +1,137 @@
+{
+  "colorScheme": "light",
+  "fonts": [
+    {
+      "family": "Geist Sans",
+      "role": "unknown"
+    }
+  ],
+  "colors": {
+    "primary": "#27272A",
+    "accent": "#EBF3FE",
+    "background": "#FFFFFF",
+    "textPrimary": "#27272A",
+    "link": "#FDEDF5"
+  },
+  "typography": {
+    "fontFamilies": {
+      "primary": "Geist Sans",
+      "heading": "Geist Sans"
+    },
+    "fontStacks": {
+      "heading": [
+        "__geistSans_a77901",
+        "__geistSans_Fallback_a77901",
+        "system-ui",
+        "-apple-system",
+        "sans-serif"
+      ],
+      "body": [
+        "__geistSans_a77901",
+        "__geistSans_Fallback_a77901",
+        "system-ui",
+        "-apple-system",
+        "sans-serif"
+      ],
+      "paragraph": [
+        "__geistSans_a77901",
+        "__geistSans_Fallback_a77901",
+        "system-ui",
+        "-apple-system",
+        "sans-serif"
+      ]
+    },
+    "fontSizes": {
+      "h1": "24px",
+      "h2": "24px",
+      "body": "12px"
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "borderRadius": "6px"
+  },
+  "components": {
+    "buttonPrimary": {
+      "background": "#EBF3FE",
+      "textColor": "#2563EB",
+      "borderColor": "#D8E6FD",
+      "borderRadius": "9999px",
+      "borderRadiusCorners": {
+        "topLeft": "9999px",
+        "topRight": "9999px",
+        "bottomRight": "9999px",
+        "bottomLeft": "9999px"
+      },
+      "shadow": "none"
+    },
+    "buttonSecondary": {
+      "background": "#FAFAFA",
+      "textColor": "#535354",
+      "borderColor": "#EFEFF1",
+      "borderRadius": "9999px",
+      "borderRadiusCorners": {
+        "topLeft": "9999px",
+        "topRight": "9999px",
+        "bottomRight": "9999px",
+        "bottomLeft": "9999px"
+      },
+      "shadow": "none"
+    }
+  },
+  "images": {
+    "logo": "File saved at: attached_assets/logo.svg",
+    "favicon": "File saved at: attached_assets/favicon.ico",
+    "ogImage": "File saved at: attached_assets/ogImage.png",
+    "logoHref": "/directory"
+  },
+  "__llm_logo_reasoning": {
+    "selectedIndex": 0,
+    "reasoning": "Selected #0 because it is located in the header, is visible, and matches the favicon style, indicating it is the main brand logo.",
+    "confidence": 0.85,
+    "source": "llm"
+  },
+  "__llm_button_reasoning": {
+    "primary": {
+      "index": 4,
+      "text": "WHOIS",
+      "reasoning": "Button #4 ('WHOIS') has a vibrant blue background (#EBF3FE) which stands out as a primary action color. The text 'WHOIS' is action-oriented, aligning with the site's focus on domain information."
+    },
+    "secondary": {
+      "index": 7,
+      "text": "Rate Limits",
+      "reasoning": "Button #7 ('Rate Limits') has a neutral light background (#FAFAFA), making it suitable as a secondary action. It provides additional information without the prominence of a primary CTA."
+    },
+    "confidence": 0.9
+  },
+  "personality": {
+    "tone": "professional",
+    "energy": "medium",
+    "targetAudience": "developers and IT professionals"
+  },
+  "designSystem": {
+    "framework": "tailwind",
+    "componentLibrary": ""
+  },
+  "confidence": {
+    "buttons": 0.9,
+    "colors": 0.9,
+    "overall": 0.9
+  },
+  "__llm_metadata": {
+    "logoSelection": {
+      "llmCalled": true,
+      "llmSucceeded": true,
+      "finalSource": "llm",
+      "rawLogoSelection": {
+        "selectedLogoIndex": 0,
+        "selectedLogoReasoning": "Selected #0 because it is located in the header, is visible, and matches the favicon style, indicating it is the main brand logo.",
+        "confidence": 0.85
+      }
+    },
+    "buttonClassification": {
+      "llmCalled": true,
+      "llmSucceeded": true
+    }
+  }
+}

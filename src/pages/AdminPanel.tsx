@@ -22,6 +22,9 @@ import { EscrowService } from '@/components/escrow/EscrowService';
 import { AdminTransactionManagement } from '@/components/admin/AdminTransactionManagement';
 import { AdminAuctionManagement } from '@/components/admin/AdminAuctionManagement';
 import { AdminReviewManagement } from '@/components/admin/AdminReviewManagement';
+import { AdminLegalPagesManager } from '@/components/admin/AdminLegalPagesManager';
+import { AdminMessagesView } from '@/components/admin/AdminMessagesView';
+import { AdminNotificationSender } from '@/components/admin/AdminNotificationSender';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -34,7 +37,7 @@ import {
   DollarSign, FileText, Shield, AlertTriangle, Percent,
   Users, Star, Home, BookOpen, Search, Sliders, CreditCard,
   Settings, Activity, Menu, ChevronRight, LogOut, RefreshCw,
-  MessageSquare, Package
+  MessageSquare, Package, Scale, Bell, Mail
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -132,8 +135,16 @@ export const AdminPanel = () => {
       items: [
         { id: 'homepage', label: '首页内容', icon: Home },
         { id: 'content', label: '页面内容', icon: BookOpen },
+        { id: 'legal', label: '法律页面', icon: Scale },
         { id: 'seo', label: 'SEO 配置', icon: Search },
         { id: 'frontend', label: '前台组件', icon: Package },
+      ]
+    },
+    {
+      title: '通讯管理',
+      items: [
+        { id: 'messages', label: '用户消息', icon: MessageSquare },
+        { id: 'notifications', label: '系统通知', icon: Bell },
       ]
     },
     {
@@ -234,8 +245,11 @@ export const AdminPanel = () => {
       case 'users': return <UserManagement />;
       case 'homepage': return <HomeContentManagement />;
       case 'content': return <ContentManagement />;
+      case 'legal': return <AdminLegalPagesManager />;
       case 'seo': return <SeoConfiguration />;
       case 'frontend': return <FrontendContentManager />;
+      case 'messages': return <AdminMessagesView />;
+      case 'notifications': return <AdminNotificationSender />;
       case 'payment': return <PaymentGatewaySettings />;
       case 'quick-settings': return <QuickSettingsPanel />;
       case 'settings': return <SiteSettings />;

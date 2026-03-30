@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { 
   UserPlus, Mail, Shield, Edit, Trash2, Users, Search, RefreshCw, 
-  CheckCircle, XCircle, Crown, MoreHorizontal, Download, Upload, Filter
+  CheckCircle, XCircle, Crown, MoreHorizontal, Download, Upload, Filter, Ban, UserCheck
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -41,6 +41,7 @@ export interface UserProfile {
   is_admin?: boolean;
   role?: string;
   has_2fa?: boolean;
+  verification_status?: string;
 }
 
 export const UserManagement = () => {
@@ -132,6 +133,32 @@ export const UserManagement = () => {
       toast.success('用户验证成功');
     } catch (error: any) {
       toast.error('验证失败: ' + error.message);
+    }
+  };
+
+  const handleToggleSuspend = async (userId: string, currentStatus: string | undefined) => {
+    const isSuspended = currentStatus === 'suspended';
+    const newStatus = isSuspended ? 'active' : 'suspended';
+    const confirmMsg = isSuspended
+      ? '确定要解除该用户的封号状态吗？'
+      : '确定要封禁该用户吗？封禁后该用户的域名将不可见，卖家资格将被暂停。';
+    if (!confirm(confirmMsg)) return;
+    try {
+      const updates: Record<string, any> = { verification_status: newStatus };
+      if (!isSuspended) updates.is_seller = false;
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', userId);
+      if (error) throw error;
+      setUsers(users.map(user =>
+        user.id === userId
+          ? { ...user, verification_status: newStatus, is_seller: isSuspended ? user.is_seller : false }
+          : user
+      ));
+      toast.success(isSuspended ? '用户已解封' : '用户已封号');
+    } catch (error: any) {
+      toast.error('操作失败: ' + error.message);
     }
   };
 
@@ -335,7 +362,8 @@ export const UserManagement = () => {
     
     const matchesStatus = filterStatus === 'all' ||
       (filterStatus === 'verified' && user.seller_verified) ||
-      (filterStatus === 'unverified' && !user.seller_verified);
+      (filterStatus === 'unverified' && !user.seller_verified) ||
+      (filterStatus === 'suspended' && user.verification_status === 'suspended');
     
     return matchesSearch && matchesRole && matchesStatus;
   });
@@ -457,6 +485,7 @@ export const UserManagement = () => {
                   <SelectItem value="all">全部状态</SelectItem>
                   <SelectItem value="verified">已验证</SelectItem>
                   <SelectItem value="unverified">未验证</SelectItem>
+                  <SelectItem value="suspended">已封号</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -564,6 +593,12 @@ export const UserManagement = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
+                      {user.verification_status === 'suspended' && (
+                        <Badge className="bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300">
+                          <Ban className="h-3 w-3 mr-1" />
+                          已封号
+                        </Badge>
+                      )}
                       {user.is_admin && (
                         <Badge className="bg-yellow-100 text-yellow-800">
                           <Crown className="h-3 w-3 mr-1" />
@@ -573,7 +608,7 @@ export const UserManagement = () => {
                       {user.is_seller && (
                         <Badge variant="secondary">卖家</Badge>
                       )}
-                      {!user.is_admin && !user.is_seller && (
+                      {!user.is_admin && !user.is_seller && user.verification_status !== 'suspended' && (
                         <Badge variant="outline">普通用户</Badge>
                       )}
                     </div>
@@ -639,6 +674,16 @@ export const UserManagement = () => {
                           {user.is_seller ? '取消卖家' : '设为卖家'}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => handleToggleSuspend(user.id, user.verification_status)}
+                          className={user.verification_status === 'suspended' ? 'text-green-600' : 'text-amber-600'}
+                        >
+                          {user.verification_status === 'suspended' ? (
+                            <><UserCheck className="h-4 w-4 mr-2" />解除封号</>
+                          ) : (
+                            <><Ban className="h-4 w-4 mr-2" />封号/封禁</>
+                          )}
+                        </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleDeleteUser(user.id)}
                           className="text-red-600"

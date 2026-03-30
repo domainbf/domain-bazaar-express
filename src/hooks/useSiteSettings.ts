@@ -40,6 +40,10 @@ export interface SiteConfig {
   cta_description: string;
   cta_btn_primary: string;
   cta_btn_secondary: string;
+  // Legal page content overrides (empty = use default)
+  legal_terms_content: string;
+  legal_privacy_content: string;
+  legal_disclaimer_content: string;
   // Footer
   footer_text: string;
   // Scripts
@@ -80,6 +84,9 @@ const defaultConfig: SiteConfig = {
   cta_description: '加入我们的域名交易平台，发现无限可能',
   cta_btn_primary: '浏览域名',
   cta_btn_secondary: '用户中心',
+  legal_terms_content: '',
+  legal_privacy_content: '',
+  legal_disclaimer_content: '',
   footer_text: '域见•你 域名交易平台。保留所有权利。',
   custom_head_script: '',
   custom_body_script: '',
