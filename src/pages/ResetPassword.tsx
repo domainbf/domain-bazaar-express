@@ -29,6 +29,27 @@ export const ResetPassword = () => {
       setIsLoading(false);
     };
 
+    // Method 0 (PRIMARY): Direct token_hash link from email — the email webhook
+    // builds a nic.rw/reset-password?token_hash=...&type=recovery URL so the email
+    // only shows the nic.rw domain. We verify the token here via verifyOtp(), which
+    // fires PASSWORD_RECOVERY and Method 1b catches it.
+    const searchParams = new URLSearchParams(location.search);
+    const tokenHash = searchParams.get('token_hash');
+    const tokenType = searchParams.get('type');
+    if (tokenHash && tokenType === 'recovery') {
+      // Clear the query params from the URL immediately for cleanliness
+      window.history.replaceState({}, '', window.location.pathname);
+      supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' }).then(({ data, error }) => {
+        if (error) {
+          settled = true;
+          toast.error('重置链接已过期或无效，请重新申请');
+          setIsLoading(false);
+        } else if (data?.session) {
+          settle(data.session.access_token, data.session.refresh_token ?? '');
+        }
+      });
+    }
+
     // Method 1: Navigated here by App.tsx global interceptor which caught the
     // PASSWORD_RECOVERY auth event and passed session tokens via router state.
     const navState = location.state as { fromRecovery?: boolean; accessToken?: string; refreshToken?: string } | null;
@@ -36,17 +57,16 @@ export const ResetPassword = () => {
       settle(navState.accessToken, navState.refreshToken ?? '');
     }
 
-    // Method 2: Listen for Supabase PASSWORD_RECOVERY auth event directly.
-    // Fires when the Supabase SDK processes a valid recovery hash in the URL
-    // (works even if App.tsx interceptor hasn't navigated here yet).
+    // Method 1b: onAuthStateChange listener — catches PASSWORD_RECOVERY fired by
+    // verifyOtp() above (Method 0) or by the SDK processing the legacy hash fragment.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
         settle(session?.access_token ?? '', session?.refresh_token ?? '');
       }
     });
 
-    // Method 3: Manually parse hash params as a fallback (hash still present
-    // on slower environments / first-paint before SDK clears it).
+    // Method 3: Legacy hash fragment fallback (older email links used
+    // supabase.co/auth/v1/verify which redirects here with a hash).
     const hash = location.hash;
     if (hash && hash.includes('type=recovery')) {
       const hashParams = new URLSearchParams(hash.replace(/^#/, ''));

@@ -266,16 +266,14 @@ Deno.serve(async (req) => {
       switch (email_action_type) {
         case 'recovery': {
           subject = `重置您的${site.siteName}账户密码`;
-          // Always redirect to /reset-password on the app's origin.
-          // Extract the origin from redirect_to (which may be just the root domain),
-          // then always append /reset-password. This ensures the recovery link
-          // lands on the reset password UI even if the frontend code isn't redeployed.
+          // Build a direct link to the app's reset-password page with the token_hash
+          // as a query param. The app verifies the token client-side via verifyOtp().
+          // This shows the nic.rw domain in the email instead of the Supabase domain.
           let recoveryOrigin = baseUrl;
           if (redirect_to) {
             try { recoveryOrigin = new URL(redirect_to).origin; } catch { /* keep baseUrl */ }
           }
-          const appRedirectTo = `${recoveryOrigin}/reset-password`;
-          const verifyUrl = `${supabaseUrl}/auth/v1/verify?token=${token_hash}&type=recovery&redirect_to=${encodeURIComponent(appRedirectTo)}`;
+          const verifyUrl = `${recoveryOrigin}/reset-password?token_hash=${token_hash}&type=recovery`;
           html = getPasswordResetHtml(verifyUrl, site);
           break;
         }
