@@ -1,6 +1,7 @@
 
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { translateAuthError } from '@/utils/translateError';
 
 export const fetchUserProfile = async (userId: string) => {
   try {
@@ -82,32 +83,20 @@ export const sendVerificationEmail = async (email: string, verificationUrl: stri
 
 export const handleAuthError = (error: any, action: string) => {
   console.error(`Error during ${action}:`, error);
-  let errorMessage = error.message || `${action}失败`;
-  
-  if (errorMessage.includes('Email not confirmed')) {
-    errorMessage = '请先验证您的邮箱，然后再尝试登录。';
+  const raw = error.message || '';
+
+  // Special case: email-not-confirmed → auto-resend verification
+  if (raw.includes('Email not confirmed')) {
+    const msg = '请先验证您的邮箱，然后再尝试登录。';
     if (error.email) {
       sendVerificationEmail(error.email, `${window.location.origin}/`)
         .then(() => toast.info('✉️ 验证邮件已重新发送，请检查您的邮箱'));
     }
-  } else if (errorMessage.includes('Invalid login credentials')) {
-    errorMessage = '邮箱或密码错误，请检查后重试';
-  } else if (errorMessage.includes('User already registered')) {
-    errorMessage = '该邮箱已被注册，请尝试登录或使用另一个邮箱';
-  } else if (errorMessage.includes('Password should be')) {
-    errorMessage = '密码应至少包含6个字符';
-  } else if (errorMessage.includes('rate limited')) {
-    errorMessage = '操作过于频繁，请稍后再试';
-  } else if (errorMessage.includes('signup is disabled')) {
-    errorMessage = '注册功能暂时关闭，请联系管理员';
-  } else if (errorMessage.includes('email address is invalid')) {
-    errorMessage = '邮箱地址格式不正确，请检查后重试';
-  } else if (errorMessage.includes('Network request failed')) {
-    errorMessage = '网络连接失败，请检查网络后重试';
-  } else if (errorMessage.includes('fetch')) {
-    errorMessage = '网络请求失败，请重试';
+    toast.error(msg);
+    throw new Error(msg);
   }
-  
+
+  const errorMessage = translateAuthError(raw, `${action}失败`);
   toast.error(errorMessage);
   throw new Error(errorMessage);
 };

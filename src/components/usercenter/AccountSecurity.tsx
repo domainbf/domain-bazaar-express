@@ -9,6 +9,7 @@ import { Shield, Key, Mail, Eye, EyeOff, Clock, MapPin, Loader2, CheckCircle, Al
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { translateAuthError } from '@/utils/translateError';
 import { TwoFactorAuth } from './TwoFactorAuth';
 import { DeviceManagement } from './DeviceManagement';
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -45,7 +46,7 @@ export const AccountSecurity = () => {
       setConfirmPassword('');
       setShowPasswordForm(false);
     } catch (error: any) {
-      toast.error(error.message || '更新密码失败');
+      toast.error(translateAuthError(error.message || '', '更新密码失败'));
     } finally {
       setIsChangingPassword(false);
     }
@@ -69,7 +70,7 @@ export const AccountSecurity = () => {
       setNewEmail('');
       setShowEmailForm(false);
     } catch (error: any) {
-      toast.error(error.message || '更新邮箱失败');
+      toast.error(translateAuthError(error.message || '', '更新邮箱失败'));
     } finally {
       setIsChangingEmail(false);
     }

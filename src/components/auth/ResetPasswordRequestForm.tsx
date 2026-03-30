@@ -5,6 +5,7 @@ import { Loader2, Mail, AlertCircle, CheckCircle, ArrowLeft, Send } from 'lucide
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { translateAuthError } from '@/utils/translateError';
 
 interface ResetPasswordRequestFormProps {
   onCancel: () => void;
@@ -37,11 +38,7 @@ export const ResetPasswordRequestForm = ({ onCancel, onSuccess }: ResetPasswordR
       toast.success('密码重置邮件已发送');
       if (onSuccess) onSuccess();
     } catch (error: any) {
-      let msg = '发送密码重置邮件失败，请稍后再试';
-      if (error.message?.includes('Email not confirmed')) msg = '请先验证您的邮箱地址';
-      else if (error.message?.includes('User not found')) msg = '该邮箱地址未注册';
-      else if (error.message?.includes('rate limit') || error.message?.includes('Too many')) msg = '请求过于频繁，请稍后再试';
-      else if (error.message) msg = error.message;
+      const msg = translateAuthError(error.message || '', '发送密码重置邮件失败，请稍后再试');
       setErrorMessage(msg);
       toast.error(msg);
     } finally {

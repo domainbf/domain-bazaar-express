@@ -6,6 +6,7 @@ import { Mail, ArrowLeft, Loader2, AlertCircle, CheckCircle, Send } from 'lucide
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { translateAuthError } from '@/utils/translateError';
 
 export const ResetPasswordForm = () => {
   const [email, setEmail] = useState('');
@@ -30,9 +31,7 @@ export const ResetPasswordForm = () => {
       setIsSubmitted(true);
       toast.success('密码重置链接已发送到您的邮箱');
     } catch (error: any) {
-      let msg = '发送重置邮件时出错，请稍后再试';
-      if (error.message?.includes('rate limit') || error.message?.includes('Too many')) msg = '请求过于频繁，请稍后再试';
-      else if (error.message) msg = error.message;
+      const msg = translateAuthError(error.message || '', '发送重置邮件时出错，请稍后再试');
       setErrorMessage(msg);
       toast.error(msg);
     } finally {

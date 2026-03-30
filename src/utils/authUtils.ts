@@ -1,6 +1,7 @@
 
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { translateAuthError } from '@/utils/translateError';
 
 export const signInWithEmailPassword = async (email: string, password: string) => {
   try {
@@ -124,26 +125,8 @@ export const updateUserPassword = async (newPassword: string) => {
 
 export const handleAuthError = (error: any, action: string) => {
   console.error(`Error during ${action}:`, error);
-  let errorMessage = error.message;
-  
-  // Friendlier error messages for common errors
-  if (errorMessage?.includes('Email not confirmed')) {
-    errorMessage = '请先验证您的邮箱，然后再尝试登录。';
-  } else if (errorMessage?.includes('Invalid login credentials')) {
-    errorMessage = '邮箱或密码错误，请重试';
-  } else if (errorMessage?.includes('User already registered')) {
-    errorMessage = '该邮箱已被注册，请尝试登录或使用另一个邮箱';
-  } else if (errorMessage?.includes('Password should be')) {
-    errorMessage = '密码应至少包含6个字符';
-  } else if (errorMessage?.includes('rate limited')) {
-    errorMessage = '操作过于频繁，请稍后再试';
-  } else if (errorMessage?.includes('Edge Function returned a non-2xx status code')) {
-    errorMessage = '服务暂时不可用，请稍后重试';
-  } else if (errorMessage?.includes('network') || errorMessage?.includes('fetch')) {
-    errorMessage = '网络连接错误，请检查网络设置';
-  }
-  
-  toast.error(errorMessage || `${action}失败`);
+  const errorMessage = translateAuthError(error.message || '', `${action}失败`);
+  toast.error(errorMessage);
   throw error;
 };
 
