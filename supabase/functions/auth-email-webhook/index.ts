@@ -266,10 +266,15 @@ Deno.serve(async (req) => {
       switch (email_action_type) {
         case 'recovery': {
           subject = `重置您的${site.siteName}账户密码`;
-          // Use Supabase's own verify endpoint so that it redirects the user to
-          // the app with proper JWT access_token + refresh_token in the URL hash.
-          // This avoids sending the raw OTP token to the frontend.
-          const appRedirectTo = redirect_to || `${baseUrl}/reset-password`;
+          // Always redirect to /reset-password on the app's origin.
+          // Extract the origin from redirect_to (which may be just the root domain),
+          // then always append /reset-password. This ensures the recovery link
+          // lands on the reset password UI even if the frontend code isn't redeployed.
+          let recoveryOrigin = baseUrl;
+          if (redirect_to) {
+            try { recoveryOrigin = new URL(redirect_to).origin; } catch { /* keep baseUrl */ }
+          }
+          const appRedirectTo = `${recoveryOrigin}/reset-password`;
           const verifyUrl = `${supabaseUrl}/auth/v1/verify?token=${token_hash}&type=recovery&redirect_to=${encodeURIComponent(appRedirectTo)}`;
           html = getPasswordResetHtml(verifyUrl, site);
           break;

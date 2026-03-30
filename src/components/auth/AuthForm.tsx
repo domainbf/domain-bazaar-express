@@ -91,6 +91,10 @@ export const AuthForm = ({
   const validatePassword = (password: string) => {
     if (password.length < 6) return '密码长度至少为6个字符';
     if (password.length > 72) return '密码长度不能超过72个字符';
+    if (!/[a-z]/.test(password)) return '密码需包含至少一个小写字母 (a-z)';
+    if (!/[A-Z]/.test(password)) return '密码需包含至少一个大写字母 (A-Z)';
+    if (!/[0-9]/.test(password)) return '密码需包含至少一个数字 (0-9)';
+    if (!/[^A-Za-z0-9]/.test(password)) return '密码需包含至少一个特殊字符（如 @#$!）';
     return null;
   };
 
@@ -201,33 +205,6 @@ export const AuthForm = ({
     e.stopPropagation();
     onChangeMode(newMode);
   };
-
-  const getPasswordStrength = (password: string) => {
-    let strength = 0;
-    if (password.length >= 8) strength++;
-    if (/[A-Z]/.test(password)) strength++;
-    if (/[a-z]/.test(password)) strength++;
-    if (/[0-9]/.test(password)) strength++;
-    if (/[^A-Za-z0-9]/.test(password)) strength++;
-    return strength;
-  };
-
-  const getPasswordStrengthText = (strength: number) => {
-    switch (strength) {
-      case 0:
-      case 1: return { text: '弱', color: 'text-destructive' };
-      case 2: return { text: '一般', color: 'text-yellow-600' };
-      case 3: return { text: '中等', color: 'text-blue-600' };
-      case 4:
-      case 5: return { text: '强', color: 'text-green-600' };
-      default: return { text: '弱', color: 'text-destructive' };
-    }
-  };
-
-  const passwordStrength = mode === 'signup' ? getPasswordStrength(password) : 0;
-  const strengthInfo = getPasswordStrengthText(passwordStrength);
-
-  const strengthBarColors = ['bg-destructive', 'bg-destructive', 'bg-yellow-500', 'bg-blue-500', 'bg-green-500', 'bg-green-500'];
 
   return (
     <div className="space-y-5">
@@ -348,23 +325,31 @@ export const AuthForm = ({
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
-          {mode === 'signup' && password && (
-            <div className="space-y-1.5">
-              <div className="flex gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <div
-                    key={i}
-                    className={`h-1 flex-1 rounded-full transition-all duration-300 ${
-                      i < passwordStrength ? strengthBarColors[passwordStrength] : 'bg-muted'
-                    }`}
-                  />
+          {mode === 'signup' && password && (() => {
+            const checks = [
+              { label: '至少6个字符', ok: password.length >= 6 },
+              { label: '包含小写字母 (a-z)', ok: /[a-z]/.test(password) },
+              { label: '包含大写字母 (A-Z)', ok: /[A-Z]/.test(password) },
+              { label: '包含数字 (0-9)', ok: /[0-9]/.test(password) },
+              { label: '包含特殊字符 (@#$!…)', ok: /[^A-Za-z0-9]/.test(password) },
+            ];
+            const allOk = checks.every(c => c.ok);
+            return (
+              <div className={`rounded-lg border p-3 space-y-1.5 ${allOk ? 'border-green-500/30 bg-green-500/5' : 'border-border bg-muted/40'}`}>
+                <p className="text-xs font-medium text-muted-foreground">密码要求</p>
+                {checks.map((c) => (
+                  <div key={c.label} className="flex items-center gap-2">
+                    <span className={`text-xs font-bold ${c.ok ? 'text-green-500' : 'text-muted-foreground'}`}>
+                      {c.ok ? '✓' : '·'}
+                    </span>
+                    <span className={`text-xs ${c.ok ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
+                      {c.label}
+                    </span>
+                  </div>
                 ))}
               </div>
-              <span className={`text-xs ${strengthInfo.color} font-medium`}>
-                密码强度: {strengthInfo.text}
-              </span>
-            </div>
-          )}
+            );
+          })()}
         </div>
 
         {mode === 'signup' && (

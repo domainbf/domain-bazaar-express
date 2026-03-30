@@ -24,9 +24,22 @@ export const ResetPasswordConfirmForm = ({ tokenData, sessionReady = false }: Re
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
+  const checkPasswordStrength = (pwd: string) => ({
+    hasLower: /[a-z]/.test(pwd),
+    hasUpper: /[A-Z]/.test(pwd),
+    hasDigit: /[0-9]/.test(pwd),
+    hasSpecial: /[^A-Za-z0-9]/.test(pwd),
+    longEnough: pwd.length >= 6,
+  });
+
   const validatePassword = () => {
     if (password.length < 6) {
       setErrorMessage('密码至少需要6个字符');
+      return false;
+    }
+    const s = checkPasswordStrength(password);
+    if (!s.hasLower || !s.hasUpper || !s.hasDigit || !s.hasSpecial) {
+      setErrorMessage('密码需同时包含大写字母、小写字母、数字和特殊字符（如 @#$!）');
       return false;
     }
     if (password !== confirmPassword) {
@@ -59,8 +72,15 @@ export const ResetPasswordConfirmForm = ({ tokenData, sessionReady = false }: Re
 
       const { error: updateError } = await supabase.auth.updateUser({ password });
       if (updateError) {
-        if (updateError.message?.includes('Password should be')) {
-          throw new Error('密码不符合安全要求，请使用至少6个字符的密码');
+        const msg = updateError.message || '';
+        if (msg.includes('different from the old password') || msg.includes('same as the old')) {
+          throw new Error('新密码不能与原密码相同，请设置一个不同的密码');
+        }
+        if (msg.includes('Password should be') || msg.includes('password') || msg.includes('Password')) {
+          throw new Error('密码不符合安全要求：需包含大写字母、小写字母、数字和特殊字符（如 @#$!）');
+        }
+        if (msg.includes('expired') || msg.includes('invalid') || msg.includes('missing')) {
+          throw new Error('重置链接已过期或无效，请重新申请密码重置');
         }
         throw updateError;
       }
@@ -174,36 +194,33 @@ export const ResetPasswordConfirmForm = ({ tokenData, sessionReady = false }: Re
         </div>
       </div>
 
-      {/* Password strength hint */}
-      {password && (
-        <div className="space-y-1">
-          <div className="flex gap-1">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className={`h-1 flex-1 rounded-full transition-colors ${
-                  password.length >= i * 3
-                    ? password.length >= 12
-                      ? 'bg-green-500'
-                      : password.length >= 8
-                        ? 'bg-yellow-500'
-                        : 'bg-red-400'
-                    : 'bg-muted'
-                }`}
-              />
+      {/* Password requirements checklist */}
+      {password && (() => {
+        const s = checkPasswordStrength(password);
+        const checks = [
+          { label: '至少6个字符', ok: s.longEnough },
+          { label: '包含小写字母 (a-z)', ok: s.hasLower },
+          { label: '包含大写字母 (A-Z)', ok: s.hasUpper },
+          { label: '包含数字 (0-9)', ok: s.hasDigit },
+          { label: '包含特殊字符 (@#$!…)', ok: s.hasSpecial },
+        ];
+        const allOk = checks.every(c => c.ok);
+        return (
+          <div className={`rounded-lg border p-3 space-y-1.5 ${allOk ? 'border-green-500/30 bg-green-500/5' : 'border-border bg-muted/40'}`}>
+            <p className="text-xs font-medium text-muted-foreground mb-1">密码要求</p>
+            {checks.map((c) => (
+              <div key={c.label} className="flex items-center gap-2">
+                <span className={`text-xs font-bold ${c.ok ? 'text-green-500' : 'text-muted-foreground'}`}>
+                  {c.ok ? '✓' : '·'}
+                </span>
+                <span className={`text-xs ${c.ok ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
+                  {c.label}
+                </span>
+              </div>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground">
-            {password.length < 6
-              ? '密码太短'
-              : password.length < 8
-                ? '密码强度：弱'
-                : password.length < 12
-                  ? '密码强度：中等'
-                  : '密码强度：强'}
-          </p>
-        </div>
-      )}
+        );
+      })()}
 
       <div className="flex gap-3 pt-2">
         <Button
