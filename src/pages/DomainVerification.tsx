@@ -19,7 +19,7 @@ import { useDomainVerification } from '@/hooks/verification/useDomainVerificatio
 
 export const DomainVerification = () => {
   const { domainId } = useParams<{ domainId: string }>();
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const navigate = useNavigate();
   const [accessDenied, setAccessDenied] = useState(false);
   const { 
@@ -37,10 +37,13 @@ export const DomainVerification = () => {
     }
   }, [domainId]);
 
-  // 检查用户权限
+  // 检查用户权限 — wait for auth to settle before checking
   useEffect(() => {
+    if (isAuthLoading) return; // Auth not ready yet
     if (domain && user) {
-      if (domain.owner_id !== user.id) {
+      // Check owner_id OR seller_id to be safe across both table schemas
+      const ownerId = (domain as any).owner_id || (domain as any).seller_id;
+      if (ownerId && ownerId !== user.id) {
         setAccessDenied(true);
         toast.error('您只能验证自己的域名');
         setTimeout(() => {
@@ -48,10 +51,10 @@ export const DomainVerification = () => {
         }, 2000);
       }
     }
-  }, [domain, user, navigate]);
+  }, [domain, user, isAuthLoading, navigate]);
 
   const renderContent = () => {
-    if (isLoading) {
+    if (isLoading || isAuthLoading) {
       return <LoadingSpinner />;
     }
 
@@ -104,7 +107,7 @@ export const DomainVerification = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <div className="max-w-4xl mx-auto px-4 py-8">
         {renderContent()}

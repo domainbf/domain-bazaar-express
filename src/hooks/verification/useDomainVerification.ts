@@ -55,9 +55,9 @@ export const useDomainVerification = (domainId?: string) => {
   const handleStartVerification = async (verificationMethod: string) => {
     if (!domain || !domainId) return;
     
-    // Optimize verification method based on mobile status if not explicitly selected
-    if (verificationMethod === 'auto') {
-      verificationMethod = isMobile ? 'html' : 'dns';
+    // Always use DNS verification (the only supported method)
+    if (verificationMethod === 'auto' || verificationMethod === 'html') {
+      verificationMethod = 'dns';
     }
     
     const newVerification = await startVerification(domainId, domain.name || '', verificationMethod);

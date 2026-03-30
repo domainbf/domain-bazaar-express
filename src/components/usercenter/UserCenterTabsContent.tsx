@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { CustomUrlSettings } from "@/components/usercenter/CustomUrlSettings";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ComponentErrorBoundary } from "@/components/common/ComponentErrorBoundary";
 
 /* ─── Transaction sub-tabs ────────────────────────────────────────
    Mobile: horizontally scrollable pill row (no nested Tabs)
@@ -96,63 +97,73 @@ export const UserCenterTabsContent = () => {
     <div className="space-y-4">
       {/* ── Domains ─────────────────────────────────────────────── */}
       <TabsContent value="domains" className="mt-0">
-        <DomainManagement />
+        <ComponentErrorBoundary fallbackMessage="域名管理模块加载出错，请重试">
+          <DomainManagement />
+        </ComponentErrorBoundary>
       </TabsContent>
 
       {/* ── Transactions ─────────────────────────────────────────── */}
       <TabsContent value="transactions" className="mt-0">
-        {isMobile ? (
-          <>
-            <MobilePillNav
-              items={TX_TABS.map(t => ({ id: t.id, shortLabel: t.shortLabel, icon: t.icon }))}
-              active={txTab}
-              onChange={setTxTab}
-            />
-            <TxContent tab={txTab} />
-          </>
-        ) : (
-          <>
-            {/* Desktop: classic tab bar */}
-            <div className="flex flex-wrap gap-1 mb-5 border-b border-border pb-3">
-              {TX_TABS.map((tab) => {
-                const Icon = tab.icon;
-                const sel = txTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setTxTab(tab.id)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all
-                      ${sel
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                      }`}
-                  >
-                    <Icon className="w-3.5 h-3.5" />
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-            <TxContent tab={txTab} />
-          </>
-        )}
+        <ComponentErrorBoundary fallbackMessage="交易模块加载出错，请重试">
+          {isMobile ? (
+            <>
+              <MobilePillNav
+                items={TX_TABS.map(t => ({ id: t.id, shortLabel: t.shortLabel, icon: t.icon }))}
+                active={txTab}
+                onChange={setTxTab}
+              />
+              <TxContent tab={txTab} />
+            </>
+          ) : (
+            <>
+              {/* Desktop: classic tab bar */}
+              <div className="flex flex-wrap gap-1 mb-5 border-b border-border pb-3">
+                {TX_TABS.map((tab) => {
+                  const Icon = tab.icon;
+                  const sel = txTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setTxTab(tab.id)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all
+                        ${sel
+                          ? 'bg-primary/10 text-primary'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                        }`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <TxContent tab={txTab} />
+            </>
+          )}
+        </ComponentErrorBoundary>
       </TabsContent>
 
       {/* ── Messages ─────────────────────────────────────────────── */}
       <TabsContent value="messages" className="mt-0">
-        <div className={isMobile ? 'h-[calc(100vh-200px)]' : 'h-[600px]'}>
-          <MessagesPage />
-        </div>
+        <ComponentErrorBoundary fallbackMessage="消息模块加载出错，请重试">
+          <div className={isMobile ? 'h-[calc(100vh-200px)]' : 'h-[600px]'}>
+            <MessagesPage />
+          </div>
+        </ComponentErrorBoundary>
       </TabsContent>
 
       {/* ── Notifications ────────────────────────────────────────── */}
       <TabsContent value="notifications" className="mt-0">
-        <NotificationsPanel />
+        <ComponentErrorBoundary fallbackMessage="通知模块加载出错，请重试">
+          <NotificationsPanel />
+        </ComponentErrorBoundary>
       </TabsContent>
 
       {/* ── Profile ──────────────────────────────────────────────── */}
       <TabsContent value="profile" className="mt-0">
-        <ProfileCompletion onNavigateTab={() => setProfileTab('info')} />
+        <ComponentErrorBoundary fallbackMessage="个人资料模块加载出错，请重试">
+          <ProfileCompletion onNavigateTab={() => setProfileTab('info')} />
+        </ComponentErrorBoundary>
 
         {isMobile ? (
           <>
