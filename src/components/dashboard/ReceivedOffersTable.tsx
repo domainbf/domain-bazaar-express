@@ -189,44 +189,95 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
 
       // 3. Email to buyer (via send-email edge function — no auth required)
       if (offer.contact_email) {
-        const html = `<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><title>卖家还价通知</title></head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,sans-serif">
-  <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08)">
-    <div style="background:#111;padding:32px 40px;text-align:center">
-      <h1 style="color:#fff;margin:0;font-size:24px;font-weight:800">NIC.BN</h1>
-      <p style="color:rgba(255,255,255,0.6);margin:8px 0 0;font-size:13px">域名交易平台</p>
-    </div>
-    <div style="padding:40px">
-      <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#111">卖家已还价</h2>
-      <p style="color:#666;font-size:14px;margin:0 0 28px">卖家对您的报价做出了回应，请查看详情：</p>
-      <div style="background:#f8f8f8;border-radius:8px;padding:20px;margin-bottom:20px">
-        <p style="margin:0 0 4px;color:#999;font-size:12px">域名</p>
-        <p style="margin:0;font-size:22px;font-weight:800;color:#111">${(offer.domain_name || '').toUpperCase()}</p>
-      </div>
-      <table style="width:100%;border-collapse:separate;border-spacing:8px;margin-bottom:20px"><tr>
-        <td style="background:#f8f8f8;border-radius:8px;padding:16px;text-align:center">
-          <p style="margin:0 0 4px;color:#999;font-size:11px">您的出价</p>
-          <p style="margin:0;font-size:18px;font-weight:700;color:#999;text-decoration:line-through">$${offer.amount.toLocaleString()}</p>
-        </td>
-        <td style="background:#111;border-radius:8px;padding:16px;text-align:center">
-          <p style="margin:0 0 4px;color:rgba(255,255,255,0.6);font-size:11px">卖家还价</p>
-          <p style="margin:0;font-size:18px;font-weight:700;color:#fff">$${amount.toLocaleString()}</p>
-        </td>
-      </tr></table>
-      ${counterNote.trim() ? `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:16px;margin-bottom:20px"><p style="margin:0 0 4px;color:#92400e;font-size:11px;font-weight:600">卖家备注</p><p style="margin:0;color:#78350f;font-size:14px">${counterNote.trim()}</p></div>` : ''}
-      <a href="https://nic.rw/user-center?tab=transactions" style="display:block;background:#111;color:#fff;text-align:center;padding:14px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;margin-bottom:16px">查看报价并回复 →</a>
-      <p style="color:#999;font-size:12px;text-align:center;margin:0">您可以接受还价或拒绝并继续谈判</p>
-    </div>
-    <div style="background:#f8f8f8;padding:20px 40px;text-align:center;border-top:1px solid #eee">
-      <p style="color:#bbb;font-size:11px;margin:0">© NIC.BN · 域见你 · <a href="https://nic.rw" style="color:#bbb">nic.rw</a></p>
-    </div>
-  </div>
-</body></html>`;
+        const domainDisplay = (offer.domain_name || '').toUpperCase();
+        const yourBid = `$${offer.amount.toLocaleString()}`;
+        const counterBid = `$${amount.toLocaleString()}`;
+        const noteBlock = counterNote.trim()
+          ? `<div style="background:#fefce8;border:1px solid #fef08a;border-radius:10px;padding:18px 20px;margin-bottom:24px;">
+              <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#854d0e;letter-spacing:1px;text-transform:uppercase;">卖家备注</p>
+              <p style="margin:0;font-size:14px;color:#713f12;font-style:italic;">"${counterNote.trim()}"</p>
+            </div>`
+          : '';
+
+        const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>卖家还价通知 — ${domainDisplay}</title>
+  <style>body{margin:0;padding:0;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;}.preheader{display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;}</style>
+</head>
+<body>
+  <span class="preheader">卖家对 ${domainDisplay} 的报价做出了还价 ${counterBid}</span>
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#f1f5f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;width:100%;">
+        <tr><td style="padding-bottom:24px;text-align:center;">
+          <table cellpadding="0" cellspacing="0" role="presentation" style="display:inline-table;">
+            <tr><td style="background:#0f172a;border-radius:12px;padding:10px 20px;">
+              <span style="color:#f8fafc;font-size:20px;font-weight:800;letter-spacing:-0.5px;">域见</span><span style="color:#475569;font-size:20px;font-weight:800;">•</span><span style="color:#f8fafc;font-size:20px;font-weight:800;letter-spacing:-0.5px;">你</span>
+              <span style="color:#475569;font-size:11px;font-weight:600;margin-left:10px;letter-spacing:2px;text-transform:uppercase;">NIC.BN</span>
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.07),0 2px 4px -2px rgba(0,0,0,0.05);">
+          <div style="height:4px;background:linear-gradient(90deg,#0f172a 0%,#334155 50%,#64748b 100%);"></div>
+          <div style="padding:40px 40px 32px;text-align:center;border-bottom:1px solid #f1f5f9;">
+            <div style="width:64px;height:64px;background:#eff6ff;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:32px;">💬</div>
+            <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;">卖家已还价</h1>
+            <p style="margin:0;font-size:15px;color:#64748b;">卖家对您的报价做出了回应，请尽快查看</p>
+          </div>
+          <div style="padding:32px 40px 0;">
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:24px;">
+              <tr>
+                <td style="background:#f8fafc;border-radius:12px;padding:24px;text-align:center;border:1px solid #e2e8f0;">
+                  <p style="margin:0 0 6px;font-size:12px;font-weight:600;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;">洽谈域名</p>
+                  <p style="margin:0;font-size:28px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;">${domainDisplay}</p>
+                </td>
+              </tr>
+            </table>
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:24px;border-spacing:12px;border-collapse:separate;">
+              <tr>
+                <td style="background:#f1f5f9;border-radius:10px;padding:18px;text-align:center;width:50%;">
+                  <p style="margin:0 0 6px;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;">您的出价</p>
+                  <p style="margin:0;font-size:22px;font-weight:800;color:#94a3b8;text-decoration:line-through;">${yourBid}</p>
+                </td>
+                <td style="background:#0f172a;border-radius:10px;padding:18px;text-align:center;width:50%;">
+                  <p style="margin:0 0 6px;font-size:11px;font-weight:600;color:#475569;letter-spacing:1px;text-transform:uppercase;">卖家还价</p>
+                  <p style="margin:0;font-size:22px;font-weight:800;color:#f8fafc;">${counterBid}</p>
+                </td>
+              </tr>
+            </table>
+            ${noteBlock}
+            <div style="background:#f8fafc;border-radius:10px;padding:20px;border-left:4px solid #0f172a;margin-bottom:28px;">
+              <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#0f172a;">您可以选择：</p>
+              <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
+                <tr><td style="padding:3px 0;font-size:13px;color:#475569;"><span style="color:#0f172a;font-weight:700;margin-right:8px;">✓</span>接受卖家还价，直接完成交易</td></tr>
+                <tr><td style="padding:3px 0;font-size:13px;color:#475569;"><span style="color:#0f172a;font-weight:700;margin-right:8px;">↺</span>提出新的反报价，继续协商</td></tr>
+                <tr><td style="padding:3px 0;font-size:13px;color:#475569;"><span style="color:#0f172a;font-weight:700;margin-right:8px;">✕</span>拒绝还价，结束本次谈判</td></tr>
+              </table>
+            </div>
+            <div style="text-align:center;padding-bottom:32px;">
+              <a href="https://nic.bn/user-center?tab=transactions" style="display:inline-block;background:#0f172a;color:#f8fafc;padding:16px 40px;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;letter-spacing:0.3px;box-shadow:0 4px 14px rgba(15,23,42,0.25);">查看报价并回复 →</a>
+            </div>
+          </div>
+          <div style="padding:20px 40px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;">
+            <p style="margin:0;font-size:13px;color:#94a3b8;">有疑问？联系 <a href="mailto:support@nic.bn" style="color:#475569;text-decoration:none;font-weight:600;">support@nic.bn</a></p>
+          </div>
+        </td></tr>
+        <tr><td style="padding:24px 20px 0;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} 域见•你 · NIC.BN · All rights reserved</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
 
         supabase.functions.invoke('send-email', {
           body: {
             to: offer.contact_email,
-            subject: `[NIC.BN] 域名 ${offer.domain_name} — 卖家还价 $${amount.toLocaleString()}`,
+            subject: `卖家还价通知：${offer.domain_name} — 还价 $${amount.toLocaleString()}`,
             html,
           },
         }).catch(e => console.error('Email error:', e));

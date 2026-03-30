@@ -51,12 +51,80 @@ export default function DisputePage() {
     }
     setSubmitting(true);
     try {
-      const body = `纠纷申诉\n\n申诉人: ${user.email}\n交易ID: ${form.transaction_id || '未提供'}\n纠纷类型: ${form.dispute_type}\n对方邮箱: ${form.opponent_email || '未提供'}\n涉及金额: ${form.amount || '未提供'}\n\n详细描述:\n${form.description}`;
+      const disputeLabel = DISPUTE_TYPES.find(d => d.value === form.dispute_type)?.label || form.dispute_type;
+      const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>纠纷申诉 — 域见•你</title>
+  <style>body{margin:0;padding:0;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;}</style>
+</head>
+<body>
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#f1f5f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;width:100%;">
+        <tr><td style="padding-bottom:24px;text-align:center;">
+          <table cellpadding="0" cellspacing="0" role="presentation" style="display:inline-table;">
+            <tr><td style="background:#0f172a;border-radius:12px;padding:10px 20px;">
+              <span style="color:#f8fafc;font-size:20px;font-weight:800;">域见</span><span style="color:#475569;font-size:20px;font-weight:800;">•</span><span style="color:#f8fafc;font-size:20px;font-weight:800;">你</span>
+              <span style="color:#475569;font-size:11px;font-weight:600;margin-left:10px;letter-spacing:2px;">NIC.BN</span>
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.07);">
+          <div style="height:4px;background:linear-gradient(90deg,#dc2626,#f97316);"></div>
+          <div style="padding:40px 40px 32px;text-align:center;border-bottom:1px solid #f1f5f9;">
+            <div style="width:64px;height:64px;background:#fef2f2;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:32px;">⚠️</div>
+            <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#0f172a;">新纠纷申诉</h1>
+            <p style="margin:0;font-size:15px;color:#64748b;">一名用户提交了交易纠纷申诉，请尽快处理</p>
+          </div>
+          <div style="padding:32px 40px;">
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:24px;">
+              <tr>
+                <td style="padding:12px 16px;background:#f8fafc;font-size:12px;font-weight:600;color:#64748b;width:35%;border-bottom:1px solid #f1f5f9;">申诉人</td>
+                <td style="padding:12px 16px;font-size:14px;color:#0f172a;font-weight:600;border-bottom:1px solid #f1f5f9;">${user.email}</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 16px;background:#f8fafc;font-size:12px;font-weight:600;color:#64748b;width:35%;border-bottom:1px solid #f1f5f9;">纠纷类型</td>
+                <td style="padding:12px 16px;font-size:14px;color:#dc2626;font-weight:700;border-bottom:1px solid #f1f5f9;">${disputeLabel}</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 16px;background:#f8fafc;font-size:12px;font-weight:600;color:#64748b;width:35%;border-bottom:1px solid #f1f5f9;">交易 ID</td>
+                <td style="padding:12px 16px;font-size:14px;color:#475569;font-family:monospace;border-bottom:1px solid #f1f5f9;">${form.transaction_id || '未提供'}</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 16px;background:#f8fafc;font-size:12px;font-weight:600;color:#64748b;width:35%;border-bottom:1px solid #f1f5f9;">对方邮箱</td>
+                <td style="padding:12px 16px;font-size:14px;color:#475569;border-bottom:1px solid #f1f5f9;">${form.opponent_email || '未提供'}</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 16px;background:#f8fafc;font-size:12px;font-weight:600;color:#64748b;width:35%;">涉及金额</td>
+                <td style="padding:12px 16px;font-size:14px;color:#0f172a;font-weight:700;">${form.amount ? `$${parseFloat(form.amount).toLocaleString()}` : '未提供'}</td>
+              </tr>
+            </table>
+            <div style="background:#f8fafc;border-radius:10px;padding:20px;border:1px solid #e2e8f0;">
+              <p style="margin:0 0 10px;font-size:12px;font-weight:700;color:#64748b;letter-spacing:0.5px;text-transform:uppercase;">详细描述</p>
+              <p style="margin:0;font-size:14px;color:#334155;line-height:1.8;white-space:pre-wrap;">${form.description}</p>
+            </div>
+            <p style="margin:24px 0 0;font-size:12px;color:#94a3b8;text-align:center;">提交时间：${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })} (北京时间)</p>
+          </div>
+          <div style="padding:20px 40px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;">
+            <p style="margin:0;font-size:13px;color:#94a3b8;">域见•你 后台管理 · <a href="https://nic.bn/admin" style="color:#475569;text-decoration:none;font-weight:600;">前往处理</a></p>
+          </div>
+        </td></tr>
+        <tr><td style="padding:24px 20px 0;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} 域见•你 · NIC.BN</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
       await supabase.functions.invoke('send-email', {
         body: {
           to: 'support@nic.bn',
-          subject: `[纠纷申诉] ${user.email}`,
-          html: `<pre style="font-family:sans-serif;white-space:pre-wrap">${body}</pre>`,
+          subject: `[纠纷申诉] ${disputeLabel} — ${user.email}`,
+          html,
         },
       });
       setSubmitted(true);

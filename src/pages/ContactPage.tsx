@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from 'sonner';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Mail, 
   Phone, 
@@ -97,15 +98,98 @@ export const ContactPage: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // 模拟提交延迟
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // 这里应该调用实际的API
-      console.log('Contact form submitted:', formData);
+      const categoryLabels: Record<string, string> = {
+        'transaction': '交易问题',
+        'domain': '域名相关',
+        'account': '账户问题',
+        'payment': '支付结算',
+        'technical': '技术支持',
+        'other': '其他问题',
+      };
+      const categoryLabel = categoryLabels[formData.category] || formData.category;
+
+      const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>用户联系我们 — 域见•你</title>
+  <style>body{margin:0;padding:0;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;}</style>
+</head>
+<body>
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#f1f5f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;width:100%;">
+        <tr><td style="padding-bottom:24px;text-align:center;">
+          <table cellpadding="0" cellspacing="0" role="presentation" style="display:inline-table;">
+            <tr><td style="background:#0f172a;border-radius:12px;padding:10px 20px;">
+              <span style="color:#f8fafc;font-size:20px;font-weight:800;">域见</span><span style="color:#475569;font-size:20px;font-weight:800;">•</span><span style="color:#f8fafc;font-size:20px;font-weight:800;">你</span>
+              <span style="color:#475569;font-size:11px;font-weight:600;margin-left:10px;letter-spacing:2px;">NIC.BN</span>
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.07);">
+          <div style="height:4px;background:linear-gradient(90deg,#0f172a 0%,#334155 50%,#64748b 100%);"></div>
+          <div style="padding:40px 40px 32px;text-align:center;border-bottom:1px solid #f1f5f9;">
+            <div style="width:64px;height:64px;background:#eff6ff;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:32px;">✉️</div>
+            <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#0f172a;">新客服消息</h1>
+            <p style="margin:0;font-size:15px;color:#64748b;">用户通过联系页面发送了一条消息</p>
+          </div>
+          <div style="padding:32px 40px;">
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:24px;">
+              <tr>
+                <td style="padding:12px 16px;background:#f8fafc;font-size:12px;font-weight:600;color:#64748b;width:35%;border-bottom:1px solid #f1f5f9;">姓名</td>
+                <td style="padding:12px 16px;font-size:14px;color:#0f172a;font-weight:600;border-bottom:1px solid #f1f5f9;">${formData.name}</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 16px;background:#f8fafc;font-size:12px;font-weight:600;color:#64748b;width:35%;border-bottom:1px solid #f1f5f9;">邮箱</td>
+                <td style="padding:12px 16px;font-size:14px;border-bottom:1px solid #f1f5f9;"><a href="mailto:${formData.email}" style="color:#0f172a;text-decoration:none;font-weight:500;">${formData.email}</a></td>
+              </tr>
+              ${formData.phone ? `<tr>
+                <td style="padding:12px 16px;background:#f8fafc;font-size:12px;font-weight:600;color:#64748b;width:35%;border-bottom:1px solid #f1f5f9;">电话</td>
+                <td style="padding:12px 16px;font-size:14px;color:#475569;border-bottom:1px solid #f1f5f9;">${formData.phone}</td>
+              </tr>` : ''}
+              <tr>
+                <td style="padding:12px 16px;background:#f8fafc;font-size:12px;font-weight:600;color:#64748b;width:35%;border-bottom:1px solid #f1f5f9;">问题类型</td>
+                <td style="padding:12px 16px;font-size:14px;color:#0f172a;font-weight:700;border-bottom:1px solid #f1f5f9;">${categoryLabel}</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 16px;background:#f8fafc;font-size:12px;font-weight:600;color:#64748b;width:35%;">主题</td>
+                <td style="padding:12px 16px;font-size:14px;color:#0f172a;font-weight:600;">${formData.subject}</td>
+              </tr>
+            </table>
+            <div style="background:#f8fafc;border-radius:10px;padding:20px;border:1px solid #e2e8f0;">
+              <p style="margin:0 0 10px;font-size:12px;font-weight:700;color:#64748b;letter-spacing:0.5px;text-transform:uppercase;">消息内容</p>
+              <p style="margin:0;font-size:14px;color:#334155;line-height:1.8;white-space:pre-wrap;">${formData.message}</p>
+            </div>
+            <p style="margin:20px 0 0;font-size:12px;color:#94a3b8;text-align:center;">提交时间：${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })} (北京时间)</p>
+            <div style="text-align:center;margin-top:24px;">
+              <a href="mailto:${formData.email}" style="display:inline-block;background:#0f172a;color:#f8fafc;padding:12px 32px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;">回复用户 →</a>
+            </div>
+          </div>
+          <div style="padding:20px 40px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;">
+            <p style="margin:0;font-size:13px;color:#94a3b8;">域见•你 客服系统 · <a href="https://nic.bn/admin" style="color:#475569;text-decoration:none;font-weight:600;">前往管理后台</a></p>
+          </div>
+        </td></tr>
+        <tr><td style="padding:24px 20px 0;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} 域见•你 · NIC.BN</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+      await supabase.functions.invoke('send-email', {
+        body: {
+          to: 'support@nic.bn',
+          subject: `[客服] ${categoryLabel}：${formData.subject} — ${formData.name}`,
+          html,
+        },
+      });
       
       toast.success('消息发送成功！我们会在24小时内回复您。');
       
-      // 重置表单
       setFormData({
         name: '',
         email: '',
