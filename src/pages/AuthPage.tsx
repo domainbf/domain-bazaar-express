@@ -68,15 +68,7 @@ export const AuthPage = () => {
           {/* Auth Card */}
           <div className="bg-background rounded-xl shadow-lg border border-border overflow-hidden">
             {/* Card Header */}
-            <div className="bg-primary text-primary-foreground px-8 py-8 text-center relative overflow-hidden">
-              {/* Subtle pattern */}
-              <div className="absolute inset-0 opacity-5">
-                <div className="absolute inset-0" style={{
-                  backgroundImage: 'radial-gradient(circle at 25% 25%, currentColor 1px, transparent 1px)',
-                  backgroundSize: '24px 24px'
-                }} />
-              </div>
-              
+            <div className="border-b border-border px-8 py-8 text-center relative overflow-hidden bg-muted/20">
               <motion.div 
                 className="relative z-10"
                 key={mode + String(showResetPassword)}
@@ -84,11 +76,11 @@ export const AuthPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="w-16 h-16 bg-primary-foreground/10 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
-                  <Globe className="w-8 h-8" />
+                <div className="w-16 h-16 border-2 border-foreground/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Globe className="w-8 h-8 text-foreground/70" />
                 </div>
-                <h1 className="text-2xl font-bold mb-2">{getTitle()}</h1>
-                <p className="text-primary-foreground/70 text-sm">{getSubtitle()}</p>
+                <h1 className="text-2xl font-bold mb-2 text-foreground">{getTitle()}</h1>
+                <p className="text-muted-foreground text-sm">{getSubtitle()}</p>
               </motion.div>
             </div>
             
@@ -141,8 +133,8 @@ export const AuthPage = () => {
               { icon: TrendingUp, label: '优质域名' },
             ].map(({ icon: Icon, label }) => (
               <div key={label} className="flex flex-col items-center group">
-                <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-200">
-                  <Icon className="w-5 h-5 text-primary-foreground" />
+                <div className="w-10 h-10 border border-border rounded-full flex items-center justify-center mb-2 group-hover:border-foreground/40 transition-colors duration-200">
+                  <Icon className="w-5 h-5 text-foreground/60" />
                 </div>
                 <span className="text-xs text-muted-foreground font-medium">{label}</span>
               </div>

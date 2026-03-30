@@ -81,9 +81,19 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain, initialD
         if (error) throw error;
         toast.success('域名已成功更新');
       } else {
-        const { error } = await supabase.from('domain_listings').insert([domainData]);
+        const { data: inserted, error } = await supabase
+          .from('domain_listings').insert([domainData]).select('id, name');
         if (error) throw error;
         toast.success('域名已成功添加');
+        if (inserted?.[0]) {
+          const { id, name } = inserted[0];
+          const { data: aiCfg } = await supabase.from('site_settings').select('value')
+            .eq('key', 'modelscope_auto_generate').maybeSingle();
+          if (aiCfg?.value === 'true') {
+            const { generateAndSaveDomainLogo } = await import('@/hooks/useModelScopeAI');
+            generateAndSaveDomainLogo(id, name, (msg) => toast.info(msg));
+          }
+        }
       }
       resetForm();
       if (onClose) onClose();

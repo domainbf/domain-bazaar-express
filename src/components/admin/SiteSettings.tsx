@@ -100,6 +100,15 @@ export const SiteSettings = () => {
   const [whoisTestResult, setWhoisTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [whoisTestDomain, setWhoisTestDomain] = useState('google.com');
 
+  // ModelScope AI config state
+  const [msApiKey, setMsApiKey] = useState('');
+  const [showMsKey, setShowMsKey] = useState(false);
+  const [msModel, setMsModel] = useState('iic/Z-Image-Turbo');
+  const [msAutoGenerate, setMsAutoGenerate] = useState(false);
+  const [isSavingMs, setIsSavingMs] = useState(false);
+  const [msTestResult, setMsTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
+  const [isTestingMs, setIsTestingMs] = useState(false);
+
   // Contact info state
   const [contactInfo, setContactInfo] = useState({
     site_domain: '',
@@ -171,6 +180,7 @@ export const SiteSettings = () => {
     loadSmtpConfig();
     loadContactConfig();
     loadWhoisConfig();
+    loadModelScopeConfig();
   }, []);
 
   const loadWhoisConfig = async () => {
@@ -221,6 +231,52 @@ export const SiteSettings = () => {
       setWhoisTestResult({ ok: false, msg: e.message || '查询异常' });
     } finally {
       setIsTestingWhois(false);
+    }
+  };
+
+  const loadModelScopeConfig = async () => {
+    try {
+      const { data } = await supabase
+        .from('site_settings')
+        .select('key, value')
+        .in('key', ['modelscope_api_key', 'modelscope_model', 'modelscope_auto_generate']);
+      if (data?.length) {
+        const m = Object.fromEntries(data.map((r: any) => [r.key, r.value]));
+        setMsApiKey(m['modelscope_api_key'] || '');
+        setMsModel(m['modelscope_model'] || 'iic/Z-Image-Turbo');
+        setMsAutoGenerate(m['modelscope_auto_generate'] === 'true');
+      }
+    } catch (e) { console.error('loadModelScopeConfig error', e); }
+  };
+
+  const saveModelScopeConfig = async () => {
+    setIsSavingMs(true);
+    try {
+      await supabase.from('site_settings').upsert([
+        { key: 'modelscope_api_key', value: msApiKey, section: 'api', type: 'text', description: 'ModelScope API Key' },
+        { key: 'modelscope_model', value: msModel, section: 'api', type: 'text', description: 'ModelScope AI model' },
+        { key: 'modelscope_auto_generate', value: String(msAutoGenerate), section: 'api', type: 'boolean', description: '添加域名时自动生成Logo' },
+      ], { onConflict: 'key' });
+      toast.success('ModelScope 配置已保存');
+    } catch (e: any) {
+      toast.error('保存失败：' + (e.message || '未知错误'));
+    } finally {
+      setIsSavingMs(false);
+    }
+  };
+
+  const testModelScopeApi = async () => {
+    if (!msApiKey.trim()) { toast.error('请先填写 API Key'); return; }
+    setIsTestingMs(true);
+    setMsTestResult(null);
+    try {
+      const { generateDomainLogo } = await import('@/hooks/useModelScopeAI');
+      const url = await generateDomainLogo('TEST.BN', { apiKey: msApiKey, model: msModel });
+      setMsTestResult({ ok: true, msg: `生成成功！图片URL：${url.slice(0, 60)}...` });
+    } catch (e: any) {
+      setMsTestResult({ ok: false, msg: e.message || '测试失败，请检查API Key和模型' });
+    } finally {
+      setIsTestingMs(false);
     }
   };
 
@@ -1244,6 +1300,104 @@ export const SiteSettings = () => {
                 </div>
                 <p className="text-xs text-muted-foreground">支持数据：WHOIS、RDAP、注册商、创建/到期日期、DNS 服务器、DNSSEC、EPP 状态</p>
               </div>
+            </CardContent>
+          </Card>
+          {/* ModelScope AI */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-primary" />
+                ModelScope 魔搭 AI 图像生成
+                {msApiKey && (
+                  <Badge className="bg-green-500/10 text-green-600 border-green-200 ml-auto">已配置</Badge>
+                )}
+              </CardTitle>
+              <CardDescription>
+                配置 ModelScope API，自动为域名生成黑白风格 Logo。
+                获取密钥：<a href="https://modelscope.cn/my/myaccesstoken" target="_blank" rel="noopener noreferrer" className="text-primary underline ml-1">modelscope.cn → 账号 → 访问令牌</a>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <Alert>
+                <Info className="h-4 w-4" />
+                <AlertDescription>
+                  推荐模型：<strong>Z-Image-Turbo</strong>（速度快）、<strong>Flux.1</strong>（质量高）。
+                  生成的 Logo 会自动适配黑白主题，存储后显示在首页滚动域名卡片中。
+                </AlertDescription>
+              </Alert>
+
+              <div className="space-y-2">
+                <Label className="font-semibold">API Key（访问令牌）</Label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      type={showMsKey ? 'text' : 'password'}
+                      placeholder="请输入 ModelScope API Key"
+                      value={msApiKey}
+                      onChange={(e) => setMsApiKey(e.target.value)}
+                      className="pr-10 font-mono"
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      onClick={() => setShowMsKey(v => !v)}
+                    >
+                      {showMsKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="font-semibold">AI 模型</Label>
+                <Select value={msModel} onValueChange={setMsModel}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="iic/Z-Image-Turbo">Z-Image-Turbo（速度最快，推荐）</SelectItem>
+                    <SelectItem value="stabilityai/stable-diffusion-xl-base-1.0">Stable Diffusion XL（高质量）</SelectItem>
+                    <SelectItem value="black-forest-labs/FLUX.1-schnell">Flux.1 Schnell（快速高质量）</SelectItem>
+                    <SelectItem value="black-forest-labs/FLUX.1-dev">Flux.1 Dev（最高质量）</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">所有模型均使用黑白风格提示词，生成结果与网站风格一致</p>
+              </div>
+
+              <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/20">
+                <Switch
+                  checked={msAutoGenerate}
+                  onCheckedChange={setMsAutoGenerate}
+                />
+                <div>
+                  <p className="text-sm font-medium">添加域名时自动生成 Logo</p>
+                  <p className="text-xs text-muted-foreground">在后台添加域名后，自动调用 AI 生成对应的黑白风格域名 Logo</p>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button onClick={saveModelScopeConfig} disabled={isSavingMs}>
+                  {isSavingMs ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />}
+                  保存配置
+                </Button>
+                <Button variant="outline" onClick={testModelScopeApi} disabled={isTestingMs || !msApiKey}>
+                  {isTestingMs
+                    ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
+                    : <TestTube2 className="h-4 w-4 mr-1.5" />}
+                  测试生成
+                </Button>
+              </div>
+
+              {msTestResult && (
+                <Alert className={msTestResult.ok ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30' : 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30'}>
+                  {msTestResult.ok
+                    ? <CheckCircle className="h-4 w-4 text-green-600" />
+                    : <XCircle className="h-4 w-4 text-red-600" />}
+                  <AlertDescription className={msTestResult.ok ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}>
+                    {msTestResult.msg}
+                  </AlertDescription>
+                </Alert>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
