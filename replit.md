@@ -197,7 +197,43 @@ npm run build    # Build for production
 - The SQL migration in `supabase/migrations/add_trading_features.sql` must be run manually
   in Supabase Dashboard → SQL Editor before messages/disputes features work
 - Social login (Google/GitHub) requires enabling OAuth providers in Supabase Dashboard → Auth → Providers
-- Password reset emails require deploying the updated `auth-email-webhook` edge function in Supabase Dashboard
 - Admin email settings tab has Resend API key config + real test email button (calls `send-email` edge function directly)
 - All logic goes through Supabase client directly (no Express backend)
 - Supabase Edge Functions remain deployed on the Supabase project (`trqxaizkwuizuhlfmdup`) — they are NOT run locally
+
+## Supabase Configuration (Current State — March 2026)
+
+All of the following have been applied directly to the Supabase project via Management API:
+
+### Database site_settings (verified correct)
+| key | value |
+|-----|-------|
+| `site_domain` | `https://nic.rw` |
+| `site_name` | `域见•你` |
+| `logo_text` | `NIC.RW` |
+| `contact_email` | `domain@nic.rw` |
+| `smtp_from_email` | `noreply@nic.rw` |
+| `smtp_from_name` | `域见•你` |
+| `resend_api_key` | (set — Resend API key for send-email function) |
+
+### Auth configuration (applied via Management API)
+- `site_url`: `https://nic.rw`
+- `uri_allow_list`: includes `https://nic.rw` and `https://nic.rw/**`
+- Email hook: `auth-email-webhook` edge function (verify_jwt: false)
+
+### Edge Functions (all ACTIVE)
+- `auth-email-webhook` (v50) — custom email sender; uses Resend via send-email function
+  - Sends recovery/signup/magiclink emails with beautiful HTML templates
+  - Uses `/auth/v1/verify?token_hash&type=recovery&redirect_to=` URL format
+  - Returns 200 immediately; email sent in EdgeRuntime.waitUntil background task
+- `send-email` (v124) — SMTP/Resend email dispatcher
+- All other functions (payment, WHOIS, DNS, AI evaluation, etc.) at their current versions
+
+### Deploying edge functions
+To redeploy a function after local code changes, use the Management API:
+```javascript
+PATCH https://api.supabase.com/v1/projects/trqxaizkwuizuhlfmdup/functions/{slug}
+Authorization: Bearer ${SUPABASE_MANAGEMENT_TOKEN}
+Body: { name, body: sourceCodeString, verify_jwt: false }
+```
+The `SUPABASE_MANAGEMENT_TOKEN` is stored as a Replit shared env var.
