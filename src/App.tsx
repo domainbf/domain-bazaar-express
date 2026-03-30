@@ -1,5 +1,5 @@
 
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, Suspense, lazy, memo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -94,6 +94,33 @@ RouteLoadingFallback.displayName = 'RouteLoadingFallback';
 // Each page's own mount animation handles the visual transition
 const AnimatedRoutes = memo(() => {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Global Supabase auth-callback interceptor.
+  // Supabase emails redirect to the base site URL with a hash like:
+  //   #access_token=...&type=recovery   → send to /reset-password
+  //   #access_token=...&type=signup     → send to /auth (handles confirmation)
+  //   #access_token=...&type=email_change → send to /user-center
+  // Without this, users land on the homepage and nothing happens.
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash) return;
+
+    const params = new URLSearchParams(hash.replace(/^#/, ''));
+    const type = params.get('type');
+    if (!type) return;
+
+    // Only intercept when not already on the correct page
+    const path = window.location.pathname;
+    if (type === 'recovery' && path !== '/reset-password') {
+      navigate('/reset-password' + hash, { replace: true });
+    } else if (type === 'signup' && path !== '/auth') {
+      navigate('/auth' + hash, { replace: true });
+    } else if (type === 'email_change' && path !== '/user-center') {
+      navigate('/user-center' + hash, { replace: true });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
