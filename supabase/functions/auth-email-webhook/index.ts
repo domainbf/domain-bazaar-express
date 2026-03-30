@@ -79,9 +79,8 @@ function emailBase(content: string, previewText: string, site: SiteInfo): string
 
 // ─── 密码重置 ──────────────────────────────────────────────────────────────────
 
-function getPasswordResetHtml(token: string, baseUrl: string, site: SiteInfo): string {
-  const resetUrl = `${baseUrl}/reset-password#access_token=${token}&type=recovery`;
-  const supportEmail = site.supportEmail || `support@${(site.siteDomain || baseUrl).replace(/^https?:\/\//, '')}`;
+function getPasswordResetHtml(verifyUrl: string, site: SiteInfo): string {
+  const supportEmail = site.supportEmail || `support@${(site.siteDomain || '').replace(/^https?:\/\//, '')}`;
   return emailBase(`
     <div style="height:4px;background:linear-gradient(90deg,#0f172a 0%,#334155 50%,#64748b 100%);"></div>
 
@@ -98,13 +97,13 @@ function getPasswordResetHtml(token: string, baseUrl: string, site: SiteInfo): s
 
       <!-- CTA Button -->
       <div style="text-align:center;margin:0 0 28px;">
-        <a href="${resetUrl}" style="display:inline-block;background:#0f172a;color:#f8fafc;padding:16px 48px;border-radius:10px;font-size:16px;font-weight:700;text-decoration:none;letter-spacing:0.3px;box-shadow:0 4px 14px rgba(15,23,42,0.25);">立即重置密码</a>
+        <a href="${verifyUrl}" style="display:inline-block;background:#0f172a;color:#f8fafc;padding:16px 48px;border-radius:10px;font-size:16px;font-weight:700;text-decoration:none;letter-spacing:0.3px;box-shadow:0 4px 14px rgba(15,23,42,0.25);">立即重置密码</a>
       </div>
 
       <!-- Fallback URL -->
       <div style="background:#f8fafc;border-radius:10px;padding:16px 20px;margin-bottom:24px;">
         <p style="margin:0 0 8px;font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;">按钮无法点击？复制此链接到浏览器：</p>
-        <p style="margin:0;font-size:12px;color:#475569;word-break:break-all;font-family:'SF Mono',Consolas,monospace;line-height:1.6;background:#f1f5f9;border-radius:6px;padding:10px;">${resetUrl}</p>
+        <p style="margin:0;font-size:12px;color:#475569;word-break:break-all;font-family:'SF Mono',Consolas,monospace;line-height:1.6;background:#f1f5f9;border-radius:6px;padding:10px;">${verifyUrl}</p>
       </div>
 
       <!-- Warning -->
@@ -231,89 +230,101 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-    const [data, site] = await Promise.all([
-      req.json(),
-      getSiteInfo(supabaseUrl, serviceRoleKey),
-    ]);
+  // Parse request body and fetch site info in parallel for speed
+  const [data, site] = await Promise.all([
+    req.json(),
+    getSiteInfo(supabaseUrl, serviceRoleKey),
+  ]);
 
-    const { user, email_data } = data;
-    const { token, token_hash, redirect_to, email_action_type, site_url } = email_data;
+  // Respond immediately to avoid the 5-second hook timeout,
+  // then send the email in the background.
+  // @ts-ignore — EdgeRuntime.waitUntil is available in Supabase Edge Functions
+  const waitUntil = (typeof EdgeRuntime !== 'undefined' && EdgeRuntime.waitUntil)
+    ? EdgeRuntime.waitUntil.bind(EdgeRuntime)
+    : (p: Promise<unknown>) => p;
 
-    let baseUrl = site.siteDomain || '';
-    if (redirect_to) {
-      try { baseUrl = new URL(redirect_to).origin; } catch { /* keep siteDomain */ }
-    } else if (site_url) {
-      baseUrl = site_url.replace(/\/$/, '');
-    }
+  const sendEmailTask = (async () => {
+    try {
+      const { user, email_data } = data;
+      const { token, token_hash, redirect_to, email_action_type } = email_data;
 
-    const userEmail = user?.email;
-    if (!userEmail) throw new Error('No user email in payload');
-
-    let subject = '';
-    let html = '';
-
-    switch (email_action_type) {
-      case 'recovery':
-        subject = `重置您的${site.siteName}账户密码`;
-        html = getPasswordResetHtml(token, baseUrl, site);
-        break;
-
-      case 'signup':
-      case 'email_change': {
-        subject = `请验证您的${site.siteName}账户邮箱`;
-        const confirmUrl = `${baseUrl}/auth/confirm?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to || baseUrl)}`;
-        html = getEmailVerificationHtml(confirmUrl, site);
-        break;
+      // Determine base URL — prefer redirect_to over stored site_domain
+      let baseUrl = site.siteDomain || '';
+      if (redirect_to) {
+        try { baseUrl = new URL(redirect_to).origin; } catch { /* keep siteDomain */ }
       }
 
-      case 'magiclink': {
-        subject = `您的${site.siteName}一键登录链接`;
-        const magicUrl = `${baseUrl}/auth/confirm?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to || baseUrl)}`;
-        html = getMagicLinkHtml(magicUrl, site);
-        break;
+      const userEmail = user?.email;
+      if (!userEmail) throw new Error('No user email in payload');
+
+      let subject = '';
+      let html = '';
+
+      switch (email_action_type) {
+        case 'recovery': {
+          subject = `重置您的${site.siteName}账户密码`;
+          // Use Supabase's own verify endpoint so that it redirects the user to
+          // the app with proper JWT access_token + refresh_token in the URL hash.
+          // This avoids sending the raw OTP token to the frontend.
+          const appRedirectTo = redirect_to || `${baseUrl}/reset-password`;
+          const verifyUrl = `${supabaseUrl}/auth/v1/verify?token=${token_hash}&type=recovery&redirect_to=${encodeURIComponent(appRedirectTo)}`;
+          html = getPasswordResetHtml(verifyUrl, site);
+          break;
+        }
+
+        case 'signup':
+        case 'email_change': {
+          subject = `请验证您的${site.siteName}账户邮箱`;
+          const confirmUrl = `${supabaseUrl}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to || baseUrl)}`;
+          html = getEmailVerificationHtml(confirmUrl, site);
+          break;
+        }
+
+        case 'magiclink': {
+          subject = `您的${site.siteName}一键登录链接`;
+          const magicUrl = `${supabaseUrl}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to || baseUrl)}`;
+          html = getMagicLinkHtml(magicUrl, site);
+          break;
+        }
+
+        default:
+          subject = `${site.siteName}平台通知`;
+          html = emailBase(`
+            <div style="height:4px;background:linear-gradient(90deg,#0f172a,#334155);"></div>
+            <div style="padding:40px;">
+              <h2 style="color:#0f172a;margin:0 0 12px;">${site.siteName} 平台通知</h2>
+              <p style="color:#475569;margin:0;">您收到了一封来自 ${site.siteName} 平台的通知邮件。</p>
+            </div>
+          `, `${site.siteName}平台通知`, site);
       }
 
-      default:
-        subject = `${site.siteName}平台通知`;
-        html = emailBase(`
-          <div style="height:4px;background:linear-gradient(90deg,#0f172a,#334155);"></div>
-          <div style="padding:40px;">
-            <h2 style="color:#0f172a;margin:0 0 12px;">${site.siteName} 平台通知</h2>
-            <p style="color:#475569;margin:0;">您收到了一封来自 ${site.siteName} 平台的通知邮件。</p>
-          </div>
-        `, `${site.siteName}平台通知`, site);
+      const res = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${serviceRoleKey}`,
+        },
+        body: JSON.stringify({ to: userEmail, subject, html }),
+      });
+
+      const result = await res.json();
+      if (!res.ok || result.success === false) {
+        throw new Error(result.error || `send-email returned ${res.status}`);
+      }
+
+      console.log(`[auth-email-webhook] Sent ${email_action_type} email to ${userEmail}`);
+    } catch (err: any) {
+      console.error('[auth-email-webhook] Background send error:', err?.message || err);
     }
+  })();
 
-    // Delegate actual sending to send-email function (SMTP configured there)
-    const res = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${serviceRoleKey}`,
-      },
-      body: JSON.stringify({ to: userEmail, subject, html }),
-    });
+  waitUntil(sendEmailTask);
 
-    const result = await res.json();
-    if (!res.ok || result.success === false) {
-      throw new Error(result.error || `send-email returned ${res.status}`);
-    }
-
-    console.log(`[auth-email-webhook] Sent ${email_action_type} email to ${userEmail}`);
-
-    return new Response(
-      JSON.stringify({ success: true }),
-      { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } },
-    );
-  } catch (err: any) {
-    console.error('[auth-email-webhook] Error:', err?.message || err);
-    return new Response(
-      JSON.stringify({ error: err?.message || 'Internal error' }),
-      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } },
-    );
-  }
+  return new Response(
+    JSON.stringify({ success: true }),
+    { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } },
+  );
 });

@@ -685,11 +685,39 @@ export const SiteSettings = () => {
               <div className="space-y-2">
                 <Label className="font-semibold">网站域名</Label>
                 <p className="text-xs text-muted-foreground">用于邮件通知中的链接和版权信息，填写完整域名（含协议），<strong>必须配置否则邮件链接无效</strong></p>
-                <Input
-                  placeholder="例：https://yourdomain.com"
-                  value={contactInfo.site_domain}
-                  onChange={(e) => setContactInfo({ ...contactInfo, site_domain: e.target.value })}
-                />
+                {contactInfo.site_domain && contactInfo.site_domain !== window.location.origin && (
+                  <Alert className="border-yellow-500/30 bg-yellow-500/5">
+                    <AlertCircle className="h-4 w-4 text-yellow-600" />
+                    <AlertDescription className="text-yellow-700 dark:text-yellow-400 text-xs">
+                      <strong>注意：</strong>当前配置的域名（<code className="font-mono">{contactInfo.site_domain}</code>）与您正在访问的域名（<code className="font-mono">{window.location.origin}</code>）不一致。密码重置邮件中的链接将指向旧域名。请更新为当前域名并保存。
+                    </AlertDescription>
+                  </Alert>
+                )}
+                {!contactInfo.site_domain && (
+                  <Alert className="border-orange-500/30 bg-orange-500/5">
+                    <AlertCircle className="h-4 w-4 text-orange-600" />
+                    <AlertDescription className="text-orange-700 dark:text-orange-400 text-xs">
+                      <strong>未配置：</strong>请填写当前网站域名（如 <code className="font-mono">{window.location.origin}</code>），否则邮件中的重置密码链接将无法正常工作。
+                    </AlertDescription>
+                  </Alert>
+                )}
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="例：https://yourdomain.com"
+                    value={contactInfo.site_domain}
+                    onChange={(e) => setContactInfo({ ...contactInfo, site_domain: e.target.value })}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setContactInfo({ ...contactInfo, site_domain: window.location.origin })}
+                    className="whitespace-nowrap text-xs"
+                  >
+                    使用当前域名
+                  </Button>
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">

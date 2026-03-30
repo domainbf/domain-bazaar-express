@@ -1,48 +1,78 @@
 import { ResetPasswordForm } from '@/components/auth/ResetPasswordForm';
 import { ResetPasswordConfirmForm } from '@/components/auth/ResetPasswordConfirmForm';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Loader2, Globe, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
 
 export const ResetPassword = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [resetTokenData, setResetTokenData] = useState<{
     accessToken: string;
     refreshToken: string;
   } | null>(null);
+  const [recoverySessionReady, setRecoverySessionReady] = useState(false);
 
   useEffect(() => {
-    const handlePasswordRecovery = async () => {
-      setIsLoading(true);
-      const hash = location.hash;
+    let settled = false;
 
-      if (hash && hash.includes('type=recovery')) {
-        const hashParams = new URLSearchParams(hash.replace(/^#/, ''));
-        const accessToken = hashParams.get('access_token');
-        const refreshToken = hashParams.get('refresh_token');
-
-        if (!accessToken) {
-          toast.error('找不到重置令牌，请重新请求密码重置');
-          setIsLoading(false);
-          return;
-        }
-
-        window.history.replaceState({}, '', window.location.pathname + window.location.search);
-
+    // Method 1: Listen for Supabase PASSWORD_RECOVERY auth event.
+    // This fires automatically when Supabase processes a valid recovery link
+    // that contains proper JWT tokens in the URL hash (the standard flow via
+    // the /auth/v1/verify endpoint).
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        settled = true;
+        setRecoverySessionReady(true);
         setResetTokenData({
-          accessToken,
-          refreshToken: refreshToken || ''
+          accessToken: session?.access_token ?? '',
+          refreshToken: session?.refresh_token ?? '',
         });
+        // Clean the URL so the tokens don't stay visible
+        window.history.replaceState({}, '', window.location.pathname);
+        setIsLoading(false);
       }
+    });
 
-      setIsLoading(false);
+    // Method 2: Manually parse hash params as a fallback (handles both the
+    // standard redirect-back format and any legacy formats).
+    const hash = location.hash;
+    if (hash && hash.includes('type=recovery')) {
+      const hashParams = new URLSearchParams(hash.replace(/^#/, ''));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token') ?? '';
+
+      if (accessToken) {
+        settled = true;
+        setResetTokenData({ accessToken, refreshToken });
+        window.history.replaceState({}, '', window.location.pathname);
+        setIsLoading(false);
+      } else {
+        // Hash had type=recovery but no access_token — invalid/expired link
+        settled = true;
+        toast.error('重置链接无效或已过期，请重新申请');
+        setIsLoading(false);
+      }
+    }
+
+    // If nothing was found in the hash, stop loading after a short grace
+    // period (in case the onAuthStateChange fires just after mount).
+    const timeout = setTimeout(() => {
+      if (!settled) {
+        setIsLoading(false);
+      }
+    }, 1500);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
     };
-
-    handlePasswordRecovery();
-  }, [location]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const title = resetTokenData ? '设置新密码' : '找回密码';
   const subtitle = resetTokenData
@@ -113,7 +143,10 @@ export const ResetPassword = () => {
               {/* Card Body */}
               <div className="px-6 sm:px-8 py-8">
                 {resetTokenData ? (
-                  <ResetPasswordConfirmForm tokenData={resetTokenData} />
+                  <ResetPasswordConfirmForm
+                    tokenData={resetTokenData}
+                    sessionReady={recoverySessionReady}
+                  />
                 ) : (
                   <ResetPasswordForm />
                 )}

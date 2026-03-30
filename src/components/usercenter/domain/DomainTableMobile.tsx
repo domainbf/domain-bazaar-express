@@ -48,7 +48,7 @@ export const DomainTableMobile = ({ domains, onDomainUpdate }: DomainTableMobile
       case 'available':
         return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 text-xs">可售</Badge>;
       case 'pending':
-        return <Badge className="bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800 text-xs">审核中</Badge>;
+        return <Badge className="bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800 text-xs">暂不出售</Badge>;
       case 'sold':
         return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 text-xs">已售</Badge>;
       default:
