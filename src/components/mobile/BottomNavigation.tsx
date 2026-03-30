@@ -1,3 +1,4 @@
+import { useRef, useState, useEffect } from 'react';
 import { Home, Search, Globe, MessageSquare, User } from 'lucide-react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,6 +14,37 @@ export const BottomNavigation = ({ unreadCount = 0, unreadMessages = 0 }: Bottom
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
+
+  const [visible, setVisible] = useState(true);
+  const lastY = useRef(0);
+  const ticking = useRef(false);
+
+  // Hide on scroll down, show on scroll up
+  useEffect(() => {
+    const handleScroll = () => {
+      if (ticking.current) return;
+      ticking.current = true;
+      window.requestAnimationFrame(() => {
+        const currentY = window.scrollY;
+        const delta = currentY - lastY.current;
+        if (delta > 6 && currentY > 60) {
+          setVisible(false);
+        } else if (delta < -6) {
+          setVisible(true);
+        }
+        lastY.current = currentY;
+        ticking.current = false;
+      });
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Always show when route / tab changes
+  useEffect(() => {
+    setVisible(true);
+    lastY.current = window.scrollY;
+  }, [location.pathname, searchParams.toString()]);
 
   const navItems = [
     {
@@ -87,9 +119,16 @@ export const BottomNavigation = ({ unreadCount = 0, unreadMessages = 0 }: Bottom
     }
   };
 
+  const navHeight = 56;
+  const safeArea = 'env(safe-area-inset-bottom, 0px)';
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-50 md:hidden"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+    <motion.div
+      className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-50 md:hidden"
+      style={{ paddingBottom: safeArea }}
+      animate={{ y: visible ? 0 : navHeight + 34 }}
+      transition={{ type: 'tween', duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+    >
       <nav className="flex justify-around items-stretch h-[56px]">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -103,12 +142,12 @@ export const BottomNavigation = ({ unreadCount = 0, unreadMessages = 0 }: Bottom
               data-testid={`nav-${item.id}`}
               className="relative flex flex-col items-center justify-center flex-1 h-full gap-0.5 transition-colors"
             >
-              {/* Active pill indicator */}
+              {/* Active top-line indicator */}
               <AnimatePresence>
                 {active && (
                   <motion.div
                     layoutId="bottom-nav-pill"
-                    className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-8 rounded-full bg-primary"
+                    className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-8 rounded-full bg-foreground"
                     initial={{ opacity: 0, scaleX: 0 }}
                     animate={{ opacity: 1, scaleX: 1 }}
                     exit={{ opacity: 0, scaleX: 0 }}
@@ -121,7 +160,7 @@ export const BottomNavigation = ({ unreadCount = 0, unreadMessages = 0 }: Bottom
                 <Icon
                   className={`w-[22px] h-[22px] transition-all duration-200 ${
                     active
-                      ? 'text-primary stroke-[2.5]'
+                      ? 'text-foreground stroke-[2.5]'
                       : 'text-muted-foreground stroke-[1.8]'
                   }`}
                 />
@@ -133,7 +172,7 @@ export const BottomNavigation = ({ unreadCount = 0, unreadMessages = 0 }: Bottom
               </div>
 
               <span className={`text-[10px] leading-none transition-colors duration-200 ${
-                active ? 'text-primary font-semibold' : 'text-muted-foreground'
+                active ? 'text-foreground font-semibold' : 'text-muted-foreground'
               }`}>
                 {item.label}
               </span>
@@ -141,6 +180,6 @@ export const BottomNavigation = ({ unreadCount = 0, unreadMessages = 0 }: Bottom
           );
         })}
       </nav>
-    </div>
+    </motion.div>
   );
 };

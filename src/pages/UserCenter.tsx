@@ -118,13 +118,18 @@ export const UserCenter = () => {
   /* ─── MOBILE LAYOUT ─────────────────────────────────────────── */
   if (isMobile) {
     const isSubPage = activeTab === 'profile-settings' || activeTab === 'profile-security';
+    const isContentTab = ['domains', 'transactions', 'notifications', 'messages'].includes(activeTab);
+    const handleBack = () => {
+      if (isSubPage || isContentTab) handleTabChange('profile');
+      else navigate('/');
+    };
     return (
       <div className="min-h-screen bg-muted/30" style={{ paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}>
         {/* Mobile top bar — compact section header */}
         <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
           <div className="flex items-center h-12 px-4 gap-3">
             <button
-              onClick={() => isSubPage ? handleTabChange('profile') : navigate('/')}
+              onClick={handleBack}
               className="text-muted-foreground hover:text-foreground transition-colors -ml-1"
               data-testid="mobile-back-btn"
             >
@@ -311,9 +316,8 @@ function MobileProfileSection({
   const { config: siteConfig } = useSiteSettings();
   const sections = [
     {
-      title: '账户功能',
+      title: '我的账户',
       items: [
-        { label: '我的域名', icon: Globe, tab: 'domains', desc: '管理在售域名' },
         { label: '交易记录', icon: ClipboardList, tab: 'transactions', desc: '报价、成交、托管' },
         { label: '消息通知', icon: Bell, tab: 'notifications', badge: unreadCount, desc: '系统与交易通知' },
       ],
@@ -401,8 +405,8 @@ function MobileProfileSection({
                   className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/50 active:bg-muted transition-colors text-left"
                   data-testid={`mobile-nav-${item.tab}`}
                 >
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <Icon className="w-4 h-4 text-primary" />
+                  <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                    <Icon className="w-4 h-4 text-foreground" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground">{item.label}</p>

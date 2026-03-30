@@ -249,9 +249,6 @@ export const Navbar = ({ unreadCount = 0, unreadMessages: unreadMessagesProp = 0
             {user ? (
               <>
                 <div className="border-t border-border my-2" />
-                <Button variant="ghost" className="w-full justify-start" onClick={() => handleNavigation('/dashboard')}>
-                  <Settings className="h-4 w-4 mr-2" />控制面板
-                </Button>
                 <Button variant="ghost" className="w-full justify-start" onClick={() => handleNavigation('/user-center')}>
                   <User className="h-4 w-4 mr-2" />用户中心
                 </Button>
