@@ -64,7 +64,7 @@ export const MyTransactions = () => {
           id, amount, status, seller_amount, commission_amount, commission_rate,
           created_at, completed_at, transfer_confirmed_seller, transfer_confirmed_buyer,
           buyer_id, seller_id, domain_id, offer_id, payment_method,
-          domain_listings:domain_id ( name )
+          domains:domain_id ( name )
         `)
         .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
@@ -73,7 +73,7 @@ export const MyTransactions = () => {
 
       const mapped: TransactionRecord[] = (data || []).map((t: any) => ({
         ...t,
-        domain_name: t.domain_listings?.name ?? '未知域名',
+        domain_name: t.domains?.name ?? '未知域名',
         role: t.buyer_id === user.id ? 'buyer' : 'seller',
       }));
 

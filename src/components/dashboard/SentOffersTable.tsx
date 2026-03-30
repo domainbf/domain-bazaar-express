@@ -113,25 +113,46 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
             const commissionAmount = Math.max(amount * commissionRate, 10);
             const sellerAmount = amount - commissionAmount;
 
-            const { data: txData, error: txErr } = await supabase
-              .from('transactions').insert({
-                buyer_id: user.id, seller_id: offerData.seller_id,
-                domain_id: offerData.domain_id, offer_id: offer.id,
-                amount, status: 'payment_pending', commission_rate: commissionRate,
-                commission_amount: commissionAmount, seller_amount: sellerAmount,
+            // The transactions table FKs to 'domains', not 'domain_listings'.
+            // Look up or create a 'domains' entry by name to get the correct FK id.
+            const domainName = offerData.domain_listings.name;
+            let domainsId: string | null = null;
+            const { data: existingDomain } = await supabase
+              .from('domains').select('id').eq('name', domainName).maybeSingle();
+            if (existingDomain?.id) {
+              domainsId = existingDomain.id;
+            } else {
+              const { data: newDomain } = await supabase.from('domains').insert({
+                name: domainName, price: amount, status: 'available',
+                owner_id: offerData.seller_id, minimum_price: 0,
               }).select('id').single();
+              domainsId = newDomain?.id ?? null;
+            }
 
-            if (txErr) {
-              console.error('Transaction error:', txErr);
-              toast.error('交易记录创建失败，请联系客服');
-            } else if (txData) {
-              newTransactionId = txData.id;
-              await supabase.from('domain_offers').update({ transaction_id: newTransactionId }).eq('id', offer.id);
-              // Mark domain as pending transaction
-              if (offerData.domain_id) {
-                await supabase.from('domain_listings')
-                  .update({ status: 'pending' })
-                  .eq('id', offerData.domain_id);
+            if (!domainsId) {
+              toast.error('域名记录查找失败，请联系客服');
+            } else {
+              const { data: txData, error: txErr } = await supabase
+                .from('transactions').insert({
+                  buyer_id: user.id, seller_id: offerData.seller_id,
+                  domain_id: domainsId, offer_id: offer.id,
+                  amount, status: 'payment_pending', payment_method: 'bank_transfer',
+                  commission_rate: commissionRate,
+                  commission_amount: commissionAmount, seller_amount: sellerAmount,
+                }).select('id').single();
+
+              if (txErr) {
+                console.error('Transaction error:', txErr);
+                toast.error('交易记录创建失败，请联系客服');
+              } else if (txData) {
+                newTransactionId = txData.id;
+                await supabase.from('domain_offers').update({ transaction_id: newTransactionId }).eq('id', offer.id);
+                // Mark domain as pending transaction
+                if (offerData.domain_id) {
+                  await supabase.from('domain_listings')
+                    .update({ status: 'pending' })
+                    .eq('id', offerData.domain_id);
+                }
               }
             }
           } catch (txErr) { console.error('Transaction error:', txErr); }

@@ -152,6 +152,29 @@ Existing: `domain_listings`, `profiles`, `offers`, `notifications`, `transaction
 
 Added by migration: `messages`, `disputes`
 
+### CRITICAL: Two Domain Tables (Architectural Mismatch)
+
+There are **two separate domain tables** with different FK relationships:
+
+| Table | Purpose | Used by |
+|-------|---------|---------|
+| `domain_listings` | Main marketplace listings (12+ domains, full metadata, currency, etc.) | All marketplace UI, offers, filters, search |
+| `domains` | Legacy/separate simple domain registry | `transactions.domain_id` FK, `disputes.domain_id` NOT used (nullable) |
+
+**Key FK constraints:**
+- `domain_offers.domain_id` → `domain_listings.id` ✓
+- `transactions.domain_id` → `domains.id` (NOT domain_listings!)
+- `disputes.domain_id` → `domain_listings.id` (nullable, we omit it)
+
+**Code pattern when creating a transaction** (in ReceivedOffersTable & SentOffersTable):
+1. Look up domain name from `domain_listings` via `offer.domain_listings.name`
+2. Find or create a `domains` entry with that name (upsert-like: select → insert if not found)
+3. Use `domains.id` as `domain_id` when inserting into `transactions`
+4. Update `domain_listings` status to 'pending' using `domain_listings.id` separately
+
+**TransactionDetail.tsx** reads domain name from `domains` table (not `domain_listings`).
+**MyTransactions.tsx** joins `domains:domain_id` (not `domain_listings:domain_id`).
+
 ## Development
 
 ```bash

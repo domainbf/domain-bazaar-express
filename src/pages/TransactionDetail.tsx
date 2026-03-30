@@ -147,8 +147,9 @@ export default function TransactionDetail() {
       if (error) throw error;
       setTransaction(tx as TransactionData);
 
+      // transactions.domain_id references the 'domains' table (not 'domain_listings')
       const [domainRes, escrowRes] = await Promise.all([
-        supabase.from('domain_listings').select('name, price, currency').eq('id', tx.domain_id).single(),
+        supabase.from('domains').select('name, price').eq('id', tx.domain_id).single(),
         supabase.from('escrow_services').select('*').eq('transaction_id', tx.id).maybeSingle(),
       ]);
 
@@ -245,10 +246,13 @@ export default function TransactionDetail() {
         }).eq('id', escrow.id);
       }
 
-      await supabase.from('domain_listings').update({
-        status: 'sold',
-        updated_at: new Date().toISOString(),
-      }).eq('id', transaction.domain_id);
+      // Update domain_listings by name since transaction.domain_id references 'domains' table
+      if (domain?.name) {
+        await supabase.from('domain_listings').update({
+          status: 'sold',
+          updated_at: new Date().toISOString(),
+        }).eq('name', domain.name);
+      }
 
       if (transaction.seller_id) {
         const { data: sellerProfile } = await supabase
@@ -289,7 +293,6 @@ export default function TransactionDetail() {
       const respondentId = isBuyer ? transaction.seller_id : transaction.buyer_id;
       await supabase.from('disputes').insert({
         transaction_id: transaction.id,
-        domain_id: transaction.domain_id,
         initiator_id: user?.id,
         respondent_id: respondentId,
         reason: disputeReason,
