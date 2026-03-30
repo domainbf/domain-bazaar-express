@@ -24,6 +24,7 @@ import { AdminAuctionManagement } from '@/components/admin/AdminAuctionManagemen
 import { AdminReviewManagement } from '@/components/admin/AdminReviewManagement';
 import { AdminLegalPagesManager } from '@/components/admin/AdminLegalPagesManager';
 import { AdminMessagesView } from '@/components/admin/AdminMessagesView';
+import { AdminTickets } from '@/components/admin/AdminTickets';
 import { AdminNotificationSender } from '@/components/admin/AdminNotificationSender';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -37,7 +38,7 @@ import {
   DollarSign, FileText, Shield, AlertTriangle, Percent,
   Users, Star, Home, BookOpen, Search, Sliders, CreditCard,
   Settings, Activity, Menu, ChevronRight, LogOut, RefreshCw,
-  MessageSquare, Package, Scale, Bell, Mail
+  MessageSquare, Package, Scale, Bell, Mail, Headphones
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -64,6 +65,7 @@ export const AdminPanel = () => {
   const [pendingVerifications, setPendingVerifications] = useState(0);
   const [pendingDisputes, setPendingDisputes] = useState(0);
   const [pendingOffers, setPendingOffers] = useState(0);
+  const [pendingTickets, setPendingTickets] = useState(0);
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -85,14 +87,16 @@ export const AdminPanel = () => {
 
   const loadBadges = async () => {
     try {
-      const [v, d, o] = await Promise.allSettled([
+      const [v, d, o, t] = await Promise.allSettled([
         supabase.from('domain_verifications').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('disputes').select('*', { count: 'exact', head: true }).eq('status', 'open'),
         supabase.from('domain_offers').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('support_tickets').select('*', { count: 'exact', head: true }).eq('status', 'open'),
       ]);
       if (v.status === 'fulfilled') setPendingVerifications(v.value.count ?? 0);
       if (d.status === 'fulfilled') setPendingDisputes(d.value.count ?? 0);
       if (o.status === 'fulfilled') setPendingOffers(o.value.count ?? 0);
+      if (t.status === 'fulfilled') setPendingTickets(t.value.count ?? 0);
     } catch {}
   };
 
@@ -143,6 +147,7 @@ export const AdminPanel = () => {
     {
       title: '通讯管理',
       items: [
+        { id: 'tickets', label: '支持工单', icon: Headphones, badge: pendingTickets },
         { id: 'messages', label: '用户消息', icon: MessageSquare },
         { id: 'notifications', label: '系统通知', icon: Bell },
       ]
@@ -248,6 +253,7 @@ export const AdminPanel = () => {
       case 'legal': return <AdminLegalPagesManager />;
       case 'seo': return <SeoConfiguration />;
       case 'frontend': return <FrontendContentManager />;
+      case 'tickets': return <AdminTickets />;
       case 'messages': return <AdminMessagesView />;
       case 'notifications': return <AdminNotificationSender />;
       case 'payment': return <PaymentGatewaySettings />;

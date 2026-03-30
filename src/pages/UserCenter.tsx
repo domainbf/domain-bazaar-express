@@ -15,6 +15,7 @@ import {
   ClipboardList, User, Bell, MessageSquare, ArrowLeft,
   Shield, Sparkles, ChevronRight, Globe, Settings, HeadphonesIcon
 } from 'lucide-react';
+import { SupportTickets } from '@/components/support/SupportTickets';
 import { Badge } from "@/components/ui/badge";
 import { useNotifications } from '@/hooks/useNotifications';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
@@ -22,7 +23,7 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from 'framer-motion';
 
-const VALID_TABS = ['domains', 'transactions', 'messages', 'profile', 'notifications', 'profile-settings', 'profile-security'];
+const VALID_TABS = ['domains', 'transactions', 'messages', 'profile', 'notifications', 'profile-settings', 'profile-security', 'support'];
 
 const SECTION_LABELS: Record<string, string> = {
   domains: '我的域名',
@@ -32,6 +33,7 @@ const SECTION_LABELS: Record<string, string> = {
   profile: '个人中心',
   'profile-settings': '个人资料',
   'profile-security': '账户安全',
+  support: '联系支持',
 };
 
 export const UserCenter = () => {
@@ -118,7 +120,7 @@ export const UserCenter = () => {
   /* ─── MOBILE LAYOUT ─────────────────────────────────────────── */
   if (isMobile) {
     const isSubPage = activeTab === 'profile-settings' || activeTab === 'profile-security';
-    const isContentTab = ['domains', 'transactions', 'notifications', 'messages'].includes(activeTab);
+    const isContentTab = ['domains', 'transactions', 'notifications', 'messages', 'support'].includes(activeTab);
     const handleBack = () => {
       if (isSubPage || isContentTab) handleTabChange('profile');
       else navigate('/');
@@ -433,7 +435,7 @@ function MobileProfileSection({
       >
         <div className="bg-card rounded-2xl border border-border overflow-hidden">
           <button
-            onClick={() => siteConfig.contact_email ? window.open(`mailto:${siteConfig.contact_email}`, '_blank') : undefined}
+            onClick={() => onTabChange('support')}
             className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/50 active:bg-muted transition-colors text-left"
             data-testid="mobile-nav-support"
           >
@@ -442,7 +444,7 @@ function MobileProfileSection({
             </div>
             <div className="flex-1">
               <p className="text-sm font-medium text-foreground">联系支持</p>
-              <p className="text-xs text-muted-foreground">{siteConfig.contact_email || '请在后台配置联系邮箱'}</p>
+              <p className="text-xs text-muted-foreground">提交工单，24小时内回复</p>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
           </button>
@@ -461,6 +463,13 @@ function MobileTabContent({ activeTab }: { activeTab: string }) {
   }
   if (activeTab === 'profile-security') {
     return <div className="pb-4"><AccountSecurity /></div>;
+  }
+  if (activeTab === 'support') {
+    return (
+      <div className="flex flex-col" style={{ minHeight: 'calc(100vh - 120px)' }}>
+        <SupportTickets />
+      </div>
+    );
   }
   return (
     <Tabs value={activeTab} className="w-full">
