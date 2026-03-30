@@ -3,6 +3,16 @@ import { db } from '../db.js';
 import { requireAuth, getAuth } from '../middleware/auth.js';
 import { bus } from '../eventBus.js';
 import { cacheGet, cacheSet, cacheDel } from '../redis.js';
+import {
+  sellerNewOfferEmail,
+  buyerOfferConfirmEmail,
+  buyerCounterOfferEmail,
+  buyerOfferAcceptedEmail,
+  sellerCounterAcceptedEmail,
+  buyerOfferRejectedEmail,
+  sellerCounterRejectedEmail,
+  sellerOfferCancelledEmail,
+} from '../offerEmailTemplates.js';
 
 const app = new Hono();
 
@@ -51,6 +61,49 @@ async function sendEmail(to: string | string[], subject: string, html: string): 
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ from: `${fromName} <${fromEmail}>`, to: recipients, subject, html }),
   }).catch(() => {});
+}
+
+// ---------- Brand config helper ----------
+async function getBrandConfig() {
+  const r = await db.execute("SELECT key, value FROM site_settings WHERE key IN ('site_name','site_domain','contact_email')");
+  const s: Record<string, string> = {};
+  for (const row of r.rows) s[row.key as string] = row.value as string;
+  return {
+    siteName: s.site_name || '域见·你',
+    siteDomain: (s.site_domain || 'https://nic.bn').replace(/\/$/, ''),
+    supportEmail: s.contact_email || 'support@nic.bn',
+  };
+}
+
+// ---------- In-app notification helper ----------
+async function createNotification(opts: {
+  userId: string;
+  title: string;
+  message: string;
+  type: string;
+  relatedId?: string;
+  actionUrl?: string;
+}) {
+  const { v4: uuidv4 } = await import('uuid');
+  const id = uuidv4();
+  const t = now();
+  await db.execute({
+    sql: `INSERT INTO notifications (id, user_id, title, message, type, is_read, related_id, action_url, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?)`,
+    args: [id, opts.userId, opts.title, opts.message, opts.type, opts.relatedId || null, opts.actionUrl || null, t, t],
+  });
+  // Publish for SSE real-time delivery
+  bus.emit('db-change', {
+    table: 'notifications',
+    eventType: 'INSERT',
+    new: { id, user_id: opts.userId, title: opts.title, message: opts.message, type: opts.type, is_read: 0, related_id: opts.relatedId || null, action_url: opts.actionUrl || null, created_at: t, updated_at: t },
+  });
+}
+
+// ---------- Offer amount formatter ----------
+function fmtAmount(amount: unknown, currency?: string): string {
+  const sym = currency === 'USD' ? '$' : '¥';
+  return `${sym}${Number(amount).toLocaleString()}`;
 }
 
 // ---- Domain Listings ----
@@ -368,7 +421,6 @@ app.get('/domain-offers', requireAuth, async (c) => {
 app.post('/domain-offers', async (c) => {
   const { v4: uuidv4 } = await import('uuid');
   const body = await c.req.json();
-  // Accept both camelCase and snake_case field names
   const domainId = body.domain_id || body.domainId;
   const sellerId = body.seller_id || body.sellerId;
   const buyerId = body.buyer_id || body.buyerId || null;
@@ -384,24 +436,55 @@ app.post('/domain-offers', async (c) => {
   await db.execute({
     sql: `INSERT INTO domain_offers (id, domain_id, buyer_id, seller_id, amount, status, message, contact_email, created_at, updated_at)
           VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)`,
-    args: [id, domainId, buyerId, sellerId, parseFloat(amount), message, email, t, t]
+    args: [id, domainId, buyerId, sellerId, parseFloat(amount), message, email, t, t],
   });
   const inserted = rowToObj((await db.execute({ sql: 'SELECT * FROM domain_offers WHERE id = ?', args: [id] })).rows[0]);
 
-  // Send email notifications
-  const domainRes = await db.execute({ sql: 'SELECT name FROM domain_listings WHERE id = ? LIMIT 1', args: [domainId] });
+  // Gather context
+  const [domainRes, sellerRes, brand] = await Promise.all([
+    db.execute({ sql: 'SELECT name, currency FROM domain_listings WHERE id = ? LIMIT 1', args: [domainId] }),
+    db.execute({ sql: 'SELECT id, email FROM app_auth_users WHERE id = ? LIMIT 1', args: [sellerId] }),
+    getBrandConfig(),
+  ]);
   const domainName = domainRes.rows[0]?.name as string || domainId;
-  const sellerRes = await db.execute({ sql: 'SELECT email FROM app_auth_users WHERE id = ? LIMIT 1', args: [sellerId] });
+  const currency = domainRes.rows[0]?.currency as string | undefined;
   const sellerEmail = sellerRes.rows[0]?.email as string;
+  const amtDisplay = fmtAmount(amount, currency);
 
-  const notifyHtml = `<h2>您的域名 ${domainName} 收到新报价</h2>
-    <p>报价金额：<strong>${amount}</strong></p>
-    <p>联系邮箱：${email}</p>
-    ${message ? `<p>留言：${message}</p>` : ''}
-    <p>请登录管理后台处理此报价。</p>`;
+  // ── In-app notifications ──
+  // Notify seller
+  await createNotification({
+    userId: sellerId,
+    title: `💰 域名 ${domainName} 收到新报价`,
+    message: `有买家对您的域名 ${domainName} 报价 ${amtDisplay}，请登录处理`,
+    type: 'offer',
+    relatedId: id,
+    actionUrl: '/user-center?tab=received-offers',
+  }).catch(() => {});
 
-  if (sellerEmail) sendEmail(sellerEmail, `域名 ${domainName} 收到新报价`, notifyHtml).catch(() => {});
-  sendEmail(email, `您对 ${domainName} 的报价已提交`, `<h2>您的报价已成功提交</h2><p>域名：${domainName}</p><p>报价金额：${amount}</p><p>卖家将尽快与您联系。</p>`).catch(() => {});
+  // Notify buyer (if logged in)
+  if (buyerId) {
+    await createNotification({
+      userId: buyerId,
+      title: `📤 报价已成功提交`,
+      message: `您对域名 ${domainName} 的 ${amtDisplay} 报价已发送，等待卖家回复`,
+      type: 'offer',
+      relatedId: id,
+      actionUrl: '/user-center?tab=sent-offers',
+    }).catch(() => {});
+  }
+
+  // ── Email notifications ──
+  const buyerMsg = (() => {
+    try { const p = JSON.parse(message || ''); return p.buyer_message ?? message; } catch { return message; }
+  })();
+
+  if (sellerEmail) {
+    const { subject, html } = sellerNewOfferEmail({ domainName, amount: amtDisplay, buyerMessage: buyerMsg || undefined, brand });
+    sendEmail(sellerEmail, subject, html).catch(() => {});
+  }
+  const { subject: bSubj, html: bHtml } = buyerOfferConfirmEmail({ domainName, amount: amtDisplay, buyerMessage: buyerMsg || undefined, brand });
+  sendEmail(email, bSubj, bHtml).catch(() => {});
 
   return c.json({ success: true, offer: inserted }, 201);
 });
@@ -424,24 +507,180 @@ app.patch('/domain-offers/:id', requireAuth, async (c) => {
   args.push(now(), offerId);
   await db.execute({
     sql: `UPDATE domain_offers SET ${updates.join(', ')} WHERE id = ? AND (buyer_id = ? OR seller_id = ?)`,
-    args: [...args, sub, sub]
+    args: [...args, sub, sub],
   });
   const r = await db.execute({ sql: 'SELECT * FROM domain_offers WHERE id = ?', args: [offerId] });
   if (!r.rows[0]) return c.json({ error: '未找到' }, 404);
   const offer = rowToObj(r.rows[0]);
 
-  // Email notification on status change
   if (body.status) {
-    const domainRes = await db.execute({ sql: 'SELECT name FROM domain_listings WHERE id = ? LIMIT 1', args: [offer.domain_id] });
+    // Gather context async
+    const [domainRes, buyerRes, sellerRes, brand] = await Promise.all([
+      db.execute({ sql: 'SELECT name, currency FROM domain_listings WHERE id = ? LIMIT 1', args: [offer.domain_id] }),
+      offer.buyer_id ? db.execute({ sql: 'SELECT email FROM app_auth_users WHERE id = ? LIMIT 1', args: [offer.buyer_id] }) : Promise.resolve({ rows: [] }),
+      offer.seller_id ? db.execute({ sql: 'SELECT email FROM app_auth_users WHERE id = ? LIMIT 1', args: [offer.seller_id] }) : Promise.resolve({ rows: [] }),
+      getBrandConfig(),
+    ]);
+
     const domainName = domainRes.rows[0]?.name as string || String(offer.domain_id);
-    if (body.status === 'accepted') {
-      const buyerRes = await db.execute({ sql: 'SELECT email FROM app_auth_users WHERE id = ? LIMIT 1', args: [offer.buyer_id] });
-      const buyerEmail = (buyerRes.rows[0]?.email as string) || (offer.contact_email as string);
-      if (buyerEmail) sendEmail(buyerEmail, `您对 ${domainName} 的报价已被接受！`, `<h2>恭喜！您的报价已被接受</h2><p>域名：${domainName}</p><p>成交价：${offer.amount}</p><p>请联系卖家完成付款流程。</p>`).catch(() => {});
-    } else if (body.status === 'countered' && body.message) {
-      const buyerRes = await db.execute({ sql: 'SELECT email FROM app_auth_users WHERE id = ? LIMIT 1', args: [offer.buyer_id] });
-      const buyerEmail = (buyerRes.rows[0]?.email as string) || (offer.contact_email as string);
-      if (buyerEmail) sendEmail(buyerEmail, `域名 ${domainName} 卖家发来还价`, `<h2>卖家对您的报价作出回应</h2><p>域名：${domainName}</p><p>还价金额：${body.amount || offer.amount}</p><p>留言：${body.message}</p>`).catch(() => {});
+    const currency = domainRes.rows[0]?.currency as string | undefined;
+    const buyerEmail = (buyerRes.rows[0]?.email as string) || (offer.contact_email as string);
+    const sellerEmail = sellerRes.rows[0]?.email as string;
+    const buyerId = offer.buyer_id as string | null;
+    const sellerId = offer.seller_id as string | null;
+    const amtCurrent = fmtAmount(offer.amount, currency);
+
+    // ── 卖家还价 (countered) ──
+    if (body.status === 'countered') {
+      let counterAmt = fmtAmount(offer.amount, currency);
+      let counterNote = '';
+      try {
+        const parsed = JSON.parse(body.message || '');
+        if (parsed.counter_amount) counterAmt = fmtAmount(parsed.counter_amount, currency);
+        counterNote = parsed.counter_note || '';
+      } catch { /* plain message */ }
+
+      if (buyerId) {
+        await createNotification({
+          userId: buyerId,
+          title: `💬 卖家已还价：${domainName}`,
+          message: `卖家对您的报价回应了还价 ${counterAmt}，请登录查看并决定是否接受`,
+          type: 'offer_counter',
+          relatedId: offerId,
+          actionUrl: '/user-center?tab=sent-offers',
+        }).catch(() => {});
+      }
+      if (sellerId) {
+        await createNotification({
+          userId: sellerId,
+          title: `✅ 还价已发出：${domainName}`,
+          message: `您的 ${counterAmt} 还价已成功发送给买家，等待买家回复`,
+          type: 'offer_counter',
+          relatedId: offerId,
+          actionUrl: '/user-center?tab=received-offers',
+        }).catch(() => {});
+      }
+      if (buyerEmail) {
+        const { subject, html } = buyerCounterOfferEmail({
+          domainName, originalAmount: amtCurrent, counterAmount: counterAmt,
+          counterNote: counterNote || undefined, brand,
+        });
+        sendEmail(buyerEmail, subject, html).catch(() => {});
+      }
+    }
+
+    // ── 报价被接受 (accepted) ──
+    else if (body.status === 'accepted') {
+      const isBuyerAccepting = sub === buyerId;  // buyer accepting seller's counter
+      const isSellerAccepting = sub === sellerId; // seller accepting buyer's offer
+
+      if (isSellerAccepting) {
+        // Seller accepted → notify buyer
+        if (buyerId) {
+          await createNotification({
+            userId: buyerId,
+            title: `🎉 报价已被接受！${domainName}`,
+            message: `恭喜！卖家接受了您对域名 ${domainName} 的 ${amtCurrent} 报价，请尽快进入交易详情完成付款`,
+            type: 'offer_accepted',
+            relatedId: offerId,
+            actionUrl: '/user-center?tab=transactions',
+          }).catch(() => {});
+        }
+        if (sellerId) {
+          await createNotification({
+            userId: sellerId,
+            title: `✅ 报价已接受：${domainName}`,
+            message: `您已接受买家对域名 ${domainName} 的 ${amtCurrent} 报价，等待买家付款`,
+            type: 'offer_accepted',
+            relatedId: offerId,
+            actionUrl: '/user-center?tab=transactions',
+          }).catch(() => {});
+        }
+        if (buyerEmail) {
+          const { subject, html } = buyerOfferAcceptedEmail({ domainName, amount: amtCurrent, brand });
+          sendEmail(buyerEmail, subject, html).catch(() => {});
+        }
+      } else if (isBuyerAccepting) {
+        // Buyer accepted seller's counter → notify seller
+        if (sellerId) {
+          await createNotification({
+            userId: sellerId,
+            title: `🤝 买家接受了您的还价！${domainName}`,
+            message: `买家同意以 ${amtCurrent} 完成交易，请等待买家付款`,
+            type: 'offer_accepted',
+            relatedId: offerId,
+            actionUrl: '/user-center?tab=transactions',
+          }).catch(() => {});
+        }
+        if (buyerId) {
+          await createNotification({
+            userId: buyerId,
+            title: `✅ 您已接受还价：${domainName}`,
+            message: `您以 ${amtCurrent} 接受了卖家还价，请尽快完成付款`,
+            type: 'offer_accepted',
+            relatedId: offerId,
+            actionUrl: '/user-center?tab=transactions',
+          }).catch(() => {});
+        }
+        if (sellerEmail) {
+          const { subject, html } = sellerCounterAcceptedEmail({ domainName, amount: amtCurrent, brand });
+          sendEmail(sellerEmail, subject, html).catch(() => {});
+        }
+        if (buyerEmail) {
+          const { subject, html } = buyerOfferAcceptedEmail({ domainName, amount: amtCurrent, brand });
+          sendEmail(buyerEmail, subject, html).catch(() => {});
+        }
+      }
+    }
+
+    // ── 报价被拒绝 (rejected) ──
+    else if (body.status === 'rejected') {
+      // Seller rejecting buyer's offer
+      if (sub === sellerId && buyerId) {
+        await createNotification({
+          userId: buyerId,
+          title: `📋 您的报价未被接受：${domainName}`,
+          message: `卖家未接受您对域名 ${domainName} 的 ${amtCurrent} 报价，域名仍在挂牌，欢迎调整后重新报价`,
+          type: 'offer_rejected',
+          relatedId: offerId,
+          actionUrl: '/user-center?tab=sent-offers',
+        }).catch(() => {});
+        if (buyerEmail) {
+          const { subject, html } = buyerOfferRejectedEmail({ domainName, amount: amtCurrent, brand });
+          sendEmail(buyerEmail, subject, html).catch(() => {});
+        }
+      }
+      // Buyer rejecting seller's counter offer
+      else if (sub === buyerId && sellerId) {
+        await createNotification({
+          userId: sellerId,
+          title: `📋 买家拒绝了您的还价：${domainName}`,
+          message: `买家拒绝了您对域名 ${domainName} 的还价，本次协商结束，请等待买家重新提交报价`,
+          type: 'offer_rejected',
+          relatedId: offerId,
+          actionUrl: '/user-center?tab=received-offers',
+        }).catch(() => {});
+        if (sellerEmail) {
+          const { subject, html } = sellerCounterRejectedEmail({ domainName, counterAmount: amtCurrent, brand });
+          sendEmail(sellerEmail, subject, html).catch(() => {});
+        }
+      }
+    }
+
+    // ── 买家取消报价 (cancelled) ──
+    else if (body.status === 'cancelled' && sellerId) {
+      await createNotification({
+        userId: sellerId,
+        title: `📌 报价已取消：${domainName}`,
+        message: `买家取消了对域名 ${domainName} 的 ${amtCurrent} 报价，域名持续挂牌中`,
+        type: 'offer',
+        relatedId: offerId,
+        actionUrl: '/user-center?tab=received-offers',
+      }).catch(() => {});
+      if (sellerEmail) {
+        const { subject, html } = sellerOfferCancelledEmail({ domainName, amount: amtCurrent, brand });
+        sendEmail(sellerEmail, subject, html).catch(() => {});
+      }
     }
   }
 

@@ -1,4 +1,3 @@
-import { supabase } from '@/integrations/supabase/client';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +11,6 @@ import { Check, X, Mail, AlertCircle, Clock, Package, CheckCircle2, XCircle, Loa
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
-import { useSiteSettings } from '@/hooks/useSiteSettings';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -45,7 +43,6 @@ function parseOfferMessage(offer: DomainOffer): { buyerMessage: string; counterA
 export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTableProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { config } = useSiteSettings();
   const [processingOffers, setProcessingOffers] = useState<Record<string, boolean>>({});
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean; offerId: string;
@@ -77,170 +74,27 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
 
       await apiPatch(`/data/domain-offers/${offerId}`, { status: action });
 
+      // Create transaction record when seller accepts
       let newTransactionId: string | null = null;
-      if (action === 'accepted' && offerData.buyer_id && offerData.domain_listings) {
+      if (action === 'accepted' && offerData.buyer_id) {
         try {
-          const sym = offerData.domain_listings.currency === 'USD' ? '$' : '¥';
-          const amt = `${sym}${Number(offerData.amount).toLocaleString()}`;
           const txResult = await apiPost('/data/transactions', {
             buyer_id: offerData.buyer_id,
             domain_id: offerData.domain_id,
             offer_id: offerId,
             amount: offerData.amount,
-            listing_id: offerData.domain_id,
-            notify_message: `您对域名 ${offerData.domain_listings.name} 的 ${amt} 报价已被卖家接受！请进入交易详情完成付款。`,
-            notify_title: '🎉 报价已接受',
           });
           if (txResult?.id) newTransactionId = txResult.id;
         } catch (txErr) {
           console.error('Transaction creation error:', txErr);
-          toast.error('交易记录创建失败，请重试');
         }
       }
 
-      if (offerData.buyer_id && offerData.domain_listings && action !== 'accepted') {
-        const sym = offerData.domain_listings.currency === 'USD' ? '$' : '¥';
-        const amt = `${sym}${Number(offerData.amount).toLocaleString()}`;
-        const msgs: Record<string, string> = {
-          rejected: `您对域名 ${offerData.domain_listings.name} 的 ${amt} 报价已被拒绝，您可以尝试提交新的报价。`,
-          completed: `域名 ${offerData.domain_listings.name} 的 ${amt} 交易已完成！感谢您使用我们的平台。`,
-        };
-        const titles: Record<string, string> = { rejected: '❌ 报价已拒绝', completed: '✅ 交易已完成' };
-        try {
-          await apiPost('/data/messages', {
-            receiver_id: offerData.buyer_id,
-            content: msgs[action] || '您的报价状态已更新',
-          });
-        } catch { /* ignore */ }
-      }
-
-      if (false && offerData.contact_email) { // email sending reserved for future implementation
-        try {
-        const siteDomain = (config.site_domain || window.location.origin).replace(/\/$/, '');
-          const siteName = config.site_name || '域见•你';
-          const siteHostname = siteDomain.replace(/^https?:\/\//, '').toUpperCase();
-          const supportEmail = config.contact_email || `support@${siteDomain.replace(/^https?:\/\//, '')}`;
-          const domainDisplay = (offerData.domain_listings.name || '').toUpperCase();
-          const sym = offerData.domain_listings.currency === 'USD' ? '$' : '¥';
-          const amt = `${sym}${Number(offerData.amount).toLocaleString()}`;
-          const year = new Date().getFullYear();
-
-          const txUrl = newTransactionId
-            ? `${siteDomain}/transaction/${newTransactionId}`
-            : `${siteDomain}/user-center?tab=transactions`;
-
-          const isAccepted = action === 'accepted';
-
-          const accentColor = isAccepted ? '#16a34a' : '#dc2626';
-          const accentBg = isAccepted ? '#f0fdf4' : '#fef2f2';
-          const icon = isAccepted ? '🎉' : '❌';
-          const heading = isAccepted ? '报价已接受！' : '报价已被拒绝';
-          const subheading = isAccepted
-            ? '恭喜，卖家接受了您的报价，交易已启动'
-            : '很遗憾，卖家未能接受您的报价';
-          const bodyText = isAccepted
-            ? `卖家已接受了您对域名 <strong>${domainDisplay}</strong> 的 <strong>${amt}</strong> 报价。请尽快进入交易详情完成付款，以锁定域名。`
-            : `卖家对域名 <strong>${domainDisplay}</strong> 的 <strong>${amt}</strong> 报价未予接受。您可以调整价格后重新提交报价，或浏览其他可购买域名。`;
-          const btnText = isAccepted ? '立即查看交易详情 →' : '返回查看报价记录 →';
-          const previewText = isAccepted
-            ? `🎉 恭喜！卖家接受了您对 ${domainDisplay} 的 ${amt} 报价`
-            : `您对 ${domainDisplay} 的 ${amt} 报价已被拒绝`;
-
-          const tipBlock = isAccepted
-            ? `<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:18px 20px;margin-bottom:24px;">
-                <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#15803d;letter-spacing:1px;text-transform:uppercase;">接下来的步骤</p>
-                <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
-                  <tr><td style="padding:3px 0;font-size:13px;color:#166534;"><span style="font-weight:700;margin-right:6px;">①</span>点击下方按钮进入交易详情</td></tr>
-                  <tr><td style="padding:3px 0;font-size:13px;color:#166534;"><span style="font-weight:700;margin-right:6px;">②</span>按照提示完成付款（银行转账或其他方式）</td></tr>
-                  <tr><td style="padding:3px 0;font-size:13px;color:#166534;"><span style="font-weight:700;margin-right:6px;">③</span>平台确认收款后启动域名过户</td></tr>
-                </table>
-              </div>`
-            : `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:18px 20px;margin-bottom:24px;">
-                <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#b91c1c;letter-spacing:1px;text-transform:uppercase;">温馨提示</p>
-                <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
-                  <tr><td style="padding:3px 0;font-size:13px;color:#991b1b;"><span style="font-weight:700;margin-right:6px;">·</span>可尝试适当提高报价后重新提交</td></tr>
-                  <tr><td style="padding:3px 0;font-size:13px;color:#991b1b;"><span style="font-weight:700;margin-right:6px;">·</span>域名仍在挂牌，随时可以再次报价</td></tr>
-                  <tr><td style="padding:3px 0;font-size:13px;color:#991b1b;"><span style="font-weight:700;margin-right:6px;">·</span>如有疑问可联系平台客服协助协商</td></tr>
-                </table>
-              </div>`;
-
-          const html = `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>${previewText}</title>
-  <style>body{margin:0;padding:0;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;}.preheader{display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;}</style>
-</head>
-<body>
-  <span class="preheader">${previewText}</span>
-  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#f1f5f9;padding:32px 16px;">
-    <tr><td align="center">
-      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;width:100%;">
-        <tr><td style="padding-bottom:24px;text-align:center;">
-          <table cellpadding="0" cellspacing="0" role="presentation" style="display:inline-table;">
-            <tr><td style="background:#0f172a;border-radius:12px;padding:10px 20px;">
-              <span style="color:#f8fafc;font-size:20px;font-weight:800;letter-spacing:-0.5px;">${siteName}</span>
-              <span style="color:#475569;font-size:11px;font-weight:600;margin-left:10px;letter-spacing:2px;text-transform:uppercase;">${siteHostname}</span>
-            </td></tr>
-          </table>
-        </td></tr>
-        <tr><td style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.07),0 2px 4px -2px rgba(0,0,0,0.05);">
-          <div style="height:4px;background:${accentColor};"></div>
-          <div style="padding:40px 40px 32px;text-align:center;border-bottom:1px solid #f1f5f9;">
-            <div style="width:64px;height:64px;background:${accentBg};border-radius:16px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:32px;">${icon}</div>
-            <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;">${heading}</h1>
-            <p style="margin:0;font-size:15px;color:#64748b;">${subheading}</p>
-          </div>
-          <div style="padding:32px 40px;">
-            <div style="background:#f8fafc;border-radius:12px;padding:20px 24px;margin-bottom:24px;border:1px solid #e2e8f0;">
-              <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
-                <tr>
-                  <td style="padding-bottom:12px;">
-                    <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;">报价域名</p>
-                    <p style="margin:0;font-size:22px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;">${domainDisplay}</p>
-                  </td>
-                </tr>
-                <tr><td style="border-top:1px solid #e2e8f0;padding-top:12px;">
-                  <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;">您的报价金额</p>
-                  <p style="margin:0;font-size:28px;font-weight:900;color:${accentColor};letter-spacing:-1px;">${amt}</p>
-                </td></tr>
-              </table>
-            </div>
-            <p style="font-size:14px;color:#475569;line-height:1.7;margin:0 0 24px;" >${bodyText}</p>
-            ${tipBlock}
-            <div style="text-align:center;padding-bottom:8px;">
-              <a href="${txUrl}" style="display:inline-block;background:#0f172a;color:#f8fafc;padding:16px 40px;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;letter-spacing:0.3px;box-shadow:0 4px 14px rgba(15,23,42,0.25);">${btnText}</a>
-            </div>
-          </div>
-          <div style="padding:20px 40px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;">
-            <p style="margin:0;font-size:13px;color:#94a3b8;">有疑问？联系 <a href="mailto:${supportEmail}" style="color:#475569;text-decoration:none;font-weight:600;">${supportEmail}</a></p>
-          </div>
-        </td></tr>
-        <tr><td style="padding:24px 20px 0;text-align:center;">
-          <p style="margin:0;font-size:12px;color:#94a3b8;">© ${year} ${siteName} · ${siteHostname} · All rights reserved</p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
-
-          const subject = isAccepted
-            ? `🎉 报价已接受：${domainDisplay} — ${amt}`
-            : `❌ 报价未被接受：${domainDisplay} — ${amt}`;
-
-          supabase.functions.invoke('send-email', {
-            body: { to: offerData.contact_email, subject, html },
-          }).catch(e => console.error('Accept/reject email error:', e));
-        } catch (e) { console.error('Email build error:', e); }
-      }
-
       const actionText = action === 'accepted' ? '已接受' : (action === 'rejected' ? '已拒绝' : '已完成');
-      toast.success(`报价${actionText}成功`);
+      toast.success(`报价${actionText}，通知已发送给买家`);
       setConfirmDialog(null);
       await onRefresh();
-      if (action === 'accepted' && newTransactionId) navigate(`/transaction/${newTransactionId}`);
+      if (action === 'accepted' && newTransactionId) navigate(`/user-center?tab=transactions`);
     } catch (error: any) {
       console.error('Error updating offer:', error);
       toast.error(error.message || '更新报价状态失败');
@@ -260,15 +114,14 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
 
       const offer = counterDialog.offer;
 
-      // Parse original buyer message
+      // Preserve original buyer message, embed counter data as JSON
       const originalMessage = (() => {
         try {
-          const parsed = JSON.parse(offer.message || '');
-          return parsed.buyer_message ?? offer.message ?? '';
+          const p = JSON.parse(offer.message || '');
+          return p.buyer_message ?? offer.message ?? '';
         } catch { return offer.message ?? ''; }
       })();
 
-      // Encode counter-offer into the message field as JSON
       const encodedMessage = JSON.stringify({
         buyer_message: originalMessage,
         counter_amount: amount,
@@ -277,116 +130,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
 
       await apiPatch(`/data/domain-offers/${offer.id}`, { status: 'countered', message: encodedMessage });
 
-      // 2. In-app notification for buyer via message
-      if (offer.buyer_id) {
-        const notifSym = (offer as any).domain_listings?.currency === 'USD' ? '$' : '¥';
-        apiPost('/data/messages', {
-          receiver_id: offer.buyer_id,
-          content: `域名 ${offer.domain_name} 的卖家对您 ${notifSym}${offer.amount.toLocaleString()} 的报价还价为 ${notifSym}${amount.toLocaleString()}，请登录查看并回复。`,
-        }).catch(e => console.error('Notification error:', e));
-      }
-
-      if (false && offer.contact_email) { // email reserved for future implementation
-        const siteDomain = (config.site_domain || window.location.origin).replace(/\/$/, '');
-        const siteName = config.site_name || '域见•你';
-        const siteHostname = siteDomain.replace(/^https?:\/\//, '').toUpperCase();
-        const supportEmail = config.contact_email || `support@${siteDomain.replace(/^https?:\/\//, '')}`;
-        const domainDisplay = (offer.domain_name || '').toUpperCase();
-        const offerSym = (offer as any).domain_listings?.currency === 'USD' ? '$' : '¥';
-        const yourBid = `${offerSym}${offer.amount.toLocaleString()}`;
-        const counterBid = `${offerSym}${amount.toLocaleString()}`;
-        const noteBlock = counterNote.trim()
-          ? `<div style="background:#fefce8;border:1px solid #fef08a;border-radius:10px;padding:18px 20px;margin-bottom:24px;">
-              <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#854d0e;letter-spacing:1px;text-transform:uppercase;">卖家备注</p>
-              <p style="margin:0;font-size:14px;color:#713f12;font-style:italic;">"${counterNote.trim()}"</p>
-            </div>`
-          : '';
-
-        const html = `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>卖家还价通知 — ${domainDisplay}</title>
-  <style>body{margin:0;padding:0;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;}.preheader{display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;}</style>
-</head>
-<body>
-  <span class="preheader">卖家对 ${domainDisplay} 的报价做出了还价 ${counterBid}</span>
-  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#f1f5f9;padding:32px 16px;">
-    <tr><td align="center">
-      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;width:100%;">
-        <tr><td style="padding-bottom:24px;text-align:center;">
-          <table cellpadding="0" cellspacing="0" role="presentation" style="display:inline-table;">
-            <tr><td style="background:#0f172a;border-radius:12px;padding:10px 20px;">
-              <span style="color:#f8fafc;font-size:20px;font-weight:800;letter-spacing:-0.5px;">${siteName}</span>
-              <span style="color:#475569;font-size:11px;font-weight:600;margin-left:10px;letter-spacing:2px;text-transform:uppercase;">${siteHostname}</span>
-            </td></tr>
-          </table>
-        </td></tr>
-        <tr><td style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.07),0 2px 4px -2px rgba(0,0,0,0.05);">
-          <div style="height:4px;background:linear-gradient(90deg,#0f172a 0%,#334155 50%,#64748b 100%);"></div>
-          <div style="padding:40px 40px 32px;text-align:center;border-bottom:1px solid #f1f5f9;">
-            <div style="width:64px;height:64px;background:#eff6ff;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:32px;">💬</div>
-            <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;">卖家已还价</h1>
-            <p style="margin:0;font-size:15px;color:#64748b;">卖家对您的报价做出了回应，请尽快查看</p>
-          </div>
-          <div style="padding:32px 40px 0;">
-            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:24px;">
-              <tr>
-                <td style="background:#f8fafc;border-radius:12px;padding:24px;text-align:center;border:1px solid #e2e8f0;">
-                  <p style="margin:0 0 6px;font-size:12px;font-weight:600;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;">洽谈域名</p>
-                  <p style="margin:0;font-size:28px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;">${domainDisplay}</p>
-                </td>
-              </tr>
-            </table>
-            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:24px;border-spacing:12px;border-collapse:separate;">
-              <tr>
-                <td style="background:#f1f5f9;border-radius:10px;padding:18px;text-align:center;width:50%;">
-                  <p style="margin:0 0 6px;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;">您的出价</p>
-                  <p style="margin:0;font-size:22px;font-weight:800;color:#94a3b8;text-decoration:line-through;">${yourBid}</p>
-                </td>
-                <td style="background:#0f172a;border-radius:10px;padding:18px;text-align:center;width:50%;">
-                  <p style="margin:0 0 6px;font-size:11px;font-weight:600;color:#475569;letter-spacing:1px;text-transform:uppercase;">卖家还价</p>
-                  <p style="margin:0;font-size:22px;font-weight:800;color:#f8fafc;">${counterBid}</p>
-                </td>
-              </tr>
-            </table>
-            ${noteBlock}
-            <div style="background:#f8fafc;border-radius:10px;padding:20px;border-left:4px solid #0f172a;margin-bottom:28px;">
-              <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#0f172a;">您可以选择：</p>
-              <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
-                <tr><td style="padding:3px 0;font-size:13px;color:#475569;"><span style="color:#0f172a;font-weight:700;margin-right:8px;">✓</span>接受卖家还价，直接完成交易</td></tr>
-                <tr><td style="padding:3px 0;font-size:13px;color:#475569;"><span style="color:#0f172a;font-weight:700;margin-right:8px;">↺</span>提出新的反报价，继续协商</td></tr>
-                <tr><td style="padding:3px 0;font-size:13px;color:#475569;"><span style="color:#0f172a;font-weight:700;margin-right:8px;">✕</span>拒绝还价，结束本次谈判</td></tr>
-              </table>
-            </div>
-            <div style="text-align:center;padding-bottom:32px;">
-              <a href="${siteDomain}/user-center?tab=transactions" style="display:inline-block;background:#0f172a;color:#f8fafc;padding:16px 40px;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;letter-spacing:0.3px;box-shadow:0 4px 14px rgba(15,23,42,0.25);">查看报价并回复 →</a>
-            </div>
-          </div>
-          <div style="padding:20px 40px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;">
-            <p style="margin:0;font-size:13px;color:#94a3b8;">有疑问？联系 <a href="mailto:${supportEmail}" style="color:#475569;text-decoration:none;font-weight:600;">${supportEmail}</a></p>
-          </div>
-        </td></tr>
-        <tr><td style="padding:24px 20px 0;text-align:center;">
-          <p style="margin:0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} ${siteName} · ${siteHostname} · All rights reserved</p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
-
-        supabase.functions.invoke('send-email', {
-          body: {
-            to: offer.contact_email,
-            subject: `卖家还价通知：${offer.domain_name} — 还价 ${offerSym}${amount.toLocaleString()}`,
-            html,
-          },
-        }).catch(e => console.error('Email error:', e));
-      }
-
-      toast.success('还价已发送，买家将收到站内通知和邮件');
+      toast.success('还价已发送，买家将收到站内通知及邮件提醒');
       setCounterDialog(null);
       setCounterAmount('');
       setCounterNote('');
