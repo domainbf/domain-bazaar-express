@@ -8,12 +8,12 @@
 export const SITE_URL: string = window.location.origin;
 
 /**
- * Auth email redirect URL.
- * Always the base origin so it matches Supabase's redirect allowlist entry for this domain.
- * The global hash interceptor in App.tsx routes the user to /reset-password, /auth, etc.
- * based on the #type= hash param that Supabase appends.
+ * Password reset redirect URL — points directly to the reset-password page.
+ * Supabase appends the recovery token hash and redirects here after validating the token.
+ * This avoids the race condition where the SDK processes the hash before React mounts
+ * and the interceptor in App.tsx never fires, logging the admin in silently instead.
  */
-export const RESET_PASSWORD_URL = SITE_URL;
+export const RESET_PASSWORD_URL = `${SITE_URL}/reset-password`;
 
 /** Signup / OAuth redirect URL — same base origin. */
 export const SIGNUP_REDIRECT_URL = SITE_URL;

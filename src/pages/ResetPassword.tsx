@@ -63,10 +63,13 @@ export const ResetPassword = () => {
     }
 
     // Method 4: Check the current Supabase session. If we have a live session
-    // and came here via recovery flow (even if auth event already fired), show form.
+    // while on the reset-password page, assume it's a recovery session.
+    // This covers the case where the user navigated directly from the email link,
+    // the SDK processed the hash before React mounted (clearing it), and the
+    // PASSWORD_RECOVERY event fired before our listener was registered.
     if (!settled) {
       supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session && navState?.fromRecovery) {
+        if (session) {
           settle(session.access_token, session.refresh_token);
         }
       });
