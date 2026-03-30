@@ -86,6 +86,7 @@ export const DomainDetailPage = () => {
   const { domain, similarDomains, priceHistory, isLoading, error } = useDomainDetail();
   const { analytics, trends, isFavorited, recordView, toggleFavorite } = useDomainAnalytics(domain?.id || '');
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
+  const [isBuyNow, setIsBuyNow] = useState(false);
   const [activeAuction, setActiveAuction] = useState<AuctionType | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -124,14 +125,22 @@ export const DomainDetailPage = () => {
   const isOwner = user?.id === domain.owner_id;
   const currency = (domain as any).currency === 'CNY' ? '¥' : '$';
 
+  const CATEGORY_LABELS: Record<string, string> = {
+    premium: '精品', standard: '标准', short: '短域名',
+    brandable: '品牌', dev: '开发', numeric: '数字',
+    technology: '科技', business: '商业', general: '通用',
+  };
+
   const handleOffer = () => {
     if (isOwner) return;
+    setIsBuyNow(false);
     setIsOfferModalOpen(true);
   };
 
   const handlePurchase = () => {
     if (isOwner) return;
-    console.log(`Purchasing ${domain.name}`);
+    setIsBuyNow(true);
+    setIsOfferModalOpen(true);
   };
 
   const handleVerifyDomain = () => {
@@ -206,8 +215,8 @@ export const DomainDetailPage = () => {
                     已验证
                   </Badge>
                 )}
-                <Badge variant="outline" className="capitalize">
-                  {domain.category}
+                <Badge variant="outline">
+                  {CATEGORY_LABELS[domain.category] || domain.category}
                 </Badge>
                 <Badge variant={domain.status === "available" ? "default" : "secondary"}>
                   {domain.status === "available" ? "可购买" : "不可用"}
@@ -480,20 +489,26 @@ export const DomainDetailPage = () => {
 
       {/* 报价对话框 */}
       {!isOwner && (
-        <Dialog open={isOfferModalOpen} onOpenChange={setIsOfferModalOpen}>
+        <Dialog open={isOfferModalOpen} onOpenChange={(open) => { setIsOfferModalOpen(open); if (!open) setIsBuyNow(false); }}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>为 {domain.name} 提交报价</DialogTitle>
+              <DialogTitle>
+                {isBuyNow ? `以 ${currency}${domain.price.toLocaleString()} 购买 ${domain.name}` : `为 ${domain.name} 提交报价`}
+              </DialogTitle>
               <DialogDescription>
-                您的报价将发送给域名所有者。如果他们感兴趣，将通过您提供的邮箱与您联系。
+                {isBuyNow
+                  ? '以卖家标价提交购买意向，双方通过站内消息完成交割，平台全程保障安全。'
+                  : '您的报价将发送给域名所有者，双方通过站内消息沟通协商，平台全程提供安全保障。'}
               </DialogDescription>
             </DialogHeader>
             <DomainOfferForm
               domain={domain.name}
               domainId={domain.id}
               sellerId={domain.owner_id}
-              onClose={() => setIsOfferModalOpen(false)}
+              onClose={() => { setIsOfferModalOpen(false); setIsBuyNow(false); }}
               isAuthenticated={!!user}
+              initialOffer={isBuyNow ? domain.price : undefined}
+              isBuyNow={isBuyNow}
             />
           </DialogContent>
         </Dialog>

@@ -14,6 +14,8 @@ interface DomainOfferFormProps {
   sellerId?: string;
   onClose: () => void;
   isAuthenticated: boolean;
+  initialOffer?: number;
+  isBuyNow?: boolean;
 }
 
 export const DomainOfferForm = ({ 
@@ -21,10 +23,12 @@ export const DomainOfferForm = ({
   domainId, 
   sellerId, 
   onClose,
-  isAuthenticated 
+  isAuthenticated,
+  initialOffer,
+  isBuyNow = false,
 }: DomainOfferFormProps) => {
   const { session } = useAuth();
-  const [offer, setOffer] = useState('');
+  const [offer, setOffer] = useState(initialOffer ? String(initialOffer) : '');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -172,22 +176,30 @@ export const DomainOfferForm = ({
       )}
       
       <div className="space-y-2">
-        <label className="text-sm font-medium text-foreground">您的报价</label>
+        <label className="text-sm font-medium text-foreground">
+          {isBuyNow ? '购买金额（标价）' : '您的报价'}
+        </label>
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">¥</span>
           <Input
             type="number"
             placeholder="1000"
             value={offer}
             onChange={(e) => {
-              setOffer(e.target.value);
-              setError(null);
+              if (!isBuyNow) {
+                setOffer(e.target.value);
+                setError(null);
+              }
             }}
+            readOnly={isBuyNow}
             required
             min="1"
-            className="pl-8"
+            className={`pl-8 ${isBuyNow ? 'bg-muted cursor-default' : ''}`}
           />
         </div>
+        {isBuyNow && (
+          <p className="text-xs text-muted-foreground">以卖家标价直接提交购买意向</p>
+        )}
       </div>
       
       <div className="space-y-2">
@@ -244,7 +256,7 @@ export const DomainOfferForm = ({
             {captchaToken ? (
               <>
                 <Send className="w-4 h-4" />
-                提交报价
+                {isBuyNow ? '确认购买' : '提交报价'}
               </>
             ) : (
               <>

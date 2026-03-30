@@ -93,7 +93,7 @@ export const WalletPanel = () => {
 
         if (type === 'deposit' && t.status === 'completed') totalDeposited += amount;
         if (type === 'withdrawal' && t.status === 'completed') totalWithdrawn += amount;
-        if (t.status === 'completed') totalEarned += amount;
+        if ((type === 'deposit' || type === 'sale') && t.status === 'completed') totalEarned += amount;
 
         formattedTransactions.push({
           id: t.id,

@@ -39,13 +39,13 @@ export const FavoriteDomains = () => {
           id,
           domain_id,
           created_at,
-          domains:domain_id (
+          domain_listings:domain_id (
             id,
             name,
             price,
             category,
             status,
-            is_featured
+            is_verified
           )
         `)
         .eq('user_id', user.id)
@@ -96,18 +96,18 @@ export const FavoriteDomains = () => {
 
       // Transform and filter valid favorites
       const validFavorites = (data || [])
-        .filter(item => item.domains)
+        .filter(item => item.domain_listings)
         .map(item => ({
           id: item.id,
           domain_id: item.domain_id,
           created_at: item.created_at,
           domain: {
-            id: (item.domains as any)?.id || item.domain_id,
-            name: (item.domains as any)?.name || 'Unknown',
-            price: (item.domains as any)?.price || 0,
-            category: (item.domains as any)?.category || 'standard',
-            status: (item.domains as any)?.status || 'available',
-            is_verified: Boolean((item.domains as any)?.is_featured)
+            id: (item.domain_listings as any)?.id || item.domain_id,
+            name: (item.domain_listings as any)?.name || 'Unknown',
+            price: (item.domain_listings as any)?.price || 0,
+            category: (item.domain_listings as any)?.category || 'standard',
+            status: (item.domain_listings as any)?.status || 'available',
+            is_verified: Boolean((item.domain_listings as any)?.is_verified)
           }
         }));
 
