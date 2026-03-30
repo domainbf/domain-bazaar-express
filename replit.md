@@ -22,8 +22,27 @@ A comprehensive domain name trading marketplace built with React, Vite, TypeScri
   - `GET /api/realtime/stream` — SSE stream with ?token=&tables= params
   - `GET/POST /api/data/*` — generic data endpoints from Turso
 
+## Vercel Deployment Notes (CRITICAL)
+
+### POST Body Hang Fix (resolved 2026-03-30)
+**Root cause**: `@hono/node-server`'s `getRequestListener` fails to read POST request body streams in Vercel's serverless Lambda environment — the 'end' event is never emitted, causing infinite hangs on all POST routes.
+
+**Fix in `api/index.ts`**: Replaced `getRequestListener` entirely with a manual handler that:
+1. Calls `readBody(req)` — checks `req.body` (pre-buffered) then falls back to stream events
+2. Constructs a Web API `Request` object manually
+3. Calls `app.fetch(webReq)` directly on the Hono app
+4. Writes the response back to `res`
+
+This drops login latency from 60s (timeout) → ~1.2s.
+
+### Other Vercel fixes
+- `server/db.ts`: Force `https://` protocol for Turso (WebSocket `libsql://` hangs on cold starts)
+- `server/redis.ts`: `enableReadyCheck: false`, `connectTimeout: 3000`, `withRedisTimeout()` wrapper
+- `api/index.ts`: Non-blocking `bgInit()` (fire-and-forget) — no more init blocking request handlers
+
 ## Key Files
-- `server/index.ts` — Hono API server entry
+- `api/index.ts` — Vercel serverless entry; manual body reader; non-blocking bgInit()
+- `server/index.ts` — Local dev Hono API server entry
 - `server/routes/auth.ts` — JWT auth routes
 - `server/routes/realtime.ts` — SSE endpoint + publish endpoint
 - `server/db.ts` — Turso libSQL client

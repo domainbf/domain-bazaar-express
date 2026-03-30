@@ -1,10 +1,14 @@
 import { createClient } from '@libsql/client';
 
-const url = process.env.TURSO_DATABASE_URL;
+const rawUrl = process.env.TURSO_DATABASE_URL;
 const authToken = process.env.TURSO_AUTH_TOKEN;
 
-if (!url) throw new Error('TURSO_DATABASE_URL is required');
+if (!rawUrl) throw new Error('TURSO_DATABASE_URL is required');
 if (!authToken) throw new Error('TURSO_AUTH_TOKEN is required');
+
+// Force HTTPS transport instead of WebSocket (libsql://) to avoid cold-start
+// connection hangs in Vercel serverless. @libsql/client supports both.
+const url = rawUrl.replace(/^libsql:\/\//, 'https://');
 
 export const db = createClient({ url, authToken });
 
