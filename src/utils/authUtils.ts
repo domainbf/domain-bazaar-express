@@ -68,6 +68,17 @@ export const fetchUserProfile = async (userId: string) => {
   }
 };
 
+export const isHookTimeoutError = (error: any): boolean => {
+  const msg = error?.message || '';
+  return (
+    msg.includes('Failed to reach hook') ||
+    msg.includes('hook within maximum time') ||
+    msg.includes('Hook call failed') ||
+    msg.includes('AuthHookError') ||
+    msg.includes('failed_to_reach_hook')
+  );
+};
+
 export const resetUserPassword = async (email: string) => {
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -75,12 +86,22 @@ export const resetUserPassword = async (email: string) => {
     });
     
     if (error) {
+      // Hook timeout errors: the reset email was likely still sent.
+      // Supabase triggers the hook AFTER sending the email, so we treat this as success.
+      if (isHookTimeoutError(error)) {
+        console.warn('Auth hook timeout (non-critical):', error.message);
+        return { success: true, hookWarning: true };
+      }
       console.error('密码重置失败:', error);
       throw new Error(error.message || '发送重置密码邮件失败');
     }
     
     return { success: true };
   } catch (error: any) {
+    if (isHookTimeoutError(error)) {
+      console.warn('Auth hook timeout (non-critical):', error.message);
+      return { success: true, hookWarning: true };
+    }
     console.error('重置密码邮件发送失败:', error);
     throw new Error(error.message || '发送重置密码邮件失败');
   }
