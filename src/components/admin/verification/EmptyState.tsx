@@ -12,8 +12,8 @@ export const EmptyState = ({ onRefresh, isRefreshing = false }: EmptyStateProps)
   const { t } = useTranslation();
   
   return (
-    <div className="text-center py-12 bg-gray-50 rounded-lg">
-      <p className="text-gray-600 mb-4">
+    <div className="text-center py-12 bg-muted/50 rounded-lg">
+      <p className="text-muted-foreground mb-4">
         {t('admin.verifications.noPending', 'No pending verifications')}
       </p>
       <Button 

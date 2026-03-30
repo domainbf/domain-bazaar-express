@@ -40,7 +40,7 @@ interface AuctionBid {
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   active: { label: '进行中', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
-  ended: { label: '已结束', color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' },
+  ended: { label: '已结束', color: 'bg-muted text-foreground dark:bg-gray-800 dark:text-gray-300' },
   cancelled: { label: '已取消', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
   completed: { label: '已完成', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
   pending: { label: '待开始', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' },

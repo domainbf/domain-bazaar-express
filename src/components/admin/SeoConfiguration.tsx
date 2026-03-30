@@ -141,7 +141,7 @@ export const SeoConfiguration = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Search className="h-5 w-5 text-gray-700" />
+          <Search className="h-5 w-5 text-foreground" />
           <h2 className="text-xl font-semibold">SEO配置</h2>
           {hasChanges && (
             <Badge variant="secondary" className="ml-2">
@@ -387,14 +387,14 @@ export const SeoConfiguration = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="bg-white border rounded-lg p-4 max-w-xl">
+          <div className="bg-card border rounded-lg p-4 max-w-xl">
             <div className="text-blue-600 text-lg hover:underline cursor-pointer">
               {settings.meta_title || '您的网站标题'}
             </div>
             <div className="text-green-700 text-sm">
               {settings.canonical_url || window.location.origin} ›
             </div>
-            <div className="text-gray-600 text-sm mt-1">
+            <div className="text-muted-foreground text-sm mt-1">
               {settings.meta_description || '您的网站描述将显示在这里...'}
             </div>
           </div>

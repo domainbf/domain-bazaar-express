@@ -23,7 +23,7 @@ export const ContactSection = () => {
             <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-cyan-400 mb-6">
               联系我们
             </h2>
-            <p className="text-gray-400 mb-8">
+            <p className="text-muted-foreground mb-8">
               无论您有任何问题或建议，我们都随时准备为您提供专业的咨询服务
             </p>
             
@@ -34,7 +34,7 @@ export const ContactSection = () => {
                 </div>
                 <div>
                   <div className="text-white font-medium">电话咨询</div>
-                  <div className="text-gray-400">400-123-4567</div>
+                  <div className="text-muted-foreground">400-123-4567</div>
                 </div>
               </div>
               
@@ -44,7 +44,7 @@ export const ContactSection = () => {
                 </div>
                 <div>
                   <div className="text-white font-medium">邮件支持</div>
-                  <div className="text-gray-400">support@example.com</div>
+                  <div className="text-muted-foreground">support@example.com</div>
                 </div>
               </div>
               
@@ -54,7 +54,7 @@ export const ContactSection = () => {
                 </div>
                 <div>
                   <div className="text-white font-medium">在线客服</div>
-                  <div className="text-gray-400">7x24小时在线服务</div>
+                  <div className="text-muted-foreground">7x24小时在线服务</div>
                 </div>
               </div>
             </div>
@@ -75,7 +75,7 @@ export const ContactSection = () => {
                 <Input 
                   type="text" 
                   placeholder="请输入您的姓名"
-                  className="w-full bg-white/5 border-violet-500/20"
+                  className="w-full bg-card/5 border-violet-500/20"
                 />
               </div>
               
@@ -86,7 +86,7 @@ export const ContactSection = () => {
                 <Input 
                   type="email" 
                   placeholder="请输入您的邮箱"
-                  className="w-full bg-white/5 border-violet-500/20"
+                  className="w-full bg-card/5 border-violet-500/20"
                 />
               </div>
               
@@ -97,7 +97,7 @@ export const ContactSection = () => {
                 <textarea 
                   rows={4}
                   placeholder="请详细描述您的需求"
-                  className="w-full bg-white/5 border-violet-500/20 rounded-md p-3 text-white"
+                  className="w-full bg-card/5 border-violet-500/20 rounded-md p-3 text-white"
                 />
               </div>
               

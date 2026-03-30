@@ -48,7 +48,7 @@ export const UserTable = ({
     <div className="overflow-x-auto">
       <table className="w-full border-collapse">
         <thead>
-          <tr className="bg-gray-50">
+          <tr className="bg-muted/50">
             <th className="text-left p-4 border-b">User</th>
             <th className="text-left p-4 border-b">Email</th>
             <th className="text-left p-4 border-b">Status</th>
@@ -59,7 +59,7 @@ export const UserTable = ({
         </thead>
         <tbody>
           {filteredUsers.map((user) => (
-            <tr key={user.id} className="border-b hover:bg-gray-50">
+            <tr key={user.id} className="border-b hover:bg-muted/50">
               <td className="p-4">
                 <div className="flex items-center gap-2">
                   {user.avatar_url ? (
@@ -75,7 +75,7 @@ export const UserTable = ({
                   )}
                   <div>
                     <div className="font-medium">{user.full_name || 'Unnamed User'}</div>
-                    {user.username && <div className="text-sm text-gray-500">@{user.username}</div>}
+                    {user.username && <div className="text-sm text-muted-foreground">@{user.username}</div>}
                   </div>
                 </div>
               </td>
@@ -126,8 +126,8 @@ export const UserTable = ({
       </table>
       
       {filteredUsers.length === 0 && (
-        <div className="text-center py-8 bg-gray-50 rounded-lg">
-          <p className="text-gray-600">No users found</p>
+        <div className="text-center py-8 bg-muted/50 rounded-lg">
+          <p className="text-muted-foreground">No users found</p>
         </div>
       )}
     </div>

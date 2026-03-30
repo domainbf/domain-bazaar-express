@@ -27,7 +27,7 @@ export const DomainTable = ({ domains, onView, onEdit, onDelete }: DomainTablePr
   if (!domains || domains.length === 0) {
     return (
       <div className="text-center py-10">
-        <p className="text-gray-500">暂无域名</p>
+        <p className="text-muted-foreground">暂无域名</p>
       </div>
     );
   }
@@ -65,7 +65,7 @@ export const DomainTable = ({ domains, onView, onEdit, onDelete }: DomainTablePr
                 {domain.category ? (
                   React.createElement('span', {}, domain.category) 
                 ) : (
-                  <span className="text-gray-400">未分类</span>
+                  <span className="text-muted-foreground">未分类</span>
                 )}
               </TableCell>
               <TableCell>{new Date(domain.created_at).toLocaleDateString()}</TableCell>

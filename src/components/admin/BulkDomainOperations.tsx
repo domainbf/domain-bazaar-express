@@ -188,14 +188,14 @@ export const BulkDomainOperations = () => {
             </div>
             <div className="border rounded-lg p-4 max-h-60 overflow-y-auto space-y-2">
               {domains.map((domain) => (
-                <div key={domain.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
+                <div key={domain.id} className="flex items-center gap-3 p-2 hover:bg-muted/50 rounded">
                   <Checkbox
                     checked={selectedDomainIds.includes(domain.id)}
                     onCheckedChange={() => toggleDomainSelection(domain.id)}
                   />
                   <div className="flex-1">
                     <p className="font-medium">{domain.name}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       ¥{domain.price} · {domain.status} · {domain.category}
                     </p>
                   </div>

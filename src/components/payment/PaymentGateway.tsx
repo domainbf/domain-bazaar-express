@@ -245,8 +245,8 @@ export const PaymentGateway = ({
             disabled={!method.available}
             className={`flex items-center gap-4 p-4 rounded-lg border-2 transition-all text-left w-full ${
               !method.available 
-                ? 'opacity-50 cursor-not-allowed bg-gray-50' 
-                : 'hover:border-primary hover:bg-gray-50 cursor-pointer border-gray-200'
+                ? 'opacity-50 cursor-not-allowed bg-muted' 
+                : 'hover:border-primary hover:bg-muted/50 cursor-pointer border-border'
             }`}
           >
             {method.icon}
@@ -361,7 +361,7 @@ export const PaymentGateway = ({
 
     return (
       <div className="space-y-6">
-        <div className="p-4 bg-gray-50 rounded-lg space-y-3">
+        <div className="p-4 bg-muted/50 rounded-lg space-y-3">
           <div className="flex justify-between">
             <span className="text-muted-foreground">支付方式</span>
             <span className="font-medium">{selectedMethodDetails?.name}</span>
@@ -384,13 +384,13 @@ export const PaymentGateway = ({
         </div>
 
         {type === 'withdraw' && (
-          <div className="p-4 bg-blue-50 rounded-lg space-y-2">
+          <div className="p-4 bg-primary/5 rounded-lg space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-blue-600">提现账号</span>
+              <span className="text-primary">提现账号</span>
               <span className="font-medium">{withdrawAccount}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-blue-600">账户姓名</span>
+              <span className="text-primary">账户姓名</span>
               <span className="font-medium">{withdrawAccountName}</span>
             </div>
           </div>
@@ -428,12 +428,12 @@ export const PaymentGateway = ({
 
   const renderQRCode = () => (
     <div className="space-y-6 text-center">
-      <div className="p-4 bg-white rounded-lg border inline-block mx-auto">
+      <div className="p-4 bg-card rounded-lg border inline-block mx-auto">
         {qrCodeUrl ? (
           <img src={qrCodeUrl} alt="支付二维码" className="w-48 h-48" />
         ) : (
-          <div className="w-48 h-48 bg-gray-100 flex items-center justify-center">
-            <QrCode className="w-12 h-12 text-gray-400" />
+          <div className="w-48 h-48 bg-muted flex items-center justify-center">
+            <QrCode className="w-12 h-12 text-muted-foreground" />
           </div>
         )}
       </div>
@@ -445,7 +445,7 @@ export const PaymentGateway = ({
 
       <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
         <span>交易号:</span>
-        <code className="bg-gray-100 px-2 py-1 rounded">{transactionId}</code>
+        <code className="bg-muted px-2 py-1 rounded">{transactionId}</code>
         <Button variant="ghost" size="sm" onClick={() => copyToClipboard(transactionId)}>
           <Copy className="w-4 h-4" />
         </Button>
@@ -487,7 +487,7 @@ export const PaymentGateway = ({
         </p>
       </div>
 
-      <div className="p-4 bg-gray-50 rounded-lg space-y-2">
+      <div className="p-4 bg-muted/50 rounded-lg space-y-2">
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">交易号</span>
           <div className="flex items-center gap-1">

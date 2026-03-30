@@ -154,6 +154,21 @@ export const WalletPanel = () => {
     loadWalletData();
   }, [loadWalletData]);
 
+  // Realtime: refresh wallet when payment_transactions change for this user
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`wallet-realtime-${user.id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'payment_transactions',
+        filter: `user_id=eq.${user.id}`,
+      }, () => { loadWalletData(); })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, loadWalletData]);
+
   const handleRefresh = () => {
     setIsRefreshing(true);
     loadWalletData();

@@ -58,7 +58,7 @@ const activityLabels: Record<string, string> = {
 
 const activityColors: Record<string, string> = {
   'login': 'bg-blue-100 text-blue-700',
-  'view_domain': 'bg-gray-100 text-gray-700',
+  'view_domain': 'bg-muted text-foreground',
   'create_offer': 'bg-purple-100 text-purple-700',
   'favorite_domain': 'bg-pink-100 text-pink-700',
   'purchase': 'bg-green-100 text-green-700',
@@ -192,7 +192,7 @@ export const AdminActivityLog = () => {
               {filteredActivities.map((activity) => {
                 const Icon = activityIcons[activity.activity_type] || activityIcons.default;
                 const label = activityLabels[activity.activity_type] || activity.activity_type;
-                const colorClass = activityColors[activity.activity_type] || 'bg-gray-100 text-gray-700';
+                const colorClass = activityColors[activity.activity_type] || 'bg-muted text-foreground';
 
                 return (
                   <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">

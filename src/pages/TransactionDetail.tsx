@@ -484,7 +484,7 @@ export default function TransactionDetail() {
                       <p className="text-xs text-muted-foreground mb-3">
                         请通过平台指定方式将 <strong>{txCurrency}{transaction.amount.toLocaleString()}</strong> 汇入托管账户，资金确认后交易将自动进入托管阶段。
                       </p>
-                      <div className="text-xs bg-white dark:bg-black/20 rounded-lg p-3 space-y-1.5 border border-yellow-200 dark:border-yellow-800 mb-3">
+                      <div className="text-xs bg-card dark:bg-black/20 rounded-lg p-3 space-y-1.5 border border-yellow-200 dark:border-yellow-800 mb-3">
                         <p className="font-semibold text-foreground">付款步骤：</p>
                         <p className="text-muted-foreground">① 通过平台内消息联系客服获取收款账户信息</p>
                         <p className="text-muted-foreground">② 按照指定金额付款，备注填写交易ID</p>

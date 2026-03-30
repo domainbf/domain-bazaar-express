@@ -310,7 +310,7 @@ export const TwoFactorAuth = ({ onStatusChange }: TwoFactorAuthProps) => {
 
           {setupStep === 'qr' && (
             <div className="space-y-4">
-              <div className="flex justify-center p-4 bg-white rounded-lg border">
+              <div className="flex justify-center p-4 bg-card rounded-lg border">
                 {qrCode ? (
                   <img src={qrCode} alt="2FA QR Code" className="w-48 h-48" />
                 ) : (

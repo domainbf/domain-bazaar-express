@@ -20,7 +20,7 @@ export const DomainGrid = ({ domains, onSelect }: DomainGridProps) => {
   if (!domains || domains.length === 0) {
     return (
       <div className="text-center py-10">
-        <p className="text-gray-500">暂无域名</p>
+        <p className="text-muted-foreground">暂无域名</p>
       </div>
     );
   }
@@ -34,12 +34,12 @@ export const DomainGrid = ({ domains, onSelect }: DomainGridProps) => {
           onClick={() => onSelect && onSelect(domain)}
         >
           <div className="flex justify-between items-start mb-2">
-            <h3 className="text-lg font-bold text-gray-800">{domain.name}</h3>
+            <h3 className="text-lg font-bold text-foreground">{domain.name}</h3>
             {domain.highlight && <Badge className="bg-yellow-500 text-white">{React.createElement('span', {}, '精选')}</Badge>}
           </div>
           
           <div className="flex justify-between items-end">
-            <span className="text-lg font-bold text-gray-900">${domain.price?.toLocaleString()}</span>
+            <span className="text-lg font-bold text-foreground">${domain.price?.toLocaleString()}</span>
             <Badge className={domain.status === 'available' ? 'bg-green-500' : domain.status === 'sold' ? 'bg-red-500' : 'bg-yellow-400'}>
               {React.createElement('span', {}, domain.status === 'available' ? '可售' : domain.status === 'sold' ? '已售' : '预留')}
             </Badge>
@@ -47,7 +47,7 @@ export const DomainGrid = ({ domains, onSelect }: DomainGridProps) => {
           
           {domain.category && (
             <div className="mt-2">
-              <span className="text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-600">{domain.category}</span>
+              <span className="text-xs bg-muted px-2 py-1 rounded-full text-muted-foreground">{domain.category}</span>
             </div>
           )}
         </div>

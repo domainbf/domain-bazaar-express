@@ -35,7 +35,7 @@ export const FilterSection = ({
   ];
 
   return (
-    <section className={`bg-gray-50 border-b ${isMobile ? 'py-2 px-2' : 'py-4'}`}>
+    <section className={`bg-muted/50 border-b ${isMobile ? 'py-2 px-2' : 'py-4'}`}>
       <div className={`${isMobile ? '' : 'max-w-6xl mx-auto px-4'}`}>
         <div className={`flex ${isMobile ? 'flex-col gap-2' : 'flex-row items-center justify-between'}`}>
           <CategoryFilters 

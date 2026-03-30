@@ -39,7 +39,13 @@ export const Navbar = ({ unreadCount = 0, unreadMessages: unreadMessagesProp = 0
   // Prefetch marketplace data on nav link hover for instant navigation
   const handleMarketplaceHover = useCallback(() => {
     prefetchDomainListings(queryClient);
+    import('../pages/Marketplace').catch(() => {});
   }, [queryClient]);
+
+  // Prefetch route chunks on hover for other key links
+  const prefetchRoute = useCallback((importFn: () => Promise<unknown>) => {
+    importFn().catch(() => {});
+  }, []);
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
@@ -195,6 +201,7 @@ export const Navbar = ({ unreadCount = 0, unreadMessages: unreadMessagesProp = 0
             to="/auctions"
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-accent transition-colors"
             data-testid="nav-auctions"
+            onMouseEnter={() => prefetchRoute(() => import('../pages/AuctionsPage'))}
           >
             <Gavel className="h-4 w-4" />
             域名竞拍
@@ -203,6 +210,7 @@ export const Navbar = ({ unreadCount = 0, unreadMessages: unreadMessagesProp = 0
             to="/sell"
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-accent transition-colors"
             data-testid="nav-sell"
+            onMouseEnter={() => prefetchRoute(() => import('../pages/SellDomain'))}
           >
             <Tag className="h-4 w-4" />
             出售域名

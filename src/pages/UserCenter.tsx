@@ -185,20 +185,20 @@ export const UserCenter = () => {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="mb-6 rounded-xl overflow-hidden shadow-md border-none bg-gradient-to-br from-primary via-primary/95 to-primary/80 text-primary-foreground"
+          className="mb-6 rounded-xl overflow-hidden shadow-md border border-border bg-gradient-to-br from-foreground to-foreground/90 text-background dark:from-card dark:via-muted/60 dark:to-card dark:text-foreground"
         >
           <div className="p-6 sm:p-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-2 border-primary-foreground/20 shadow-xl ring-2 ring-primary-foreground/10 ring-offset-2 ring-offset-primary">
+                  <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-2 border-background/20 dark:border-foreground/20 shadow-xl">
                     <AvatarImage src={profile?.avatar_url || ''} />
-                    <AvatarFallback className="bg-primary-foreground/20 text-primary-foreground text-xl sm:text-2xl font-bold">
+                    <AvatarFallback className="bg-background/20 dark:bg-foreground/20 text-background dark:text-foreground text-xl sm:text-2xl font-bold">
                       {avatarInitial}
                     </AvatarFallback>
                   </Avatar>
                   {profile?.seller_verified && (
-                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-primary">
+                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-background dark:border-foreground/20">
                       <Shield className="w-3 h-3 text-white" />
                     </div>
                   )}
@@ -207,14 +207,14 @@ export const UserCenter = () => {
                   <div className="flex items-center gap-2">
                     <h1 className="text-xl sm:text-2xl font-bold">{displayName}</h1>
                     {isAdmin && (
-                      <Badge className="bg-primary-foreground/20 text-primary-foreground border-none text-[10px] px-1.5">
+                      <Badge className="bg-background/20 dark:bg-foreground/20 text-background dark:text-foreground border-none text-[10px] px-1.5">
                         <Sparkles className="w-3 h-3 mr-0.5" />管理员
                       </Badge>
                     )}
                   </div>
-                  <p className="text-sm text-primary-foreground/70 mt-0.5">{user?.email}</p>
+                  <p className="text-sm text-background/70 dark:text-foreground/70 mt-0.5">{user?.email}</p>
                   {profile?.is_seller && (
-                    <Badge className="mt-2 bg-primary-foreground/15 text-primary-foreground border-none text-xs">
+                    <Badge className="mt-2 bg-background/15 dark:bg-foreground/15 text-background dark:text-foreground border-none text-xs">
                       认证卖家
                     </Badge>
                   )}
@@ -224,14 +224,14 @@ export const UserCenter = () => {
                 <Button
                   onClick={() => navigate('/')}
                   variant="secondary"
-                  className="bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 border-none"
+                  className="bg-background/10 dark:bg-foreground/10 text-background dark:text-foreground hover:bg-background/20 dark:hover:bg-foreground/20 border-none"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />返回首页
                 </Button>
                 {isAdmin && (
                   <Button
                     onClick={() => navigate('/admin')}
-                    className="bg-primary-foreground text-primary hover:bg-primary-foreground/90"
+                    className="bg-background dark:bg-foreground text-foreground dark:text-background hover:bg-background/90 dark:hover:bg-foreground/90"
                   >
                     <Shield className="w-4 h-4 mr-2" />管理面板
                   </Button>
@@ -345,14 +345,14 @@ function MobileProfileSection({
         <div className="bg-gradient-to-br from-primary via-primary/90 to-primary/70 px-5 py-5">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <Avatar className="h-[60px] w-[60px] border-2 border-primary-foreground/20 shadow-lg">
+              <Avatar className="h-[60px] w-[60px] border-2 border-background dark:border-foreground/20-foreground/20 shadow-lg">
                 <AvatarImage src={profile?.avatar_url || ''} />
-                <AvatarFallback className="bg-primary-foreground/20 text-primary-foreground text-xl font-bold">
+                <AvatarFallback className="bg-background/20 dark:bg-foreground/20 text-background dark:text-foreground text-xl font-bold">
                   {avatarInitial}
                 </AvatarFallback>
               </Avatar>
               {profile?.seller_verified && (
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-primary">
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-background dark:border-foreground/20">
                   <Shield className="w-2.5 h-2.5 text-white" />
                 </div>
               )}
@@ -361,7 +361,7 @@ function MobileProfileSection({
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-lg font-bold text-primary-foreground truncate">{displayName}</span>
                 {isAdmin && (
-                  <Badge className="bg-primary-foreground/20 text-primary-foreground border-none text-[10px] px-1.5 h-5 shrink-0">
+                  <Badge className="bg-background/20 dark:bg-foreground/20 text-background dark:text-foreground border-none text-[10px] px-1.5 h-5 shrink-0">
                     <Sparkles className="w-2.5 h-2.5 mr-0.5" />管理员
                   </Badge>
                 )}

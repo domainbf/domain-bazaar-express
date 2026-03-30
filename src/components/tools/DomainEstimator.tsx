@@ -112,8 +112,8 @@ export const DomainEstimator = () => {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">域名价值评估</h2>
-        <p className="text-gray-600">基于多维度算法的专业域名价值评估</p>
+        <h2 className="text-3xl font-bold text-foreground mb-4">域名价值评估</h2>
+        <p className="text-muted-foreground">基于多维度算法的专业域名价值评估</p>
       </div>
 
       <Card className="mb-8">

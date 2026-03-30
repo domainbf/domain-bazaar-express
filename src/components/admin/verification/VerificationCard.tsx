@@ -11,7 +11,7 @@ interface VerificationCardProps {
 
 export const VerificationCard = ({ verification, onApprove, onReject }: VerificationCardProps) => {
   return (
-    <tr className="border-b hover:bg-gray-50">
+    <tr className="border-b hover:bg-muted/50">
       <td className="p-4 font-medium">
         {verification.domain_listings?.name || 'Unknown Domain'}
       </td>
@@ -23,13 +23,13 @@ export const VerificationCard = ({ verification, onApprove, onReject }: Verifica
         {verification.verification_type === 'dns' ? (
           <div className="text-sm">
             <p>TXT Record: {verification.verification_data.recordName}</p>
-            <p className="text-gray-500 truncate">{verification.verification_data.recordValue}</p>
+            <p className="text-muted-foreground truncate">{verification.verification_data.recordValue}</p>
           </div>
         ) : (
           <div className="text-sm">
             <p>File: {verification.verification_data.fileLocation}</p>
             <div className="flex items-center">
-              <p className="text-gray-500 truncate">{verification.verification_data.fileContent}</p>
+              <p className="text-muted-foreground truncate">{verification.verification_data.fileContent}</p>
               <a 
                 href={`https://${verification.domain_listings?.name}${verification.verification_data.fileLocation}`} 
                 target="_blank" 

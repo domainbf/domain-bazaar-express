@@ -137,19 +137,19 @@ export const FAQPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/50">
       <Navbar />
       
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">常见问题</h1>
-          <p className="text-xl text-gray-600">找到您需要的答案，或联系我们获取帮助</p>
+          <h1 className="text-4xl font-bold text-foreground mb-4">常见问题</h1>
+          <p className="text-xl text-muted-foreground">找到您需要的答案，或联系我们获取帮助</p>
         </div>
 
         <Card className="mb-8">
           <CardContent className="p-6">
             <div className="relative max-w-2xl mx-auto">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
               <Input
                 type="text"
                 placeholder="搜索问题、关键词..."
@@ -166,7 +166,7 @@ export const FAQPage: React.FC = () => {
             <Card key={faq.id} className="transition-all hover:shadow-md">
               <CardContent className="p-0">
                 <button
-                  className="w-full p-6 text-left hover:bg-gray-50 transition-colors"
+                  className="w-full p-6 text-left hover:bg-muted/50 transition-colors"
                   onClick={() => toggleExpanded(faq.id)}
                 >
                   <div className="flex items-center justify-between">
@@ -182,17 +182,17 @@ export const FAQPage: React.FC = () => {
                     </div>
                     <div className="ml-4">
                       {expandedItems.has(faq.id) ? (
-                        <ChevronUp className="h-5 w-5 text-gray-400" />
+                        <ChevronUp className="h-5 w-5 text-muted-foreground" />
                       ) : (
-                        <ChevronDown className="h-5 w-5 text-gray-400" />
+                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
                       )}
                     </div>
                   </div>
                 </button>
                 
                 {expandedItems.has(faq.id) && (
-                  <div className="px-6 pb-6 border-t bg-gray-50">
-                    <p className="text-gray-700 leading-relaxed pt-4">
+                  <div className="px-6 pb-6 border-t bg-muted/50">
+                    <p className="text-foreground leading-relaxed pt-4">
                       {faq.answer}
                     </p>
                   </div>
@@ -203,7 +203,7 @@ export const FAQPage: React.FC = () => {
         </div>
 
         <div className="mt-12 text-center">
-          <p className="text-gray-600 mb-4">没有找到您的问题？</p>
+          <p className="text-muted-foreground mb-4">没有找到您的问题？</p>
           <Link to="/contact">
             <Button>联系客服</Button>
           </Link>

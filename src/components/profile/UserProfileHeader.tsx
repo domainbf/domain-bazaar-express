@@ -18,7 +18,7 @@ export const UserProfileHeader = ({ profile }: UserProfileHeaderProps) => {
       <CardContent className="pt-6">
         <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
           <div className="shrink-0">
-            <Avatar className="h-24 w-24 border-2 border-gray-200">
+            <Avatar className="h-24 w-24 border-2 border-border">
               <AvatarImage src={profile.avatar_url || ''} alt={profile.full_name || 'User'} />
               <AvatarFallback className="text-3xl">
                 {profile.full_name ? profile.full_name.charAt(0).toUpperCase() : 'U'}
@@ -29,33 +29,33 @@ export const UserProfileHeader = ({ profile }: UserProfileHeaderProps) => {
           <div className="flex-1 text-center md:text-left">
             <h1 className="text-2xl font-bold mb-2">{profile.full_name || '未设置名称'}</h1>
             
-            {profile.username && <p className="text-gray-500 mb-2">@{profile.username}</p>}
+            {profile.username && <p className="text-muted-foreground mb-2">@{profile.username}</p>}
             
-            {profile.bio && <p className="mb-3 text-gray-700">{profile.bio}</p>}
+            {profile.bio && <p className="mb-3 text-foreground">{profile.bio}</p>}
             
             <div className="flex flex-wrap gap-4 justify-center md:justify-start text-sm">
               {profile.contact_email && (
-                <div className="flex items-center gap-1 text-gray-600">
+                <div className="flex items-center gap-1 text-muted-foreground">
                   <Mail className="h-4 w-4" />
                   <span>{profile.contact_email}</span>
                 </div>
               )}
               
               {profile.contact_phone && (
-                <div className="flex items-center gap-1 text-gray-600">
+                <div className="flex items-center gap-1 text-muted-foreground">
                   <Phone className="h-4 w-4" />
                   <span>{profile.contact_phone}</span>
                 </div>
               )}
               
               {profile.company_name && (
-                <div className="flex items-center gap-1 text-gray-600">
+                <div className="flex items-center gap-1 text-muted-foreground">
                   <Building2 className="h-4 w-4" />
                   <span>{profile.company_name}</span>
                 </div>
               )}
               
-              <div className="flex items-center gap-1 text-gray-600">
+              <div className="flex items-center gap-1 text-muted-foreground">
                 <CalendarIcon className="h-4 w-4" />
                 <span>加入于 {formatDistanceToNow(joinedDate, { addSuffix: true, locale: zhCN })}</span>
               </div>

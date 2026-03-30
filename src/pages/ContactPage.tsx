@@ -210,14 +210,14 @@ export const ContactPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/50">
       <Navbar />
       
       <div className="max-w-6xl mx-auto px-4 py-12">
         {/* 页面标题 */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">联系我们</h1>
-          <p className="text-xl text-gray-600">我们随时为您提供帮助和支持</p>
+          <h1 className="text-4xl font-bold text-foreground mb-4">联系我们</h1>
+          <p className="text-xl text-muted-foreground">我们随时为您提供帮助和支持</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -312,7 +312,7 @@ export const ContactPage: React.FC = () => {
                       className="min-h-[120px]"
                       required
                     />
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-muted-foreground">
                       {formData.message.length}/500
                     </div>
                   </div>
@@ -352,32 +352,32 @@ export const ContactPage: React.FC = () => {
               <CardContent className="space-y-4">
                 {config.contact_email && (
                   <div className="flex items-start gap-3">
-                    <Mail className="h-5 w-5 text-gray-500 mt-1" />
+                    <Mail className="h-5 w-5 text-muted-foreground mt-1" />
                     <div>
                       <div className="font-medium">客服邮箱</div>
                       <div className="text-muted-foreground">{config.contact_email}</div>
-                      <div className="text-sm text-gray-500">24小时内回复</div>
+                      <div className="text-sm text-muted-foreground">24小时内回复</div>
                     </div>
                   </div>
                 )}
 
                 {config.contact_phone && (
                   <div className="flex items-start gap-3">
-                    <Phone className="h-5 w-5 text-gray-500 mt-1" />
+                    <Phone className="h-5 w-5 text-muted-foreground mt-1" />
                     <div>
                       <div className="font-medium">客服电话</div>
-                      <div className="text-gray-600">{config.contact_phone}</div>
-                      <div className="text-sm text-gray-500">{config.hours_weekday} {config.hours_phone}</div>
+                      <div className="text-muted-foreground">{config.contact_phone}</div>
+                      <div className="text-sm text-muted-foreground">{config.hours_weekday} {config.hours_phone}</div>
                     </div>
                   </div>
                 )}
 
                 {config.contact_address && (
                   <div className="flex items-start gap-3">
-                    <MapPin className="h-5 w-5 text-gray-500 mt-1" />
+                    <MapPin className="h-5 w-5 text-muted-foreground mt-1" />
                     <div>
                       <div className="font-medium">公司地址</div>
-                      <div className="text-gray-600 whitespace-pre-line">{config.contact_address}</div>
+                      <div className="text-muted-foreground whitespace-pre-line">{config.contact_address}</div>
                     </div>
                   </div>
                 )}
@@ -399,17 +399,17 @@ export const ContactPage: React.FC = () => {
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
                   <span>在线客服</span>
-                  <span className="text-gray-600">{config.hours_online || '9:00 - 18:00'}</span>
+                  <span className="text-muted-foreground">{config.hours_online || '9:00 - 18:00'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>邮箱支持</span>
-                  <span className="text-gray-600">24小时</span>
+                  <span className="text-muted-foreground">24小时</span>
                 </div>
                 <div className="flex justify-between">
                   <span>电话支持</span>
-                  <span className="text-gray-600">{config.hours_phone || '9:00 - 18:00'}</span>
+                  <span className="text-muted-foreground">{config.hours_phone || '9:00 - 18:00'}</span>
                 </div>
-                <div className="text-sm text-gray-500 pt-2 border-t">
+                <div className="text-sm text-muted-foreground pt-2 border-t">
                   {config.hours_weekday || '周一至周五（节假日除外）'}
                 </div>
               </CardContent>
@@ -430,7 +430,7 @@ export const ContactPage: React.FC = () => {
                       <Globe className="h-6 w-6 text-blue-500" />
                       <div className="flex-1">
                         <div className="font-medium">在线帮助中心</div>
-                        <div className="text-sm text-gray-600">查看常见问题</div>
+                        <div className="text-sm text-muted-foreground">查看常见问题</div>
                       </div>
                     </div>
                   </a>
@@ -440,7 +440,7 @@ export const ContactPage: React.FC = () => {
                       <Users className="h-6 w-6 text-green-500" />
                       <div className="flex-1">
                         <div className="font-medium">用户社区</div>
-                        <div className="text-sm text-gray-600">与其他用户交流</div>
+                        <div className="text-sm text-muted-foreground">与其他用户交流</div>
                       </div>
                     </div>
                   </a>
@@ -450,7 +450,7 @@ export const ContactPage: React.FC = () => {
                       <Shield className="h-6 w-6 text-purple-500" />
                       <div className="flex-1">
                         <div className="font-medium">安全中心</div>
-                        <div className="text-sm text-gray-600">账户安全指引</div>
+                        <div className="text-sm text-muted-foreground">账户安全指引</div>
                       </div>
                     </div>
                   </a>

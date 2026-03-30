@@ -17,28 +17,28 @@ export const MarketTrendsAnalysis: React.FC = () => {
           <CardContent className="p-6 text-center">
             <Target className="h-8 w-8 mx-auto mb-2 text-blue-500" />
             <div className="text-2xl font-bold">{marketStats.totalListings.toLocaleString()}</div>
-            <div className="text-sm text-gray-600">总上架域名</div>
+            <div className="text-sm text-muted-foreground">总上架域名</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6 text-center">
             <DollarSign className="h-8 w-8 mx-auto mb-2 text-green-500" />
             <div className="text-2xl font-bold">¥{marketStats.averagePrice.toLocaleString()}</div>
-            <div className="text-sm text-gray-600">平均价格</div>
+            <div className="text-sm text-muted-foreground">平均价格</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6 text-center">
             <TrendingUp className="h-8 w-8 mx-auto mb-2 text-purple-500" />
             <div className="text-2xl font-bold">{marketStats.monthlyGrowth}%</div>
-            <div className="text-sm text-gray-600">月度增长</div>
+            <div className="text-sm text-muted-foreground">月度增长</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6 text-center">
             <Activity className="h-8 w-8 mx-auto mb-2 text-orange-500" />
             <div className="text-2xl font-bold">{marketStats.hotCategories}</div>
-            <div className="text-sm text-gray-600">热门分类</div>
+            <div className="text-sm text-muted-foreground">热门分类</div>
           </CardContent>
         </Card>
       </div>

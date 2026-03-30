@@ -409,7 +409,7 @@ export const ContentManagement = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <FileText className="h-5 w-5 text-gray-700" />
+          <FileText className="h-5 w-5 text-foreground" />
           <h2 className="text-xl font-semibold">内容管理</h2>
         </div>
         <div className="flex gap-2">

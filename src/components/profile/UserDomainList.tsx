@@ -58,7 +58,7 @@ export const UserDomainList = ({ domains }: UserDomainListProps) => {
       <CardContent>
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input 
               placeholder="搜索域名..." 
               className="pl-8"
@@ -86,7 +86,7 @@ export const UserDomainList = ({ domains }: UserDomainListProps) => {
         </div>
         
         {filteredDomains.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-muted-foreground">
             <p>没有找到符合条件的域名</p>
           </div>
         ) : viewMode === 'grid' ? (

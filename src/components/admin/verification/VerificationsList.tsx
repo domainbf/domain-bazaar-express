@@ -13,7 +13,7 @@ export const VerificationsList = ({ verifications, onApprove, onReject }: Verifi
     <div className="overflow-x-auto">
       <table className="w-full border-collapse">
         <thead>
-          <tr className="bg-gray-50">
+          <tr className="bg-muted/50">
             <th className="text-left p-4 border-b">Domain</th>
             <th className="text-left p-4 border-b">Type</th>
             <th className="text-left p-4 border-b">Submitted</th>

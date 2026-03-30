@@ -233,7 +233,7 @@ export const DomainListingsTable = ({
         </thead>
         <tbody>
           {domains.map((domain) => (
-            <tr key={domain.id} className="border-b hover:bg-gray-50">
+            <tr key={domain.id} className="border-b hover:bg-muted/50">
               <td className="p-4">
                 <div className="font-medium">{domain.name}</div>
                 {domain.highlight && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">精选</span>}
@@ -253,7 +253,7 @@ export const DomainListingsTable = ({
                       ? 'bg-green-100 text-green-800' 
                       : domain.verification_status === 'pending'
                       ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-gray-100 text-gray-800'
+                      : 'bg-muted text-foreground'
                   }`}>
                     {domain.verification_status === 'verified' && '已验证'}
                     {domain.verification_status === 'pending' && '待验证'} 
@@ -263,8 +263,8 @@ export const DomainListingsTable = ({
                     domain.status === 'available' 
                       ? 'bg-blue-100 text-blue-800' 
                       : domain.status === 'sold'
-                      ? 'bg-gray-100 text-gray-800'
-                      : 'bg-gray-100 text-gray-800'
+                      ? 'bg-muted text-foreground'
+                      : 'bg-muted text-foreground'
                   }`}>
                     {domain.status === 'available' && '在售中'}
                     {domain.status === 'sold' && '已售出'}
@@ -281,7 +281,7 @@ export const DomainListingsTable = ({
                         size="sm" 
                         variant="outline" 
                         onClick={() => onEdit(domain)}
-                        className="border-gray-300 text-black hover:bg-gray-100"
+                        className="border-border text-black hover:bg-muted"
                         title="编辑域名"
                       >
                         <Edit className="w-4 h-4" />
@@ -307,7 +307,7 @@ export const DomainListingsTable = ({
                         size="sm" 
                         variant="outline" 
                         onClick={() => handleToggleStatus(domain)}
-                        className={`border-gray-300 ${
+                        className={`border-border ${
                           domain.status === 'available' 
                             ? 'text-orange-600 hover:bg-orange-50 hover:border-orange-300' 
                             : 'text-blue-600 hover:bg-blue-50 hover:border-blue-300'
@@ -324,7 +324,7 @@ export const DomainListingsTable = ({
                         size="sm" 
                         variant="outline" 
                         onClick={() => handleViewInMarketplace(domain)}
-                        className="border-gray-300 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
+                        className="border-border text-blue-600 hover:bg-blue-50 hover:border-blue-300"
                         title="在市场中查看"
                       >
                         <ExternalLink className="w-4 h-4" />
@@ -337,7 +337,7 @@ export const DomainListingsTable = ({
                         size="sm" 
                         variant="outline" 
                         onClick={() => handleDeleteDomain(domain.id as string)}
-                        className="border-gray-300 text-red-600 hover:bg-red-50 hover:border-red-300"
+                        className="border-border text-red-600 hover:bg-red-50 hover:border-red-300"
                         title="删除域名"
                       >
                         <Trash className="w-4 h-4" />

@@ -40,20 +40,26 @@ const PROFILE_TABS = [
 ];
 
 function TxContent({ tab }: { tab: string }) {
-  if (tab === 'transactions') return <MyTransactions />;
-  if (tab === 'offers')       return <TransactionHistory />;
-  if (tab === 'escrow')       return <EscrowService />;
-  if (tab === 'disputes')     return <DisputeCenter />;
-  if (tab === 'wallet')       return <WalletPanel />;
-  if (tab === 'favorites')    return <FavoriteDomains />;
-  return null;
+  return (
+    <div className="animate-in">
+      {tab === 'transactions' && <MyTransactions />}
+      {tab === 'offers'       && <TransactionHistory />}
+      {tab === 'escrow'       && <EscrowService />}
+      {tab === 'disputes'     && <DisputeCenter />}
+      {tab === 'wallet'       && <WalletPanel />}
+      {tab === 'favorites'    && <FavoriteDomains />}
+    </div>
+  );
 }
 
 function ProfileContent({ tab }: { tab: string }) {
-  if (tab === 'info')      return <ProfileSettings />;
-  if (tab === 'security')  return <AccountSecurity />;
-  if (tab === 'customurl') return <CustomUrlSettings />;
-  return null;
+  return (
+    <div className="animate-in">
+      {tab === 'info'      && <ProfileSettings />}
+      {tab === 'security'  && <AccountSecurity />}
+      {tab === 'customurl' && <CustomUrlSettings />}
+    </div>
+  );
 }
 
 /* Mobile pill selector — horizontal scroll, no overflow clipping */
@@ -112,7 +118,7 @@ export const UserCenterTabsContent = () => {
                 active={txTab}
                 onChange={setTxTab}
               />
-              <TxContent tab={txTab} />
+              <TxContent key={txTab} tab={txTab} />
             </>
           ) : (
             <>
@@ -137,7 +143,7 @@ export const UserCenterTabsContent = () => {
                   );
                 })}
               </div>
-              <TxContent tab={txTab} />
+              <TxContent key={txTab} tab={txTab} />
             </>
           )}
         </ComponentErrorBoundary>
@@ -172,7 +178,7 @@ export const UserCenterTabsContent = () => {
               active={profileTab}
               onChange={setProfileTab}
             />
-            <ProfileContent tab={profileTab} />
+            <ProfileContent key={profileTab} tab={profileTab} />
           </>
         ) : (
           <>
@@ -196,7 +202,7 @@ export const UserCenterTabsContent = () => {
                 );
               })}
             </div>
-            <ProfileContent tab={profileTab} />
+            <ProfileContent key={profileTab} tab={profileTab} />
           </>
         )}
       </TabsContent>

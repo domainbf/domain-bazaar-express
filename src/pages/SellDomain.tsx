@@ -79,9 +79,9 @@ export const SellDomainPage = () => {
       <Navbar />
 
       {/* Hero */}
-      <section className="bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground py-20 md:py-28">
+      <section className="bg-gradient-to-br from-foreground to-foreground/90 text-background dark:from-card dark:via-muted/80 dark:to-card dark:text-foreground py-20 md:py-28">
         <div className="max-w-5xl mx-auto px-6 text-center">
-          <Badge className="mb-4 bg-white/20 text-white border-white/30 text-sm px-3 py-1">
+          <Badge className="mb-4 bg-background/10 dark:bg-muted text-background dark:text-foreground border-background/20 dark:border-border text-sm px-3 py-1">
             🔥 平台手续费全国最低
           </Badge>
           <h1 className="text-4xl md:text-5xl font-bold mb-5 leading-tight">
@@ -94,7 +94,7 @@ export const SellDomainPage = () => {
             <Button
               size="lg"
               onClick={handleCTA}
-              className="bg-white text-primary hover:bg-white/90 font-bold px-8 text-base"
+              className="bg-background text-foreground hover:bg-background/90 font-bold px-8 text-base"
               data-testid="button-sell-cta-hero"
             >
               立即上架域名
@@ -104,7 +104,7 @@ export const SellDomainPage = () => {
               size="lg"
               variant="outline"
               asChild
-              className="border-white/50 text-white hover:bg-white/10 px-8 text-base"
+              className="border-background/40 dark:border-border text-background dark:text-foreground hover:bg-background/10 dark:hover:bg-muted px-8 text-base"
             >
               <Link to="/marketplace">查看成交案例</Link>
             </Button>
@@ -264,7 +264,7 @@ export const SellDomainPage = () => {
           <Button
             size="lg"
             onClick={handleCTA}
-            className="bg-white text-primary hover:bg-white/90 font-bold px-10 text-base"
+            className="bg-card text-primary hover:bg-card/90 font-bold px-10 text-base"
             data-testid="button-sell-cta-bottom"
           >
             免费上架我的域名
