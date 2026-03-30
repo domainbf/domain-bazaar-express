@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Settings, Globe, Mail, Shield, Plus, Trash2, Save, Database, Palette, Key, Eye, EyeOff, Send, CheckCircle, XCircle, Loader2, AlertCircle, Phone } from 'lucide-react';
+import { Settings, Globe, Mail, Shield, Plus, Trash2, Save, Database, Palette, Key, Eye, EyeOff, Send, CheckCircle, XCircle, Loader2, AlertCircle, Phone, Puzzle, TestTube2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -73,6 +73,14 @@ export const SiteSettings = () => {
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [isSavingEmail, setIsSavingEmail] = useState(false);
   const [emailTestResult, setEmailTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
+
+  // WHOIS API config state
+  const [whoisApiKey, setWhoisApiKey] = useState('');
+  const [showWhoisKey, setShowWhoisKey] = useState(false);
+  const [isSavingWhois, setIsSavingWhois] = useState(false);
+  const [isTestingWhois, setIsTestingWhois] = useState(false);
+  const [whoisTestResult, setWhoisTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
+  const [whoisTestDomain, setWhoisTestDomain] = useState('google.com');
 
   // Contact info state
   const [contactInfo, setContactInfo] = useState({
@@ -143,7 +151,59 @@ export const SiteSettings = () => {
     loadSettings();
     loadSmtpConfig();
     loadContactConfig();
+    loadWhoisConfig();
   }, []);
+
+  const loadWhoisConfig = async () => {
+    try {
+      const { data } = await supabase
+        .from('site_settings')
+        .select('key, value')
+        .in('key', ['whois_api_key']);
+      if (data && data.length > 0) {
+        const map = Object.fromEntries(data.map((r: any) => [r.key, r.value]));
+        setWhoisApiKey(map['whois_api_key'] || '');
+      }
+    } catch (e) { console.error('loadWhoisConfig error', e); }
+  };
+
+  const saveWhoisConfig = async () => {
+    setIsSavingWhois(true);
+    try {
+      await supabase.from('site_settings').upsert([
+        { key: 'whois_api_key', value: whoisApiKey, description: 'WHOIS/RDAP API Key (www.x.rw)', section: 'api', type: 'text' },
+      ], { onConflict: 'key' });
+      toast.success('WHOIS API 配置已保存');
+    } catch (e: any) {
+      toast.error('保存失败：' + (e.message || '未知错误'));
+    } finally {
+      setIsSavingWhois(false);
+    }
+  };
+
+  const testWhoisApi = async () => {
+    if (!whoisTestDomain.trim()) {
+      toast.error('请输入要查询的域名');
+      return;
+    }
+    setIsTestingWhois(true);
+    setWhoisTestResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('whois-query', {
+        body: { domain: whoisTestDomain.trim() },
+      });
+      if (error || !data?.success) {
+        setWhoisTestResult({ ok: false, msg: data?.error || error?.message || '查询失败' });
+      } else {
+        const d = data.data;
+        setWhoisTestResult({ ok: true, msg: `查询成功！注册商: ${d.registrar || '未知'} | 注册日期: ${d.createdDate || '未知'} | RDAP: ${d.rdap ? '是' : '否'}` });
+      }
+    } catch (e: any) {
+      setWhoisTestResult({ ok: false, msg: e.message || '查询异常' });
+    } finally {
+      setIsTestingWhois(false);
+    }
+  };
 
   const loadSmtpConfig = async () => {
     try {
@@ -487,6 +547,10 @@ export const SiteSettings = () => {
           <TabsTrigger value="appearance">
             <Palette className="h-4 w-4 mr-2" />
             外观设置
+          </TabsTrigger>
+          <TabsTrigger value="api">
+            <Puzzle className="h-4 w-4 mr-2" />
+            API 集成
           </TabsTrigger>
         </TabsList>
         
@@ -990,6 +1054,109 @@ export const SiteSettings = () => {
                     ))}
                   </div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* API 集成 Tab */}
+        <TabsContent value="api" className="space-y-6">
+          {/* WHOIS / RDAP API */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5 text-primary" />
+                WHOIS / RDAP API（www.x.rw）
+                {whoisApiKey && (
+                  <Badge className="bg-green-500/10 text-green-600 border-green-200 ml-auto">已配置</Badge>
+                )}
+              </CardTitle>
+              <CardDescription>
+                配置 RDAP+WHOIS API 密钥，用于域名详情页的 WHOIS 信息查询。API 文档：
+                <a href="https://www.x.rw/docs" target="_blank" rel="noopener noreferrer"
+                  className="text-primary underline ml-1">www.x.rw/docs</a>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>如何获取 API Key：</strong>访问
+                  <a href="https://www.x.rw" target="_blank" rel="noopener noreferrer" className="text-primary underline mx-1">www.x.rw</a>
+                  注册账号，在控制台生成 API Key（格式：<code className="bg-muted px-1 rounded text-xs">rwh_xxxxxxxx</code>）。
+                  未配置时将使用免费公共接口（查询限制较多）。
+                </AlertDescription>
+              </Alert>
+
+              <div className="space-y-2">
+                <Label className="font-semibold">API Key</Label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      type={showWhoisKey ? 'text' : 'password'}
+                      placeholder="rwh_your_api_key_here"
+                      value={whoisApiKey}
+                      onChange={(e) => setWhoisApiKey(e.target.value)}
+                      className="pr-10 font-mono"
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      onClick={() => setShowWhoisKey(v => !v)}
+                    >
+                      {showWhoisKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  <Button onClick={saveWhoisConfig} disabled={isSavingWhois}>
+                    {isSavingWhois ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />}
+                    保存
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  API Key 将加密存储在数据库中，WHOIS 查询将通过后端 Edge Function 进行，前端不会直接暴露 Key。
+                </p>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-3">
+                <Label className="font-semibold">测试 WHOIS 查询</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="输入域名，例如：google.com"
+                    value={whoisTestDomain}
+                    onChange={(e) => setWhoisTestDomain(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && testWhoisApi()}
+                  />
+                  <Button variant="outline" onClick={testWhoisApi} disabled={isTestingWhois}>
+                    {isTestingWhois
+                      ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
+                      : <TestTube2 className="h-4 w-4 mr-1.5" />}
+                    测试
+                  </Button>
+                </div>
+
+                {whoisTestResult && (
+                  <Alert className={whoisTestResult.ok ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
+                    {whoisTestResult.ok
+                      ? <CheckCircle className="h-4 w-4 text-green-600" />
+                      : <XCircle className="h-4 w-4 text-red-600" />}
+                    <AlertDescription className={whoisTestResult.ok ? 'text-green-700' : 'text-red-700'}>
+                      {whoisTestResult.msg}
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+
+              <Separator />
+
+              <div className="p-4 bg-muted/40 rounded-xl space-y-2 text-sm">
+                <p className="font-semibold text-foreground">API 端点说明</p>
+                <div className="space-y-1 text-muted-foreground font-mono text-xs">
+                  <p>有 Key：<code>https://www.x.rw/api/lookup?query=example.com</code>（Header: X-API-Key）</p>
+                  <p>无 Key：<code>https://xrw-tau.vercel.app/api/lookup?query=example.com</code>（免费限流）</p>
+                </div>
+                <p className="text-xs text-muted-foreground">支持数据：WHOIS、RDAP、注册商、创建/到期日期、DNS 服务器、DNSSEC、EPP 状态</p>
               </div>
             </CardContent>
           </Card>

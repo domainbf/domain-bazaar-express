@@ -3,8 +3,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const WHOIS_API_BASE = 'https://xrw-tau.vercel.app/api/lookup';
-const WHOIS_FALLBACK = 'https://api.whoisfreaks.com/v1.0/whois';
+const XRW_API_BASE = 'https://www.x.rw/api/lookup';
+const XRW_FALLBACK = 'https://xrw-tau.vercel.app/api/lookup';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -21,18 +21,22 @@ Deno.serve(async (req) => {
       );
     }
 
-    let cleanDomain = domain.trim().toLowerCase();
-    cleanDomain = cleanDomain.replace(/^(https?:\/\/)?/i, '');
-    cleanDomain = cleanDomain.replace(/\/.*$/, '');
-    cleanDomain = cleanDomain.replace(/^www\./, '');
+    let cleanDomain = domain.trim().toLowerCase()
+      .replace(/^(https?:\/\/)?/i, '')
+      .replace(/\/.*$/, '')
+      .replace(/^www\./, '');
 
     console.log('Querying WHOIS for domain:', cleanDomain);
 
-    // Try primary API
-    let whoisInfo = await queryPrimaryApi(cleanDomain);
-    
+    // Read API key from site_settings via Supabase REST API
+    const apiKey = await getWhoisApiKey();
+    console.log('WHOIS API key available:', !!apiKey);
+
+    // Try authenticated API first, fall back to public proxy
+    let whoisInfo = await queryWhoisApi(cleanDomain, apiKey);
+
     if (!whoisInfo) {
-      console.log('Primary API failed, returning partial data');
+      console.log('WHOIS API failed, returning partial data');
       whoisInfo = {
         domain: cleanDomain,
         status: -1,
@@ -61,48 +65,67 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     console.error('Error querying WHOIS:', error);
-    const errorMessage = error instanceof Error ? error.message : '未知错误';
     return new Response(
-      JSON.stringify({ success: false, error: `WHOIS查询失败: ${errorMessage}` }),
+      JSON.stringify({ success: false, error: `WHOIS查询失败: ${error instanceof Error ? error.message : '未知错误'}` }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
 
-async function queryPrimaryApi(cleanDomain: string) {
+async function getWhoisApiKey(): Promise<string | null> {
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!supabaseUrl || !serviceRoleKey) return null;
+
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/site_settings?key=eq.whois_api_key&select=value`,
+      {
+        headers: {
+          'apikey': serviceRoleKey,
+          'Authorization': `Bearer ${serviceRoleKey}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.[0]?.value || null;
+  } catch {
+    return null;
+  }
+}
+
+async function queryWhoisApi(cleanDomain: string, apiKey: string | null) {
+  // With an API key → use the official www.x.rw endpoint
+  // Without an API key → use the public fallback proxy
+  const baseUrl = apiKey ? XRW_API_BASE : XRW_FALLBACK;
+  const url = `${baseUrl}?query=${encodeURIComponent(cleanDomain)}`;
+
+  const headers: Record<string, string> = { 'Accept': 'application/json' };
+  if (apiKey) {
+    headers['X-API-Key'] = apiKey;
+  }
+
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 12000);
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
-    const response = await fetch(`${WHOIS_API_BASE}?query=${encodeURIComponent(cleanDomain)}`, {
-      method: 'GET',
-      headers: { 'Accept': 'application/json' },
-      signal: controller.signal,
-    });
+    const response = await fetch(url, { method: 'GET', headers, signal: controller.signal });
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      console.error('WHOIS API error:', response.status);
+      console.error('WHOIS API error:', response.status, await response.text().catch(() => ''));
       return null;
     }
 
-    let data;
-    try {
-      data = await response.json();
-    } catch {
-      return null;
-    }
+    let data: any;
+    try { data = await response.json(); } catch { return null; }
 
-    if (!data.status) {
-      return null;
-    }
+    if (!data.status && !data.result) return null;
 
-    const result = data.result || {};
-    const statusTags = (result.status || []).map((s: any) => typeof s === 'string' ? s : (s.status || JSON.stringify(s)));
-    const isRegistered = !!result.registrar;
-    const statusCode = isRegistered ? 1 : 0;
+    const result = data.result || data || {};
 
-    // Parse dates more robustly
     const parseDate = (d: any): string | null => {
       if (!d) return null;
       if (typeof d === 'string') return d;
@@ -110,31 +133,44 @@ async function queryPrimaryApi(cleanDomain: string) {
       return String(d);
     };
 
+    const statusTags: string[] = (result.status || []).map((s: any) =>
+      typeof s === 'string' ? s : (s.status || JSON.stringify(s))
+    );
+
+    const nameServers = Array.isArray(result.nameServers)
+      ? result.nameServers
+      : Array.isArray(result.name_servers)
+        ? result.name_servers
+        : Array.isArray(result.nameservers)
+          ? result.nameservers
+          : [];
+
+    const isRegistered = !!(result.registrar || result.creationDate || result.creation_date || result.created);
+
     return {
       domain: result.domain || cleanDomain,
-      status: statusCode,
+      status: isRegistered ? 1 : 0,
       statusText: isRegistered ? '已注册' : '未注册',
       registrar: result.registrar || null,
       registrarUrl: result.registrarURL || result.registrar_url || null,
       createdDate: parseDate(result.creationDate || result.creation_date || result.created),
       updatedDate: parseDate(result.updatedDate || result.updated_date || result.updated),
       expiryDate: parseDate(result.expirationDate || result.expiration_date || result.expires),
-      nameServers: Array.isArray(result.nameServers) ? result.nameServers : 
-                   (Array.isArray(result.name_servers) ? result.name_servers : []),
-      dnsSec: result.dnssec || result.dnsSec || null,
+      nameServers,
+      dnsSec: result.dnssec || result.dnsSec || result.DNSSEC || null,
       registrant: result.registrant || null,
       tld: cleanDomain.split('.').pop() || null,
       tags: [],
       statusTags,
       timezone: null,
-      rdap: data.source === 'rdap',
+      rdap: !!(data.source === 'rdap' || data.rdap),
       domainAge: result.domainAge || result.domain_age || null,
       remainingDays: result.remainingDays || result.remaining_days || null,
     };
-  } catch (fetchErr) {
+  } catch (err) {
     clearTimeout(timeoutId);
-    const isTimeout = fetchErr instanceof DOMException && fetchErr.name === 'AbortError';
-    console.error('WHOIS fetch error:', isTimeout ? 'timeout' : fetchErr);
+    const isTimeout = err instanceof DOMException && err.name === 'AbortError';
+    console.error('WHOIS fetch error:', isTimeout ? 'timeout' : err);
     return null;
   }
 }
