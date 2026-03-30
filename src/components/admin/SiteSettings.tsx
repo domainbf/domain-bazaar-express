@@ -84,6 +84,7 @@ export const SiteSettings = () => {
 
   // Contact info state
   const [contactInfo, setContactInfo] = useState({
+    site_domain: '',
     contact_email: '',
     contact_phone: '',
     contact_address: '',
@@ -231,10 +232,11 @@ export const SiteSettings = () => {
       const { data } = await supabase
         .from('site_settings')
         .select('key, value')
-        .in('key', ['contact_email', 'contact_phone', 'contact_address', 'emergency_phone', 'hours_online', 'hours_phone', 'hours_weekday']);
+        .in('key', ['site_domain', 'contact_email', 'contact_phone', 'contact_address', 'emergency_phone', 'hours_online', 'hours_phone', 'hours_weekday']);
       if (data && data.length > 0) {
         const map = Object.fromEntries(data.map((r: any) => [r.key, r.value]));
         setContactInfo({
+          site_domain: map['site_domain'] || '',
           contact_email: map['contact_email'] || '',
           contact_phone: map['contact_phone'] || '',
           contact_address: map['contact_address'] || '',
@@ -251,6 +253,7 @@ export const SiteSettings = () => {
     setIsSavingContact(true);
     try {
       const rows = [
+        { key: 'site_domain', value: contactInfo.site_domain, description: '网站域名', section: 'contact', type: 'text' },
         { key: 'contact_email', value: contactInfo.contact_email, description: '客服邮箱', section: 'contact', type: 'text' },
         { key: 'contact_phone', value: contactInfo.contact_phone, description: '客服电话', section: 'contact', type: 'text' },
         { key: 'contact_address', value: contactInfo.contact_address, description: '公司地址', section: 'contact', type: 'textarea' },
@@ -309,8 +312,13 @@ export const SiteSettings = () => {
         body: {
           to: testEmailAddr,
           ...(fromAddr ? { from: fromAddr } : {}),
-          subject: '【域见•你】SMTP 邮件系统测试',
-          html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="font-family:sans-serif;background:#f1f5f9;padding:32px 16px;"><div style="max-width:560px;margin:0 auto;"><div style="background:#0f172a;border-radius:12px;padding:10px 20px;display:inline-block;margin-bottom:24px;"><span style="color:#f8fafc;font-size:18px;font-weight:800;">域见•你</span><span style="color:#64748b;font-size:12px;margin-left:8px;">NIC.RW</span></div><div style="background:#fff;border-radius:16px;padding:40px;box-shadow:0 4px 6px rgba(0,0,0,0.07);"><div style="text-align:center;margin-bottom:24px;"><span style="font-size:48px;">✅</span><h2 style="margin:16px 0 8px;color:#0f172a;">SMTP 邮件系统正常</h2><p style="color:#64748b;margin:0;">SMTP 配置验证成功</p></div><div style="background:#f8fafc;border-radius:8px;padding:16px;font-size:13px;color:#475569;"><p style="margin:0 0 6px;"><strong>SMTP 主机：</strong>${smtp.host}:${smtp.port}</p><p style="margin:0 0 6px;"><strong>发件人：</strong>${smtp.from_name} &lt;${smtp.from_email}&gt;</p><p style="margin:0 0 6px;"><strong>收件人：</strong>${testEmailAddr}</p><p style="margin:0;"><strong>发送时间：</strong>${new Date().toLocaleString('zh-CN')}</p></div></div><p style="text-align:center;color:#94a3b8;font-size:12px;margin-top:20px;">© ${new Date().getFullYear()} 域见•你 · NIC.RW</p></div></body></html>`,
+          subject: `【${smtp.from_name || '邮件系统'}】SMTP 邮件系统测试`,
+          html: (() => {
+            const _domain = (contactInfo.site_domain || window.location.origin).replace(/\/$/, '');
+            const _hostname = _domain.replace(/^https?:\/\//, '').toUpperCase();
+            const _name = smtp.from_name || '邮件系统';
+            return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="font-family:sans-serif;background:#f1f5f9;padding:32px 16px;"><div style="max-width:560px;margin:0 auto;"><div style="background:#0f172a;border-radius:12px;padding:10px 20px;display:inline-block;margin-bottom:24px;"><span style="color:#f8fafc;font-size:18px;font-weight:800;">${_name}</span><span style="color:#64748b;font-size:12px;margin-left:8px;">${_hostname}</span></div><div style="background:#fff;border-radius:16px;padding:40px;box-shadow:0 4px 6px rgba(0,0,0,0.07);"><div style="text-align:center;margin-bottom:24px;"><span style="font-size:48px;">✅</span><h2 style="margin:16px 0 8px;color:#0f172a;">SMTP 邮件系统正常</h2><p style="color:#64748b;margin:0;">SMTP 配置验证成功</p></div><div style="background:#f8fafc;border-radius:8px;padding:16px;font-size:13px;color:#475569;"><p style="margin:0 0 6px;"><strong>SMTP 主机：</strong>${smtp.host}:${smtp.port}</p><p style="margin:0 0 6px;"><strong>发件人：</strong>${smtp.from_name} &lt;${smtp.from_email}&gt;</p><p style="margin:0 0 6px;"><strong>收件人：</strong>${testEmailAddr}</p><p style="margin:0;"><strong>发送时间：</strong>${new Date().toLocaleString('zh-CN')}</p></div></div><p style="text-align:center;color:#94a3b8;font-size:12px;margin-top:20px;">© ${new Date().getFullYear()} ${_name} · ${_hostname}</p></div></body></html>`;
+          })(),
         },
       });
       if (error || data?.success === false) throw new Error(error?.message || data?.error || '发送失败');
@@ -595,11 +603,21 @@ export const SiteSettings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
+              <div className="space-y-2">
+                <Label className="font-semibold">网站域名</Label>
+                <p className="text-xs text-muted-foreground">用于邮件通知中的链接和版权信息，填写完整域名（含协议）</p>
+                <Input
+                  placeholder="例：https://nic.bn"
+                  value={contactInfo.site_domain}
+                  onChange={(e) => setContactInfo({ ...contactInfo, site_domain: e.target.value })}
+                />
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="font-semibold">客服邮箱</Label>
+                  <p className="text-xs text-muted-foreground">邮件通知中的支持邮箱地址</p>
                   <Input
-                    placeholder="例：support@nic.rw"
+                    placeholder="例：support@nic.bn"
                     value={contactInfo.contact_email}
                     onChange={(e) => setContactInfo({ ...contactInfo, contact_email: e.target.value })}
                   />

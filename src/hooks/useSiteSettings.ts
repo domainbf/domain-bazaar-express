@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 export interface SiteConfig {
   // Brand
   site_name: string;
+  site_domain: string;
   logo_url: string;
   favicon_url: string;
   // Contact
@@ -53,6 +54,7 @@ export interface SiteConfig {
 
 const defaultConfig: SiteConfig = {
   site_name: '域见•你',
+  site_domain: '',
   logo_url: '/lovable-uploads/nic.png',
   favicon_url: '/favicon.ico',
   contact_phone: '',

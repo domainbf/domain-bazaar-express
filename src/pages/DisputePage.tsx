@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const DISPUTE_TYPES = [
   { value: 'no_transfer', label: '域名未转移 - 付款后卖家未完成域名转移' },
@@ -32,6 +33,7 @@ const PROCESS_STEPS = [
 export default function DisputePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { config } = useSiteSettings();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({
@@ -52,6 +54,10 @@ export default function DisputePage() {
     setSubmitting(true);
     try {
       const disputeLabel = DISPUTE_TYPES.find(d => d.value === form.dispute_type)?.label || form.dispute_type;
+      const siteDomain = (config.site_domain || window.location.origin).replace(/\/$/, '');
+      const siteName = config.site_name || '域见•你';
+      const siteHostname = siteDomain.replace(/^https?:\/\//, '').toUpperCase();
+      const supportEmail = config.contact_email || `support@${siteDomain.replace(/^https?:\/\//, '')}`;
       const html = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -67,8 +73,8 @@ export default function DisputePage() {
         <tr><td style="padding-bottom:24px;text-align:center;">
           <table cellpadding="0" cellspacing="0" role="presentation" style="display:inline-table;">
             <tr><td style="background:#0f172a;border-radius:12px;padding:10px 20px;">
-              <span style="color:#f8fafc;font-size:20px;font-weight:800;">域见</span><span style="color:#475569;font-size:20px;font-weight:800;">•</span><span style="color:#f8fafc;font-size:20px;font-weight:800;">你</span>
-              <span style="color:#475569;font-size:11px;font-weight:600;margin-left:10px;letter-spacing:2px;">NIC.BN</span>
+              <span style="color:#f8fafc;font-size:20px;font-weight:800;">${siteName}</span>
+              <span style="color:#475569;font-size:11px;font-weight:600;margin-left:10px;letter-spacing:2px;">${siteHostname}</span>
             </td></tr>
           </table>
         </td></tr>
@@ -109,11 +115,11 @@ export default function DisputePage() {
             <p style="margin:24px 0 0;font-size:12px;color:#94a3b8;text-align:center;">提交时间：${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })} (北京时间)</p>
           </div>
           <div style="padding:20px 40px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;">
-            <p style="margin:0;font-size:13px;color:#94a3b8;">域见•你 后台管理 · <a href="https://nic.bn/admin" style="color:#475569;text-decoration:none;font-weight:600;">前往处理</a></p>
+            <p style="margin:0;font-size:13px;color:#94a3b8;">${siteName} 后台管理 · <a href="${siteDomain}/admin" style="color:#475569;text-decoration:none;font-weight:600;">前往处理</a></p>
           </div>
         </td></tr>
         <tr><td style="padding:24px 20px 0;text-align:center;">
-          <p style="margin:0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} 域见•你 · NIC.BN</p>
+          <p style="margin:0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} ${siteName} · ${siteHostname}</p>
         </td></tr>
       </table>
     </td></tr>
@@ -122,14 +128,14 @@ export default function DisputePage() {
 </html>`;
       await supabase.functions.invoke('send-email', {
         body: {
-          to: 'support@nic.bn',
+          to: supportEmail,
           subject: `[纠纷申诉] ${disputeLabel} — ${user.email}`,
           html,
         },
       });
       setSubmitted(true);
     } catch {
-      toast.error('提交失败，请稍后重试或发送邮件至 support@nic.bn');
+      toast.error(`提交失败，请稍后重试或发送邮件至 ${supportEmail}`);
     } finally {
       setSubmitting(false);
     }

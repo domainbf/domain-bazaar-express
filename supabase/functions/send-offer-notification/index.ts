@@ -16,9 +16,39 @@ interface OfferNotificationRequest {
   domainOwnerEmail?: string | null;
 }
 
+interface SiteInfo {
+  siteName: string;
+  siteDomain: string;
+  supportEmail: string;
+}
+
+// ─── Read site info from DB ───────────────────────────────────────────────────
+
+async function getSiteInfo(supabaseUrl: string, serviceKey: string): Promise<SiteInfo> {
+  try {
+    const sb = createClient(supabaseUrl, serviceKey);
+    const { data } = await sb
+      .from('site_settings')
+      .select('key, value')
+      .in('key', ['site_name', 'site_domain', 'contact_email']);
+    const map = Object.fromEntries((data || []).map((r: any) => [r.key, r.value]));
+    return {
+      siteName: map['site_name'] || '域见•你',
+      siteDomain: (map['site_domain'] || '').replace(/\/$/, ''),
+      supportEmail: map['contact_email'] || '',
+    };
+  } catch {
+    return { siteName: '域见•你', siteDomain: '', supportEmail: '' };
+  }
+}
+
 // ─── Shared email base ────────────────────────────────────────────────────────
 
-const emailBase = (content: string, previewText: string) => `<!DOCTYPE html>
+function emailBase(content: string, previewText: string, site: SiteInfo): string {
+  const domain = site.siteDomain || 'https://nic.bn';
+  const hostname = domain.replace(/^https?:\/\//, '');
+  const year = new Date().getFullYear();
+  return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
@@ -38,8 +68,8 @@ const emailBase = (content: string, previewText: string) => `<!DOCTYPE html>
         <tr><td style="padding-bottom:24px;text-align:center;">
           <table cellpadding="0" cellspacing="0" role="presentation" style="display:inline-table;">
             <tr><td style="background:#0f172a;border-radius:12px;padding:10px 20px;">
-              <span style="color:#f8fafc;font-size:20px;font-weight:800;letter-spacing:-0.5px;">域见</span><span style="color:#475569;font-size:20px;font-weight:800;">•</span><span style="color:#f8fafc;font-size:20px;font-weight:800;letter-spacing:-0.5px;">你</span>
-              <span style="color:#475569;font-size:11px;font-weight:600;margin-left:10px;letter-spacing:2px;text-transform:uppercase;">NIC.BN</span>
+              <span style="color:#f8fafc;font-size:20px;font-weight:800;letter-spacing:-0.5px;">${site.siteName}</span>
+              <span style="color:#475569;font-size:11px;font-weight:600;margin-left:10px;letter-spacing:2px;text-transform:uppercase;">${hostname.toUpperCase()}</span>
             </td></tr>
           </table>
         </td></tr>
@@ -49,20 +79,24 @@ const emailBase = (content: string, previewText: string) => `<!DOCTYPE html>
         </td></tr>
         <!-- Footer note -->
         <tr><td style="padding:28px 20px 0;text-align:center;">
-          <p style="margin:0;font-size:13px;color:#94a3b8;">此邮件由 <strong style="color:#64748b;">域见•你 域名交易平台</strong> 自动发送</p>
+          <p style="margin:0;font-size:13px;color:#94a3b8;">此邮件由 <strong style="color:#64748b;">${site.siteName} 域名交易平台</strong> 自动发送</p>
           <p style="margin:6px 0 0;font-size:12px;color:#cbd5e1;">如果您没有在本平台进行任何操作，请忽略此邮件</p>
-          <p style="margin:12px 0 0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} 域见•你 · NIC.BN · All rights reserved</p>
+          <p style="margin:12px 0 0;font-size:12px;color:#94a3b8;">© ${year} ${site.siteName} · ${hostname.toUpperCase()} · All rights reserved</p>
         </td></tr>
       </table>
     </td></tr>
   </table>
 </body>
 </html>`;
+}
 
 // ─── 买家确认邮件 ─────────────────────────────────────────────────────────────
 
-function getBuyerConfirmationHtml(data: OfferNotificationRequest): string {
+function getBuyerConfirmationHtml(data: OfferNotificationRequest, site: SiteInfo): string {
   const offerFormatted = `$${data.offer.toLocaleString()}`;
+  const dashboardUrl = data.dashboardUrl || `${site.siteDomain}/user-center?tab=transactions`;
+  const supportEmail = site.supportEmail || `support@${site.siteDomain.replace(/^https?:\/\//, '')}`;
+
   return emailBase(`
     <div style="height:4px;background:linear-gradient(90deg,#0f172a 0%,#334155 50%,#64748b 100%);"></div>
 
@@ -117,20 +151,23 @@ function getBuyerConfirmationHtml(data: OfferNotificationRequest): string {
 
     <!-- CTA -->
     <div style="padding:32px 40px;text-align:center;">
-      <a href="${data.dashboardUrl}" style="display:inline-block;background:#0f172a;color:#f8fafc;padding:16px 40px;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;letter-spacing:0.3px;box-shadow:0 4px 14px rgba(15,23,42,0.25);">查看我的报价状态 →</a>
+      <a href="${dashboardUrl}" style="display:inline-block;background:#0f172a;color:#f8fafc;padding:16px 40px;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;letter-spacing:0.3px;box-shadow:0 4px 14px rgba(15,23,42,0.25);">查看我的报价状态 →</a>
     </div>
 
     <!-- Support footer -->
     <div style="padding:20px 40px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;">
-      <p style="margin:0;font-size:13px;color:#94a3b8;">有疑问？联系 <a href="mailto:support@nic.bn" style="color:#475569;text-decoration:none;font-weight:600;">support@nic.bn</a></p>
+      <p style="margin:0;font-size:13px;color:#94a3b8;">有疑问？联系 <a href="mailto:${supportEmail}" style="color:#475569;text-decoration:none;font-weight:600;">${supportEmail}</a></p>
     </div>
-  `, `报价提交成功：${data.domain} — ${offerFormatted}`);
+  `, `报价提交成功：${data.domain} — ${offerFormatted}`, site);
 }
 
 // ─── 域名卖家通知邮件 ─────────────────────────────────────────────────────────
 
-function getOwnerNotificationHtml(data: OfferNotificationRequest): string {
+function getOwnerNotificationHtml(data: OfferNotificationRequest, site: SiteInfo): string {
   const offerFormatted = `$${data.offer.toLocaleString()}`;
+  const dashboardUrl = data.dashboardUrl || `${site.siteDomain}/user-center?tab=transactions`;
+  const supportEmail = site.supportEmail || `support@${site.siteDomain.replace(/^https?:\/\//, '')}`;
+
   return emailBase(`
     <div style="height:4px;background:linear-gradient(90deg,#0f172a 0%,#334155 50%,#64748b 100%);"></div>
 
@@ -191,16 +228,16 @@ function getOwnerNotificationHtml(data: OfferNotificationRequest): string {
 
     <!-- CTA -->
     <div style="padding:32px 40px;text-align:center;">
-      <a href="${data.dashboardUrl}" style="display:inline-block;background:#0f172a;color:#f8fafc;padding:16px 40px;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;letter-spacing:0.3px;box-shadow:0 4px 14px rgba(15,23,42,0.25);margin-bottom:12px;">查看并回复报价 →</a>
+      <a href="${dashboardUrl}" style="display:inline-block;background:#0f172a;color:#f8fafc;padding:16px 40px;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;letter-spacing:0.3px;box-shadow:0 4px 14px rgba(15,23,42,0.25);margin-bottom:12px;">查看并回复报价 →</a>
       <br>
       <a href="mailto:${data.email}" style="display:inline-block;color:#64748b;font-size:13px;text-decoration:none;margin-top:4px;">或直接发邮件给买家：${data.email}</a>
     </div>
 
     <!-- Support footer -->
     <div style="padding:20px 40px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;">
-      <p style="margin:0;font-size:13px;color:#94a3b8;">有疑问？联系 <a href="mailto:support@nic.bn" style="color:#475569;text-decoration:none;font-weight:600;">support@nic.bn</a></p>
+      <p style="margin:0;font-size:13px;color:#94a3b8;">有疑问？联系 <a href="mailto:${supportEmail}" style="color:#475569;text-decoration:none;font-weight:600;">${supportEmail}</a></p>
     </div>
-  `, `新报价通知：${data.domain} — 买家出价 ${offerFormatted}`);
+  `, `新报价通知：${data.domain} — 买家出价 ${offerFormatted}`, site);
 }
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
@@ -214,10 +251,12 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const data: OfferNotificationRequest = await req.json();
+    const [site, data] = await Promise.all([
+      getSiteInfo(supabaseUrl, supabaseServiceKey),
+      req.json() as Promise<OfferNotificationRequest>,
+    ]);
 
-    console.log('Processing offer notification:', data);
+    console.log('Processing offer notification for domain:', data.domain);
 
     // 发送买家确认邮件
     const buyerEmailResponse = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
@@ -229,7 +268,7 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         to: data.email,
         subject: `报价提交成功：${data.domain} — $${data.offer.toLocaleString()}`,
-        html: getBuyerConfirmationHtml(data),
+        html: getBuyerConfirmationHtml(data, site),
       }),
     });
 
@@ -248,7 +287,7 @@ const handler = async (req: Request): Promise<Response> => {
         body: JSON.stringify({
           to: data.domainOwnerEmail,
           subject: `新报价通知：${data.domain} — 买家出价 $${data.offer.toLocaleString()}`,
-          html: getOwnerNotificationHtml(data),
+          html: getOwnerNotificationHtml(data, site),
         }),
       });
 

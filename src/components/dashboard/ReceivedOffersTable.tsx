@@ -9,6 +9,7 @@ import { DomainOffer } from "@/types/domain";
 import { Check, X, Mail, AlertCircle, Clock, Package, CheckCircle2, XCircle, Loader2, ArrowRight, MessageSquare, DollarSign, ArrowLeftRight } from 'lucide-react';
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -40,6 +41,7 @@ function parseOfferMessage(offer: DomainOffer): { buyerMessage: string; counterA
 
 export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTableProps) => {
   const navigate = useNavigate();
+  const { config } = useSiteSettings();
   const [processingOffers, setProcessingOffers] = useState<Record<string, boolean>>({});
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean; offerId: string;
@@ -189,6 +191,10 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
 
       // 3. Email to buyer (via send-email edge function — no auth required)
       if (offer.contact_email) {
+        const siteDomain = (config.site_domain || window.location.origin).replace(/\/$/, '');
+        const siteName = config.site_name || '域见•你';
+        const siteHostname = siteDomain.replace(/^https?:\/\//, '').toUpperCase();
+        const supportEmail = config.contact_email || `support@${siteDomain.replace(/^https?:\/\//, '')}`;
         const domainDisplay = (offer.domain_name || '').toUpperCase();
         const yourBid = `$${offer.amount.toLocaleString()}`;
         const counterBid = `$${amount.toLocaleString()}`;
@@ -215,8 +221,8 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
         <tr><td style="padding-bottom:24px;text-align:center;">
           <table cellpadding="0" cellspacing="0" role="presentation" style="display:inline-table;">
             <tr><td style="background:#0f172a;border-radius:12px;padding:10px 20px;">
-              <span style="color:#f8fafc;font-size:20px;font-weight:800;letter-spacing:-0.5px;">域见</span><span style="color:#475569;font-size:20px;font-weight:800;">•</span><span style="color:#f8fafc;font-size:20px;font-weight:800;letter-spacing:-0.5px;">你</span>
-              <span style="color:#475569;font-size:11px;font-weight:600;margin-left:10px;letter-spacing:2px;text-transform:uppercase;">NIC.BN</span>
+              <span style="color:#f8fafc;font-size:20px;font-weight:800;letter-spacing:-0.5px;">${siteName}</span>
+              <span style="color:#475569;font-size:11px;font-weight:600;margin-left:10px;letter-spacing:2px;text-transform:uppercase;">${siteHostname}</span>
             </td></tr>
           </table>
         </td></tr>
@@ -258,15 +264,15 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
               </table>
             </div>
             <div style="text-align:center;padding-bottom:32px;">
-              <a href="https://nic.bn/user-center?tab=transactions" style="display:inline-block;background:#0f172a;color:#f8fafc;padding:16px 40px;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;letter-spacing:0.3px;box-shadow:0 4px 14px rgba(15,23,42,0.25);">查看报价并回复 →</a>
+              <a href="${siteDomain}/user-center?tab=transactions" style="display:inline-block;background:#0f172a;color:#f8fafc;padding:16px 40px;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;letter-spacing:0.3px;box-shadow:0 4px 14px rgba(15,23,42,0.25);">查看报价并回复 →</a>
             </div>
           </div>
           <div style="padding:20px 40px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;">
-            <p style="margin:0;font-size:13px;color:#94a3b8;">有疑问？联系 <a href="mailto:support@nic.bn" style="color:#475569;text-decoration:none;font-weight:600;">support@nic.bn</a></p>
+            <p style="margin:0;font-size:13px;color:#94a3b8;">有疑问？联系 <a href="mailto:${supportEmail}" style="color:#475569;text-decoration:none;font-weight:600;">${supportEmail}</a></p>
           </div>
         </td></tr>
         <tr><td style="padding:24px 20px 0;text-align:center;">
-          <p style="margin:0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} 域见•你 · NIC.BN · All rights reserved</p>
+          <p style="margin:0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} ${siteName} · ${siteHostname} · All rights reserved</p>
         </td></tr>
       </table>
     </td></tr>

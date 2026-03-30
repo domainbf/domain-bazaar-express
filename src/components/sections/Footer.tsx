@@ -145,15 +145,9 @@ export const Footer = () => {
               专业域名交易平台，提供安全可靠的买卖撮合、资金托管和纠纷调解服务。
             </p>
             <div className="flex gap-3 mt-4">
-              {config?.contact_email ? (
-                <a href={`mailto:${config.contact_email}`} className="text-muted-foreground hover:text-primary transition-colors">
-                  <Mail className="h-5 w-5" />
-                </a>
-              ) : (
-                <a href="mailto:support@nic.bn" className="text-muted-foreground hover:text-primary transition-colors">
-                  <Mail className="h-5 w-5" />
-                </a>
-              )}
+              <a href={config?.contact_email ? `mailto:${config.contact_email}` : '#'} className="text-muted-foreground hover:text-primary transition-colors">
+                <Mail className="h-5 w-5" />
+              </a>
               <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
                 <Github className="h-5 w-5" />
               </a>

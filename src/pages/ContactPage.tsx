@@ -107,6 +107,10 @@ export const ContactPage: React.FC = () => {
         'other': '其他问题',
       };
       const categoryLabel = categoryLabels[formData.category] || formData.category;
+      const siteDomain = (config.site_domain || window.location.origin).replace(/\/$/, '');
+      const siteName = config.site_name || '域见•你';
+      const siteHostname = siteDomain.replace(/^https?:\/\//, '').toUpperCase();
+      const supportEmail = config.contact_email || `support@${siteDomain.replace(/^https?:\/\//, '')}`;
 
       const html = `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -123,8 +127,8 @@ export const ContactPage: React.FC = () => {
         <tr><td style="padding-bottom:24px;text-align:center;">
           <table cellpadding="0" cellspacing="0" role="presentation" style="display:inline-table;">
             <tr><td style="background:#0f172a;border-radius:12px;padding:10px 20px;">
-              <span style="color:#f8fafc;font-size:20px;font-weight:800;">域见</span><span style="color:#475569;font-size:20px;font-weight:800;">•</span><span style="color:#f8fafc;font-size:20px;font-weight:800;">你</span>
-              <span style="color:#475569;font-size:11px;font-weight:600;margin-left:10px;letter-spacing:2px;">NIC.BN</span>
+              <span style="color:#f8fafc;font-size:20px;font-weight:800;">${siteName}</span>
+              <span style="color:#475569;font-size:11px;font-weight:600;margin-left:10px;letter-spacing:2px;">${siteHostname}</span>
             </td></tr>
           </table>
         </td></tr>
@@ -168,11 +172,11 @@ export const ContactPage: React.FC = () => {
             </div>
           </div>
           <div style="padding:20px 40px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;">
-            <p style="margin:0;font-size:13px;color:#94a3b8;">域见•你 客服系统 · <a href="https://nic.bn/admin" style="color:#475569;text-decoration:none;font-weight:600;">前往管理后台</a></p>
+            <p style="margin:0;font-size:13px;color:#94a3b8;">${siteName} 客服系统 · <a href="${siteDomain}/admin" style="color:#475569;text-decoration:none;font-weight:600;">前往管理后台</a></p>
           </div>
         </td></tr>
         <tr><td style="padding:24px 20px 0;text-align:center;">
-          <p style="margin:0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} 域见•你 · NIC.BN</p>
+          <p style="margin:0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} ${siteName} · ${siteHostname}</p>
         </td></tr>
       </table>
     </td></tr>
@@ -182,7 +186,7 @@ export const ContactPage: React.FC = () => {
 
       await supabase.functions.invoke('send-email', {
         body: {
-          to: 'support@nic.bn',
+          to: supportEmail,
           subject: `[客服] ${categoryLabel}：${formData.subject} — ${formData.name}`,
           html,
         },
