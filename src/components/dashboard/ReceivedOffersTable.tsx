@@ -108,7 +108,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
             .from('transactions').insert({
               buyer_id: offerData.buyer_id, seller_id: user.id,
               domain_id: offerData.domain_id, offer_id: offerId,
-              amount, status: 'pending', commission_rate: commissionRate,
+              amount, status: 'payment_pending', commission_rate: commissionRate,
               commission_amount: commissionAmount, seller_amount: sellerAmount,
             }).select('id').single();
 
@@ -191,13 +191,13 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
         counter_note: counterNote.trim(),
       });
 
-      // 1. Update offer status + message (only from pending state)
+      // 1. Update offer status + message (allow from pending or countered state)
       const { error: updateErr } = await supabase
         .from('domain_offers')
         .update({ status: 'countered', message: encodedMessage, updated_at: new Date().toISOString() })
         .eq('id', offer.id)
         .eq('seller_id', user.id)
-        .eq('status', 'pending');
+        .in('status', ['pending', 'countered']);
       if (updateErr) throw updateErr;
 
       // 2. In-app notification for buyer
@@ -372,7 +372,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
                       <h3 className="font-semibold text-lg">{offer.domain_name}</h3>
                       <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
                         <Mail className="h-3 w-3" />
-                        <a href={`mailto:${offer.contact_email}`} className="hover:text-primary">{offer.contact_email}</a>
+                        <span>买家（匿名）</span>
                       </div>
                     </div>
                     <Badge className={`${statusConfig.className} gap-1`}>{statusConfig.icon}{statusConfig.label}</Badge>
@@ -481,9 +481,9 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
                       </div>
                     </td>
                     <td className="p-4">
-                      <div className="flex items-center gap-1">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <a href={`mailto:${offer.contact_email}`} className="text-primary hover:underline text-sm">{offer.contact_email}</a>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Mail className="h-4 w-4" />
+                        <span>买家（匿名）</span>
                       </div>
                     </td>
                     <td className="p-4 max-w-xs">

@@ -117,7 +117,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
               .from('transactions').insert({
                 buyer_id: user.id, seller_id: offerData.seller_id,
                 domain_id: offerData.domain_id, offer_id: offer.id,
-                amount, status: 'pending', commission_rate: commissionRate,
+                amount, status: 'payment_pending', commission_rate: commissionRate,
                 commission_amount: commissionAmount, seller_amount: sellerAmount,
               }).select('id').single();
 

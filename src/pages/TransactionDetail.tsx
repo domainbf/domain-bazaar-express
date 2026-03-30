@@ -46,7 +46,18 @@ interface TransactionData {
 interface DomainInfo {
   name: string;
   price: number;
+  currency?: string;
 }
+
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  bank_transfer: '银行转账',
+  alipay: '支付宝',
+  wechat: '微信支付',
+  crypto: '加密货币',
+  paypal: 'PayPal',
+  wire: '电汇',
+  other: '其他方式',
+};
 
 interface ProfileInfo {
   full_name: string | null;
@@ -73,23 +84,31 @@ const STATUS_STEPS = [
 ];
 
 const statusLabel: Record<string, string> = {
+  pending: '等待付款',
   payment_pending: '等待付款',
+  paid: '已付款',
   escrow_funded: '资金托管中',
+  in_escrow: '资金托管中',
   domain_transferred: '域名已转移',
   buyer_confirmed: '买家已确认',
   completed: '交易完成',
   disputed: '纠纷处理中',
   cancelled: '已取消',
+  refunded: '已退款',
 };
 
 const statusVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+  pending: 'secondary',
   payment_pending: 'secondary',
+  paid: 'default',
   escrow_funded: 'default',
+  in_escrow: 'default',
   domain_transferred: 'default',
   buyer_confirmed: 'default',
   completed: 'default',
   disputed: 'destructive',
   cancelled: 'outline',
+  refunded: 'outline',
 };
 
 export default function TransactionDetail() {
@@ -129,7 +148,7 @@ export default function TransactionDetail() {
       setTransaction(tx as TransactionData);
 
       const [domainRes, escrowRes] = await Promise.all([
-        supabase.from('domain_listings').select('name, price').eq('id', tx.domain_id).single(),
+        supabase.from('domain_listings').select('name, price, currency').eq('id', tx.domain_id).single(),
         supabase.from('escrow_services').select('*').eq('transaction_id', tx.id).maybeSingle(),
       ]);
 
@@ -159,8 +178,11 @@ export default function TransactionDetail() {
 
   const getStepIndex = (status: string) => {
     const map: Record<string, number> = {
+      pending: 0,
       payment_pending: 0,
       escrow_funded: 1,
+      paid: 1,
+      in_escrow: 1,
       domain_transferred: 2,
       buyer_confirmed: 3,
       completed: 4,
@@ -229,8 +251,14 @@ export default function TransactionDetail() {
       }).eq('id', transaction.domain_id);
 
       if (transaction.seller_id) {
+        const { data: sellerProfile } = await supabase
+          .from('profiles')
+          .select('total_sales')
+          .eq('id', transaction.seller_id)
+          .maybeSingle();
+        const currentSales = (sellerProfile as any)?.total_sales ?? 0;
         await supabase.from('profiles').update({
-          total_sales: supabase.rpc('increment', { inc: 1 }) as unknown as number,
+          total_sales: currentSales + 1,
         }).eq('id', transaction.seller_id);
       }
 
@@ -314,6 +342,8 @@ export default function TransactionDetail() {
   const commissionRate = (transaction.commission_rate ?? 0.05) * 100;
   const commissionAmount = transaction.commission_amount ?? transaction.amount * (transaction.commission_rate ?? 0.05);
   const sellerAmount = transaction.seller_amount ?? transaction.amount - commissionAmount;
+  const txCurrency = domain?.currency === 'USD' ? '$' : '¥';
+  const canBuyerPay = isBuyer && ['payment_pending', 'pending'].includes(transaction.status);
 
   return (
     <div className="min-h-screen bg-background">
@@ -350,7 +380,7 @@ export default function TransactionDetail() {
                     <p className="text-sm text-muted-foreground">成交价格</p>
                   </div>
                   <div className="ml-auto text-right">
-                    <p className="text-xl font-bold text-primary">¥{transaction.amount.toLocaleString()}</p>
+                    <p className="text-xl font-bold text-primary">{txCurrency}{transaction.amount.toLocaleString()}</p>
                   </div>
                 </div>
 
@@ -365,7 +395,7 @@ export default function TransactionDetail() {
                   </div>
                   <div className="p-3 border rounded-lg">
                     <p className="text-muted-foreground mb-1 flex items-center gap-1"><CreditCard className="w-3 h-3" /> 付款方式</p>
-                    <p className="font-medium capitalize">{transaction.payment_method}</p>
+                    <p className="font-medium">{PAYMENT_METHOD_LABELS[transaction.payment_method] ?? transaction.payment_method ?? '—'}</p>
                   </div>
                   <div className="p-3 border rounded-lg">
                     <p className="text-muted-foreground mb-1 flex items-center gap-1"><Clock className="w-3 h-3" /> 创建时间</p>
@@ -380,16 +410,16 @@ export default function TransactionDetail() {
                     </p>
                     <div className="flex justify-between text-muted-foreground">
                       <span>成交金额</span>
-                      <span>¥{transaction.amount.toLocaleString()}</span>
+                      <span>{txCurrency}{transaction.amount.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-muted-foreground">
                       <span>平台手续费 ({commissionRate}%)</span>
-                      <span>-¥{commissionAmount.toLocaleString()}</span>
+                      <span>-{txCurrency}{commissionAmount.toLocaleString()}</span>
                     </div>
                     <Separator className="my-1" />
                     <div className="flex justify-between font-semibold text-green-700 dark:text-green-400">
                       <span>实际到账</span>
-                      <span>¥{sellerAmount.toLocaleString()}</span>
+                      <span>{txCurrency}{sellerAmount.toLocaleString()}</span>
                     </div>
                   </div>
                 )}
@@ -437,12 +467,33 @@ export default function TransactionDetail() {
             </Card>
 
             {/* Action Buttons */}
-            {(canSellerConfirm || canBuyerConfirm || canDispute || isCompleted) && (
+            {(canBuyerPay || canSellerConfirm || canBuyerConfirm || canDispute || isCompleted) && (
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base">操作</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
+                  {canBuyerPay && (
+                    <div className="p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-300 dark:border-yellow-700 rounded-lg">
+                      <p className="text-sm font-semibold text-yellow-900 dark:text-yellow-300 mb-1 flex items-center gap-2">
+                        <CreditCard className="w-4 h-4" /> 买家操作：完成付款
+                      </p>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        请通过平台指定方式将 <strong>{txCurrency}{transaction.amount.toLocaleString()}</strong> 汇入托管账户，资金确认后交易将自动进入托管阶段。
+                      </p>
+                      <div className="text-xs bg-white dark:bg-black/20 rounded-lg p-3 space-y-1.5 border border-yellow-200 dark:border-yellow-800 mb-3">
+                        <p className="font-semibold text-foreground">付款步骤：</p>
+                        <p className="text-muted-foreground">① 通过平台内消息联系客服获取收款账户信息</p>
+                        <p className="text-muted-foreground">② 按照指定金额付款，备注填写交易ID</p>
+                        <p className="text-muted-foreground">③ 付款后截图发送至客服，等待确认到账</p>
+                        <p className="font-mono text-xs text-muted-foreground bg-muted/50 rounded px-2 py-1 mt-1">交易ID: {transaction.id}</p>
+                      </div>
+                      <Button size="sm" onClick={() => setShowMessages(true)} data-testid="button-contact-support">
+                        <MessageSquare className="w-4 h-4 mr-2" /> 联系客服完成付款
+                      </Button>
+                    </div>
+                  )}
+
                   {canSellerConfirm && (
                     <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                       <p className="text-sm font-medium text-blue-800 dark:text-blue-400 mb-2">卖家操作：确认域名已转移</p>
@@ -561,7 +612,7 @@ export default function TransactionDetail() {
                     {escrow.escrow_fee && (
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">托管费</span>
-                        <span>¥{escrow.escrow_fee}</span>
+                        <span>{txCurrency}{escrow.escrow_fee}</span>
                       </div>
                     )}
                   </>

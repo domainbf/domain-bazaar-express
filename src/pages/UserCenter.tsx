@@ -106,7 +106,7 @@ export const UserCenter = () => {
   }
 
   const desktopTabs = [
-    { value: 'domains', label: '我的域名', icon: ClipboardList },
+    { value: 'domains', label: '我的域名', icon: Globe },
     { value: 'transactions', label: '交易记录', icon: ClipboardList },
     { value: 'messages', label: '站内消息', icon: MessageSquare, badge: unreadMessages },
     { value: 'notifications', label: '消息通知', icon: Bell, badge: unreadCount },

@@ -34,10 +34,13 @@ interface TransactionRecord {
 }
 
 const STATUS_MAP: Record<string, { label: string; color: string; icon: typeof Clock; progress: number }> = {
+  payment_pending: { label: '等待付款', color: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400', icon: Clock, progress: 20 },
   pending: { label: '等待付款', color: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400', icon: Clock, progress: 20 },
-  paid: { label: '已付款', color: 'bg-blue-500/10 text-blue-700 dark:text-blue-400', icon: CheckCircle2, progress: 50 },
-  in_escrow: { label: '资金托管中', color: 'bg-purple-500/10 text-purple-700 dark:text-purple-400', icon: Clock, progress: 60 },
+  paid: { label: '已付款', color: 'bg-blue-500/10 text-blue-700 dark:text-blue-400', icon: CheckCircle2, progress: 40 },
+  escrow_funded: { label: '资金托管中', color: 'bg-purple-500/10 text-purple-700 dark:text-purple-400', icon: Clock, progress: 55 },
+  in_escrow: { label: '资金托管中', color: 'bg-purple-500/10 text-purple-700 dark:text-purple-400', icon: Clock, progress: 55 },
   domain_transferred: { label: '域名已转移', color: 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-400', icon: Globe, progress: 80 },
+  buyer_confirmed: { label: '买家已确认', color: 'bg-teal-500/10 text-teal-700 dark:text-teal-400', icon: CheckCircle2, progress: 90 },
   completed: { label: '已完成', color: 'bg-green-500/10 text-green-700 dark:text-green-400', icon: CheckCircle2, progress: 100 },
   cancelled: { label: '已取消', color: 'bg-muted text-muted-foreground', icon: XCircle, progress: 0 },
   disputed: { label: '纠纷中', color: 'bg-red-500/10 text-red-700 dark:text-red-400', icon: AlertTriangle, progress: 50 },
