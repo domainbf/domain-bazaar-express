@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from 'sonner';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { 
   Mail, 
   Phone, 
@@ -42,6 +43,7 @@ const contactCategories = [
 ];
 
 export const ContactPage: React.FC = () => {
+  const { config } = useSiteSettings();
   const [formData, setFormData] = useState<ContactForm>({
     name: '',
     email: '',
@@ -260,34 +262,41 @@ export const ContactPage: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <Mail className="h-5 w-5 text-gray-500 mt-1" />
-                  <div>
-                    <div className="font-medium">客服邮箱</div>
-                    <div className="text-muted-foreground">support@example.com</div>
-                    <div className="text-sm text-gray-500">24小时内回复</div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Phone className="h-5 w-5 text-gray-500 mt-1" />
-                  <div>
-                    <div className="font-medium">客服电话</div>
-                    <div className="text-gray-600">+673-123-4567</div>
-                    <div className="text-sm text-gray-500">周一至周五 9:00-18:00</div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <MapPin className="h-5 w-5 text-gray-500 mt-1" />
-                  <div>
-                    <div className="font-medium">公司地址</div>
-                    <div className="text-gray-600">
-                      文莱达鲁萨兰国<br />
-                      信息通信技术发展局
+                {config.contact_email && (
+                  <div className="flex items-start gap-3">
+                    <Mail className="h-5 w-5 text-gray-500 mt-1" />
+                    <div>
+                      <div className="font-medium">客服邮箱</div>
+                      <div className="text-muted-foreground">{config.contact_email}</div>
+                      <div className="text-sm text-gray-500">24小时内回复</div>
                     </div>
                   </div>
-                </div>
+                )}
+
+                {config.contact_phone && (
+                  <div className="flex items-start gap-3">
+                    <Phone className="h-5 w-5 text-gray-500 mt-1" />
+                    <div>
+                      <div className="font-medium">客服电话</div>
+                      <div className="text-gray-600">{config.contact_phone}</div>
+                      <div className="text-sm text-gray-500">{config.hours_weekday} {config.hours_phone}</div>
+                    </div>
+                  </div>
+                )}
+
+                {config.contact_address && (
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-5 w-5 text-gray-500 mt-1" />
+                    <div>
+                      <div className="font-medium">公司地址</div>
+                      <div className="text-gray-600 whitespace-pre-line">{config.contact_address}</div>
+                    </div>
+                  </div>
+                )}
+
+                {!config.contact_email && !config.contact_phone && !config.contact_address && (
+                  <div className="text-sm text-muted-foreground text-center py-2">联系方式待配置，请通过下方表单留言</div>
+                )}
               </CardContent>
             </Card>
 
@@ -302,7 +311,7 @@ export const ContactPage: React.FC = () => {
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
                   <span>在线客服</span>
-                  <span className="text-gray-600">9:00 - 18:00</span>
+                  <span className="text-gray-600">{config.hours_online || '9:00 - 18:00'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>邮箱支持</span>
@@ -310,10 +319,10 @@ export const ContactPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between">
                   <span>电话支持</span>
-                  <span className="text-gray-600">9:00 - 18:00</span>
+                  <span className="text-gray-600">{config.hours_phone || '9:00 - 18:00'}</span>
                 </div>
                 <div className="text-sm text-gray-500 pt-2 border-t">
-                  周一至周五（节假日除外）
+                  {config.hours_weekday || '周一至周五（节假日除外）'}
                 </div>
               </CardContent>
             </Card>
@@ -362,26 +371,28 @@ export const ContactPage: React.FC = () => {
             </Card>
 
             {/* 紧急联系 */}
-            <Card className="border-red-200 bg-red-50">
-              <CardHeader>
-                <CardTitle className="text-red-700 flex items-center gap-2">
-                  <Building className="h-5 w-5" />
-                  紧急情况
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-red-700 text-sm">
-                  如遇到账户安全问题或紧急交易纠纷，
-                  请立即拨打紧急热线：
-                </p>
-                <div className="font-bold text-red-800 text-lg mt-2">
-                  +673-999-0000
-                </div>
-                <p className="text-red-600 text-xs mt-1">
-                  24小时紧急服务热线
-                </p>
-              </CardContent>
-            </Card>
+            {config.emergency_phone && (
+              <Card className="border-red-200 bg-red-50">
+                <CardHeader>
+                  <CardTitle className="text-red-700 flex items-center gap-2">
+                    <Building className="h-5 w-5" />
+                    紧急情况
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-red-700 text-sm">
+                    如遇到账户安全问题或紧急交易纠纷，
+                    请立即拨打紧急热线：
+                  </p>
+                  <div className="font-bold text-red-800 text-lg mt-2">
+                    {config.emergency_phone}
+                  </div>
+                  <p className="text-red-600 text-xs mt-1">
+                    24小时紧急服务热线
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>

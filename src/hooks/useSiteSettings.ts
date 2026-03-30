@@ -9,6 +9,11 @@ export interface SiteConfig {
   // Contact
   contact_phone: string;
   contact_email: string;
+  contact_address: string;
+  emergency_phone: string;
+  hours_online: string;
+  hours_phone: string;
+  hours_weekday: string;
   support_hours: string;
   // Hero Section
   hero_title: string;
@@ -46,8 +51,13 @@ const defaultConfig: SiteConfig = {
   site_name: '域见•你',
   logo_url: '/lovable-uploads/nic.png',
   favicon_url: '/favicon.ico',
-  contact_phone: '400-123-4567',
-  contact_email: 'support@example.com',
+  contact_phone: '',
+  contact_email: '',
+  contact_address: '',
+  emergency_phone: '',
+  hours_online: '9:00 - 18:00',
+  hours_phone: '9:00 - 18:00',
+  hours_weekday: '周一至周五（节假日除外）',
   support_hours: '7x24小时在线服务',
   hero_title: '找到您理想的域名',
   hero_subtitle: '探索、发现并获取适合您的下一个大创意的理想域名',

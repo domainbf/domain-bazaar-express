@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { 
   Shield, 
   Lock, 
@@ -17,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const SecurityCenter: React.FC = () => {
+  const { config } = useSiteSettings();
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -234,14 +236,16 @@ const SecurityCenter: React.FC = () => {
               <li>检查并更新联系邮箱</li>
               <li>联系紧急服务热线</li>
             </ol>
-            <div className="bg-red-100 p-4 rounded-lg border border-red-300">
-              <div className="flex items-center gap-2 mb-2">
-                <HelpCircle className="h-5 w-5" />
-                <span className="font-bold text-lg">紧急服务热线</span>
+            {config.emergency_phone && (
+              <div className="bg-red-100 p-4 rounded-lg border border-red-300">
+                <div className="flex items-center gap-2 mb-2">
+                  <HelpCircle className="h-5 w-5" />
+                  <span className="font-bold text-lg">紧急服务热线</span>
+                </div>
+                <p className="text-2xl font-bold">{config.emergency_phone}</p>
+                <p className="text-sm mt-1">24小时紧急服务热线</p>
               </div>
-              <p className="text-2xl font-bold">+673-999-0000</p>
-              <p className="text-sm mt-1">24小时紧急服务热线</p>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>

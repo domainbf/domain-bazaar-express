@@ -37,6 +37,9 @@ const BulkListingPage = lazy(() => import('./pages/BulkListingPage'));
 const DisputePage = lazy(() => import('./pages/DisputePage'));
 const PlatformServicesPage = lazy(() => import('./pages/PlatformServicesPage'));
 const HelpPage = lazy(() => import('./pages/HelpPage'));
+const TermsPage = lazy(() => import('./pages/TermsPage'));
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
+const DisclaimerPage = lazy(() => import('./pages/DisclaimerPage'));
 
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
   return (
@@ -132,6 +135,9 @@ const AnimatedRoutes = memo(() => {
         <Route path="/dispute" element={<DisputePage />} />
         <Route path="/platform-services" element={<PlatformServicesPage />} />
         <Route path="/help" element={<HelpPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/disclaimer" element={<DisclaimerPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       </div>

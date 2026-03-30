@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Settings, Globe, Mail, Shield, Plus, Trash2, Save, Database, Palette, Key, Eye, EyeOff, Send, CheckCircle, XCircle, Loader2, AlertCircle } from 'lucide-react';
+import { Settings, Globe, Mail, Shield, Plus, Trash2, Save, Database, Palette, Key, Eye, EyeOff, Send, CheckCircle, XCircle, Loader2, AlertCircle, Phone } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -74,6 +74,18 @@ export const SiteSettings = () => {
   const [isSavingEmail, setIsSavingEmail] = useState(false);
   const [emailTestResult, setEmailTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
 
+  // Contact info state
+  const [contactInfo, setContactInfo] = useState({
+    contact_email: '',
+    contact_phone: '',
+    contact_address: '',
+    emergency_phone: '',
+    hours_online: '9:00 - 18:00',
+    hours_phone: '9:00 - 18:00',
+    hours_weekday: '周一至周五（节假日除外）',
+  });
+  const [isSavingContact, setIsSavingContact] = useState(false);
+
   const handleChangeOwnPassword = async () => {
     if (!newPassword || newPassword.length < 8) {
       toast.error('密码至少8位');
@@ -130,6 +142,7 @@ export const SiteSettings = () => {
   useEffect(() => {
     loadSettings();
     loadSmtpConfig();
+    loadContactConfig();
   }, []);
 
   const loadSmtpConfig = async () => {
@@ -151,6 +164,50 @@ export const SiteSettings = () => {
         if (map['smtp_host'] && map['smtp_username']) setSmtpSaved(true);
       }
     } catch (e) { console.error('loadSmtpConfig error', e); }
+  };
+
+  const loadContactConfig = async () => {
+    try {
+      const { data } = await supabase
+        .from('site_settings')
+        .select('key, value')
+        .in('key', ['contact_email', 'contact_phone', 'contact_address', 'emergency_phone', 'hours_online', 'hours_phone', 'hours_weekday']);
+      if (data && data.length > 0) {
+        const map = Object.fromEntries(data.map((r: any) => [r.key, r.value]));
+        setContactInfo({
+          contact_email: map['contact_email'] || '',
+          contact_phone: map['contact_phone'] || '',
+          contact_address: map['contact_address'] || '',
+          emergency_phone: map['emergency_phone'] || '',
+          hours_online: map['hours_online'] || '9:00 - 18:00',
+          hours_phone: map['hours_phone'] || '9:00 - 18:00',
+          hours_weekday: map['hours_weekday'] || '周一至周五（节假日除外）',
+        });
+      }
+    } catch (e) { console.error('loadContactConfig error', e); }
+  };
+
+  const saveContactConfig = async () => {
+    setIsSavingContact(true);
+    try {
+      const rows = [
+        { key: 'contact_email', value: contactInfo.contact_email, description: '客服邮箱', section: 'contact', type: 'text' },
+        { key: 'contact_phone', value: contactInfo.contact_phone, description: '客服电话', section: 'contact', type: 'text' },
+        { key: 'contact_address', value: contactInfo.contact_address, description: '公司地址', section: 'contact', type: 'textarea' },
+        { key: 'emergency_phone', value: contactInfo.emergency_phone, description: '紧急热线', section: 'contact', type: 'text' },
+        { key: 'hours_online', value: contactInfo.hours_online, description: '在线客服时间', section: 'contact', type: 'text' },
+        { key: 'hours_phone', value: contactInfo.hours_phone, description: '电话支持时间', section: 'contact', type: 'text' },
+        { key: 'hours_weekday', value: contactInfo.hours_weekday, description: '服务工作日', section: 'contact', type: 'text' },
+      ];
+      for (const row of rows) {
+        await supabase.from('site_settings').upsert([row], { onConflict: 'key' });
+      }
+      toast.success('联系方式设置已保存');
+    } catch (e: any) {
+      toast.error('保存失败：' + e.message);
+    } finally {
+      setIsSavingContact(false);
+    }
   };
 
   const saveEmailConfig = async () => {
@@ -411,6 +468,10 @@ export const SiteSettings = () => {
             <Settings className="h-4 w-4 mr-2" />
             常规设置
           </TabsTrigger>
+          <TabsTrigger value="contact">
+            <Phone className="h-4 w-4 mr-2" />
+            联系方式
+          </TabsTrigger>
           <TabsTrigger value="email">
             <Mail className="h-4 w-4 mr-2" />
             邮件设置
@@ -454,6 +515,100 @@ export const SiteSettings = () => {
                   />
                 ))
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="contact" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Phone className="h-5 w-5 text-primary" />
+                联系方式设置
+              </CardTitle>
+              <CardDescription>
+                配置显示在联系我们页面和安全中心的联系信息，留空则不显示
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="font-semibold">客服邮箱</Label>
+                  <Input
+                    placeholder="例：support@nic.rw"
+                    value={contactInfo.contact_email}
+                    onChange={(e) => setContactInfo({ ...contactInfo, contact_email: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-semibold">客服电话</Label>
+                  <Input
+                    placeholder="例：+673-xxx-xxxx"
+                    value={contactInfo.contact_phone}
+                    onChange={(e) => setContactInfo({ ...contactInfo, contact_phone: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="font-semibold">公司地址</Label>
+                <Textarea
+                  placeholder="例：文莱达鲁萨兰国&#10;信息通信技术发展局"
+                  rows={3}
+                  value={contactInfo.contact_address}
+                  onChange={(e) => setContactInfo({ ...contactInfo, contact_address: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="font-semibold flex items-center gap-2">
+                  <span className="text-red-600">紧急热线</span>
+                  <Badge variant="destructive" className="text-xs">谨慎填写</Badge>
+                </Label>
+                <Input
+                  placeholder="例：+673-999-xxxx（留空则不显示紧急热线区块）"
+                  value={contactInfo.emergency_phone}
+                  onChange={(e) => setContactInfo({ ...contactInfo, emergency_phone: e.target.value })}
+                />
+              </div>
+
+              <Separator />
+
+              <div>
+                <p className="font-semibold mb-3">服务时间</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>在线客服时间</Label>
+                    <Input
+                      placeholder="9:00 - 18:00"
+                      value={contactInfo.hours_online}
+                      onChange={(e) => setContactInfo({ ...contactInfo, hours_online: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>电话支持时间</Label>
+                    <Input
+                      placeholder="9:00 - 18:00"
+                      value={contactInfo.hours_phone}
+                      onChange={(e) => setContactInfo({ ...contactInfo, hours_phone: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>服务工作日说明</Label>
+                    <Input
+                      placeholder="周一至周五（节假日除外）"
+                      value={contactInfo.hours_weekday}
+                      onChange={(e) => setContactInfo({ ...contactInfo, hours_weekday: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <Button onClick={saveContactConfig} disabled={isSavingContact}>
+                  {isSavingContact ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />保存中...</> : <><Save className="h-4 w-4 mr-2" />保存联系方式</>}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

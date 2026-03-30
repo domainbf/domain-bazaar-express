@@ -29,9 +29,9 @@ export const Footer = () => {
       { label: '安全中心', to: '/security-center' },
     ],
     legal: [
-      { label: '服务协议', to: '/faq#terms' },
-      { label: '隐私政策', to: '/faq#privacy' },
-      { label: '免责声明', to: '/faq#disclaimer' },
+      { label: '服务协议', to: '/terms' },
+      { label: '隐私政策', to: '/privacy' },
+      { label: '免责声明', to: '/disclaimer' },
     ],
   };
 
