@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { Upload, FileText, CheckCircle2, XCircle, AlertTriangle, Download } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiPost } from '@/lib/apiClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -122,23 +122,23 @@ export const BulkDomainImport = ({ onSuccess }: BulkDomainImportProps) => {
     const batchSize = 10;
     for (let i = 0; i < validDomains.length; i += batchSize) {
       const batch = validDomains.slice(i, i + batchSize);
-      const rows = batch.map(d => ({
-        name: d.name.toLowerCase(),
-        price: d.price,
-        description: d.description || null,
-        category: d.category || 'other',
-        user_id: user.id,
-        status: 'available',
-        currency: 'CNY',
-        listing_type: 'fixed',
+      let batchFailed = 0;
+      await Promise.all(batch.map(async (d) => {
+        try {
+          await apiPost('/data/domain-listings', {
+            name: d.name.toLowerCase(),
+            price: d.price,
+            description: d.description || null,
+            category: d.category || 'standard',
+            status: 'available',
+            currency: 'CNY',
+          });
+          success++;
+        } catch {
+          batchFailed++;
+        }
       }));
-
-      const { error } = await supabase.from('domain_listings').insert(rows);
-      if (error) {
-        failed += batch.length;
-      } else {
-        success += batch.length;
-      }
+      failed += batchFailed;
       setProgress(Math.round(((i + batchSize) / validDomains.length) * 100));
     }
 

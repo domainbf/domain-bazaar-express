@@ -1,6 +1,6 @@
 # NIC.BN Domain Marketplace (域见•你)
 
-A comprehensive domain name trading marketplace built with React, Vite, TypeScript, and Supabase.
+A comprehensive domain name trading marketplace built with React, Vite, TypeScript, Hono, and Turso.
 
 ## Architecture
 
@@ -8,9 +8,9 @@ A comprehensive domain name trading marketplace built with React, Vite, TypeScri
 - **Styling**: Tailwind CSS + shadcn/ui components
 - **State**: TanStack Query + React Context for auth
 - **Auth**: Custom JWT backend (Hono + Node.js, port 3001) with bcrypt password hashing, 15min access tokens + 30-day refresh tokens stored in localStorage
-- **Database**: Turso SQLite (libSQL) — all 37 tables migrated from Supabase PostgreSQL. Supabase still used for DB queries (data layer intact).
-- **Real-time**: Custom SSE endpoint at `/api/realtime/stream` with in-memory EventBus. All components use `useRealtimeSubscription` hook (replaces Supabase Realtime channels).
-- **File Upload**: Vercel Blob via Supabase Edge Function `upload-blob`
+- **Database**: Turso SQLite (libSQL) — all data stored in Turso. Supabase is legacy/secondary (only admin panels and domain tools still use it).
+- **Email**: Resend API via SMTP credentials stored in `smtp_settings` table (host: smtp.resend.com, from: noreply@nic.rw)
+- **Real-time**: Custom SSE endpoint at `/api/realtime/stream` with in-memory EventBus. All components use `useRealtimeSubscription` hook.
 - **Routing**: React Router v6 with lazy-loaded routes
 - **i18n**: i18next with Chinese/English support
 - **PWA**: vite-plugin-pwa with workbox service worker

@@ -43,7 +43,7 @@ async function invalidateDomainListCache(id?: string) {
 
 // ---- Domain Listings ----
 app.get('/domain-listings', async (c) => {
-  const status = c.req.query('status') || 'active';
+  const status = c.req.query('status') || 'available';
   const limit = parseInt(c.req.query('limit') || '50');
   const offset = parseInt(c.req.query('offset') || '0');
   const cacheKey = `domain_listings:${status}:${limit}:${offset}`;
@@ -73,8 +73,36 @@ app.get('/domain-listings/:id', async (c) => {
   const r = await db.execute({ sql: 'SELECT * FROM domain_listings WHERE id = ?', args: [id] });
   if (!r.rows[0]) return c.json({ error: '未找到' }, 404);
   const row = rowToObj(r.rows[0]);
-  await cacheSet(cacheKey, row, 120); // 2 min cache for individual listing
+  await cacheSet(cacheKey, row, 120);
   return c.json(row);
+});
+
+// GET /api/data/domain-listings/:id/detail — enriched view with analytics, owner, price history, similar
+app.get('/domain-listings/:id/detail', async (c) => {
+  const idParam = c.req.param('id');
+  // Resolve by UUID or by name
+  const isUUID = /^[0-9a-f-]{36}$/i.test(idParam);
+  const r = isUUID
+    ? await db.execute({ sql: 'SELECT * FROM domain_listings WHERE id = ?', args: [idParam] })
+    : await db.execute({ sql: 'SELECT * FROM domain_listings WHERE name = ? COLLATE NOCASE', args: [idParam] });
+  if (!r.rows[0]) return c.json({ error: '未找到' }, 404);
+  const domain = rowToObj(r.rows[0]);
+
+  const [analyticsRes, priceHistRes, similarRes, ownerRes] = await Promise.all([
+    db.execute({ sql: 'SELECT views, favorites, offers FROM domain_analytics WHERE domain_id = ? LIMIT 1', args: [domain.id] }),
+    db.execute({ sql: 'SELECT * FROM domain_price_history WHERE domain_id = ? ORDER BY created_at ASC LIMIT 50', args: [domain.id] }),
+    db.execute({ sql: "SELECT * FROM domain_listings WHERE status = 'available' AND id != ? LIMIT 6", args: [domain.id] }),
+    domain.owner_id
+      ? db.execute({ sql: 'SELECT id, username, full_name, avatar_url, bio, seller_rating, seller_verified FROM profiles WHERE id = ? LIMIT 1', args: [domain.owner_id] })
+      : Promise.resolve({ rows: [] }),
+  ]);
+
+  const analytics = analyticsRes.rows[0] ? rowToObj(analyticsRes.rows[0]) : { views: 0, favorites: 0, offers: 0 };
+  const priceHistory = priceHistRes.rows.map(rowToObj);
+  const similarDomains = similarRes.rows.map(rowToObj);
+  const owner = ownerRes.rows[0] ? rowToObj(ownerRes.rows[0]) : null;
+
+  return c.json({ domain: { ...domain, ...analytics, owner }, priceHistory, similarDomains });
 });
 
 // POST /api/data/domain-listings — create a new listing
@@ -88,8 +116,9 @@ app.post('/domain-listings', requireAuth, async (c) => {
   const fieldMap: Record<string, string> = { domain_name: 'name' };
   const allowed = ['name', 'domain_name', 'price', 'category', 'description',
     'currency', 'highlight', 'is_verified'];
+  const statusVal = (body.status as string | undefined) || 'available';
   const cols = ['id', 'owner_id', 'status', 'created_at'];
-  const vals: unknown[] = [id, sub, 'active', t];
+  const vals: unknown[] = [id, sub, statusVal, t];
   for (const k of allowed) {
     if (k in body) {
       const col = fieldMap[k] || k;

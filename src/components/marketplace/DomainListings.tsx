@@ -4,7 +4,7 @@ import { Domain } from '@/types/domain';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { Shield, Eye, Tag, Star, ArrowRight, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { supabase } from '@/integrations/supabase/client';
+import { apiGet, apiPost, apiDelete } from '@/lib/apiClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -27,14 +27,10 @@ const FavoriteButton = ({ domainId }: { domainId: string }) => {
 
   useEffect(() => {
     if (!user || !domainId) return;
-    supabase
-      .from('user_favorites')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('domain_id', domainId)
-      .maybeSingle()
-      .then(({ data }) => { if (data) setIsFavorited(true); });
-  }, [user, domainId]);
+    apiGet<{ domain_id: string }[]>('/data/favorites')
+      .then(favs => { if (favs.some(f => f.domain_id === domainId)) setIsFavorited(true); })
+      .catch(() => {});
+  }, [user?.id, domainId]);
 
   const handleToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -43,12 +39,11 @@ const FavoriteButton = ({ domainId }: { domainId: string }) => {
     setIsLoading(true);
     try {
       if (isFavorited) {
-        await supabase.from('user_favorites').delete()
-          .eq('user_id', user.id).eq('domain_id', domainId);
+        await apiDelete(`/data/favorites/${domainId}`);
         setIsFavorited(false);
         toast.success('已取消收藏');
       } else {
-        await supabase.from('user_favorites').insert({ user_id: user.id, domain_id: domainId });
+        await apiPost('/data/favorites', { domain_id: domainId });
         setIsFavorited(true);
         toast.success('已添加到收藏');
       }

@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPost, apiPatch, apiGet } from '@/lib/apiClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, CheckCircle, AlertCircle, Globe, DollarSign, Tag, FileText, Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -122,59 +122,29 @@ export const DomainForm = ({
         status: formData.status,
         currency: formData.currency,
         highlight: formData.highlight,
-        owner_id: user.id
       };
       
       if (mode === 'add') {
-        // 检查域名是否已存在
-        const { data: existingDomain } = await supabase
-          .from('domain_listings')
-          .select('id')
-          .eq('name', domainData.name)
-          .maybeSingle();
-        
-        if (existingDomain) {
-          toast.error('该域名已被添加，请检查后重试');
-          setIsLoading(false);
-          return;
+        // Check if domain already exists
+        try {
+          const existing = await apiGet<{ id: string } | null>(`/data/domain-listings/by-name/${encodeURIComponent(domainData.name)}`);
+          if (existing) {
+            toast.error('该域名已被添加，请检查后重试');
+            setIsLoading(false);
+            return;
+          }
+        } catch {
+          // 404 means not found = ok to add
         }
         
-        const result = await supabase
-          .from('domain_listings')
-          .insert([domainData])
-          .select();
-
-        if (result.error) throw result.error;
-        const newDomainId = result.data?.[0]?.id;
-        
-        if (newDomainId) {
-          await supabase
-            .from('domain_analytics')
-            .insert({
-              domain_id: newDomainId,
-              views: 0,
-              favorites: 0,
-              offers: 0
-            });
-        }
+        await apiPost('/data/domain-listings', domainData);
         
         toast.success('域名已成功上架', {
           description: `${domainData.name} 已添加到您的域名列表`
         });
       } else if (mode === 'edit' && domain?.id) {
-        const { name, owner_id, ...updateData } = domainData;
-        const result = await supabase
-          .from('domain_listings')
-          .update(updateData)
-          .eq('id', domain.id)
-          .eq('owner_id', user.id)
-          .select();
-        
-        if (result.error) throw result.error;
-        
-        if (!result.data || result.data.length === 0) {
-          throw new Error('更新失败，您可能没有权限编辑此域名');
-        }
+        const { name, ...updateData } = domainData;
+        await apiPatch(`/data/domain-listings/${domain.id}`, updateData);
         
         toast.success('域名信息已更新', {
           description: '更改已即时生效'
@@ -319,7 +289,6 @@ export const DomainForm = ({
         </div>
       </div>
 
-      {/* 推荐设置 */}
       <div className="flex items-center justify-between p-3 border border-border rounded-lg bg-muted/30">
         <div className="flex items-center gap-2">
           <Star className="h-4 w-4 text-yellow-500" />

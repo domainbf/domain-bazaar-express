@@ -1,75 +1,73 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGet } from "@/lib/apiClient";
 import { Domain } from "@/types/domain";
+
+interface DomainDetailResponse {
+  domain: Domain & {
+    views?: number;
+    favorites?: number;
+    offers?: number;
+    owner?: {
+      id: string;
+      username?: string;
+      full_name?: string;
+      avatar_url?: string;
+      bio?: string;
+      seller_rating?: number;
+      seller_verified?: boolean;
+    };
+  };
+  priceHistory: Array<{
+    id: string;
+    domain_id: string;
+    price: number;
+    previous_price?: number;
+    created_at: string;
+  }>;
+  similarDomains: Domain[];
+}
 
 const fetchDomainDetails = async (identifier: string | undefined) => {
   if (!identifier) return null;
 
   const normalized = decodeURIComponent(identifier).trim();
-  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(normalized);
+  const data = await apiGet<DomainDetailResponse>(`/data/domain-listings/${encodeURIComponent(normalized)}/detail`);
 
-  // 并行查询域名和分析数据
-  const domainQuery = isUUID
-    ? supabase.from('domain_listings').select('*').eq('id', normalized).maybeSingle()
-    : supabase.from('domain_listings').select('*').ilike('name', normalized).maybeSingle();
-
-  const [{ data: domainData, error: domainError }] = await Promise.all([domainQuery]);
-
-  if (domainError || !domainData) {
-    throw new Error('域名不存在或已被删除');
-  }
-
-  // 并行获取所有相关数据
-  const [profileResult, analyticsResult, priceHistoryResult, similarDomainsResult] = await Promise.all([
-    domainData.owner_id
-      ? supabase.from('profiles').select('id, username, full_name, avatar_url, bio, seller_rating, seller_verified').eq('id', domainData.owner_id).maybeSingle()
-      : Promise.resolve({ data: null, error: null }),
-    supabase.from('domain_analytics').select('views, favorites, offers').eq('domain_id', domainData.id).maybeSingle(),
-    supabase.from('domain_price_history').select('*').eq('domain_id', domainData.id).order('created_at', { ascending: true }).limit(50),
-    supabase.from('domain_listings').select('*').eq('status', 'available').neq('name', domainData.name).limit(6),
-  ]);
-
-  const analytics = analyticsResult.data || { views: 0, favorites: 0, offers: 0 };
-
+  const d = data.domain;
   const processedDomain: Domain = {
-    id: domainData.id,
-    name: domainData.name || '',
-    price: Number(domainData.price) || 0,
-    category: domainData.category || 'standard',
-    description: domainData.description || '',
-    status: domainData.status || 'available',
-    highlight: Boolean(domainData.highlight),
-    owner_id: domainData.owner_id || '',
-    created_at: domainData.created_at || new Date().toISOString(),
-    is_verified: Boolean(domainData.is_verified),
-    verification_status: domainData.verification_status || 'pending',
-    views: Number(analytics.views) || 0,
-    favorites: Number(analytics.favorites) || 0,
-    offers: Number(analytics.offers) || 0,
-    owner: profileResult.data ? {
-      id: profileResult.data.id,
-      username: profileResult.data.username,
-      full_name: profileResult.data.full_name,
-      avatar_url: profileResult.data.avatar_url,
-      bio: profileResult.data.bio,
-      seller_rating: profileResult.data.seller_rating,
-      seller_verified: profileResult.data.seller_verified,
-    } : undefined,
+    id: d.id,
+    name: d.name || '',
+    price: Number(d.price) || 0,
+    category: d.category || 'standard',
+    description: d.description || '',
+    status: d.status || 'available',
+    highlight: Boolean(d.highlight),
+    owner_id: d.owner_id || '',
+    created_at: d.created_at || new Date().toISOString(),
+    is_verified: Boolean(d.is_verified),
+    verification_status: d.verification_status || 'pending',
+    currency: d.currency || 'CNY',
+    views: Number(d.views) || 0,
+    favorites: Number(d.favorites) || 0,
+    offers: Number(d.offers) || 0,
+    owner: d.owner ?? undefined,
   };
 
   return {
     domain: processedDomain,
-    priceHistory: priceHistoryResult.data || [],
-    similarDomains: similarDomainsResult.data || [],
+    priceHistory: data.priceHistory || [],
+    similarDomains: (data.similarDomains || []).map((s: any) => ({
+      ...s,
+      price: Number(s.price) || 0,
+    })),
   };
 };
 
 export function useDomainDetail() {
   const { domainId, domainName } = useParams<{ domainId?: string; domainName?: string }>();
 
-  // 使用domainName优先，fallback到domainId
   const identifier = domainName || domainId;
 
   const { data, isLoading, error, refetch } = useQuery({

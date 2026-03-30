@@ -300,6 +300,38 @@ app.post('/change-password', requireAuth, async (c) => {
   return c.json({ success: true });
 });
 
+// ── Email sender via Resend API ─────────────────────────────────────────────
+async function sendEmail(to: string, subject: string, html: string): Promise<void> {
+  // Read SMTP/Resend credentials from DB
+  const smtpRow = await db.execute('SELECT host, username, password, from_email, from_name FROM smtp_settings WHERE enabled = 1 LIMIT 1');
+  const smtp = smtpRow.rows[0] as Record<string, unknown> | undefined;
+
+  const apiKey = (smtp?.password as string) || '';
+  const fromEmail = (smtp?.from_email as string) || 'noreply@nic.rw';
+  const fromName = (smtp?.from_name as string) || '域见·你';
+
+  if (!apiKey) {
+    console.warn('[EMAIL] No SMTP/Resend API key found — email not sent');
+    return;
+  }
+
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ from: `${fromName} <${fromEmail}>`, to: [to], subject, html }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error('[EMAIL] Resend API error:', res.status, err);
+  } else {
+    console.log(`[EMAIL] Sent to ${to} — subject: ${subject}`);
+  }
+}
+
 // POST /api/auth/request-reset
 app.post('/request-reset', async (c) => {
   const { email } = await c.req.json();
@@ -317,7 +349,41 @@ app.post('/request-reset', async (c) => {
       sql: 'UPDATE app_auth_users SET reset_token = ?, reset_token_expires = ?, updated_at = ? WHERE id = ?',
       args: [token, expires, now(), authUser.id]
     });
-    console.log(`[PASSWORD RESET] token for ${email}: ${token}`);
+
+    // Send password reset email
+    const baseUrl = 'https://nic.rw';
+    const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+    const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:'PingFang SC',Arial,sans-serif;">
+  <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+    <div style="background:#111;padding:28px 32px;text-align:center;">
+      <h1 style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:1px;">域见·你</h1>
+      <p style="margin:4px 0 0;color:#aaa;font-size:13px;">NIC.RW / NIC.BN 域名交易平台</p>
+    </div>
+    <div style="padding:36px 32px;">
+      <h2 style="margin:0 0 16px;color:#111;font-size:20px;">重置您的密码</h2>
+      <p style="margin:0 0 24px;color:#555;font-size:15px;line-height:1.6;">
+        我们收到了对账号 <strong>${email}</strong> 的密码重置请求。点击下方按钮设置新密码，链接有效期 <strong>1 小时</strong>。
+      </p>
+      <div style="text-align:center;margin:32px 0;">
+        <a href="${resetUrl}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:14px 36px;border-radius:8px;font-size:16px;font-weight:600;letter-spacing:0.5px;">重置密码</a>
+      </div>
+      <p style="margin:0 0 8px;color:#999;font-size:13px;">如果按钮无法点击，请复制以下链接到浏览器：</p>
+      <p style="margin:0 0 24px;color:#666;font-size:12px;word-break:break-all;background:#f5f5f5;padding:10px 14px;border-radius:6px;">${resetUrl}</p>
+      <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
+      <p style="margin:0;color:#bbb;font-size:12px;">如果您没有请求重置密码，请忽略此邮件。您的账号仍然安全。</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+    // Send in background — don't block the response
+    sendEmail(email, '域见·你 — 重置您的密码', html).catch(e =>
+      console.error('[EMAIL] Failed to send reset email:', e)
+    );
   }
   return c.json({ success: true, message: '如果该邮箱已注册，您将收到重置密码邮件' });
 });

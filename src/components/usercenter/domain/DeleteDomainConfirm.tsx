@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { apiDelete } from '@/lib/apiClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -37,30 +37,7 @@ export const DeleteDomainConfirm = ({
     setDeleteError(null);
     
     try {
-      // 删除与域名关联的所有数据：采用并行处理
-      const deleteResults = await Promise.allSettled([
-        supabase.from('domain_analytics').delete().eq('domain_id', domain.id),
-        supabase.from('domain_verifications').delete().eq('domain_id', domain.id),
-        supabase.from('domain_price_history').delete().eq('domain_id', domain.id),
-        supabase.from('domain_shares').delete().eq('domain_id', domain.id),
-        supabase.from('domain_offers').delete().eq('domain_id', domain.id),
-      ]);
-
-      // 记录关联数据清理失败（非致命）
-      deleteResults.forEach((result, index) => {
-        if (result.status === 'rejected') {
-          console.warn(`关联数据清理失败 (${index}):`, result.reason);
-        }
-      });
-      
-      // 最后删除域名列表本身，强制校验 owner_id
-      const { error } = await supabase
-        .from('domain_listings')
-        .delete()
-        .eq('id', domain.id)
-        .eq('owner_id', user.id);
-      
-      if (error) throw error;
+      await apiDelete(`/data/domain-listings/${domain.id}`);
       
       toast.success('域名已成功删除', {
         description: `${domain.name} 及其所有关联数据已被移除`

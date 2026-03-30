@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
-import { supabase } from "@/integrations/supabase/client";
+import { apiGet, apiPatch, apiPost } from '@/lib/apiClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { Notification } from '@/types/domain';
 import { toast } from 'sonner';
@@ -8,20 +8,12 @@ import { useRealtimeSubscription } from './useRealtimeSubscription';
 
 const NOTIF_KEY = (userId: string) => ['notifications', userId] as const;
 
-const fetchNotifications = async (userId: string): Promise<Notification[]> => {
+const fetchNotifications = async (): Promise<Notification[]> => {
   try {
-    const { data, error } = await supabase
-      .rpc('get_user_notifications', { user_id_param: userId });
-    if (error) throw error;
-    return (data ?? []) as unknown as Notification[];
+    const data = await apiGet<Notification[]>('/data/notifications');
+    return data ?? [];
   } catch {
-    const { data } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(50);
-    return (data ?? []) as unknown as Notification[];
+    return [];
   }
 };
 
@@ -32,7 +24,7 @@ export const useNotifications = () => {
 
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: user ? NOTIF_KEY(user.id) : ['notifications', 'none'],
-    queryFn: () => (user ? fetchNotifications(user.id) : Promise.resolve([])),
+    queryFn: () => (user ? fetchNotifications() : Promise.resolve([])),
     enabled: !!user,
     staleTime: 60 * 1000,
     gcTime: 5 * 60 * 1000,
@@ -77,12 +69,9 @@ export const useNotifications = () => {
       old.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
     );
     try {
-      const { error } = await supabase.rpc('mark_notification_as_read', {
-        notification_id_param: notificationId,
-      });
-      if (error) throw error;
-    } catch {
-      await supabase.from('notifications').update({ is_read: true }).eq('id', notificationId);
+      await apiPatch(`/data/notifications/${notificationId}/read`, {});
+    } catch (e) {
+      console.warn('markAsRead failed:', e);
     }
   };
 
@@ -92,16 +81,9 @@ export const useNotifications = () => {
       old.map(n => ({ ...n, is_read: true }))
     );
     try {
-      const { error } = await supabase.rpc('mark_all_notifications_as_read', {
-        user_id_param: user.id,
-      });
-      if (error) throw error;
-    } catch {
-      await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('user_id', user.id)
-        .eq('is_read', false);
+      await apiPost('/data/notifications/read-all', {});
+    } catch (e) {
+      console.warn('markAllAsRead failed:', e);
     }
     toast.success('已将所有通知标记为已读');
   };
