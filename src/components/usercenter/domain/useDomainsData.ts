@@ -36,8 +36,6 @@ export const useDomainsData = () => {
   const fetchDomainsData = useCallback(async (): Promise<Domain[]> => {
     if (!user) return [];
 
-    console.log('Loading domains for user:', user.id);
-    
     const { data: domainsData, error: domainsError } = await supabase
       .from('domain_listings')
       .select('*')
@@ -47,11 +45,8 @@ export const useDomainsData = () => {
     if (domainsError) throw domainsError;
     
     if (!domainsData || domainsData.length === 0) {
-      console.log('No domains found for user');
       return [];
     }
-
-    console.log('Found domains:', domainsData.length);
 
     // 获取分析数据
     const domainIds = domainsData.map(d => d.id);

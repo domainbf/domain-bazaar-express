@@ -52,12 +52,12 @@ export default function DisputePage() {
       return;
     }
     setSubmitting(true);
+    const siteDomain = (config.site_domain || window.location.origin).replace(/\/$/, '');
+    const siteName = config.site_name || '域见•你';
+    const siteHostname = siteDomain.replace(/^https?:\/\//, '').toUpperCase();
+    const supportEmail = config.contact_email || `support@${siteDomain.replace(/^https?:\/\//, '')}`;
     try {
       const disputeLabel = DISPUTE_TYPES.find(d => d.value === form.dispute_type)?.label || form.dispute_type;
-      const siteDomain = (config.site_domain || window.location.origin).replace(/\/$/, '');
-      const siteName = config.site_name || '域见•你';
-      const siteHostname = siteDomain.replace(/^https?:\/\//, '').toUpperCase();
-      const supportEmail = config.contact_email || `support@${siteDomain.replace(/^https?:\/\//, '')}`;
       const html = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>

@@ -27,7 +27,7 @@ const fetchUserStats = async (userId: string): Promise<UserStats> => {
     supabase
       .from('transactions')
       .select('status')
-      .eq('buyer_id', userId),
+      .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`),
     supabase
       .from('user_reviews')
       .select('rating')

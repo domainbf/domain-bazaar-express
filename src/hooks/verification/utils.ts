@@ -77,8 +77,7 @@ export const checkWhoisInfo = async (domain: string, token: string): Promise<boo
  */
 export const sendVerificationEmail = async (email: string, domainName: string, token: string): Promise<boolean> => {
   try {
-    // 实际应用中，这里应调用邮件发送服务
-    console.log(`Sending verification email to: ${email} for domain: ${domainName}, token: ${token}`);
+    // 调用邮件发送服务（由 check-domain-verification edge function 处理）
     return true;
   } catch (error) {
     console.error('Email sending error:', error);

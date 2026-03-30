@@ -107,7 +107,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
         if (offerData.seller_id && offerData.domain_listings) {
           try {
             const { data: settingsData } = await supabase
-              .from('site_settings').select('value').eq('key', 'commission_rate').single();
+              .from('site_settings').select('value').eq('key', 'commission_rate').maybeSingle();
             const commissionRate = parseFloat(settingsData?.value || '0.05');
             const amount = Number(counterAmt);
             const commissionAmount = Math.max(amount * commissionRate, 10);
@@ -121,9 +121,18 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
                 commission_amount: commissionAmount, seller_amount: sellerAmount,
               }).select('id').single();
 
-            if (!txErr && txData) {
+            if (txErr) {
+              console.error('Transaction error:', txErr);
+              toast.error('交易记录创建失败，请联系客服');
+            } else if (txData) {
               newTransactionId = txData.id;
               await supabase.from('domain_offers').update({ transaction_id: newTransactionId }).eq('id', offer.id);
+              // Mark domain as pending transaction
+              if (offerData.domain_id) {
+                await supabase.from('domain_listings')
+                  .update({ status: 'pending' })
+                  .eq('id', offerData.domain_id);
+              }
             }
           } catch (txErr) { console.error('Transaction error:', txErr); }
         }

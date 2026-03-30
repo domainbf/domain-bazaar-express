@@ -78,7 +78,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             user_id: session.user.id
           });
           setIsAdmin(isAdminUser || false);
-          console.log('Admin status check for user:', session.user.email, 'isAdmin:', isAdminUser);
         } catch (error) {
           console.error('Error checking admin status:', error);
           setIsAdmin(false);
@@ -211,8 +210,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       
       const adminStatus = data || false;
-      console.log('Admin check for user:', user.email, 'isAdmin:', adminStatus);
-      
       setIsAdmin(adminStatus);
       return adminStatus;
     } catch (error) {

@@ -64,7 +64,6 @@ export const DomainOfferForm = ({
       };
       
       if (!domainId || !sellerId) {
-        console.log("获取域名信息:", domain);
         // Fetch domain information based on domain name
         const { data: domainData, error: domainError } = await supabase
           .from('domain_listings')
@@ -87,7 +86,6 @@ export const DomainOfferForm = ({
           sellerId: domainData.owner_id
         };
         
-        console.log("找到域名信息:", domainInfo);
       }
       
       // Check if we have the domain information
@@ -98,8 +96,6 @@ export const DomainOfferForm = ({
       const { data: { session } } = await supabase.auth.getSession();
         
       // Send offer via the separate edge function
-      console.log("发送报价请求...");
-      
       const requestBody = {
         domain: domain,
         offer: offer,
@@ -110,8 +106,6 @@ export const DomainOfferForm = ({
         sellerId: domainInfo.sellerId,
         captchaToken: captchaToken
       };
-
-      console.log("报价请求数据:", requestBody);
 
       try {
         // 使用supabase.functions.invoke方法调用edge function
@@ -128,7 +122,6 @@ export const DomainOfferForm = ({
           throw new Error(data.error || '报价提交失败');
         }
 
-        console.log('报价提交成功:', data);
         toast.success('您的报价已成功提交！买家和卖家都将收到邮件通知。');
         
         // 清空表单

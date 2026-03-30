@@ -4,8 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const fetchUserProfile = async (userId: string) => {
   try {
-    console.log('Fetching profile for user:', userId);
-    
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -13,18 +11,12 @@ export const fetchUserProfile = async (userId: string) => {
       .single();
     
     if (error) {
-      console.error('Error fetching user profile:', error);
-      
-      // 如果 profile 不存在，尝试创建一个
       if (error.code === 'PGRST116') {
-        console.log('Profile not found, creating default profile...');
         return await createDefaultProfile(userId);
       }
-      
       throw error;
     }
     
-    console.log('Profile fetched successfully:', data);
     return data;
   } catch (error) {
     console.error('Error fetching user profile:', error);
@@ -34,8 +26,6 @@ export const fetchUserProfile = async (userId: string) => {
 
 export const createDefaultProfile = async (userId: string, email?: string) => {
   try {
-    console.log('Creating default profile for user:', userId);
-    
     const defaultProfile = {
       id: userId,
       full_name: email?.split('@')[0] || 'User',
@@ -58,7 +48,6 @@ export const createDefaultProfile = async (userId: string, email?: string) => {
       throw error;
     }
     
-    console.log('Default profile created successfully:', data);
     return data;
   } catch (error) {
     console.error('Error creating default profile:', error);
@@ -68,8 +57,6 @@ export const createDefaultProfile = async (userId: string, email?: string) => {
 
 export const sendVerificationEmail = async (email: string, verificationUrl: string, fullName?: string) => {
   try {
-    console.log('Sending verification email via send-notification function');
-    
     const { data, error } = await supabase.functions.invoke('send-notification', {
       body: {
         type: 'email_verification',
@@ -86,7 +73,6 @@ export const sendVerificationEmail = async (email: string, verificationUrl: stri
       throw error;
     }
     
-    console.log('Verification email sent successfully:', data);
     return true;
   } catch (error) {
     console.error('Error sending verification email:', error);
@@ -98,10 +84,8 @@ export const handleAuthError = (error: any, action: string) => {
   console.error(`Error during ${action}:`, error);
   let errorMessage = error.message || `${action}失败`;
   
-  // 更友好的错误消息
   if (errorMessage.includes('Email not confirmed')) {
     errorMessage = '请先验证您的邮箱，然后再尝试登录。';
-    // 尝试重新发送验证邮件
     if (error.email) {
       sendVerificationEmail(error.email, `${window.location.origin}/`)
         .then(() => toast.info('✉️ 验证邮件已重新发送，请检查您的邮箱'));
@@ -130,9 +114,6 @@ export const handleAuthError = (error: any, action: string) => {
 
 export const cleanupAuthState = () => {
   try {
-    console.log('Cleaning up auth state...');
-    
-    // 清理 localStorage
     localStorage.removeItem('supabase.auth.token');
     Object.keys(localStorage).forEach((key) => {
       if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
@@ -140,7 +121,6 @@ export const cleanupAuthState = () => {
       }
     });
     
-    // 清理 sessionStorage
     if (typeof sessionStorage !== 'undefined') {
       Object.keys(sessionStorage).forEach((key) => {
         if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
@@ -148,8 +128,6 @@ export const cleanupAuthState = () => {
         }
       });
     }
-    
-    console.log('Auth state cleaned up successfully');
   } catch (error) {
     console.error('Error cleaning up auth state:', error);
   }

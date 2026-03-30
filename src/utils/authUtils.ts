@@ -70,9 +70,6 @@ export const fetchUserProfile = async (userId: string) => {
 
 export const resetUserPassword = async (email: string) => {
   try {
-    console.log('开始重置密码请求:', email);
-    
-    // 使用 Supabase 内置的密码重置功能
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
@@ -82,7 +79,6 @@ export const resetUserPassword = async (email: string) => {
       throw new Error(error.message || '发送重置密码邮件失败');
     }
     
-    console.log('密码重置邮件发送成功');
     return { success: true };
   } catch (error: any) {
     console.error('重置密码邮件发送失败:', error);

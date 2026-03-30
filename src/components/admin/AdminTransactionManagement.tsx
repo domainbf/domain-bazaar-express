@@ -118,6 +118,21 @@ export const AdminTransactionManagement = () => {
 
       const { error } = await supabase.from('transactions').update(updates).eq('id', txId);
       if (error) throw error;
+
+      // Sync domain listing status when transaction reaches a terminal state
+      if (selectedTx?.domain_id) {
+        if (newStatus === 'completed') {
+          await supabase.from('domain_listings')
+            .update({ status: 'sold', updated_at: new Date().toISOString() })
+            .eq('id', selectedTx.domain_id);
+        } else if (newStatus === 'cancelled' || newStatus === 'refunded') {
+          // Restore domain to available if transaction is cancelled/refunded
+          await supabase.from('domain_listings')
+            .update({ status: 'available', updated_at: new Date().toISOString() })
+            .eq('id', selectedTx.domain_id);
+        }
+      }
+
       toast.success(`交易状态已更新为：${STATUS_LABELS[newStatus]}`);
       setShowDetail(false);
       setActionNote('');

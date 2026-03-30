@@ -75,17 +75,30 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
       if (fetchError || !offerData) { toast.error('报价不存在'); return; }
       if (offerData.seller_id !== user.id) { toast.error('您没有权限处理此报价'); return; }
 
+      // Only process offers that are in an actionable state (prevent double-process)
+      const allowedStatuses: Record<typeof action, string[]> = {
+        accepted: ['pending', 'countered'],
+        rejected: ['pending', 'countered'],
+        completed: ['buyer_confirmed'],
+      };
+      const currentStatus = offerData.status ?? '';
+      if (!allowedStatuses[action]?.includes(currentStatus)) {
+        toast.error('该报价当前状态无法执行此操作');
+        return;
+      }
+
       const { error: updateError } = await supabase
         .from('domain_offers')
         .update({ status: action, updated_at: new Date().toISOString() })
-        .eq('id', offerId).eq('seller_id', user.id);
+        .eq('id', offerId).eq('seller_id', user.id)
+        .in('status', allowedStatuses[action]);
       if (updateError) throw new Error(`更新失败: ${updateError.message}`);
 
       let newTransactionId: string | null = null;
       if (action === 'accepted' && offerData.buyer_id && offerData.domain_listings) {
         try {
           const { data: settingsData } = await supabase
-            .from('site_settings').select('value').eq('key', 'commission_rate').single();
+            .from('site_settings').select('value').eq('key', 'commission_rate').maybeSingle();
           const commissionRate = parseFloat(settingsData?.value || '0.05');
           const amount = Number(offerData.amount);
           const commissionAmount = Math.max(amount * commissionRate, 10);
@@ -99,10 +112,19 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
               commission_amount: commissionAmount, seller_amount: sellerAmount,
             }).select('id').single();
 
-          if (!txError && txData) {
+          if (txError) {
+            console.error('Transaction creation error:', txError);
+            toast.error('交易记录创建失败，请联系客服');
+          } else if (txData) {
             newTransactionId = txData.id;
             await supabase.from('domain_offers')
               .update({ transaction_id: newTransactionId }).eq('id', offerId);
+            // Mark domain as pending transaction (no longer freely available)
+            if (offerData.domain_id) {
+              await supabase.from('domain_listings')
+                .update({ status: 'pending' })
+                .eq('id', offerData.domain_id);
+            }
           }
         } catch (txErr) { console.error('Transaction creation error:', txErr); }
       }
@@ -169,12 +191,13 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
         counter_note: counterNote.trim(),
       });
 
-      // 1. Update offer status + message
+      // 1. Update offer status + message (only from pending state)
       const { error: updateErr } = await supabase
         .from('domain_offers')
         .update({ status: 'countered', message: encodedMessage, updated_at: new Date().toISOString() })
         .eq('id', offer.id)
-        .eq('seller_id', user.id);
+        .eq('seller_id', user.id)
+        .eq('status', 'pending');
       if (updateErr) throw updateErr;
 
       // 2. In-app notification for buyer
