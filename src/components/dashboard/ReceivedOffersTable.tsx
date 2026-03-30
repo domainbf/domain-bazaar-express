@@ -346,10 +346,11 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
 
       // 2. In-app notification for buyer
       if (offer.buyer_id) {
+        const notifSym = (offer as any).domain_listings?.currency === 'USD' ? '$' : '¥';
         await supabase.from('notifications').insert({
           user_id: offer.buyer_id,
           title: '💬 卖家已还价',
-          message: `域名 ${offer.domain_name} 的卖家对您 $${offer.amount.toLocaleString()} 的报价还价为 $${amount.toLocaleString()}，请登录查看并回复。`,
+          message: `域名 ${offer.domain_name} 的卖家对您 ${notifSym}${offer.amount.toLocaleString()} 的报价还价为 ${notifSym}${amount.toLocaleString()}，请登录查看并回复。`,
           type: 'offer',
           related_id: offer.id,
           action_url: '/user-center?tab=transactions',
@@ -363,8 +364,9 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
         const siteHostname = siteDomain.replace(/^https?:\/\//, '').toUpperCase();
         const supportEmail = config.contact_email || `support@${siteDomain.replace(/^https?:\/\//, '')}`;
         const domainDisplay = (offer.domain_name || '').toUpperCase();
-        const yourBid = `$${offer.amount.toLocaleString()}`;
-        const counterBid = `$${amount.toLocaleString()}`;
+        const offerSym = (offer as any).domain_listings?.currency === 'USD' ? '$' : '¥';
+        const yourBid = `${offerSym}${offer.amount.toLocaleString()}`;
+        const counterBid = `${offerSym}${amount.toLocaleString()}`;
         const noteBlock = counterNote.trim()
           ? `<div style="background:#fefce8;border:1px solid #fef08a;border-radius:10px;padding:18px 20px;margin-bottom:24px;">
               <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#854d0e;letter-spacing:1px;text-transform:uppercase;">卖家备注</p>
@@ -450,7 +452,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
         supabase.functions.invoke('send-email', {
           body: {
             to: offer.contact_email,
-            subject: `卖家还价通知：${offer.domain_name} — 还价 $${amount.toLocaleString()}`,
+            subject: `卖家还价通知：${offer.domain_name} — 还价 ${offerSym}${amount.toLocaleString()}`,
             html,
           },
         }).catch(e => console.error('Email error:', e));

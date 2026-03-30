@@ -38,6 +38,7 @@ import { DomainAnalytics } from "./DomainAnalytics";
 import { SimilarDomainsGrid } from "./SimilarDomainsGrid";
 import { DomainShareButtons } from "./DomainShareButtons";
 import { DomainValuationTool } from "./DomainValuationTool";
+import { CurrencyConverter } from "./CurrencyConverter";
 import { DomainAuction } from "@/components/auction/DomainAuction";
 import { CreateAuctionDialog } from "@/components/auction/CreateAuctionDialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -236,11 +237,15 @@ export const DomainDetailPage = () => {
             </motion.div>
 
           {/* 价格区域 */}
-          <div className="text-center py-6 border-y border-border mb-6">
-            <p className="text-sm text-muted-foreground mb-2">一口价</p>
-            <div className="text-4xl sm:text-5xl font-black text-foreground">
+          <div className="py-6 border-y border-border mb-6">
+            <p className="text-sm text-muted-foreground mb-2 text-center">一口价</p>
+            <div className="text-4xl sm:text-5xl font-black text-foreground text-center">
               {currency}{domain.price.toLocaleString()}
             </div>
+            <CurrencyConverter
+              priceAmount={domain.price}
+              priceCurrency={(domain as any).currency || "CNY"}
+            />
           </div>
 
           {/* 操作按钮区域 */}

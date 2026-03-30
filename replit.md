@@ -280,6 +280,16 @@ Shared builder used by admin and support components:
 - `ownerOfferTemplate.ts` — seller notification email (new offer received, action tips, escrow promo)
 Both use full inline styles, preheader text, table-based layout for Gmail/Outlook compatibility.
 
+## Currency Converter (March 2026)
+
+`src/components/domain/CurrencyConverter.tsx` — embedded below the price on every domain detail page.
+- Uses **Frankfurter API** (`api.frankfurter.app`) — free, no API key needed
+- Supports: CNY, USD, EUR, GBP, JPY, HKD, SGD, AUD, CAD, KRW, TWD, THB
+- Respects the domain's own currency field (`domain_listings.currency`)
+- Default target: if domain is CNY → show USD; if USD → show CNY
+- Refresh button + "updated on {date}" attribution
+- Added to `DomainDetailPage.tsx` below the one-click-buy price display
+
 ### Components with Email Integration
 - `AdminTransactionManagement.tsx` — emails on ALL status transitions (in_escrow, domain_transferred, completed, cancelled, refunded) — both buyer and seller notified
 - `AdminTickets.tsx` — admin-to-user ticket reply emails

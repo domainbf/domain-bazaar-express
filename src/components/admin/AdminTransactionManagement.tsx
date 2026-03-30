@@ -160,93 +160,264 @@ export const AdminTransactionManagement = () => {
           supabase.functions.invoke('send-email', { body: { to, subject, html } }).catch(() => {});
         };
 
+        // Reusable section builder helpers
+        const stepList = (steps: string[]) =>
+          `<table cellpadding="0" cellspacing="0" role="presentation" width="100%" style="margin-bottom:20px;">
+            ${steps.map((s, i) => `<tr><td style="padding:5px 0;font-size:13px;color:#475569;line-height:1.5;">
+              <span style="display:inline-block;background:#0f172a;color:#f8fafc;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;font-size:11px;font-weight:700;margin-right:10px;vertical-align:middle;">${i+1}</span>
+              ${s}
+            </td></tr>`).join('')}
+          </table>`;
+
+        const infoBox = (emoji: string, title: string, body: string, color = '#f8fafc', border = '#e2e8f0') =>
+          `<div style="background:${color};border:1px solid ${border};border-radius:10px;padding:16px 18px;margin-bottom:20px;">
+            <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#0f172a;">${emoji} ${title}</p>
+            <p style="margin:0;font-size:13px;color:#475569;line-height:1.6;">${body}</p>
+          </div>`;
+
+        const feeTable = (amount: number, commission: number) => {
+          const seller = amount - commission;
+          return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:20px;">
+            <tr><td style="padding:11px 16px;background:#f8fafc;font-size:12px;font-weight:700;color:#94a3b8;width:50%;letter-spacing:0.5px;text-transform:uppercase;border-bottom:1px solid #f1f5f9;">交易总价</td>
+                <td style="padding:11px 16px;font-size:14px;font-weight:700;color:#0f172a;border-bottom:1px solid #f1f5f9;">¥${amount.toLocaleString()}</td></tr>
+            <tr><td style="padding:11px 16px;background:#f8fafc;font-size:12px;font-weight:700;color:#94a3b8;letter-spacing:0.5px;text-transform:uppercase;border-bottom:1px solid #f1f5f9;">平台手续费（1%）</td>
+                <td style="padding:11px 16px;font-size:14px;color:#dc2626;border-bottom:1px solid #f1f5f9;">−¥${commission.toLocaleString()}</td></tr>
+            <tr><td style="padding:11px 16px;background:#f0fdf4;font-size:12px;font-weight:700;color:#15803d;letter-spacing:0.5px;text-transform:uppercase;">您的到账金额</td>
+                <td style="padding:11px 16px;font-size:16px;font-weight:900;color:#15803d;">¥${seller.toLocaleString()}</td></tr>
+          </table>`;
+        };
+
+        const txAmount = Number(selectedTx.amount || 0);
+        const commission = Number(selectedTx.commission_amount || Math.round(txAmount * 0.01));
+
         if (newStatus === 'in_escrow') {
           // Buyer: payment confirmed, funds in escrow
           sendTxEmail(selectedTx.buyer_email, `✅ 付款已确认：${domainName} 资金安全担保中`, buildEmail({
             previewText: `您的付款已确认，${domainName} 资金已进入安全担保`,
             accentColor: '#16a34a',
             headerEmoji: '🔒',
-            title: '付款确认，资金安全担保',
-            subtitle: `${domainName} 正在过户流程中`,
-            body: `<p style="margin:0 0 20px;font-size:15px;color:#374151;">平台已确认收到您的付款，资金已进入安全担保账户，域名正在办理过户手续。</p>${txInfo}`,
+            title: '付款已确认，资金安全担保中',
+            subtitle: `平台已收到您的付款，${domainName} 正在办理过户`,
+            body: `
+              <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.7;">
+                平台已确认收到您的付款，资金已进入安全担保账户。在域名过户完成并经您确认之前，款项将由平台全程保管，保障您的资金安全。
+              </p>
+              ${txInfo}
+              ${amountBlock({ label: '担保金额', amount: fmtAmount, sublabel: '资金安全托管中，域名确认后结算给卖家', color: '#0f172a' })}
+              <p style="margin:0 0 12px;font-size:14px;font-weight:700;color:#0f172a;">接下来的流程</p>
+              ${stepList([
+                `卖家收到通知后，开始准备域名过户所需材料`,
+                `卖家在注册商处完成域名转移操作`,
+                `您收到域名转入通知，登录平台 <strong>确认接收</strong>`,
+                `确认后平台自动向卖家释放款项，交易完成`,
+              ])}
+              ${infoBox('⏱️', '预计过户时间', '域名过户通常需要 1–3 个工作日，具体取决于注册商处理速度。如超过 5 个工作日仍未收到域名，请联系平台客服。', '#eff6ff', '#bfdbfe')}
+              ${infoBox('🛡️', '资金安全保障', '在您确认收到域名之前，资金不会释放给卖家。如域名未按时转移，您可以申请退款，平台全程保护您的权益。', '#f0fdf4', '#bbf7d0')}
+            `,
             ctaLabel: '查看交易进度',
             ctaUrl: txUrl,
             brand,
           }));
           // Seller: buyer has paid
-          sendTxEmail(selectedTx.seller_email, `💰 买家已付款：${domainName} 等待过户`, buildEmail({
-            previewText: `买家已付款，${domainName} 资金已进入平台担保`,
+          sendTxEmail(selectedTx.seller_email, `💰 买家已付款：${domainName} 请配合过户`, buildEmail({
+            previewText: `买家已付款，${domainName} 资金已进入平台担保，请尽快配合过户`,
             accentColor: '#0f172a',
             headerEmoji: '💰',
             title: '买家已付款，请配合过户',
-            subtitle: `${domainName} 交易进入担保阶段`,
-            body: `<p style="margin:0 0 20px;font-size:15px;color:#374151;">买家已完成付款，资金已由平台安全担保。请尽快配合完成域名过户，过户完成后款项将划入您的账户。</p>${txInfo}${amountBlock({ label: '您的到账金额', amount: fmtSeller, sublabel: '过户完成后结算', color: '#16a34a' })}`,
+            subtitle: `${domainName} 交易款项已进入平台担保账户`,
+            body: `
+              <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.7;">
+                买家已完成付款，资金已由平台安全担保。请尽快按照以下步骤完成域名过户，过户完成并买家确认后，款项将自动划入您的账户。
+              </p>
+              ${txInfo}
+              ${feeTable(txAmount, commission)}
+              <p style="margin:0 0 12px;font-size:14px;font-weight:700;color:#0f172a;">过户操作步骤</p>
+              ${stepList([
+                `登录您的域名注册商账户（GoDaddy / 阿里云 / Namecheap 等）`,
+                `找到域名 <strong>${domainName}</strong>，发起域名转移/推送`,
+                `将域名转移给买家（通过 Auth Code 或账户推送）`,
+                `在本平台填写过户凭证，等待买家确认接收`,
+                `买家确认后，款项自动结算到您的账户`,
+              ])}
+              ${infoBox('⚠️', '重要提醒', `请在 <strong>3 个工作日内</strong>完成过户操作。超时可能导致买家申请退款，影响您的账户信誉。如遇技术问题请立即联系客服。`, '#fefce8', '#fef08a')}
+              ${infoBox('💡', '过户小贴士', '如买家使用的是国内注册商（如阿里云、腾讯云），可使用"账户内域名转移"方式，速度更快；如是国际注册商，使用 Auth Code 转移即可。', '#f8fafc', '#e2e8f0')}
+            `,
             ctaLabel: '查看交易详情',
             ctaUrl: txUrl,
             brand,
           }));
         } else if (newStatus === 'domain_transferred') {
           // Buyer: domain transferred, please confirm
-          sendTxEmail(selectedTx.buyer_email, `📦 域名已转移：请确认接收 ${domainName}`, buildEmail({
-            previewText: `${domainName} 域名已转移，请登录确认接收`,
+          sendTxEmail(selectedTx.buyer_email, `📦 域名已转移：请登录确认接收 ${domainName}`, buildEmail({
+            previewText: `${domainName} 域名已转移，请登录确认接收，确认后款项将结算给卖家`,
             accentColor: '#7c3aed',
             headerEmoji: '📦',
             title: '域名已转移，请确认接收',
-            subtitle: `请登录 ${brand.siteHostname} 确认域名已到账`,
-            body: `<p style="margin:0 0 20px;font-size:15px;color:#374151;">卖家已完成域名转移，请登录平台确认域名已成功转入您的账户。确认无误后，款项将自动结算给卖家。</p>${txInfo}`,
+            subtitle: `卖家已完成 ${domainName} 的转移，等待您的确认`,
+            body: `
+              <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.7;">
+                卖家已完成域名转移操作，${domainName} 正在转入您的账户。请登录您的域名注册商，确认域名已成功到账，然后在平台点击"确认接收"完成交易。
+              </p>
+              ${txInfo}
+              ${amountBlock({ label: '待确认金额', amount: fmtAmount, sublabel: '确认接收后款项将自动结算给卖家', color: '#7c3aed' })}
+              <p style="margin:0 0 12px;font-size:14px;font-weight:700;color:#0f172a;">如何确认接收域名</p>
+              ${stepList([
+                `登录您的域名注册商账户，查看 <strong>${domainName}</strong> 是否已出现在您的域名列表中`,
+                `确认域名 Whois 信息已更新为您的注册人信息`,
+                `返回 ${brand.siteName} 平台，在交易页面点击 <strong>"确认接收"</strong> 按钮`,
+                `交易自动完成，款项结算给卖家`,
+              ])}
+              ${infoBox('⚠️', '请在 48 小时内确认', `若您 48 小时内未操作，系统将自动确认完成交易。如域名未到账，请 <strong>不要</strong> 点击确认，立即联系平台客服发起争议。`, '#fefce8', '#fef08a')}
+              ${infoBox('🔍', '如何检查域名归属', `在浏览器打开 <a href="https://lookup.icann.org" style="color:#7c3aed;">lookup.icann.org</a> 查询 ${domainName} 的注册人信息是否已更新为您的信息。通常注册商处理需 1–24 小时。`, '#eff6ff', '#bfdbfe')}
+            `,
             ctaLabel: '确认接收域名',
+            ctaUrl: txUrl,
+            brand,
+          }));
+          // Seller: notify about transfer pending confirmation
+          sendTxEmail(selectedTx.seller_email, `⏳ 等待买家确认：${domainName} 过户完成`, buildEmail({
+            previewText: `${domainName} 域名过户完成，等待买家确认接收后款项结算`,
+            accentColor: '#7c3aed',
+            headerEmoji: '⏳',
+            title: '过户完成，等待买家确认',
+            subtitle: `${domainName} 已转移，款项将在买家确认后结算`,
+            body: `
+              <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.7;">
+                平台已记录您的过户操作，买家收到通知后将登录确认域名接收。确认完成后款项将自动划入您的账户，通常 48 小时内完成。
+              </p>
+              ${txInfo}
+              ${feeTable(txAmount, commission)}
+              ${infoBox('⏱️', '预计结算时间', `买家确认接收后款项立即结算。如买家 48 小时内未操作，系统将<strong>自动完成</strong>交易并结算款项给您。`, '#f0fdf4', '#bbf7d0')}
+              ${infoBox('❓', '如买家有争议', '如果买家对域名接收有异议，平台将介入调查。请保留好过户凭证截图备用。', '#fefce8', '#fef08a')}
+            `,
+            ctaLabel: '查看交易进度',
             ctaUrl: txUrl,
             brand,
           }));
         } else if (newStatus === 'completed') {
           // Buyer: transaction complete
-          sendTxEmail(selectedTx.buyer_email, `🎉 交易完成：${domainName} 已归属您名下`, buildEmail({
-            previewText: `恭喜！${domainName} 域名已完成过户，交易圆满成功`,
+          sendTxEmail(selectedTx.buyer_email, `🎉 交易完成：${domainName} 正式归属您名下`, buildEmail({
+            previewText: `恭喜！${domainName} 域名已完成过户，正式归属您名下`,
             accentColor: '#16a34a',
             headerEmoji: '🎉',
             title: '交易完成，域名到手！',
-            subtitle: `${domainName} 已成功归属您名下`,
-            body: `<p style="margin:0 0 20px;font-size:15px;color:#374151;">恭喜您！域名交易已圆满完成，${domainName} 已正式归属您名下。感谢您使用 ${brand.siteName} 平台。</p>${txInfo}`,
+            subtitle: `${domainName} 已正式归属您名下，感谢使用 ${brand.siteName}`,
+            body: `
+              <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.7;">
+                恭喜您！${domainName} 域名交易已圆满完成，域名已正式归属您名下。感谢您使用 ${brand.siteName} 平台进行域名交易。
+              </p>
+              ${txInfo}
+              ${amountBlock({ label: '交易金额', amount: fmtAmount, sublabel: '交易已完成结算', color: '#16a34a' })}
+              <p style="margin:0 0 12px;font-size:14px;font-weight:700;color:#0f172a;">下一步建议</p>
+              ${stepList([
+                `登录注册商控制台，检查 ${domainName} 的 DNS 配置，按需修改`,
+                `设置域名续费提醒，避免域名到期流失`,
+                `如需出售域名，可在 ${brand.siteName} 发布新的出售挂单`,
+                `对本次交易体验满意？欢迎在平台给卖家留下评价`,
+              ])}
+              ${infoBox('🛡️', '交易凭证', `本次交易编号 <strong>${txId.substring(0,8).toUpperCase()}</strong> 已记录在案，可在用户中心→交易记录中随时查询完整凭证。`, '#f0fdf4', '#bbf7d0')}
+              ${infoBox('💡', '域名管理建议', `建议您立即登录注册商，将域名的注册人邮箱更新为您的常用邮箱，并开启"域名锁定"保护，防止意外转移。`, '#eff6ff', '#bfdbfe')}
+            `,
             ctaLabel: '查看我的域名',
             ctaUrl: txUrl,
             brand,
           }));
           // Seller: payment released
           sendTxEmail(selectedTx.seller_email, `💸 款项已到账：${domainName} 交易结算完成`, buildEmail({
-            previewText: `${domainName} 交易完成，款项已划入您的账户`,
+            previewText: `${domainName} 交易完成，扣费后款项已划入您的账户`,
             accentColor: '#16a34a',
             headerEmoji: '💸',
             title: '款项已结算到账',
-            subtitle: `${domainName} 交易圆满完成`,
-            body: `<p style="margin:0 0 20px;font-size:15px;color:#374151;">域名交易已完成，扣除平台手续费后的款项已划入您的账户。感谢您使用 ${brand.siteName} 平台进行域名出售。</p>${txInfo}${amountBlock({ label: '结算金额', amount: fmtSeller, sublabel: '已扣除平台手续费', color: '#16a34a' })}`,
-            ctaLabel: '查看交易记录',
+            subtitle: `${domainName} 交易圆满完成，感谢使用 ${brand.siteName}`,
+            body: `
+              <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.7;">
+                买家已确认接收域名，交易正式完成。扣除平台手续费后的款项已划入您的账户，请登录查看。感谢您使用 ${brand.siteName} 平台出售域名。
+              </p>
+              ${feeTable(txAmount, commission)}
+              ${txInfo}
+              ${infoBox('✅', '结算说明', `款项已即时划入您的 ${brand.siteName} 账户余额。如需提现，请在用户中心→钱包中发起提现申请，通常 1–3 个工作日到账。`, '#f0fdf4', '#bbf7d0')}
+              ${infoBox('🌟', '感谢您的信任', `本次交易 <strong>编号 ${txId.substring(0,8).toUpperCase()}</strong> 已完成归档。您可在交易记录中随时下载交易凭证。期待您继续在 ${brand.siteName} 出售更多优质域名！`, '#f8fafc', '#e2e8f0')}
+            `,
+            ctaLabel: '查看我的收益',
             ctaUrl: txUrl,
             brand,
           }));
         } else if (newStatus === 'cancelled') {
-          // Both: cancellation notice
-          const cancelHtml = buildEmail({
-            previewText: `${domainName} 交易已取消`,
+          // Buyer cancelled notice
+          sendTxEmail(selectedTx.buyer_email, `❌ 交易已取消：${domainName}`, buildEmail({
+            previewText: `${domainName} 本次交易已取消`,
             accentColor: '#94a3b8',
             headerEmoji: '❌',
             title: '交易已取消',
-            subtitle: `${domainName} 交易已由平台取消`,
-            body: `<p style="margin:0 0 20px;font-size:15px;color:#374151;">此次交易已由平台取消。如有疑问请联系客服。</p>${txInfo}`,
+            subtitle: `${domainName} 本次交易已由平台取消`,
+            body: `
+              <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.7;">
+                本次交易已由平台取消。如您已付款，退款将在 3–7 个工作日内退还至原支付账户。
+              </p>
+              ${txInfo}
+              ${actionNote ? infoBox('📝', '取消原因', actionNote, '#f8fafc', '#e2e8f0') : ''}
+              ${infoBox('💳', '退款说明', '如您已完成付款，款项将退回至您的原支付账户（支付宝/微信/银行卡）。退款到账时间因支付渠道而异，一般为 3–7 个工作日。', '#eff6ff', '#bfdbfe')}
+              ${infoBox('❓', '有疑问？', `如对取消原因或退款有疑问，请通过平台客服中心联系我们，我们将在 24 小时内回复。`, '#fefce8', '#fef08a')}
+            `,
             ctaLabel: '联系客服',
             ctaUrl: `${brand.siteDomain}/support`,
             brand,
-          });
-          sendTxEmail(selectedTx.buyer_email, `交易已取消：${domainName}`, cancelHtml);
-          sendTxEmail(selectedTx.seller_email, `交易已取消：${domainName}`, cancelHtml);
+          }));
+          // Seller cancelled notice
+          sendTxEmail(selectedTx.seller_email, `❌ 交易已取消：${domainName}`, buildEmail({
+            previewText: `${domainName} 本次交易已取消，域名已恢复上架`,
+            accentColor: '#94a3b8',
+            headerEmoji: '❌',
+            title: '交易已取消',
+            subtitle: `${domainName} 本次交易已取消，域名已恢复上架状态`,
+            body: `
+              <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.7;">
+                本次交易已由平台取消，${domainName} 已恢复到"上架中"状态，其他买家仍可提交报价。
+              </p>
+              ${txInfo}
+              ${actionNote ? infoBox('📝', '取消原因', actionNote, '#f8fafc', '#e2e8f0') : ''}
+              ${infoBox('🔄', '域名状态', `${domainName} 已自动恢复为"上架中"状态，可继续在平台接收新的买家报价。您无需进行任何操作。`, '#f0fdf4', '#bbf7d0')}
+            `,
+            ctaLabel: '管理我的域名',
+            ctaUrl: txUrl,
+            brand,
+          }));
         } else if (newStatus === 'refunded') {
-          sendTxEmail(selectedTx.buyer_email, `退款通知：${domainName} 交易款项退还中`, buildEmail({
-            previewText: `${domainName} 交易退款已发起`,
+          sendTxEmail(selectedTx.buyer_email, `↩️ 退款通知：${domainName} 款项退还中`, buildEmail({
+            previewText: `${domainName} 交易退款已发起，${fmtAmount} 将退还至原支付账户`,
             accentColor: '#f97316',
             headerEmoji: '↩️',
             title: '退款已发起',
             subtitle: `${fmtAmount} 将退还至您的原支付账户`,
-            body: `<p style="margin:0 0 20px;font-size:15px;color:#374151;">平台已发起退款，款项将在 3-7 个工作日内退还至您的原支付账户，请注意查收。</p>${txInfo}`,
+            body: `
+              <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.7;">
+                平台已发起退款，款项将在 3–7 个工作日内退还至您的原支付账户，请注意查收。
+              </p>
+              ${txInfo}
+              ${amountBlock({ label: '退款金额', amount: fmtAmount, sublabel: '退还至原支付账户', color: '#f97316' })}
+              ${infoBox('⏱️', '退款到账时间', '退款处理时间因支付渠道而异：<br>• 支付宝 / 微信支付：1–3 个工作日<br>• 银行卡：3–7 个工作日<br>• 如超过 7 个工作日未到账，请联系客服', '#fefce8', '#fef08a')}
+              ${infoBox('❓', '有疑问？', '如对退款金额或到账时间有疑问，请通过平台客服中心提交工单，我们将在 24 小时内处理。', '#eff6ff', '#bfdbfe')}
+            `,
             ctaLabel: '查看退款状态',
+            ctaUrl: txUrl,
+            brand,
+          }));
+          // Notify seller of refund too
+          sendTxEmail(selectedTx.seller_email, `↩️ 交易退款：${domainName} 款项已退还买家`, buildEmail({
+            previewText: `${domainName} 交易已退款，域名已恢复上架`,
+            accentColor: '#f97316',
+            headerEmoji: '↩️',
+            title: '交易退款通知',
+            subtitle: `${domainName} 本次交易款项已退还买家`,
+            body: `
+              <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.7;">
+                本次交易因故退款，${fmtAmount} 已退还给买家。${domainName} 已恢复"上架中"状态，您可以继续接收其他买家的报价。
+              </p>
+              ${txInfo}
+              ${actionNote ? infoBox('📝', '退款原因', actionNote, '#f8fafc', '#e2e8f0') : ''}
+              ${infoBox('🔄', '域名已恢复上架', `${domainName} 已自动恢复为"上架中"状态，其他买家可继续报价和购买。`, '#f0fdf4', '#bbf7d0')}
+            `,
+            ctaLabel: '管理我的域名',
             ctaUrl: txUrl,
             brand,
           }));
