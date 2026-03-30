@@ -187,8 +187,7 @@ export const DomainCard = ({
             <Link to={`/domain/${domain}`} className="flex-1" data-testid={`link-domain-detail-${domainId}`}>
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.94 }} className="w-full">
                 <Button
-                  variant="outline"
-                  className="w-full text-xs transition-colors border-foreground text-foreground hover:bg-foreground hover:text-background"
+                  className="w-full text-xs transition-colors bg-foreground/75 text-background hover:bg-foreground/90 border-0"
                   size="sm"
                 >
                   查看详情 →
@@ -199,7 +198,7 @@ export const DomainCard = ({
               <DialogTrigger asChild>
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.94 }} className="flex-1">
                   <Button
-                    className="w-full bg-foreground text-background hover:bg-foreground/90 text-xs transition-colors"
+                    className="w-full bg-foreground text-background hover:bg-foreground/90 text-xs transition-colors border-0"
                     size="sm"
                     onClick={handleOpenDialog}
                     data-testid={`button-offer-${domainId}`}
