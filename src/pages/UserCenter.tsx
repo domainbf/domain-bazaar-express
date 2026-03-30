@@ -3,6 +3,7 @@ import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UserCenterStatsGrid } from '@/components/usercenter/UserCenterStatsGrid';
@@ -35,6 +36,7 @@ const SECTION_LABELS: Record<string, string> = {
 
 export const UserCenter = () => {
   const { user, profile, isLoading: isAuthLoading, isAdmin } = useAuth();
+  const { config: siteConfig } = useSiteSettings();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('domains');
   const isMobile = useIsMobile();
@@ -426,7 +428,7 @@ function MobileProfileSection({
       >
         <div className="bg-card rounded-2xl border border-border overflow-hidden">
           <button
-            onClick={() => window.open('mailto:support@nic.bn', '_blank')}
+            onClick={() => siteConfig.contact_email ? window.open(`mailto:${siteConfig.contact_email}`, '_blank') : undefined}
             className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/50 active:bg-muted transition-colors text-left"
             data-testid="mobile-nav-support"
           >
@@ -435,7 +437,7 @@ function MobileProfileSection({
             </div>
             <div className="flex-1">
               <p className="text-sm font-medium text-foreground">联系支持</p>
-              <p className="text-xs text-muted-foreground">support@nic.bn</p>
+              <p className="text-xs text-muted-foreground">{siteConfig.contact_email || '请在后台配置联系邮箱'}</p>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
           </button>

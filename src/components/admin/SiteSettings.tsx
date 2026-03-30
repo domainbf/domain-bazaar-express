@@ -628,9 +628,9 @@ export const SiteSettings = () => {
             <CardContent className="space-y-5">
               <div className="space-y-2">
                 <Label className="font-semibold">网站域名</Label>
-                <p className="text-xs text-muted-foreground">用于邮件通知中的链接和版权信息，填写完整域名（含协议）</p>
+                <p className="text-xs text-muted-foreground">用于邮件通知中的链接和版权信息，填写完整域名（含协议），<strong>必须配置否则邮件链接无效</strong></p>
                 <Input
-                  placeholder="例：https://nic.bn"
+                  placeholder="例：https://yourdomain.com"
                   value={contactInfo.site_domain}
                   onChange={(e) => setContactInfo({ ...contactInfo, site_domain: e.target.value })}
                 />
@@ -640,7 +640,7 @@ export const SiteSettings = () => {
                   <Label className="font-semibold">客服邮箱</Label>
                   <p className="text-xs text-muted-foreground">邮件通知中的支持邮箱地址</p>
                   <Input
-                    placeholder="例：support@nic.bn"
+                    placeholder="例：support@yourdomain.com"
                     value={contactInfo.contact_email}
                     onChange={(e) => setContactInfo({ ...contactInfo, contact_email: e.target.value })}
                   />

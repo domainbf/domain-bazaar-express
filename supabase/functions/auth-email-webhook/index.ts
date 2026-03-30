@@ -32,8 +32,8 @@ async function getSiteInfo(supabaseUrl: string, serviceKey: string): Promise<Sit
 // ─── Shared Base ──────────────────────────────────────────────────────────────
 
 function emailBase(content: string, previewText: string, site: SiteInfo): string {
-  const domain = site.siteDomain || 'https://nic.bn';
-  const hostname = domain.replace(/^https?:\/\//, '');
+  const domain = site.siteDomain || '';
+  const hostname = domain.replace(/^https?:\/\//, '') || site.siteName;
   const year = new Date().getFullYear();
   return `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -128,8 +128,8 @@ function getPasswordResetHtml(token: string, baseUrl: string, site: SiteInfo): s
 // ─── 邮箱验证 ──────────────────────────────────────────────────────────────────
 
 function getEmailVerificationHtml(confirmUrl: string, site: SiteInfo): string {
-  const domain = site.siteDomain || 'https://nic.bn';
-  const hostname = domain.replace(/^https?:\/\//, '').toUpperCase();
+  const domain = site.siteDomain || '';
+  const hostname = (domain.replace(/^https?:\/\//, '') || site.siteName).toUpperCase();
   const supportEmail = site.supportEmail || `support@${hostname.toLowerCase()}`;
   return emailBase(`
     <div style="height:4px;background:linear-gradient(90deg,#0f172a 0%,#334155 50%,#64748b 100%);"></div>
@@ -188,8 +188,8 @@ function getEmailVerificationHtml(confirmUrl: string, site: SiteInfo): string {
 // ─── 魔法链接登录 ─────────────────────────────────────────────────────────────
 
 function getMagicLinkHtml(confirmUrl: string, site: SiteInfo): string {
-  const domain = site.siteDomain || 'https://nic.bn';
-  const hostname = domain.replace(/^https?:\/\//, '').toUpperCase();
+  const domain = site.siteDomain || '';
+  const hostname = (domain.replace(/^https?:\/\//, '') || site.siteName).toUpperCase();
   const supportEmail = site.supportEmail || `support@${hostname.toLowerCase()}`;
   return emailBase(`
     <div style="height:4px;background:linear-gradient(90deg,#0f172a 0%,#334155 50%,#64748b 100%);"></div>
@@ -243,9 +243,9 @@ Deno.serve(async (req) => {
     const { user, email_data } = data;
     const { token, token_hash, redirect_to, email_action_type, site_url } = email_data;
 
-    let baseUrl = site.siteDomain || 'https://nic.bn';
+    let baseUrl = site.siteDomain || '';
     if (redirect_to) {
-      try { baseUrl = new URL(redirect_to).origin; } catch { /* keep default */ }
+      try { baseUrl = new URL(redirect_to).origin; } catch { /* keep siteDomain */ }
     } else if (site_url) {
       baseUrl = site_url.replace(/\/$/, '');
     }

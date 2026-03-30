@@ -45,7 +45,7 @@ async function getSiteInfo(supabaseUrl: string, serviceKey: string): Promise<Sit
 // ─── Shared email base ────────────────────────────────────────────────────────
 
 function emailBase(content: string, previewText: string, site: SiteInfo): string {
-  const domain = site.siteDomain || 'https://nic.bn';
+  const domain = site.siteDomain || '';
   const hostname = domain.replace(/^https?:\/\//, '');
   const year = new Date().getFullYear();
   return `<!DOCTYPE html>
