@@ -7,6 +7,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -35,6 +36,7 @@ function parseOfferMessage(offer: DomainOffer): { buyerMessage: string; counterA
 
 export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => {
   const navigate = useNavigate();
+  const { config } = useSiteSettings();
   const [processingOffers, setProcessingOffers] = useState<Record<string, boolean>>({});
   const [cancelDialog, setCancelDialog] = useState<{ open: boolean; offerId: string; domainName: string } | null>(null);
   const [counterResponseDialog, setCounterResponseDialog] = useState<{
@@ -168,6 +170,90 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
             type: 'offer', related_id: offer.id,
             action_url: newTransactionId ? `/transaction/${newTransactionId}` : '/user-center?tab=transactions',
           }).catch(console.error);
+
+          // Email seller: buyer accepted counter
+          try {
+            const { data: sellerProfile } = await supabase
+              .from('profiles').select('contact_email').eq('id', offerData.seller_id).maybeSingle();
+            const sellerEmail = sellerProfile?.contact_email;
+            if (sellerEmail) {
+              const siteDomain = (config.site_domain || window.location.origin).replace(/\/$/, '');
+              const siteName = config.site_name || '域见•你';
+              const siteHostname = siteDomain.replace(/^https?:\/\//, '').toUpperCase();
+              const supportEmail = config.contact_email || `support@${siteDomain.replace(/^https?:\/\//, '')}`;
+              const domainDisplay = (domainName).toUpperCase();
+              const sym = offerData.domain_listings?.currency === 'USD' ? '$' : '¥';
+              const counterFormatted = `${sym}${Number(counterAmt).toLocaleString()}`;
+              const year = new Date().getFullYear();
+              const txUrl = newTransactionId ? `${siteDomain}/transaction/${newTransactionId}` : `${siteDomain}/user-center?tab=transactions`;
+              const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>买家接受了您的还价</title>
+  <style>body{margin:0;padding:0;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;}.preheader{display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;}</style>
+</head>
+<body>
+  <span class="preheader">🎉 买家接受了您对 ${domainDisplay} 的还价 ${counterFormatted}，交易已启动！</span>
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#f1f5f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;width:100%;">
+        <tr><td style="padding-bottom:24px;text-align:center;">
+          <table cellpadding="0" cellspacing="0" role="presentation" style="display:inline-table;">
+            <tr><td style="background:#0f172a;border-radius:12px;padding:10px 20px;">
+              <span style="color:#f8fafc;font-size:20px;font-weight:800;letter-spacing:-0.5px;">${siteName}</span>
+              <span style="color:#475569;font-size:11px;font-weight:600;margin-left:10px;letter-spacing:2px;text-transform:uppercase;">${siteHostname}</span>
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.07);">
+          <div style="height:4px;background:#16a34a;"></div>
+          <div style="padding:40px 40px 32px;text-align:center;border-bottom:1px solid #f1f5f9;">
+            <div style="width:64px;height:64px;background:#f0fdf4;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:32px;">🎉</div>
+            <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;">买家接受了您的还价！</h1>
+            <p style="margin:0;font-size:15px;color:#64748b;">太棒了，交易已成功启动</p>
+          </div>
+          <div style="padding:32px 40px;">
+            <div style="background:#f8fafc;border-radius:12px;padding:20px 24px;margin-bottom:24px;border:1px solid #e2e8f0;">
+              <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
+                <tr><td style="padding-bottom:12px;">
+                  <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;">成交域名</p>
+                  <p style="margin:0;font-size:22px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;">${domainDisplay}</p>
+                </td></tr>
+                <tr><td style="border-top:1px solid #e2e8f0;padding-top:12px;">
+                  <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;">成交金额（您的还价）</p>
+                  <p style="margin:0;font-size:28px;font-weight:900;color:#16a34a;letter-spacing:-1px;">${counterFormatted}</p>
+                </td></tr>
+              </table>
+            </div>
+            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:18px 20px;margin-bottom:24px;">
+              <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#15803d;letter-spacing:1px;text-transform:uppercase;">接下来的步骤</p>
+              <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
+                <tr><td style="padding:3px 0;font-size:13px;color:#166534;"><span style="font-weight:700;margin-right:6px;">①</span>等待买家完成付款</td></tr>
+                <tr><td style="padding:3px 0;font-size:13px;color:#166534;"><span style="font-weight:700;margin-right:6px;">②</span>平台确认收款后通知您进行域名过户</td></tr>
+                <tr><td style="padding:3px 0;font-size:13px;color:#166534;"><span style="font-weight:700;margin-right:6px;">③</span>过户完成后资金将划入您的账户</td></tr>
+              </table>
+            </div>
+            <div style="text-align:center;padding-bottom:8px;">
+              <a href="${txUrl}" style="display:inline-block;background:#0f172a;color:#f8fafc;padding:16px 40px;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;letter-spacing:0.3px;box-shadow:0 4px 14px rgba(15,23,42,0.25);">查看交易详情 →</a>
+            </div>
+          </div>
+          <div style="padding:20px 40px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;">
+            <p style="margin:0;font-size:13px;color:#94a3b8;">有疑问？联系 <a href="mailto:${supportEmail}" style="color:#475569;text-decoration:none;font-weight:600;">${supportEmail}</a></p>
+          </div>
+        </td></tr>
+        <tr><td style="padding:24px 20px 0;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#94a3b8;">© ${year} ${siteName} · ${siteHostname} · All rights reserved</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+              supabase.functions.invoke('send-email', {
+                body: { to: sellerEmail, subject: `🎉 买家接受了还价：${domainDisplay} — ${counterFormatted}`, html },
+              }).catch(e => console.error('Seller accept email error:', e));
+            }
+          } catch (e) { console.error('Seller email lookup error:', e); }
         }
 
         toast.success('您已接受还价，交易已创建！');
@@ -193,6 +279,90 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
             type: 'offer', related_id: offer.id,
             action_url: '/user-center?tab=transactions',
           }).catch(console.error);
+
+          // Email seller: buyer rejected counter
+          try {
+            const { data: sellerProfile } = await supabase
+              .from('profiles').select('contact_email').eq('id', offerData.seller_id).maybeSingle();
+            const sellerEmail = sellerProfile?.contact_email;
+            if (sellerEmail) {
+              const siteDomain = (config.site_domain || window.location.origin).replace(/\/$/, '');
+              const siteName = config.site_name || '域见•你';
+              const siteHostname = siteDomain.replace(/^https?:\/\//, '').toUpperCase();
+              const supportEmail = config.contact_email || `support@${siteDomain.replace(/^https?:\/\//, '')}`;
+              const domainDisplay = (domainName).toUpperCase();
+              const sym = offerData.domain_listings?.currency === 'USD' ? '$' : '¥';
+              const parsed = parseOfferMessage(offer);
+              const counterFormatted = `${sym}${Number(parsed.counterAmount ?? offer.amount).toLocaleString()}`;
+              const year = new Date().getFullYear();
+              const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>买家拒绝了您的还价</title>
+  <style>body{margin:0;padding:0;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;}.preheader{display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;}</style>
+</head>
+<body>
+  <span class="preheader">买家拒绝了您对 ${domainDisplay} 的还价 ${counterFormatted}</span>
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#f1f5f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;width:100%;">
+        <tr><td style="padding-bottom:24px;text-align:center;">
+          <table cellpadding="0" cellspacing="0" role="presentation" style="display:inline-table;">
+            <tr><td style="background:#0f172a;border-radius:12px;padding:10px 20px;">
+              <span style="color:#f8fafc;font-size:20px;font-weight:800;letter-spacing:-0.5px;">${siteName}</span>
+              <span style="color:#475569;font-size:11px;font-weight:600;margin-left:10px;letter-spacing:2px;text-transform:uppercase;">${siteHostname}</span>
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.07);">
+          <div style="height:4px;background:#64748b;"></div>
+          <div style="padding:40px 40px 32px;text-align:center;border-bottom:1px solid #f1f5f9;">
+            <div style="width:64px;height:64px;background:#f8fafc;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:32px;">💬</div>
+            <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;">买家拒绝了您的还价</h1>
+            <p style="margin:0;font-size:15px;color:#64748b;">买家未接受您对 ${domainDisplay} 的还价</p>
+          </div>
+          <div style="padding:32px 40px;">
+            <div style="background:#f8fafc;border-radius:12px;padding:20px 24px;margin-bottom:24px;border:1px solid #e2e8f0;">
+              <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
+                <tr><td style="padding-bottom:12px;">
+                  <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;">您的域名</p>
+                  <p style="margin:0;font-size:22px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;">${domainDisplay}</p>
+                </td></tr>
+                <tr><td style="border-top:1px solid #e2e8f0;padding-top:12px;">
+                  <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;">您的还价（未被接受）</p>
+                  <p style="margin:0;font-size:28px;font-weight:900;color:#475569;letter-spacing:-1px;">${counterFormatted}</p>
+                </td></tr>
+              </table>
+            </div>
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;margin-bottom:24px;">
+              <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#475569;letter-spacing:1px;text-transform:uppercase;">可选操作</p>
+              <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
+                <tr><td style="padding:3px 0;font-size:13px;color:#475569;"><span style="font-weight:700;margin-right:6px;">·</span>等待买家重新提交更高的报价</td></tr>
+                <tr><td style="padding:3px 0;font-size:13px;color:#475569;"><span style="font-weight:700;margin-right:6px;">·</span>调整挂牌价格或添加域名详情吸引更多买家</td></tr>
+                <tr><td style="padding:3px 0;font-size:13px;color:#475569;"><span style="font-weight:700;margin-right:6px;">·</span>域名继续正常挂牌，随时接受新报价</td></tr>
+              </table>
+            </div>
+            <div style="text-align:center;padding-bottom:8px;">
+              <a href="${siteDomain}/user-center?tab=transactions" style="display:inline-block;background:#0f172a;color:#f8fafc;padding:16px 40px;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;letter-spacing:0.3px;box-shadow:0 4px 14px rgba(15,23,42,0.25);">查看报价记录 →</a>
+            </div>
+          </div>
+          <div style="padding:20px 40px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;">
+            <p style="margin:0;font-size:13px;color:#94a3b8;">有疑问？联系 <a href="mailto:${supportEmail}" style="color:#475569;text-decoration:none;font-weight:600;">${supportEmail}</a></p>
+          </div>
+        </td></tr>
+        <tr><td style="padding:24px 20px 0;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#94a3b8;">© ${year} ${siteName} · ${siteHostname} · All rights reserved</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+              supabase.functions.invoke('send-email', {
+                body: { to: sellerEmail, subject: `买家拒绝了您的还价：${domainDisplay} — ${counterFormatted}`, html },
+              }).catch(e => console.error('Seller reject email error:', e));
+            }
+          } catch (e) { console.error('Seller email lookup error:', e); }
         }
 
         toast.success('已拒绝卖家还价');
