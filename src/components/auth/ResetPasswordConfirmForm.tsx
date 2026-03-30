@@ -58,9 +58,9 @@ export const ResetPasswordConfirmForm = ({ tokenData, sessionReady = false }: Re
     setErrorMessage('');
 
     try {
-      // If Supabase already set up the session via PASSWORD_RECOVERY event,
-      // skip setSession and go straight to updateUser.
-      if (!sessionReady) {
+      // Always re-assert the session before updating the password.
+      // The SDK session may have been cleared between page load and submit.
+      if (tokenData.accessToken) {
         const { error: sessionError } = await supabase.auth.setSession({
           access_token: tokenData.accessToken,
           refresh_token: tokenData.refreshToken,
@@ -70,7 +70,14 @@ export const ResetPasswordConfirmForm = ({ tokenData, sessionReady = false }: Re
         }
       }
 
-      const { error: updateError } = await supabase.auth.updateUser({ password });
+      // Race against a 20-second timeout so the button never gets stuck forever.
+      const updateResult = await Promise.race([
+        supabase.auth.updateUser({ password }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('请求超时，请检查网络后重试')), 20000)
+        ),
+      ]);
+      const { error: updateError } = updateResult as Awaited<ReturnType<typeof supabase.auth.updateUser>>;
       if (updateError) {
         const msg = updateError.message || '';
         if (msg.includes('different from the old password') || msg.includes('same as the old')) {
