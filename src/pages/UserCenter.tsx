@@ -308,6 +308,7 @@ function MobileProfileSection({
   user: any; profile: any; isAdmin: boolean; displayName: string; avatarInitial: string;
   unreadCount: number; onTabChange: (tab: string) => void; navigate: (path: string) => void;
 }) {
+  const { config: siteConfig } = useSiteSettings();
   const sections = [
     {
       title: '账户功能',
