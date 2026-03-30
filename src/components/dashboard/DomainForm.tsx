@@ -114,7 +114,7 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain, initialD
           id="domainName" value={domainName}
           onChange={(e) => { setDomainName(e.target.value); if (nameError) setNameError(''); }}
           required className={nameError ? 'border-destructive' : ''}
-          placeholder="example.com" disabled={editingDomain !== null}
+          placeholder="example.com" disabled={editingDomain != null}
         />
         {nameError && <p className="text-sm text-destructive mt-1">{nameError}</p>}
         <p className="text-xs text-muted-foreground">

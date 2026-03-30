@@ -149,7 +149,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">您的出价</span>
                       <span className={`font-bold ${offer.status === 'countered' ? 'line-through text-muted-foreground' : 'text-primary text-lg'}`}>
-                        ${(parsed.counterAmount ? offer.amount / 1 : offer.amount).toLocaleString()}
+                        ¥{(parsed.counterAmount ? offer.amount / 1 : offer.amount).toLocaleString()}
                       </span>
                     </div>
                     {offer.status === 'countered' && parsed.counterAmount && (
@@ -157,7 +157,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
                         <span className="text-sm font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1">
                           <ArrowLeftRight className="h-3.5 w-3.5" />卖家还价
                         </span>
-                        <span className="text-xl font-bold text-blue-600 dark:text-blue-400">${parsed.counterAmount.toLocaleString()}</span>
+                        <span className="text-xl font-bold text-blue-600 dark:text-blue-400">¥{parsed.counterAmount.toLocaleString()}</span>
                       </div>
                     )}
                   </div>
@@ -240,11 +240,11 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
                     <td className="p-4">
                       <div className="flex flex-col gap-0.5">
                         <span className={`font-bold ${offer.status === 'countered' ? 'line-through text-muted-foreground text-sm' : 'text-primary text-lg'}`}>
-                          ${offer.amount.toLocaleString()}
+                          ¥{offer.amount.toLocaleString()}
                         </span>
                         {offer.status === 'countered' && parsed.counterAmount && (
                           <span className="text-base font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
-                            <ArrowLeftRight className="h-3.5 w-3.5" />${parsed.counterAmount.toLocaleString()}
+                            <ArrowLeftRight className="h-3.5 w-3.5" />¥{parsed.counterAmount.toLocaleString()}
                           </span>
                         )}
                       </div>
@@ -340,7 +340,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
               <AlertDialogDescription>
                 {counterResponseDialog.action === 'accept' ? (
                   <>
-                    您将以 <span className="font-bold text-blue-600">${parseOfferMessage(counterResponseDialog.offer).counterAmount?.toLocaleString()}</span> 的价格购买域名{' '}
+                    您将以 <span className="font-bold text-blue-600">¥{parseOfferMessage(counterResponseDialog.offer).counterAmount?.toLocaleString()}</span> 的价格购买域名{' '}
                     <span className="font-semibold">{counterResponseDialog.offer.domain_name}</span>，系统将自动创建交易记录。
                   </>
                 ) : (

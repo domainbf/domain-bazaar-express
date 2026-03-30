@@ -337,13 +337,16 @@ app.post('/transactions', requireAuth, async (c) => {
   const body = await c.req.json();
   const { domain_id, seller_id, amount, offer_id, payment_method, notes, listing_id } = body;
   const resolvedDomainId = domain_id || listing_id;
+  // buyer_id can be supplied explicitly (e.g. seller creating on behalf of buyer);
+  // fall back to sub (the authenticated caller) when not provided
+  const buyerId: string = (body.buyer_id as string) || sub;
   if (!resolvedDomainId || !seller_id || !amount) return c.json({ error: '缺少必要字段' }, 400);
   const id = uuidv4();
   const t = now();
   await db.execute({
     sql: `INSERT INTO transactions (id, domain_id, buyer_id, seller_id, amount, status, offer_id, payment_method, notes, created_at, updated_at)
           VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
-    args: [id, resolvedDomainId, sub, seller_id, parseFloat(amount), 'pending', offer_id || null, payment_method || null, notes || null, t, t]
+    args: [id, resolvedDomainId, buyerId, seller_id, parseFloat(amount), 'pending', offer_id || null, payment_method || null, notes || null, t, t]
   });
   const inserted = rowToObj((await db.execute({ sql: 'SELECT * FROM transactions WHERE id = ?', args: [id] })).rows[0]);
   bus.publish({ table: 'transactions', eventType: 'INSERT', new: inserted, userId: sub });
@@ -459,7 +462,7 @@ app.post('/domain-offers', async (c) => {
     message: `有买家对您的域名 ${domainName} 报价 ${amtDisplay}，请登录处理`,
     type: 'offer',
     relatedId: id,
-    actionUrl: '/user-center?tab=received-offers',
+    actionUrl: '/user-center?tab=transactions',
   }).catch(() => {});
 
   // Notify buyer (if logged in)
@@ -470,7 +473,7 @@ app.post('/domain-offers', async (c) => {
       message: `您对域名 ${domainName} 的 ${amtDisplay} 报价已发送，等待卖家回复`,
       type: 'offer',
       relatedId: id,
-      actionUrl: '/user-center?tab=sent-offers',
+      actionUrl: '/user-center?tab=transactions',
     }).catch(() => {});
   }
 
@@ -547,7 +550,7 @@ app.patch('/domain-offers/:id', requireAuth, async (c) => {
           message: `卖家对您的报价回应了还价 ${counterAmt}，请登录查看并决定是否接受`,
           type: 'offer_counter',
           relatedId: offerId,
-          actionUrl: '/user-center?tab=sent-offers',
+          actionUrl: '/user-center?tab=transactions',
         }).catch(() => {});
       }
       if (sellerId) {
@@ -557,7 +560,7 @@ app.patch('/domain-offers/:id', requireAuth, async (c) => {
           message: `您的 ${counterAmt} 还价已成功发送给买家，等待买家回复`,
           type: 'offer_counter',
           relatedId: offerId,
-          actionUrl: '/user-center?tab=received-offers',
+          actionUrl: '/user-center?tab=transactions',
         }).catch(() => {});
       }
       if (buyerEmail) {
@@ -643,7 +646,7 @@ app.patch('/domain-offers/:id', requireAuth, async (c) => {
           message: `卖家未接受您对域名 ${domainName} 的 ${amtCurrent} 报价，域名仍在挂牌，欢迎调整后重新报价`,
           type: 'offer_rejected',
           relatedId: offerId,
-          actionUrl: '/user-center?tab=sent-offers',
+          actionUrl: '/user-center?tab=transactions',
         }).catch(() => {});
         if (buyerEmail) {
           const { subject, html } = buyerOfferRejectedEmail({ domainName, amount: amtCurrent, brand });
@@ -658,7 +661,7 @@ app.patch('/domain-offers/:id', requireAuth, async (c) => {
           message: `买家拒绝了您对域名 ${domainName} 的还价，本次协商结束，请等待买家重新提交报价`,
           type: 'offer_rejected',
           relatedId: offerId,
-          actionUrl: '/user-center?tab=received-offers',
+          actionUrl: '/user-center?tab=transactions',
         }).catch(() => {});
         if (sellerEmail) {
           const { subject, html } = sellerCounterRejectedEmail({ domainName, counterAmount: amtCurrent, brand });
@@ -675,7 +678,7 @@ app.patch('/domain-offers/:id', requireAuth, async (c) => {
         message: `买家取消了对域名 ${domainName} 的 ${amtCurrent} 报价，域名持续挂牌中`,
         type: 'offer',
         relatedId: offerId,
-        actionUrl: '/user-center?tab=received-offers',
+        actionUrl: '/user-center?tab=transactions',
       }).catch(() => {});
       if (sellerEmail) {
         const { subject, html } = sellerOfferCancelledEmail({ domainName, amount: amtCurrent, brand });

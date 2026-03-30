@@ -201,7 +201,7 @@ export const Dashboard = () => {
             <ReceivedOffersTable offers={receivedOffers} onRefresh={loadData} />
           </TabsContent>
           <TabsContent value="sent">
-            <SentOffersTable offers={sentOffers} />
+            <SentOffersTable offers={sentOffers} onRefresh={loadData} />
           </TabsContent>
         </Tabs>
       </div>

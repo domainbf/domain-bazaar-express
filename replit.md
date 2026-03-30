@@ -65,6 +65,14 @@
 - POST /api/data/admin/send-test-email — 测试邮件
 - POST /api/data/admin/whois-test — WHOIS 查询
 
+## 重要架构约定
+- **货币符号**: 全站统一使用 `¥`（不用 `$`）
+- **通知 actionUrl**: 一律使用 `/user-center?tab=transactions`（`received-offers`/`sent-offers` 均为无效 tab）
+- **创建交易**: `POST /data/transactions` 需由卖家调用，必须在 body 显式传 `buyer_id` 和 `seller_id`（服务端 `sub` 只作备选 buyer_id）
+- **DomainForm disabled 检查**: 使用 `editingDomain != null`（宽松比较，防 undefined 漏过）
+- **FavoriteDomains**: 使用 `domain_listings:domain_id` join（勿改回 `domains:domain_id`）
+- **SentOffersTable**: 必须传 `onRefresh` prop 给父组件
+
 ## 已知限制
 - 支持工单系统使用 Supabase (设计如此)
 - 管理面板部分查询使用 Supabase (AllDomainListings 等)

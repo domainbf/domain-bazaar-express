@@ -76,6 +76,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
         try {
           const txResult = await apiPost('/data/transactions', {
             buyer_id: offerData.buyer_id,
+            seller_id: user?.id,
             domain_id: offerData.domain_id,
             offer_id: offerId,
             amount: offerData.amount,
@@ -195,7 +196,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
                   <div className="flex items-center justify-between pt-2 border-t">
                     <span className="text-sm text-muted-foreground">买家报价</span>
                     <span className={`text-lg font-bold ${offer.status === 'countered' ? 'line-through text-muted-foreground' : 'text-primary'}`}>
-                      ${offer.amount.toLocaleString()}
+                      ¥{offer.amount.toLocaleString()}
                     </span>
                   </div>
 
@@ -204,7 +205,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
                       <span className="text-sm text-blue-700 dark:text-blue-400 font-medium flex items-center gap-1">
                         <ArrowLeftRight className="h-3.5 w-3.5" />您的还价
                       </span>
-                      <span className="text-lg font-bold text-blue-700 dark:text-blue-400">${parsed.counterAmount.toLocaleString()}</span>
+                      <span className="text-lg font-bold text-blue-700 dark:text-blue-400">¥{parsed.counterAmount.toLocaleString()}</span>
                     </div>
                   )}
 
@@ -285,11 +286,11 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
                     <td className="p-4">
                       <div className="flex flex-col gap-1">
                         <span className={`text-lg font-bold ${offer.status === 'countered' ? 'line-through text-muted-foreground text-sm' : 'text-primary'}`}>
-                          ${offer.amount.toLocaleString()}
+                          ¥{offer.amount.toLocaleString()}
                         </span>
                         {offer.status === 'countered' && parsed.counterAmount && (
                           <span className="text-sm font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
-                            <ArrowLeftRight className="h-3 w-3" />还价 ${parsed.counterAmount.toLocaleString()}
+                            <ArrowLeftRight className="h-3 w-3" />还价 ¥{parsed.counterAmount.toLocaleString()}
                           </span>
                         )}
                       </div>
@@ -404,7 +405,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
               </DialogTitle>
               <DialogDescription>
                 买家对域名 <span className="font-semibold">{counterDialog.offer.domain_name}</span> 出价{' '}
-                <span className="font-semibold">${counterDialog.offer.amount.toLocaleString()}</span>
+                <span className="font-semibold">¥{counterDialog.offer.amount.toLocaleString()}</span>
               </DialogDescription>
             </DialogHeader>
 
@@ -412,7 +413,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
               <div>
                 <label className="text-sm font-medium mb-1.5 block">还价金额 *</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">¥</span>
                   <Input
                     type="number"
                     placeholder="输入您的还价金额"
@@ -423,7 +424,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  买家出价：${counterDialog.offer.amount.toLocaleString()}
+                  买家出价：¥{counterDialog.offer.amount.toLocaleString()}
                 </p>
               </div>
 

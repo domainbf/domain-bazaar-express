@@ -330,7 +330,7 @@ export default function TransactionDetail() {
 
                 {isSeller && (
                   <div className="p-3 bg-green-500/10 dark:bg-green-950/20 border border-green-500/30 dark:border-green-800 rounded-lg text-sm space-y-1">
-                    <p className="font-medium text-green-600 dark:text-green-400 dark:text-green-400 flex items-center gap-1">
+                    <p className="font-medium text-green-600 dark:text-green-400 flex items-center gap-1">
                       <Banknote className="w-4 h-4" /> 收益明细
                     </p>
                     <div className="flex justify-between text-muted-foreground">
@@ -421,7 +421,7 @@ export default function TransactionDetail() {
 
                   {canSellerConfirm && (
                     <div className="p-4 bg-blue-500/10 dark:bg-blue-950/20 border border-blue-500/30 dark:border-blue-800 rounded-lg">
-                      <p className="text-sm font-medium text-blue-600 dark:text-blue-400 dark:text-blue-400 mb-2">卖家操作：确认域名已转移</p>
+                      <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2">卖家操作：确认域名已转移</p>
                       <p className="text-xs text-muted-foreground mb-3">请确认您已将域名转移至买家指定账户，确认后买家将验证并释放资金。</p>
                       <Button onClick={handleSellerConfirmTransfer} disabled={actionLoading} data-testid="button-confirm-transfer">
                         {actionLoading ? <LoadingSpinner size="sm" /> : <CheckCircle className="w-4 h-4 mr-2" />}
@@ -432,7 +432,7 @@ export default function TransactionDetail() {
 
                   {canBuyerConfirm && (
                     <div className="p-4 bg-green-500/10 dark:bg-green-950/20 border border-green-500/30 dark:border-green-800 rounded-lg">
-                      <p className="text-sm font-medium text-green-600 dark:text-green-400 dark:text-green-400 mb-2">买家操作：确认收到域名</p>
+                      <p className="text-sm font-medium text-green-600 dark:text-green-400 mb-2">买家操作：确认收到域名</p>
                       <p className="text-xs text-muted-foreground mb-3">请确认域名已成功转移至您的账户。确认后资金将自动释放给卖家，此操作不可撤销。</p>
                       <Button onClick={handleBuyerConfirmReceived} disabled={actionLoading} data-testid="button-confirm-received">
                         {actionLoading ? <LoadingSpinner size="sm" /> : <CheckCheck className="w-4 h-4 mr-2" />}
@@ -491,7 +491,7 @@ export default function TransactionDetail() {
                   {isCompleted && (
                     <div className="p-4 bg-green-500/10 dark:bg-green-950/20 border border-green-500/30 dark:border-green-800 rounded-lg text-center">
                       <CheckCheck className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                      <p className="font-medium text-green-600 dark:text-green-400 dark:text-green-400">交易已完成</p>
+                      <p className="font-medium text-green-600 dark:text-green-400">交易已完成</p>
                       <p className="text-xs text-muted-foreground mt-1">完成于 {transaction.completed_at ? new Date(transaction.completed_at).toLocaleString('zh-CN') : '—'}</p>
                       <Button
                         variant="outline"
