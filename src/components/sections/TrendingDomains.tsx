@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { TrendingUp, ChevronRight } from 'lucide-react';
+import { TrendingUp, ChevronRight, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,68 +14,56 @@ interface TrendingDomain {
   growth: string;
 }
 
+const CARD_COLORS = [
+  { bg: 'bg-indigo-50 dark:bg-indigo-950/40', badge: 'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300', icon: 'text-indigo-500' },
+  { bg: 'bg-emerald-50 dark:bg-emerald-950/40', badge: 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300', icon: 'text-emerald-500' },
+  { bg: 'bg-violet-50 dark:bg-violet-950/40', badge: 'bg-violet-100 dark:bg-violet-900/60 text-violet-700 dark:text-violet-300', icon: 'text-violet-500' },
+  { bg: 'bg-amber-50 dark:bg-amber-950/40', badge: 'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300', icon: 'text-amber-500' },
+];
+
 export const TrendingDomains = () => {
-  const { t } = useTranslation();
   const [trendingData, setTrendingData] = useState<TrendingDomain[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const loadTrendingDomains = useCallback(async () => {
     setIsLoading(true);
     try {
-      // 1. 获取推荐域名
       const { data: domainsData, error: domainsError } = await supabase
         .from('domain_listings')
         .select('id, name, price, highlight, currency')
         .eq('status', 'available')
         .limit(4);
-      
+
       if (domainsError) throw domainsError;
-      
+
       if (!domainsData || domainsData.length === 0) {
         setTrendingData([]);
-        setIsLoading(false);
         return;
       }
-      
-      // 2. 单独获取分析数据
-      const domainIds = domainsData.map(domain => domain.id);
-      const { data: analyticsData, error: analyticsError } = await supabase
+
+      const domainIds = domainsData.map(d => d.id);
+      const { data: analyticsData } = await supabase
         .from('domain_analytics')
         .select('*')
         .in('domain_id', domainIds);
-      
-      if (analyticsError) {
-        console.error('Error fetching analytics:', analyticsError);
-      }
-      
-      // 3. 手动合并数据并转换为显示格式
+
       const transformedData = domainsData.map(domain => {
-        // 查找对应的analytics记录
         const analyticEntry = analyticsData?.find(a => a.domain_id === domain.id);
         const viewsValue = Number(analyticEntry?.views || 0);
-        
-        // Format views for display
-        let viewsDisplay = '';
-        if (viewsValue >= 1000) {
-          viewsDisplay = `${(viewsValue / 1000).toFixed(1)}K`;
-        } else {
-          viewsDisplay = String(viewsValue);
-        }
-        
-        // Generate random growth percentage based on highlight status
-        const growth = domain.highlight 
-          ? `+${Math.floor(Math.random() * 30) + 20}%` 
+        const viewsDisplay = viewsValue >= 1000 ? `${(viewsValue / 1000).toFixed(1)}K` : String(viewsValue);
+        const growth = domain.highlight
+          ? `+${Math.floor(Math.random() * 30) + 20}%`
           : `+${Math.floor(Math.random() * 15) + 5}%`;
-          
+
         return {
           domain: domain.name || '',
           price: domain.price?.toLocaleString() || '0',
           currency: domain.currency || 'USD',
           views: viewsDisplay,
-          growth
+          growth,
         };
       });
-      
+
       setTrendingData(transformedData);
     } catch (error) {
       console.error('Error loading trending domains:', error);
@@ -85,14 +72,14 @@ export const TrendingDomains = () => {
       setIsLoading(false);
     }
   }, []);
-  
+
   useEffect(() => {
     loadTrendingDomains();
   }, [loadTrendingDomains]);
 
   if (isLoading) {
     return (
-      <section className="py-20 relative z-10">
+      <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <LoadingSpinner />
         </div>
@@ -100,60 +87,68 @@ export const TrendingDomains = () => {
     );
   }
 
-  if (trendingData.length === 0) {
-    return null; // Don't show the section if there are no domains
-  }
+  if (trendingData.length === 0) return null;
 
   return (
-    <section className="py-20 relative z-10">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between mb-8">
+    <section className="py-20 relative z-10 overflow-hidden">
+      {/* background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-background via-indigo-50/20 to-background dark:via-indigo-950/10 pointer-events-none" />
+
+      <div className="relative max-w-7xl mx-auto px-4">
+        <div className="flex items-center justify-between mb-10">
           <div>
-            <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-cyan-400">
-              热门域名
-            </h2>
-            <p className="text-gray-400 mt-2">实时跟踪���受关注的域名</p>
+            <div className="flex items-center gap-2 mb-1">
+              <Flame className="w-5 h-5 text-orange-500 animate-pulse" />
+              <p className="text-sm font-semibold text-orange-600 dark:text-orange-400 uppercase tracking-widest">实时热门</p>
+            </div>
+            <h2 className="text-3xl font-bold text-foreground">热门域名</h2>
+            <p className="text-muted-foreground mt-1.5 text-sm">实时跟踪最受关注的域名</p>
           </div>
           <Link to="/marketplace">
-            <Button variant="outline" className="group">
+            <Button variant="outline" className="group hidden sm:flex">
               查看更多
               <ChevronRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
         </div>
 
-        {isLoading ? (
-          <div className="flex justify-center py-20">
-            <LoadingSpinner />
-          </div>
-        ) : trendingData.length === 0 ? (
-          <div className="text-center py-10">
-            <p className="text-gray-500">暂无热门域名数据</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {trendingData.map((item, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {trendingData.map((item, index) => {
+            const c = CARD_COLORS[index % CARD_COLORS.length];
+            return (
               <motion.div
                 key={item.domain}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
+                transition={{ duration: 0.45, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="glass-card p-6 rounded-xl hover:shadow-lg transition-all duration-300"
+                className={`glow-card ${c.bg} border border-border p-6 rounded-2xl shadow-sm`}
               >
                 <div className="flex items-center justify-between mb-4">
-                  <TrendingUp className="w-5 h-5 text-emerald-400" />
-                  <span className="text-emerald-400 font-semibold">{item.growth}</span>
+                  <TrendingUp className={`w-5 h-5 ${c.icon}`} />
+                  <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${c.badge}`}>
+                    {item.growth}
+                  </span>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">{item.domain}</h3>
+                <h3 className="text-xl font-bold text-foreground mb-3 truncate">{item.domain}</h3>
                 <div className="flex justify-between items-center">
-                  <div className="text-gray-400">{item.views} 浏览量</div>
-                  <div className="text-violet-400 font-medium">{item.currency === 'CNY' ? '¥' : '$'}{item.price}</div>
+                  <div className="text-xs text-muted-foreground">{item.views} 浏览</div>
+                  <div className="text-base font-bold text-foreground">
+                    {item.currency === 'CNY' ? '¥' : '$'}{item.price}
+                  </div>
                 </div>
               </motion.div>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
+
+        <div className="text-center mt-8 sm:hidden">
+          <Link to="/marketplace">
+            <Button variant="outline" className="group">
+              查看更多 <ChevronRight className="ml-1 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </Link>
+        </div>
       </div>
     </section>
   );
