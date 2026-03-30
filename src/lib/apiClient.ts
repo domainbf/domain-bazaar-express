@@ -1,4 +1,8 @@
-const BASE = '/api';
+// In dev: Vite proxies /api → localhost:3001
+// In prod: VITE_API_URL points to deployed API server (e.g. https://api.nic.rw)
+const BASE = (import.meta.env.VITE_API_URL as string | undefined)
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : '/api';
 
 let accessToken: string | null = null;
 let refreshToken: string | null = null;
@@ -60,7 +64,10 @@ async function tryRefresh(): Promise<boolean> {
 export async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
   loadTokens();
   const headers = new Headers(init.headers || {});
-  headers.set('Content-Type', 'application/json');
+  // Don't force JSON Content-Type for FormData — let the browser set multipart boundary
+  if (!(init.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+  }
   if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`);
 
   let res = await fetch(`${BASE}${path}`, { ...init, headers });

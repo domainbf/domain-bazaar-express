@@ -1,7 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
-
-const SUPABASE_URL = 'https://trqxaizkwuizuhlfmdup.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRycXhhaXprd3VpenVobGZtZHVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2ODk1NzcsImV4cCI6MjA1MDI2NTU3N30.uv3FElLBTsCNr3Vg4PooW7h1o2ZlivAFGawFH-Zqxns';
+import { apiFetch } from './apiClient';
 
 export interface BlobUploadResult {
   url: string;
@@ -35,20 +32,16 @@ export async function uploadToBlob(
   const validationError = validateImageFile(file);
   if (validationError) throw new Error(validationError);
 
-  const { data: { session } } = await supabase.auth.getSession();
-  const authToken = session?.access_token;
-
   const formData = new FormData();
   formData.append('file', file);
   formData.append('folder', folder);
 
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/upload-blob`, {
+  // Use our custom JWT-authenticated API server instead of Supabase edge function
+  const res = await apiFetch('/upload', {
     method: 'POST',
-    headers: {
-      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-      apikey: SUPABASE_ANON_KEY,
-    },
     body: formData,
+    // Remove Content-Type so browser sets multipart boundary automatically
+    headers: {},
   });
 
   if (!res.ok) {

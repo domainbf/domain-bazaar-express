@@ -30,6 +30,17 @@ async function queryTable(table: string, where?: string, args?: unknown[]) {
   return r.rows.map(rowToObj);
 }
 
+// Bust ALL domain_listings list caches (called after any mutation)
+async function invalidateDomainListCache(id?: string) {
+  const redis = (await import('../redis.js')).redis;
+  const patterns = ['domain_listings:*'];
+  for (const p of patterns) {
+    const keys = await redis.keys(p);
+    for (const k of keys) await redis.del(k);
+  }
+  if (id) await cacheDel(`domain_listing:${id}`);
+}
+
 // ---- Domain Listings ----
 app.get('/domain-listings', async (c) => {
   const status = c.req.query('status') || 'active';
@@ -48,9 +59,89 @@ app.get('/domain-listings', async (c) => {
 });
 
 app.get('/domain-listings/:id', async (c) => {
-  const r = await db.execute({ sql: 'SELECT * FROM domain_listings WHERE id = ?', args: [c.req.param('id')] });
+  const id = c.req.param('id');
+  const cacheKey = `domain_listing:${id}`;
+  const cached = await cacheGet<unknown>(cacheKey);
+  if (cached) return c.json(cached);
+  const r = await db.execute({ sql: 'SELECT * FROM domain_listings WHERE id = ?', args: [id] });
   if (!r.rows[0]) return c.json({ error: '未找到' }, 404);
-  return c.json(rowToObj(r.rows[0]));
+  const row = rowToObj(r.rows[0]);
+  await cacheSet(cacheKey, row, 120); // 2 min cache for individual listing
+  return c.json(row);
+});
+
+// POST /api/data/domain-listings — create a new listing
+app.post('/domain-listings', requireAuth, async (c) => {
+  const { sub } = getAuth(c);
+  const body = await c.req.json();
+  const { v4: uuidv4 } = await import('uuid');
+  const id = uuidv4();
+  const t = now();
+  // Map API field aliases to actual column names
+  const fieldMap: Record<string, string> = { domain_name: 'name' };
+  const allowed = ['name', 'domain_name', 'price', 'category', 'description',
+    'currency', 'highlight', 'is_verified'];
+  const cols = ['id', 'owner_id', 'status', 'created_at'];
+  const vals: unknown[] = [id, sub, 'active', t];
+  for (const k of allowed) {
+    if (k in body) {
+      const col = fieldMap[k] || k;
+      if (!cols.includes(col)) {
+        cols.push(col);
+        const v = body[k];
+        vals.push(typeof v === 'object' ? JSON.stringify(v) : v);
+      }
+    }
+  }
+  await db.execute({
+    sql: `INSERT INTO domain_listings (${cols.join(',')}) VALUES (${cols.map(() => '?').join(',')})`,
+    args: vals
+  });
+  await invalidateDomainListCache();
+  const newRow = rowToObj((await db.execute({ sql: 'SELECT * FROM domain_listings WHERE id = ?', args: [id] })).rows[0]);
+  bus.publish({ table: 'domain_listings', eventType: 'INSERT', new: newRow, userId: sub });
+  return c.json(newRow, 201);
+});
+
+// PATCH /api/data/domain-listings/:id — update a listing (owner or admin only)
+app.patch('/domain-listings/:id', requireAuth, async (c) => {
+  const { sub, is_admin } = getAuth(c);
+  const id = c.req.param('id');
+  const check = await db.execute({ sql: 'SELECT owner_id FROM domain_listings WHERE id = ?', args: [id] });
+  if (!check.rows[0]) return c.json({ error: '未找到' }, 404);
+  if (!is_admin && check.rows[0].owner_id !== sub) return c.json({ error: '无权限' }, 403);
+  const body = await c.req.json();
+  const allowed = ['name', 'price', 'status', 'description', 'category', 'currency',
+    'highlight', 'is_verified', 'verification_status'];
+  const updates: string[] = [];
+  const args: unknown[] = [];
+  for (const k of allowed) {
+    if (k in body) {
+      updates.push(`${k} = ?`);
+      const v = body[k];
+      args.push(typeof v === 'object' ? JSON.stringify(v) : v);
+    }
+  }
+  if (updates.length === 0) return c.json({ error: '无可更新字段' }, 400);
+  args.push(id);
+  await db.execute({ sql: `UPDATE domain_listings SET ${updates.join(', ')} WHERE id = ?`, args });
+  await invalidateDomainListCache(id);
+  const updated = rowToObj((await db.execute({ sql: 'SELECT * FROM domain_listings WHERE id = ?', args: [id] })).rows[0]);
+  bus.publish({ table: 'domain_listings', eventType: 'UPDATE', new: updated, userId: sub });
+  return c.json(updated);
+});
+
+// DELETE /api/data/domain-listings/:id — remove a listing (owner or admin only)
+app.delete('/domain-listings/:id', requireAuth, async (c) => {
+  const { sub, is_admin } = getAuth(c);
+  const id = c.req.param('id');
+  const check = await db.execute({ sql: 'SELECT owner_id FROM domain_listings WHERE id = ?', args: [id] });
+  if (!check.rows[0]) return c.json({ error: '未找到' }, 404);
+  if (!is_admin && check.rows[0].owner_id !== sub) return c.json({ error: '无权限' }, 403);
+  await db.execute({ sql: 'DELETE FROM domain_listings WHERE id = ?', args: [id] });
+  await invalidateDomainListCache(id);
+  bus.publish({ table: 'domain_listings', eventType: 'DELETE', old: { id }, userId: sub });
+  return c.json({ success: true });
 });
 
 // ---- User domains ----
@@ -120,6 +211,34 @@ app.get('/wallet', requireAuth, async (c) => {
   const { sub } = getAuth(c);
   const r = await db.execute({ sql: 'SELECT * FROM payment_transactions WHERE user_id = ? ORDER BY created_at DESC', args: [sub] });
   return c.json(r.rows.map(rowToObj));
+});
+
+// ---- Admin: update site settings ----
+app.patch('/site-settings', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const body = await c.req.json();
+  const allowed = ['site_name', 'site_description', 'contact_email', 'commission_rate',
+    'min_listing_price', 'max_listing_price', 'maintenance_mode', 'announcement',
+    'supported_currencies', 'payment_methods_config'];
+  const updates: string[] = [];
+  const args: unknown[] = [];
+  for (const k of allowed) {
+    if (k in body) {
+      updates.push(`${k} = ?`);
+      const v = body[k];
+      args.push(typeof v === 'object' ? JSON.stringify(v) : v);
+    }
+  }
+  if (updates.length === 0) return c.json({ error: '无可更新字段' }, 400);
+  updates.push('updated_at = ?');
+  args.push(now());
+  await db.execute({ sql: `UPDATE site_settings SET ${updates.join(', ')}`, args });
+  await cacheDel('site_settings'); // Bust the cache immediately
+  const r = await db.execute({ sql: 'SELECT * FROM site_settings LIMIT 1', args: [] });
+  const fresh = r.rows[0] ? rowToObj(r.rows[0]) : {};
+  bus.publish({ table: 'site_settings', eventType: 'UPDATE', new: fresh });
+  return c.json(fresh);
 });
 
 // ---- Admin: publish realtime event ----

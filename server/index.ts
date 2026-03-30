@@ -8,6 +8,7 @@ import { setupRedisBridge } from './eventBus.js';
 import authRoutes from './routes/auth.js';
 import realtimeRoutes from './routes/realtime.js';
 import dataRoutes from './routes/data.js';
+import uploadRoutes from './routes/upload.js';
 
 const app = new Hono();
 
@@ -23,6 +24,7 @@ app.use('*', logger());
 app.route('/api/auth', authRoutes);
 app.route('/api/realtime', realtimeRoutes);
 app.route('/api/data', dataRoutes);
+app.route('/api/upload', uploadRoutes);
 
 app.get('/api/health', async (c) => {
   const { redis } = await import('./redis.js');
