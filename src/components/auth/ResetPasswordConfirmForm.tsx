@@ -119,9 +119,10 @@ export const ResetPasswordConfirmForm = ({ tokenData, sessionReady = false }: Re
 
       <div className="bg-primary/5 border border-primary/20 p-3 rounded-lg flex items-start gap-2">
         <ShieldCheck className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-        <p className="text-foreground text-sm">
-          请设置新密码，提交后原密码立即失效。
-        </p>
+        <div className="text-sm text-foreground space-y-0.5">
+          <p>请设置您的新密码。</p>
+          <p className="text-muted-foreground">原密码在您点击「确认修改密码」并成功保存<strong className="text-foreground">之后</strong>才会失效，在此之前您仍可用原密码登录。</p>
+        </div>
       </div>
 
       <div className="space-y-2">

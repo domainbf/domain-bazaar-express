@@ -32,6 +32,13 @@ export const signUpWithEmailPassword = async (email: string, password: string, o
     });
     
     if (error) throw error;
+
+    // Supabase deliberately returns no error when the email is already registered
+    // (to prevent email enumeration attacks). Instead, it returns a user object
+    // with an empty identities array. Detect this and surface a clear message.
+    if (data?.user && (!data.user.identities || data.user.identities.length === 0)) {
+      throw new Error('该邮箱已注册，请直接登录或使用「忘记密码」找回账户');
+    }
     
     return { success: true, data };
   } catch (error: any) {

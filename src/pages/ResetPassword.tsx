@@ -63,14 +63,24 @@ export const ResetPassword = () => {
     }
 
     // Method 4: Check the current Supabase session. If we have a live session
-    // while on the reset-password page, assume it's a recovery session.
-    // This covers the case where the user navigated directly from the email link,
-    // the SDK processed the hash before React mounted (clearing it), and the
-    // PASSWORD_RECOVERY event fired before our listener was registered.
+    // AND its JWT shows a recovery/OTP auth method (i.e., the user came here via
+    // an email reset link), show the reset form. We decode the JWT to distinguish
+    // recovery sessions from normal password-login sessions so that a logged-in
+    // admin who accidentally opens /reset-password doesn't see the reset form.
     if (!settled) {
       supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          settle(session.access_token, session.refresh_token);
+        if (!session) return;
+        try {
+          const payload = JSON.parse(atob(session.access_token.split('.')[1]));
+          const amr: Array<{ method: string }> = payload?.amr ?? [];
+          const isRecoverySession = amr.some(
+            (a) => a.method === 'otp' || a.method === 'recovery',
+          );
+          if (isRecoverySession) {
+            settle(session.access_token, session.refresh_token ?? '');
+          }
+        } catch {
+          // JWT decode failed — skip auto-settle to avoid false positives
         }
       });
     }
