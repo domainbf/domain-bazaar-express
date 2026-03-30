@@ -1,21 +1,16 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { DomainListings } from '@/components/marketplace/DomainListings';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useTranslation } from 'react-i18next';
-
-import { SkeletonCardGrid } from '@/components/common/SkeletonCard';
 import { SoldDomains } from '@/components/sections/SoldDomains';
 import { useNotifications } from '@/hooks/useNotifications';
-import { useDomainListings } from '@/hooks/useDomainListings';
+import { useDomainListings, DOMAIN_LISTINGS_KEY } from '@/hooks/useDomainListings';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, X, ArrowUpDown, TrendingUp, Clock, Eye, Star, Flame, RefreshCw } from 'lucide-react';
+import { Search, X, TrendingUp, RefreshCw, Star, Flame } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { DOMAIN_LISTINGS_KEY } from '@/hooks/useDomainListings';
 
 const getDomainExtension = (domain: string): string => {
   const match = domain.match(/(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?$/);
@@ -44,10 +39,10 @@ const PRICE_CHIPS = [
 ];
 
 const SORT_OPTIONS = [
-  { id: 'newest', label: '最新上架', icon: Clock },
-  { id: 'price_asc', label: '价格↑', icon: ArrowUpDown },
-  { id: 'price_desc', label: '价格↓', icon: ArrowUpDown },
-  { id: 'views', label: '最多浏览', icon: Eye },
+  { id: 'newest', label: '最新上架' },
+  { id: 'price_asc', label: '价格↑' },
+  { id: 'price_desc', label: '价格↓' },
+  { id: 'views', label: '最多浏览' },
 ];
 
 export const Marketplace = () => {
@@ -57,14 +52,11 @@ export const Marketplace = () => {
   const [sortBy, setSortBy] = useState('newest');
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const isMobile = useIsMobile();
-  const { t } = useTranslation();
   const { unreadCount } = useNotifications();
   const queryClient = useQueryClient();
 
-  // ── React Query — cached, parallel fetch, no waterfall ──────
   const { data: allDomains = [], isLoading, isError, refetch } = useDomainListings();
 
-  // Read search param from URL on mount
   useEffect(() => {
     const s = new URLSearchParams(window.location.search).get('search');
     if (s) setSearchQuery(s);
@@ -78,10 +70,16 @@ export const Marketplace = () => {
   const filteredDomains = useMemo(() => {
     let result = [...allDomains];
     if (tldFilter !== 'all')
-      result = result.filter(d => getDomainExtension(d.name) === tldFilter || getDomainExtension(d.name).endsWith(tldFilter));
+      result = result.filter(d =>
+        getDomainExtension(d.name) === tldFilter ||
+        getDomainExtension(d.name).endsWith(tldFilter)
+      );
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
-      result = result.filter(d => d.name?.toLowerCase().includes(q) || d.description?.toLowerCase().includes(q));
+      result = result.filter(d =>
+        d.name?.toLowerCase().includes(q) ||
+        d.description?.toLowerCase().includes(q)
+      );
     }
     const pc = PRICE_CHIPS.find(p => p.id === priceChip);
     if (pc && pc.id !== 'all')
@@ -101,56 +99,60 @@ export const Marketplace = () => {
   const hasActiveFilters = tldFilter !== 'all' || priceChip !== 'all' || verifiedOnly || sortBy !== 'newest' || searchQuery.trim();
 
   const clearAll = () => {
-    setTldFilter('all'); setPriceChip('all'); setSortBy('newest'); setVerifiedOnly(false); setSearchQuery('');
+    setTldFilter('all'); setPriceChip('all'); setSortBy('newest');
+    setVerifiedOnly(false); setSearchQuery('');
   };
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: DOMAIN_LISTINGS_KEY });
   };
 
+  const px = isMobile ? 'px-4' : 'max-w-3xl mx-auto px-6';
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar unreadCount={unreadCount} />
 
-      <div className={isMobile ? 'pb-20' : ''}>
-        {/* Hero Header */}
-        <section className={`bg-primary text-primary-foreground ${isMobile ? 'py-8 px-4' : 'py-14'}`}>
-          <div className={isMobile ? '' : 'max-w-6xl mx-auto px-6'}>
-            <div className="text-center">
-              <h1 className={`${isMobile ? 'text-2xl mb-2' : 'text-3xl mb-3'} font-bold`}>
-                {t('marketplace.title')}
-              </h1>
-              <p className={`${isMobile ? 'text-sm mb-5' : 'text-base mb-8'} opacity-70`}>
-                {t('marketplace.subtitle')}
-              </p>
-              <div className="max-w-xl mx-auto">
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 opacity-60" />
-                  <Input
-                    type="text"
-                    placeholder={t('marketplace.searchPlaceholder')}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="h-11 pl-11 pr-4 bg-background text-foreground border-border rounded-lg"
-                    data-testid="input-search-marketplace"
-                  />
-                </div>
-              </div>
+      <div className={isMobile ? 'pb-24' : 'pb-16'}>
+
+        {/* ── Search bar ─────────────────────────────────────── */}
+        <div className="border-b border-border bg-background">
+          <div className={`${px} py-3`}>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="搜索域名..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="h-10 pl-9 pr-9 bg-muted/40 border-border rounded-lg text-sm"
+                data-testid="input-search-marketplace"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* TLD Filter Row */}
-        <section className="border-b border-border bg-card">
-          <div className={isMobile ? 'px-3 py-2.5' : 'max-w-6xl mx-auto px-6 py-2.5'}>
+        {/* ── TLD Filter Row ──────────────────────────────────── */}
+        <div className="border-b border-border bg-background">
+          <div className={`${px} py-2.5`}>
             <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
               {TLD_FILTERS.map(tld => (
                 <button
                   key={tld.id}
                   data-testid={`filter-tld-${tld.id}`}
                   onClick={() => setTldFilter(tld.id)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
-                    tldFilter === tld.id ? 'bg-foreground text-background' : 'bg-muted text-muted-foreground hover:bg-accent'
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
+                    tldFilter === tld.id
+                      ? 'bg-foreground text-background'
+                      : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
                   }`}
                 >
                   {tld.label}
@@ -158,12 +160,13 @@ export const Marketplace = () => {
               ))}
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* Price + Sort Bar */}
-        <section className="border-b border-border bg-background/60 backdrop-blur-sm sticky top-0 z-10">
-          <div className={isMobile ? 'px-3 py-2.5' : 'max-w-6xl mx-auto px-6 py-2.5'}>
-            <div className="flex items-center justify-between gap-3">
+        {/* ── Price + Sort Bar ────────────────────────────────── */}
+        <div className="border-b border-border bg-background sticky top-0 z-10 backdrop-blur-sm bg-background/90">
+          <div className={`${px} py-2`}>
+            <div className="flex items-center justify-between gap-2">
+              {/* Price chips */}
               <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
                 {PRICE_CHIPS.map(chip => (
                   <button
@@ -171,69 +174,78 @@ export const Marketplace = () => {
                     data-testid={`filter-price-${chip.id}`}
                     onClick={() => setPriceChip(chip.id)}
                     className={`px-3 py-1 rounded-full text-xs whitespace-nowrap transition-colors shrink-0 ${
-                      priceChip === chip.id ? 'bg-primary text-primary-foreground font-medium' : 'bg-muted text-muted-foreground hover:bg-accent'
+                      priceChip === chip.id
+                        ? 'bg-foreground text-background font-semibold'
+                        : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     {chip.label}
                   </button>
                 ))}
               </div>
-              <div className="flex items-center gap-1.5 shrink-0">
+              {/* Sort options */}
+              <div className="flex items-center gap-1 shrink-0">
                 {SORT_OPTIONS.map(opt => (
                   <button
                     key={opt.id}
                     data-testid={`sort-${opt.id}`}
                     onClick={() => setSortBy(opt.id)}
-                    className={`px-2.5 py-1 rounded text-xs whitespace-nowrap transition-colors ${
-                      sortBy === opt.id ? 'bg-foreground text-background font-medium' : 'text-muted-foreground hover:text-foreground'
+                    className={`px-2 py-1 rounded text-xs whitespace-nowrap transition-colors ${
+                      sortBy === opt.id
+                        ? 'bg-foreground text-background font-semibold'
+                        : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     {opt.label}
                   </button>
                 ))}
                 {hasActiveFilters && (
-                  <button onClick={clearAll} className="ml-1 text-muted-foreground hover:text-foreground" data-testid="button-clear-filters">
+                  <button
+                    onClick={clearAll}
+                    className="ml-1 p-1 text-muted-foreground hover:text-foreground rounded"
+                    data-testid="button-clear-filters"
+                    title="清空筛选"
+                  >
                     <X className="h-3.5 w-3.5" />
                   </button>
                 )}
               </div>
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* Main Content */}
-        <div className={isMobile ? 'px-3 pt-5 pb-6' : 'max-w-6xl mx-auto px-6 pt-8 pb-12'}>
+        {/* ── Main Content ────────────────────────────────────── */}
+        <div className={px}>
 
-          {/* Featured Domains */}
-          {!isLoading && featuredDomains.length > 0 && tldFilter === 'all' && priceChip === 'all' && !searchQuery && (
-            <section className="mb-10">
-              <div className="flex items-center gap-2 mb-4">
-                <Flame className="h-5 w-5 text-orange-500" />
-                <h2 className="text-lg font-bold">精选推荐</h2>
-                <Badge variant="secondary" className="text-xs">HOT</Badge>
+          {/* Featured section — only when no active filters */}
+          {!isLoading && featuredDomains.length > 0 && !hasActiveFilters && (
+            <section className="mt-5 mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Flame className="h-4 w-4 text-orange-500" />
+                <span className="text-sm font-bold">精选推荐</span>
+                <Badge variant="secondary" className="text-[10px] h-4 px-1.5">HOT</Badge>
               </div>
-              <div className={`grid gap-3 ${isMobile ? 'grid-cols-2' : 'grid-cols-3'}`}>
+              <div className={`grid gap-2 ${isMobile ? 'grid-cols-2' : 'grid-cols-3'}`}>
                 {featuredDomains.map(domain => (
                   <Link
                     key={domain.id}
-                    to={`/domain/${domain.id}`}
+                    to={`/domain/${encodeURIComponent(domain.name)}`}
                     data-testid={`featured-domain-${domain.id}`}
-                    className="group block rounded-xl border border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 dark:border-orange-900/40 p-4 hover:shadow-md transition-all hover:-translate-y-0.5"
+                    className="group block rounded-xl border border-border bg-card px-4 py-3 hover:bg-muted/40 transition-colors"
                   >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="text-xs font-medium text-orange-600 dark:text-orange-400 flex items-center gap-1">
-                        <Star className="h-3 w-3 fill-current" />精选
-                      </div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] font-medium text-orange-500 flex items-center gap-0.5">
+                        <Star className="h-2.5 w-2.5 fill-current" />精选
+                      </span>
                       {domain.is_verified && (
-                        <Badge variant="outline" className="text-[10px] px-1 py-0 border-green-400 text-green-600">已验证</Badge>
+                        <span className="text-[10px] text-muted-foreground">已验证</span>
                       )}
                     </div>
-                    <p className="font-bold text-foreground group-hover:text-primary transition-colors truncate">{domain.name}</p>
-                    {domain.description && (
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{domain.description}</p>
-                    )}
-                    <p className="mt-2 font-semibold text-primary text-sm">
-                      {domain.price > 0 ? `¥${domain.price.toLocaleString()}` : '面议'}
+                    <p className="font-black text-sm uppercase tracking-tight truncate text-foreground group-hover:text-primary transition-colors">
+                      {domain.name}
+                    </p>
+                    <p className="text-sm font-bold text-foreground mt-1">
+                      {domain.price > 0 ? `$${domain.price.toLocaleString()}` : '$0'}
                     </p>
                   </Link>
                 ))}
@@ -241,13 +253,13 @@ export const Marketplace = () => {
             </section>
           )}
 
-          {/* Result count + verified toggle */}
+          {/* Count + verified toggle */}
           {!isLoading && (
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between py-3">
               <p className="text-sm text-muted-foreground" data-testid="text-domain-count">
                 共 <span className="font-semibold text-foreground">{filteredDomains.length}</span> 个域名
                 {filteredDomains.length !== allDomains.length && (
-                  <span className="ml-1 text-xs">(共 {allDomains.length} 个)</span>
+                  <span className="ml-1 text-xs text-muted-foreground/60">/ {allDomains.length}</span>
                 )}
               </p>
               <div className="flex items-center gap-2">
@@ -255,15 +267,18 @@ export const Marketplace = () => {
                   data-testid="toggle-verified-only"
                   onClick={() => setVerifiedOnly(!verifiedOnly)}
                   className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full transition-colors ${
-                    verifiedOnly ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'text-muted-foreground hover:text-foreground'
+                    verifiedOnly
+                      ? 'bg-foreground text-background font-medium'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  <TrendingUp className="h-3 w-3" />仅已验证
+                  <TrendingUp className="h-3 w-3" />
+                  仅已验证
                 </button>
                 <button
                   onClick={handleRefresh}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                  title="刷新数据"
+                  className="text-muted-foreground hover:text-foreground transition-colors p-1"
+                  title="刷新"
                   data-testid="button-refresh-domains"
                 >
                   <RefreshCw className="h-3.5 w-3.5" />
@@ -272,14 +287,21 @@ export const Marketplace = () => {
             </div>
           )}
 
-          {/* Domain Listings */}
+          {/* Domain list */}
           {isError ? (
             <div className="text-center py-16">
               <p className="text-muted-foreground mb-4">加载域名失败，请重试</p>
               <Button onClick={() => refetch()} variant="outline" size="sm">重新加载</Button>
             </div>
           ) : isLoading ? (
-            <SkeletonCardGrid count={isMobile ? 6 : 9} />
+            <div className="rounded-xl border border-border overflow-hidden bg-card">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="px-4 py-4 border-b border-border animate-pulse">
+                  <div className="h-7 w-48 bg-muted rounded mb-2" />
+                  <div className="h-5 w-24 bg-muted rounded" />
+                </div>
+              ))}
+            </div>
           ) : filteredDomains.length === 0 && allDomains.length === 0 ? (
             <div className="text-center py-20">
               <div className="text-5xl mb-4">🔍</div>
@@ -299,10 +321,10 @@ export const Marketplace = () => {
           )}
         </div>
 
-        <SoldDomains />
+        <div className={`mt-8 ${px}`}>
+          <SoldDomains />
+        </div>
       </div>
-
-      
     </div>
   );
 };
