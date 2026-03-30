@@ -163,53 +163,51 @@ export const Marketplace = () => {
         </div>
 
         {/* ── Price + Sort Bar ────────────────────────────────── */}
-        <div className="border-b border-border bg-background sticky top-0 z-10 backdrop-blur-sm bg-background/90">
-          <div className={`${px} py-2`}>
-            <div className="flex items-center justify-between gap-2">
-              {/* Price chips */}
-              <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
-                {PRICE_CHIPS.map(chip => (
-                  <button
-                    key={chip.id}
-                    data-testid={`filter-price-${chip.id}`}
-                    onClick={() => setPriceChip(chip.id)}
-                    className={`px-3 py-1 rounded-full text-xs whitespace-nowrap transition-colors shrink-0 ${
-                      priceChip === chip.id
-                        ? 'bg-foreground text-background font-semibold'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    {chip.label}
-                  </button>
-                ))}
-              </div>
-              {/* Sort options */}
-              <div className="flex items-center gap-1 shrink-0">
-                {SORT_OPTIONS.map(opt => (
-                  <button
-                    key={opt.id}
-                    data-testid={`sort-${opt.id}`}
-                    onClick={() => setSortBy(opt.id)}
-                    className={`px-2 py-1 rounded text-xs whitespace-nowrap transition-colors ${
-                      sortBy === opt.id
-                        ? 'bg-foreground text-background font-semibold'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-                {hasActiveFilters && (
-                  <button
-                    onClick={clearAll}
-                    className="ml-1 p-1 text-muted-foreground hover:text-foreground rounded"
-                    data-testid="button-clear-filters"
-                    title="清空筛选"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                )}
-              </div>
+        <div className="border-b border-border bg-background/90 sticky top-0 z-10 backdrop-blur-sm">
+          <div className={px}>
+            {/* Row 1: Price chips */}
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-2 border-b border-border/50">
+              {PRICE_CHIPS.map(chip => (
+                <button
+                  key={chip.id}
+                  data-testid={`filter-price-${chip.id}`}
+                  onClick={() => setPriceChip(chip.id)}
+                  className={`px-3 py-1 rounded-full text-xs whitespace-nowrap transition-colors shrink-0 ${
+                    priceChip === chip.id
+                      ? 'bg-foreground text-background font-semibold'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
+            {/* Row 2: Sort options */}
+            <div className="flex items-center gap-1 py-2">
+              {SORT_OPTIONS.map(opt => (
+                <button
+                  key={opt.id}
+                  data-testid={`sort-${opt.id}`}
+                  onClick={() => setSortBy(opt.id)}
+                  className={`px-2.5 py-1 rounded text-xs whitespace-nowrap transition-colors ${
+                    sortBy === opt.id
+                      ? 'bg-foreground text-background font-semibold'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+              {hasActiveFilters && (
+                <button
+                  onClick={clearAll}
+                  className="ml-auto p-1 text-muted-foreground hover:text-foreground rounded"
+                  data-testid="button-clear-filters"
+                  title="清空筛选"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
           </div>
         </div>
