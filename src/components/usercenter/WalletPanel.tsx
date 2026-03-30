@@ -1,3 +1,4 @@
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/contexts/AuthContext';
@@ -157,16 +158,12 @@ export const WalletPanel = () => {
   // Realtime: refresh wallet when payment_transactions change for this user
   useEffect(() => {
     if (!user) return;
-    const channel = supabase
-      .channel(`wallet-realtime-${user.id}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'payment_transactions',
-        filter: `user_id=eq.${user.id}`,
-      }, () => { loadWalletData(); })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    useRealtimeSubscription(
+    ["payment_transactions"],
+    (_event) => { loadWalletData(); },
+    true
+  );
+    
   }, [user, loadWalletData]);
 
   const handleRefresh = () => {

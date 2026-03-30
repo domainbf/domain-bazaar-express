@@ -1,3 +1,4 @@
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -55,11 +56,12 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
   const [isCountering, setIsCountering] = useState(false);
 
   useEffect(() => {
-    const channel = supabase
-      .channel('received-offers-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'domain_offers' }, () => onRefresh())
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    useRealtimeSubscription(
+    ["domain_offers"],
+    (_event) => { onRefresh?.(); },
+    true
+  );
+    
   }, [onRefresh]);
 
   const handleOfferAction = async (offerId: string, action: 'accepted' | 'rejected' | 'completed') => {

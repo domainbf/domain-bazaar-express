@@ -1,4 +1,5 @@
 
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -48,25 +49,13 @@ export const TransactionHistory = () => {
 
   // 实时监听发出的报价状态变化
   useEffect(() => {
-    const channel = supabase
-      .channel('sent-offers-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'domain_offers'
-        },
-        (payload) => {
-          console.log('Offer updated:', payload);
-          loadTransactions();
-        }
-      )
-      .subscribe();
+    useRealtimeSubscription(
+    ["transactions"],
+    (_event) => { loadTransactions(); },
+    true
+  );
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    
   }, []);
 
   const loadTransactions = async () => {

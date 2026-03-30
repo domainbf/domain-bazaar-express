@@ -1,3 +1,4 @@
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,17 +45,13 @@ export const EnhancedActivityLog = () => {
   useEffect(() => {
     loadActivities();
     
-    const channel = supabase
-      .channel('admin-activities-enhanced')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'user_activities' },
-        (payload) => {
-          setActivities(prev => [payload.new as ActivityLog, ...prev].slice(0, PAGE_SIZE));
-          setTotalCount(prev => prev + 1);
-        }
-      )
-      .subscribe();
+    useRealtimeSubscription(
+    ["user_activities"],
+    (_event) => { loadActivities(); },
+    true
+  );
 
-    return () => { supabase.removeChannel(channel); };
+    
   }, [page, filterType]);
 
   const loadActivities = async () => {

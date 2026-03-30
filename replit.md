@@ -4,13 +4,35 @@ A comprehensive domain name trading marketplace built with React, Vite, TypeScri
 
 ## Architecture
 
-- **Frontend**: React 18 + TypeScript + Vite SPA (pure frontend — no Express)
+- **Frontend**: React 18 + TypeScript + Vite SPA
 - **Styling**: Tailwind CSS + shadcn/ui components
-- **State**: TanStack Query (15min staleTime, all pages migrated) + React Context for auth
-- **Backend**: Supabase (auth, database, realtime, edge functions)
+- **State**: TanStack Query + React Context for auth
+- **Auth**: Custom JWT backend (Hono + Node.js, port 3001) with bcrypt password hashing, 15min access tokens + 30-day refresh tokens stored in localStorage
+- **Database**: Turso SQLite (libSQL) — all 37 tables migrated from Supabase PostgreSQL. Supabase still used for DB queries (data layer intact).
+- **Real-time**: Custom SSE endpoint at `/api/realtime/stream` with in-memory EventBus. All components use `useRealtimeSubscription` hook (replaces Supabase Realtime channels).
+- **File Upload**: Vercel Blob via Supabase Edge Function `upload-blob`
 - **Routing**: React Router v6 with lazy-loaded routes
 - **i18n**: i18next with Chinese/English support
 - **PWA**: vite-plugin-pwa with workbox service worker
+
+## Services & Ports
+- **Vite dev server**: port 5000 (user-facing, proxies /api → 3001)
+- **API Server**: port 3001 (`npm run server` → `tsx server/index.ts`)
+  - `POST /api/auth/login|register|logout|refresh|me|profile|change-password|request-reset|reset-password`
+  - `GET /api/realtime/stream` — SSE stream with ?token=&tables= params
+  - `GET/POST /api/data/*` — generic data endpoints from Turso
+
+## Key Files
+- `server/index.ts` — Hono API server entry
+- `server/routes/auth.ts` — JWT auth routes
+- `server/routes/realtime.ts` — SSE endpoint + publish endpoint
+- `server/db.ts` — Turso libSQL client
+- `server/jwt.ts` — jose JWT sign/verify
+- `server/eventBus.ts` — Node EventEmitter pub/sub bus
+- `src/lib/apiClient.ts` — JWT-aware fetch wrapper with auto-refresh
+- `src/lib/realtime.ts` — SSE client manager with reconnect
+- `src/hooks/useRealtimeSubscription.ts` — React hook for SSE subscriptions
+- `src/contexts/AuthContext.tsx` — Uses custom API (no Supabase Auth)
 
 ## Performance Architecture
 

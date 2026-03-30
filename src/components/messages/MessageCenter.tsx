@@ -1,3 +1,4 @@
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -45,23 +46,13 @@ export const MessageCenter = ({ otherUserId, transactionId, domainId, offerId }:
     loadMessages();
     loadOtherUser();
 
-    const channel = supabase
-      .channel(`messages:${[user.id, otherUserId].sort().join('-')}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'messages',
-        filter: `receiver_id=eq.${user.id}`,
-      }, (payload) => {
-        const msg = payload.new as Message;
-        if (msg.sender_id === otherUserId) {
-          setMessages(prev => [...prev, msg]);
-          markAsRead(msg.id);
-        }
-      })
-      .subscribe();
+    useRealtimeSubscription(
+    ["messages"],
+    (_event) => { loadMessages(); },
+    true
+  );
 
-    return () => { supabase.removeChannel(channel); };
+    
   }, [user, otherUserId]);
 
   useEffect(() => {

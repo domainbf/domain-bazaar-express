@@ -1,3 +1,4 @@
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -69,12 +70,13 @@ export const AuctionsPage = () => {
   useEffect(() => {
     loadAuctions();
 
-    const channel = supabase
-      .channel('auctions_public')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'domain_auctions' }, loadAuctions)
-      .subscribe();
+    useRealtimeSubscription(
+    ["domain_auctions","auction_bids"],
+    (_event) => { loadAuctions(); },
+    true
+  );
 
-    return () => { supabase.removeChannel(channel); };
+    
   }, [loadAuctions]);
 
   const activeAuctions = auctions.filter(a => a.status === 'active' && !isPast(new Date(a.end_time)));

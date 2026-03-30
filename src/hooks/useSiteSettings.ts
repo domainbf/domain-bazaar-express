@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { realtimeClient } from '@/lib/realtime';
 
 export interface SiteConfig {
   site_name: string;
@@ -93,7 +94,7 @@ const ALL_KEYS = Object.keys(defaultConfig);
 let cachedConfig: SiteConfig | null = null;
 let fetchPromise: Promise<SiteConfig> | null = null;
 let listeners: Array<(c: SiteConfig) => void> = [];
-let realtimeChannel: ReturnType<typeof supabase.channel> | null = null;
+let realtimeChannelId: string | null = null;
 
 export const fetchSiteConfig = async (): Promise<SiteConfig> => {
   // If a fetch is already in flight, reuse it
@@ -130,13 +131,11 @@ export const fetchSiteConfig = async (): Promise<SiteConfig> => {
 
 /* Set up ONE realtime channel for the entire app lifetime */
 const ensureRealtimeChannel = () => {
-  if (realtimeChannel) return;
-  realtimeChannel = supabase
-    .channel('site-settings-singleton')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, () => {
-      fetchSiteConfig();
-    })
-    .subscribe();
+  if (realtimeChannelId) return;
+  realtimeChannelId = 'site-settings-singleton';
+  realtimeClient.subscribe(realtimeChannelId, ['site_settings'], (event) => {
+    if (event.type === 'db-change') fetchSiteConfig();
+  });
 };
 
 export const useSiteSettings = () => {

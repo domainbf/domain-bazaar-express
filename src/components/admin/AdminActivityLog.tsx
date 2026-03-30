@@ -1,3 +1,4 @@
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -75,20 +76,13 @@ export const AdminActivityLog = () => {
     loadActivities();
     
     // 设置实时订阅
-    const channel = supabase
-      .channel('admin-activities')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'user_activities' },
-        (payload) => {
-          setActivities(prev => [payload.new as ActivityLog, ...prev].slice(0, 100));
-        }
-      )
-      .subscribe();
+    useRealtimeSubscription(
+    ["user_activities"],
+    (_event) => { loadActivities(); },
+    true
+  );
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    
   }, []);
 
   const loadActivities = async () => {

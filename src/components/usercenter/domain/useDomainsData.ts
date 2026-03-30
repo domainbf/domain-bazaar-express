@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Domain } from '@/types/domain';
 import { useTranslation } from 'react-i18next';
 import { useAppCache } from '@/hooks/useAppCache';
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 
 export const useDomainsData = () => {
   const { user } = useAuth();
@@ -13,7 +14,7 @@ export const useDomainsData = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const channelRef = useRef<null>(null);
 
   const createAnalyticsRecord = async (domainId: string) => {
     try {
@@ -142,46 +143,18 @@ export const useDomainsData = () => {
     }
   }, [refreshCache, clearCache]);
 
-  // 设置实时订阅
-  useEffect(() => {
-    if (!user) return;
-
-    // 清理之前的频道
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
-    }
-
-    const channel = supabase
-      .channel(`domain_listings_owner_${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'domain_listings',
-          filter: `owner_id=eq.${user.id}`,
-        },
-        (payload) => {
-          console.log('Domain change detected:', payload.eventType);
-          // 实时刷新缓存数据
-          refreshCache();
-        }
-      )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('Realtime subscription active for domains');
-        }
-      });
-
-    channelRef.current = channel;
-
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
+  // 设置实时订阅 (SSE)
+  useRealtimeSubscription(
+    ['domain_listings'],
+    (event) => {
+      if (!user || event.type !== 'db-change') return;
+      const row = event.new as Record<string, unknown> | undefined;
+      if (row?.owner_id === user.id) {
+        refreshCache();
       }
-    };
-  }, [user, refreshCache]);
+    },
+    !!user
+  );
 
   return {
     domains,

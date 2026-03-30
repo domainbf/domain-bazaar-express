@@ -1,3 +1,4 @@
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -52,14 +53,13 @@ export const OffersManagement = () => {
   useEffect(() => {
     loadOffers();
 
-    const channel = supabase
-      .channel('admin-offers-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'domain_offers' }, () => {
-        loadOffers();
-      })
-      .subscribe();
+    useRealtimeSubscription(
+    ["domain_offers"],
+    (_event) => { loadOffers(); },
+    true
+  );
 
-    return () => { supabase.removeChannel(channel); };
+    
   }, []);
 
   const loadOffers = async () => {

@@ -1,3 +1,4 @@
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -55,25 +56,13 @@ export const AllDomainListings = () => {
     loadDomains();
     
     // 设置实时订阅
-    const channel = supabase
-      .channel('admin-domain-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'domain_listings',
-        },
-        (payload) => {
-          console.log('Admin: Domain change detected', payload.eventType);
-          loadDomains();
-        }
-      )
-      .subscribe();
+    useRealtimeSubscription(
+    ["domain_listings"],
+    (_event) => { refreshDomains(); },
+    true
+  );
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    
   }, []);
 
   const loadDomains = async () => {

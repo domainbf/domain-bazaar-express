@@ -1,9 +1,10 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/contexts/AuthContext';
 import { Notification } from '@/types/domain';
 import { toast } from 'sonner';
+import { useRealtimeSubscription } from './useRealtimeSubscription';
 
 const NOTIF_KEY = (userId: string) => ['notifications', userId] as const;
 
@@ -24,33 +25,10 @@ const fetchNotifications = async (userId: string): Promise<Notification[]> => {
   }
 };
 
-// Module-level singleton to prevent multiple realtime channels for same user
-let realtimeUserId: string | null = null;
-let realtimeChannel: ReturnType<typeof supabase.channel> | null = null;
-
-const ensureRealtimeChannel = (
-  userId: string,
-  onNew: (n: Notification) => void
-) => {
-  if (realtimeUserId === userId && realtimeChannel) return;
-  if (realtimeChannel) {
-    supabase.removeChannel(realtimeChannel);
-    realtimeChannel = null;
-  }
-  realtimeUserId = userId;
-  realtimeChannel = supabase
-    .channel('notifications-singleton')
-    .on(
-      'postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
-      (payload) => onNew(payload.new as Notification)
-    )
-    .subscribe();
-};
-
 export const useNotifications = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const handlerRef = useRef<((n: Notification) => void) | null>(null);
 
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: user ? NOTIF_KEY(user.id) : ['notifications', 'none'],
@@ -63,10 +41,10 @@ export const useNotifications = () => {
 
   const unreadCount = (notifications as Notification[]).filter(n => !n.is_read).length;
 
-  // Singleton realtime subscription — only one channel active at a time
+  // Keep handler ref stable
   useEffect(() => {
     if (!user) return;
-    ensureRealtimeChannel(user.id, (newNotif) => {
+    handlerRef.current = (newNotif: Notification) => {
       queryClient.setQueryData(
         NOTIF_KEY(user.id),
         (old: Notification[] = []) => [newNotif, ...old]
@@ -77,11 +55,21 @@ export const useNotifications = () => {
           ? { label: '查看', onClick: () => { window.location.href = newNotif.action_url || '#'; } }
           : undefined,
       });
-    });
-    return () => {
-      // Don't tear down on unmount — the singleton outlives any single component
     };
   }, [user?.id, queryClient]);
+
+  // Real-time subscription via SSE
+  useRealtimeSubscription(
+    ['notifications'],
+    (event) => {
+      if (!user || event.type !== 'db-change') return;
+      if (event.eventType !== 'INSERT') return;
+      const row = event.new as Notification | undefined;
+      if (!row || row.user_id !== user.id) return;
+      handlerRef.current?.(row);
+    },
+    !!user
+  );
 
   const markAsRead = async (notificationId: string) => {
     if (!user) return;

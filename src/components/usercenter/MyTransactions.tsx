@@ -1,3 +1,4 @@
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -90,14 +91,13 @@ export const MyTransactions = () => {
   useEffect(() => {
     loadTransactions();
 
-    const channel = supabase
-      .channel('my-transactions-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => {
-        loadTransactions();
-      })
-      .subscribe();
+    useRealtimeSubscription(
+    ["transactions"],
+    (_event) => { loadTransactions(); },
+    true
+  );
 
-    return () => { supabase.removeChannel(channel); };
+    
   }, [loadTransactions]);
 
   const handleRefresh = () => {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,36 +34,13 @@ export const DomainAuction: React.FC<DomainAuctionProps> = ({ auction: initialAu
     loadUserAutoBid();
 
     // Subscribe to real-time bid updates
-    const channel = supabase
-      .channel(`auction:${auction.id}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'auction_bids',
-        filter: `auction_id=eq.${auction.id}`,
-      }, (payload) => {
-        const newBid = payload.new as AuctionBid;
-        setRecentBids(prev => [newBid, ...prev.slice(0, 9)]);
-        setAuction(prev => ({
-          ...prev,
-          current_price: newBid.amount,
-          total_bids: prev.total_bids + 1,
-        }));
-        if (newBid.bidder_id !== user?.id) {
-          toast.info(`新的出价：¥${newBid.amount.toLocaleString()}`);
-        }
-      })
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'domain_auctions',
-        filter: `id=eq.${auction.id}`,
-      }, (payload) => {
-        setAuction(prev => ({ ...prev, ...payload.new }));
-      })
-      .subscribe();
+    useRealtimeSubscription(
+    ["domain_auctions","auction_bids"],
+    (_event) => { loadRecentBids(); },
+    true
+  );
 
-    return () => { supabase.removeChannel(channel); };
+    
   }, [auction.id, user?.id]);
 
   useEffect(() => {
