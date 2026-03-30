@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
-import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/apiClient';
+import { apiGet, apiPost, apiPatch, apiDelete, apiFetch } from '@/lib/apiClient';
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -123,6 +123,22 @@ export const SiteSettings = () => {
   });
   const [isSavingContact, setIsSavingContact] = useState(false);
 
+  // Brand / identity state
+  const [brandInfo, setBrandInfo] = useState({
+    site_name: '',
+    site_subtitle: '',
+    logo_url: '',
+    logo_dark_url: '',
+    footer_text: '',
+    icp_number: '',
+    social_github: '',
+    social_twitter: '',
+    social_wechat: '',
+    social_weibo: '',
+  });
+  const [isSavingBrand, setIsSavingBrand] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState<'light' | 'dark' | null>(null);
+
   const handleChangeOwnPassword = async () => {
     if (!newPassword || newPassword.length < 8) {
       toast.error('密码至少8位');
@@ -171,6 +187,7 @@ export const SiteSettings = () => {
     loadSettings();
     loadSmtpConfig();
     loadContactConfig();
+    loadBrandConfig();
     loadWhoisConfig();
     loadModelScopeConfig();
   }, []);
@@ -337,6 +354,68 @@ export const SiteSettings = () => {
       toast.error('保存失败：' + e.message);
     } finally {
       setIsSavingContact(false);
+    }
+  };
+
+  const loadBrandConfig = async () => {
+    try {
+      const { data } = await supabase
+        .from('site_settings')
+        .select('key, value')
+        .in('key', ['site_name', 'site_subtitle', 'logo_url', 'logo_dark_url', 'footer_text', 'icp_number',
+                    'social_github', 'social_twitter', 'social_wechat', 'social_weibo']);
+      if (data && data.length > 0) {
+        const m = Object.fromEntries(data.map((r: any) => [r.key, r.value]));
+        setBrandInfo({
+          site_name: m['site_name'] || '',
+          site_subtitle: m['site_subtitle'] || '',
+          logo_url: m['logo_url'] || '',
+          logo_dark_url: m['logo_dark_url'] || '',
+          footer_text: m['footer_text'] || '',
+          icp_number: m['icp_number'] || '',
+          social_github: m['social_github'] || '',
+          social_twitter: m['social_twitter'] || '',
+          social_wechat: m['social_wechat'] || '',
+          social_weibo: m['social_weibo'] || '',
+        });
+      }
+    } catch (e) { console.error('loadBrandConfig error', e); }
+  };
+
+  const saveBrandConfig = async () => {
+    setIsSavingBrand(true);
+    try {
+      const updates: Record<string, string> = {};
+      for (const [k, v] of Object.entries(brandInfo)) {
+        updates[k] = v;
+      }
+      await apiPatch('/data/site-settings', updates);
+      toast.success('品牌设置已保存');
+    } catch (e: any) {
+      toast.error('保存失败：' + (e.message || '未知错误'));
+    } finally {
+      setIsSavingBrand(false);
+    }
+  };
+
+  const uploadLogo = async (file: File, mode: 'light' | 'dark') => {
+    setIsUploadingLogo(mode);
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      form.append('mode', mode);
+      const res = await apiFetch('/data/admin/upload-logo', { method: 'POST', body: form });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || '上传失败');
+      setBrandInfo(prev => ({
+        ...prev,
+        [mode === 'dark' ? 'logo_dark_url' : 'logo_url']: json.url,
+      }));
+      toast.success(`${mode === 'dark' ? '深色' : '浅色'} Logo 上传成功`);
+    } catch (e: any) {
+      toast.error('上传失败：' + (e.message || '未知错误'));
+    } finally {
+      setIsUploadingLogo(null);
     }
   };
 
@@ -587,6 +666,10 @@ export const SiteSettings = () => {
           <TabsTrigger value="appearance">
             <Palette className="h-4 w-4 mr-2" />
             外观设置
+          </TabsTrigger>
+          <TabsTrigger value="brand">
+            <Palette className="h-4 w-4 mr-2" />
+            品牌与外观
           </TabsTrigger>
           <TabsTrigger value="api">
             <Puzzle className="h-4 w-4 mr-2" />
@@ -1180,6 +1263,222 @@ export const SiteSettings = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* 品牌与外观 Tab */}
+        <TabsContent value="brand" className="space-y-6">
+          {/* 基本品牌信息 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="h-5 w-5 text-primary" />
+                品牌基本信息
+              </CardTitle>
+              <CardDescription>配置网站名称、副标题、版权文字和 ICP 备案号</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="font-semibold">网站名称</Label>
+                  <Input
+                    value={brandInfo.site_name}
+                    onChange={e => setBrandInfo(p => ({ ...p, site_name: e.target.value }))}
+                    placeholder="例：域见•你"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-semibold">网站副标题</Label>
+                  <Input
+                    value={brandInfo.site_subtitle}
+                    onChange={e => setBrandInfo(p => ({ ...p, site_subtitle: e.target.value }))}
+                    placeholder="例：专业中文域名交易平台"
+                  />
+                  <p className="text-xs text-muted-foreground">显示在页脚品牌列</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-semibold">页脚版权文字</Label>
+                  <Input
+                    value={brandInfo.footer_text}
+                    onChange={e => setBrandInfo(p => ({ ...p, footer_text: e.target.value }))}
+                    placeholder="例：域见•你 域名交易平台。保留所有权利。"
+                  />
+                  <p className="text-xs text-muted-foreground">显示在页脚底部 © 年份 后面</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-semibold">ICP 备案号</Label>
+                  <Input
+                    value={brandInfo.icp_number}
+                    onChange={e => setBrandInfo(p => ({ ...p, icp_number: e.target.value }))}
+                    placeholder="例：京ICP备XXXXXXXX号"
+                  />
+                  <p className="text-xs text-muted-foreground">显示在页脚底部，点击跳转工信部网站</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Logo 上传 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Key className="h-5 w-5 text-primary" />
+                Logo 配置
+              </CardTitle>
+              <CardDescription>
+                分别上传浅色和深色模式 Logo（支持 PNG/SVG/WebP，建议透明背景，最大 2MB）
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* 浅色 Logo */}
+                <div className="space-y-3">
+                  <Label className="font-semibold">浅色模式 Logo</Label>
+                  <div className="border rounded-lg p-4 bg-white flex flex-col items-center gap-3 min-h-[120px] justify-center">
+                    {brandInfo.logo_url ? (
+                      <img src={brandInfo.logo_url} alt="Light Logo" className="max-h-16 max-w-full object-contain" />
+                    ) : (
+                      <p className="text-xs text-muted-foreground">未设置 Logo，将显示文字</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">直接上传文件</Label>
+                    <input
+                      type="file"
+                      accept="image/png,image/svg+xml,image/webp,image/jpeg,image/gif"
+                      className="hidden"
+                      id="logo-light-upload"
+                      onChange={e => {
+                        const f = e.target.files?.[0];
+                        if (f) uploadLogo(f, 'light');
+                        e.target.value = '';
+                      }}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      disabled={isUploadingLogo === 'light'}
+                      onClick={() => document.getElementById('logo-light-upload')?.click()}
+                    >
+                      {isUploadingLogo === 'light' ? (
+                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" />上传中...</>
+                      ) : (
+                        '选择文件上传'
+                      )}
+                    </Button>
+                    <Label className="text-xs text-muted-foreground">或填写图片 URL</Label>
+                    <Input
+                      value={brandInfo.logo_url}
+                      onChange={e => setBrandInfo(p => ({ ...p, logo_url: e.target.value }))}
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+
+                {/* 深色 Logo */}
+                <div className="space-y-3">
+                  <Label className="font-semibold">深色模式 Logo</Label>
+                  <div className="border rounded-lg p-4 bg-gray-900 flex flex-col items-center gap-3 min-h-[120px] justify-center">
+                    {brandInfo.logo_dark_url ? (
+                      <img src={brandInfo.logo_dark_url} alt="Dark Logo" className="max-h-16 max-w-full object-contain" />
+                    ) : (
+                      <p className="text-xs text-gray-400">未设置深色 Logo，将使用浅色版本</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">直接上传文件</Label>
+                    <input
+                      type="file"
+                      accept="image/png,image/svg+xml,image/webp,image/jpeg,image/gif"
+                      className="hidden"
+                      id="logo-dark-upload"
+                      onChange={e => {
+                        const f = e.target.files?.[0];
+                        if (f) uploadLogo(f, 'dark');
+                        e.target.value = '';
+                      }}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      disabled={isUploadingLogo === 'dark'}
+                      onClick={() => document.getElementById('logo-dark-upload')?.click()}
+                    >
+                      {isUploadingLogo === 'dark' ? (
+                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" />上传中...</>
+                      ) : (
+                        '选择文件上传'
+                      )}
+                    </Button>
+                    <Label className="text-xs text-muted-foreground">或填写图片 URL</Label>
+                    <Input
+                      value={brandInfo.logo_dark_url}
+                      onChange={e => setBrandInfo(p => ({ ...p, logo_dark_url: e.target.value }))}
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 社交媒体链接 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5 text-primary" />
+                社交媒体链接
+              </CardTitle>
+              <CardDescription>配置页脚社交媒体图标链接，留空则不显示该图标</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="font-semibold">GitHub</Label>
+                  <Input
+                    value={brandInfo.social_github}
+                    onChange={e => setBrandInfo(p => ({ ...p, social_github: e.target.value }))}
+                    placeholder="https://github.com/yourorg"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-semibold">Twitter / X</Label>
+                  <Input
+                    value={brandInfo.social_twitter}
+                    onChange={e => setBrandInfo(p => ({ ...p, social_twitter: e.target.value }))}
+                    placeholder="https://twitter.com/yourhandle"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-semibold">微信公众号（链接或二维码页面）</Label>
+                  <Input
+                    value={brandInfo.social_wechat}
+                    onChange={e => setBrandInfo(p => ({ ...p, social_wechat: e.target.value }))}
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-semibold">微博</Label>
+                  <Input
+                    value={brandInfo.social_weibo}
+                    onChange={e => setBrandInfo(p => ({ ...p, social_weibo: e.target.value }))}
+                    placeholder="https://weibo.com/yourpage"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end">
+            <Button onClick={saveBrandConfig} disabled={isSavingBrand} className="px-8">
+              {isSavingBrand ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />保存中...</>
+              ) : (
+                <><Save className="h-4 w-4 mr-2" />保存品牌设置</>
+              )}
+            </Button>
+          </div>
         </TabsContent>
 
         {/* API 集成 Tab */}

@@ -4,9 +4,16 @@ import { realtimeClient } from '@/lib/realtime';
 
 export interface SiteConfig {
   site_name: string;
+  site_subtitle: string;
   site_domain: string;
   logo_url: string;
+  logo_dark_url: string;
   favicon_url: string;
+  icp_number: string;
+  social_github: string;
+  social_twitter: string;
+  social_wechat: string;
+  social_weibo: string;
   contact_phone: string;
   contact_email: string;
   contact_address: string;
@@ -46,9 +53,16 @@ export interface SiteConfig {
 
 const defaultConfig: SiteConfig = {
   site_name: '域见•你',
+  site_subtitle: '专业中文域名交易平台',
   site_domain: '',
   logo_url: '/lovable-uploads/nic.png',
+  logo_dark_url: '',
   favicon_url: '/favicon.ico',
+  icp_number: '',
+  social_github: '',
+  social_twitter: '',
+  social_wechat: '',
+  social_weibo: '',
   contact_phone: '',
   contact_email: '',
   contact_address: '',

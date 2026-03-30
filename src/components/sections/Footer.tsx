@@ -3,7 +3,8 @@ import {
   Globe, Shield, MessageSquare, Mail, Github, Twitter,
   ShoppingBag, BarChart2, Bell, Gavel, Layers,
   Lock, UserPlus, Upload, Scale, HelpCircle,
-  Users, Phone, FileText, AlertTriangle, BookOpen
+  Users, Phone, FileText, AlertTriangle, BookOpen,
+  MessageCircle
 } from 'lucide-react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { Separator } from '@/components/ui/separator';
@@ -138,22 +139,45 @@ export const Footer = () => {
           {/* 品牌介绍 — 移至最右列 */}
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-3">
-              <Globe className="h-6 w-6 text-primary" />
+              {config?.logo_url ? (
+                <img src={config.logo_url} alt={config.site_name ?? 'NIC.BN'} className="h-7 w-auto" />
+              ) : (
+                <Globe className="h-6 w-6 text-primary" />
+              )}
               <span className="text-lg font-bold">{config?.site_name ?? 'NIC.BN'}</span>
             </div>
+            {config?.site_subtitle && (
+              <p className="text-xs text-primary/70 mb-2">{config.site_subtitle}</p>
+            )}
             <p className="text-sm text-muted-foreground leading-relaxed">
               专业域名交易平台，提供安全可靠的买卖撮合、资金托管和纠纷调解服务。
             </p>
-            <div className="flex gap-3 mt-4">
-              <a href={config?.contact_email ? `mailto:${config.contact_email}` : '#'} className="text-muted-foreground hover:text-primary transition-colors">
-                <Mail className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                <Github className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                <Twitter className="h-5 w-5" />
-              </a>
+            <div className="flex gap-3 mt-4 flex-wrap">
+              {config?.contact_email && (
+                <a href={`mailto:${config.contact_email}`} title="邮件联系" className="text-muted-foreground hover:text-primary transition-colors">
+                  <Mail className="h-5 w-5" />
+                </a>
+              )}
+              {config?.social_github && (
+                <a href={config.social_github} target="_blank" rel="noopener noreferrer" title="GitHub" className="text-muted-foreground hover:text-primary transition-colors">
+                  <Github className="h-5 w-5" />
+                </a>
+              )}
+              {config?.social_twitter && (
+                <a href={config.social_twitter} target="_blank" rel="noopener noreferrer" title="Twitter / X" className="text-muted-foreground hover:text-primary transition-colors">
+                  <Twitter className="h-5 w-5" />
+                </a>
+              )}
+              {config?.social_weibo && (
+                <a href={config.social_weibo} target="_blank" rel="noopener noreferrer" title="微博" className="text-muted-foreground hover:text-primary transition-colors">
+                  <MessageCircle className="h-5 w-5" />
+                </a>
+              )}
+              {config?.contact_phone && (
+                <a href={`tel:${config.contact_phone}`} title="电话" className="text-muted-foreground hover:text-primary transition-colors">
+                  <Phone className="h-5 w-5" />
+                </a>
+              )}
             </div>
           </div>
         </div>
@@ -164,7 +188,19 @@ export const Footer = () => {
       {/* 底部版权 */}
       <div className="max-w-6xl mx-auto px-4 py-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-          <p>© {year} {config?.footer_text ?? `${config?.site_name ?? 'NIC.BN'} 版权所有`}</p>
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <p>© {year} {config?.footer_text ?? `${config?.site_name ?? 'NIC.BN'} 版权所有`}</p>
+            {config?.icp_number && (
+              <a
+                href="https://beian.miit.gov.cn/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-foreground transition-colors"
+              >
+                {config.icp_number}
+              </a>
+            )}
+          </div>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
               <Shield className="h-3.5 w-3.5 text-green-500" />

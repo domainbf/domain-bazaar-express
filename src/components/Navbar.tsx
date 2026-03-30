@@ -18,6 +18,7 @@ import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useQueryClient } from '@tanstack/react-query';
 import { prefetchDomainListings } from '@/hooks/useDomainListings';
+import { useTheme } from 'next-themes';
 
 interface NavbarProps {
   unreadCount?: number;
@@ -31,6 +32,9 @@ export const Navbar = ({ unreadCount = 0, unreadMessages: unreadMessagesProp = 0
   const navigate = useNavigate();
   const { toast } = useToast();
   const { config: siteConfig } = useSiteSettings();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
+  const logoSrc = (isDark && siteConfig.logo_dark_url) ? siteConfig.logo_dark_url : (siteConfig.logo_url || '/lovable-uploads/nic.png');
   const actualUnreadCount = unreadCount;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -171,7 +175,7 @@ export const Navbar = ({ unreadCount = 0, unreadMessages: unreadMessagesProp = 0
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
           <img 
-            src={siteConfig.logo_url || '/lovable-uploads/nic.png'} 
+            src={logoSrc} 
             alt={siteConfig.site_name || '域见•你'} 
             className="h-10 w-auto" 
             onError={(e) => {

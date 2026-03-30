@@ -98,12 +98,28 @@ export const UserCenter = () => {
     );
   }
 
-  const desktopTabs = [
-    { value: 'domains', label: '我的域名', icon: Globe },
-    { value: 'transactions', label: '交易记录', icon: ClipboardList },
-    { value: 'messages', label: '站内消息', icon: MessageSquare, badge: unreadMessages },
-    { value: 'notifications', label: '消息通知', icon: Bell, badge: unreadCount },
-    { value: 'profile', label: '个人资料', icon: User },
+  const sidebarNavGroups = [
+    {
+      title: '资产管理',
+      items: [
+        { value: 'domains', label: '我的域名', icon: Globe },
+        { value: 'transactions', label: '交易记录', icon: ClipboardList },
+      ],
+    },
+    {
+      title: '消息中心',
+      items: [
+        { value: 'messages', label: '站内消息', icon: MessageSquare, badge: unreadMessages },
+        { value: 'notifications', label: '消息通知', icon: Bell, badge: unreadCount },
+      ],
+    },
+    {
+      title: '账户',
+      items: [
+        { value: 'profile', label: '个人资料', icon: User },
+        { value: 'support', label: '联系支持', icon: HeadphonesIcon },
+      ],
+    },
   ];
 
   /* ─── MOBILE LAYOUT ─────────────────────────────────────────── */
@@ -182,124 +198,154 @@ export const UserCenter = () => {
       <Navbar unreadCount={unreadCount} />
 
       <div className="max-w-6xl mx-auto px-4 py-6">
-        {/* Desktop profile header */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="mb-6 rounded-xl overflow-hidden shadow-md border border-border bg-gradient-to-br from-foreground to-foreground/90 text-background dark:from-card dark:via-muted/60 dark:to-card dark:text-foreground"
-        >
-          <div className="p-6 sm:p-8">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-2 border-background/20 dark:border-foreground/20 shadow-xl">
-                    <AvatarImage src={profile?.avatar_url || ''} />
-                    <AvatarFallback className="bg-background/20 dark:bg-foreground/20 text-background dark:text-foreground text-xl sm:text-2xl font-bold">
-                      {avatarInitial}
-                    </AvatarFallback>
-                  </Avatar>
-                  {profile?.seller_verified && (
-                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-background dark:border-foreground/20">
-                      <Shield className="w-3 h-3 text-white" />
+        <div className="flex gap-6 items-start">
+
+          {/* ── Left Sidebar ──────────────────────────────────────── */}
+          <motion.aside
+            initial={{ opacity: 0, x: -16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.35 }}
+            className="w-60 shrink-0 space-y-3"
+          >
+            {/* Profile card */}
+            <div className="rounded-xl border border-border bg-gradient-to-br from-foreground to-foreground/90 dark:from-card dark:via-muted/60 dark:to-card text-background dark:text-foreground overflow-hidden shadow-md">
+              <div className="p-5">
+                <div className="flex flex-col items-center text-center gap-3">
+                  <div className="relative">
+                    <Avatar className="h-16 w-16 border-2 border-background/20 dark:border-foreground/20 shadow-lg">
+                      <AvatarImage src={profile?.avatar_url || ''} />
+                      <AvatarFallback className="bg-background/20 dark:bg-foreground/20 text-background dark:text-foreground text-2xl font-bold">
+                        {avatarInitial}
+                      </AvatarFallback>
+                    </Avatar>
+                    {profile?.seller_verified && (
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-background/30">
+                        <Shield className="w-2.5 h-2.5 text-white" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-1 w-full">
+                    <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                      <span className="font-bold text-base truncate max-w-[140px]">{displayName}</span>
+                      {isAdmin && (
+                        <Badge className="bg-background/20 dark:bg-foreground/20 text-background dark:text-foreground border-none text-[10px] px-1.5 h-4 shrink-0">
+                          <Sparkles className="w-2.5 h-2.5 mr-0.5" />管理员
+                        </Badge>
+                      )}
                     </div>
-                  )}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-xl sm:text-2xl font-bold">{displayName}</h1>
-                    {isAdmin && (
-                      <Badge className="bg-background/20 dark:bg-foreground/20 text-background dark:text-foreground border-none text-[10px] px-1.5">
-                        <Sparkles className="w-3 h-3 mr-0.5" />管理员
+                    <p className="text-xs text-background/60 dark:text-foreground/60 truncate">{user?.email}</p>
+                    {profile?.is_seller && (
+                      <Badge className="bg-background/15 dark:bg-foreground/15 text-background dark:text-foreground border-none text-[10px] h-5">
+                        认证卖家
                       </Badge>
                     )}
                   </div>
-                  <p className="text-sm text-background/70 dark:text-foreground/70 mt-0.5">{user?.email}</p>
-                  {profile?.is_seller && (
-                    <Badge className="mt-2 bg-background/15 dark:bg-foreground/15 text-background dark:text-foreground border-none text-xs">
-                      认证卖家
-                    </Badge>
-                  )}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => navigate('/')}
-                  variant="secondary"
-                  className="bg-background/10 dark:bg-foreground/10 text-background dark:text-foreground hover:bg-background/20 dark:hover:bg-foreground/20 border-none"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />返回首页
-                </Button>
-                {isAdmin && (
-                  <Button
-                    onClick={() => navigate('/admin')}
-                    className="bg-background dark:bg-foreground text-foreground dark:text-background hover:bg-background/90 dark:hover:bg-foreground/90"
-                  >
-                    <Shield className="w-4 h-4 mr-2" />管理面板
-                  </Button>
-                )}
-              </div>
+
+              {/* Mini stats row */}
+              <ComponentErrorBoundary fallbackMessage="">
+                <UserCenterStatsGrid profile={profile} user={user} compact mobileRow />
+              </ComponentErrorBoundary>
             </div>
-          </div>
-        </motion.div>
 
-        {/* Desktop stats */}
-        <motion.div
-          className="mb-6"
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.3 }}
-        >
-          <ComponentErrorBoundary fallbackMessage="统计数据加载失败">
-            <UserCenterStatsGrid profile={profile} user={user} />
-          </ComponentErrorBoundary>
-        </motion.div>
+            {/* Navigation groups */}
+            <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+              {sidebarNavGroups.map((group, gi) => (
+                <div key={group.title}>
+                  {gi > 0 && <div className="h-px bg-border mx-3" />}
+                  <div className="px-2 py-1.5">
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-1">
+                      {group.title}
+                    </p>
+                    {group.items.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = activeTab === item.value;
+                      return (
+                        <button
+                          key={item.value}
+                          onClick={() => handleTabChange(item.value)}
+                          className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm font-medium transition-all mb-0.5
+                            ${isActive
+                              ? 'bg-primary/10 text-primary'
+                              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                            }`}
+                        >
+                          <div className="relative shrink-0">
+                            <Icon className="w-4 h-4" />
+                            {(item as any).badge > 0 && (
+                              <span className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground text-[9px] rounded-full h-3.5 min-w-3.5 flex items-center justify-center px-0.5">
+                                {(item as any).badge > 99 ? '99+' : (item as any).badge}
+                              </span>
+                            )}
+                          </div>
+                          <span className="flex-1 text-left">{item.label}</span>
+                          {isActive && <ChevronRight className="w-3.5 h-3.5 opacity-50" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
 
-        {/* Desktop tabs */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.3 }}
-        >
-          <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-              <div className="border-b border-border bg-background">
-                <TabsList className="flex w-full justify-start bg-transparent h-auto p-0">
-                  {desktopTabs.map((tab) => {
-                    const Icon = tab.icon;
-                    return (
-                      <TabsTrigger
-                        key={tab.value}
-                        value={tab.value}
-                        className="flex items-center gap-2 rounded-none border-b-2 border-transparent
-                          data-[state=active]:border-primary data-[state=active]:bg-primary/5 data-[state=active]:text-primary
-                          transition-all py-4 px-6"
-                      >
-                        <div className="relative">
-                          <Icon className="w-4 h-4" />
-                          {tab.badge != null && tab.badge > 0 && (
-                            <Badge
-                              variant="destructive"
-                              className="absolute -top-2 -right-3 h-4 min-w-4 flex items-center justify-center text-[10px] p-0"
-                            >
-                              {tab.badge > 99 ? '99+' : tab.badge}
-                            </Badge>
-                          )}
-                        </div>
-                        <span>{tab.label}</span>
-                      </TabsTrigger>
-                    );
-                  })}
-                </TabsList>
-              </div>
-              <div className="p-6">
-                <ComponentErrorBoundary fallbackMessage="页面内容加载失败，请刷新重试">
-                  <UserCenterTabsContent />
-                </ComponentErrorBoundary>
-              </div>
-            </Tabs>
-          </div>
-        </motion.div>
+            {/* Return home + Admin */}
+            <div className="space-y-2">
+              <Button
+                onClick={() => navigate('/')}
+                variant="outline"
+                size="sm"
+                className="w-full"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />返回首页
+              </Button>
+              {isAdmin && (
+                <Button
+                  onClick={() => navigate('/admin')}
+                  size="sm"
+                  className="w-full"
+                >
+                  <Shield className="w-4 h-4 mr-2" />管理面板
+                </Button>
+              )}
+            </div>
+          </motion.aside>
+
+          {/* ── Main Content ──────────────────────────────────────── */}
+          <motion.div
+            className="flex-1 min-w-0"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.35 }}
+          >
+            {/* Stats grid — full width above content */}
+            <ComponentErrorBoundary fallbackMessage="统计数据加载失败">
+              <UserCenterStatsGrid profile={profile} user={user} />
+            </ComponentErrorBoundary>
+
+            {/* Tab content card */}
+            <div className="mt-5 rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+              <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+                {/* Section header */}
+                <div className="px-6 py-4 border-b border-border bg-background/60">
+                  <h2 className="text-base font-semibold text-foreground">
+                    {SECTION_LABELS[activeTab] || '用户中心'}
+                  </h2>
+                </div>
+                <div className="p-6">
+                  <ComponentErrorBoundary fallbackMessage="页面内容加载失败，请刷新重试">
+                    {activeTab === 'support' ? (
+                      <SupportTicketsSafe />
+                    ) : (
+                      <UserCenterTabsContent />
+                    )}
+                  </ComponentErrorBoundary>
+                </div>
+              </Tabs>
+            </div>
+          </motion.div>
+
+        </div>
       </div>
     </div>
   );

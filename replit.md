@@ -65,6 +65,23 @@
 - POST /api/data/admin/send-test-email — 测试邮件
 - POST /api/data/admin/whois-test — WHOIS 查询
 
+## 品牌与外观设置 (SiteConfig)
+新增字段（均在 `useSiteSettings.ts` SiteConfig 类型中）：
+- `logo_dark_url` — 深色模式 Logo URL（空则用 logo_url）
+- `site_subtitle` — 副标题（页脚品牌列显示）
+- `icp_number` — ICP备案号（页脚底部显示，点击跳转工信部）
+- `social_github/twitter/wechat/weibo` — 社交媒体链接（页脚图标）
+- 后台管理路径：管理面板 → 系统设置 → **品牌与外观** Tab
+- Logo 上传接口：`POST /api/data/admin/upload-logo`（multipart，字段 `file` + `mode: 'light'|'dark'`）
+
+## 用户中心布局
+- **桌面**：左侧 240px 固定边栏（头像+用户信息+mini统计行+分组导航），右侧内容区
+- **边栏导航分组**：资产管理（我的域名/交易记录）、消息中心（站内消息/消息通知）、账户（个人资料/联系支持）
+- **支持 Tab** 在桌面导航中可直接点击（原仅限移动端）
+
+## Navbar
+- 根据当前主题（light/dark）自动切换 Logo：深色模式时优先使用 `logo_dark_url`
+
 ## 重要架构约定
 - **货币符号**: 全站统一使用 `¥`（不用 `$`）
 - **通知 actionUrl**: 一律使用 `/user-center?tab=transactions`（`received-offers`/`sent-offers` 均为无效 tab）
@@ -72,6 +89,13 @@
 - **DomainForm disabled 检查**: 使用 `editingDomain != null`（宽松比较，防 undefined 漏过）
 - **FavoriteDomains**: 使用 `domain_listings:domain_id` join（勿改回 `domains:domain_id`）
 - **SentOffersTable**: 必须传 `onRefresh` prop 给父组件
+- **Logo 上传**: 通过 `POST /data/admin/upload-logo` 上传到 Vercel Blob，自动写入 `site_settings`
+
+## Vercel 部署适配
+- `vercel.json` 所有路由配置完整（`/api/*` → `api/index.ts`，SPA fallback）
+- `api/index.ts` 完整 Hono app，支持认证、上传（multipart）、SSE、websocket
+- API 函数 `maxDuration: 60s`，`memory: 1024MB`
+- API 路由添加了 `no-store` 缓存头避免 CDN 缓存
 
 ## 已知限制
 - 支持工单系统使用 Supabase (设计如此)

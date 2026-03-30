@@ -901,6 +901,48 @@ app.delete('/admin/site-settings/:key', requireAuth, async (c) => {
   return c.json({ success: true });
 });
 
+// ---- Admin: upload logo (light or dark) → Vercel Blob → save to site_settings ----
+app.post('/admin/upload-logo', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+
+  const { put } = await import('@vercel/blob');
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
+  if (!token) return c.json({ error: '文件上传服务未配置（BLOB_READ_WRITE_TOKEN）' }, 503);
+
+  const contentType = c.req.header('content-type') || '';
+  if (!contentType.includes('multipart/form-data')) {
+    return c.json({ error: '请使用 multipart/form-data 上传' }, 400);
+  }
+
+  const form = await c.req.formData().catch(() => null);
+  if (!form) return c.json({ error: '解析表单失败' }, 400);
+
+  const file = form.get('file') as File | null;
+  const mode = (form.get('mode') as string) || 'light'; // 'light' | 'dark'
+
+  if (!file) return c.json({ error: '未找到文件字段' }, 400);
+  const ALLOWED = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+  if (!ALLOWED.includes(file.type)) return c.json({ error: '仅支持 JPG/PNG/GIF/WebP/SVG' }, 400);
+  if (file.size > 2 * 1024 * 1024) return c.json({ error: 'Logo 不能超过 2MB' }, 400);
+
+  const ext = file.name.split('.').pop() || 'png';
+  const pathname = `logos/${mode}-${Date.now()}.${ext}`;
+
+  const blob = await put(pathname, file, { access: 'public', token, addRandomSuffix: false });
+
+  const settingKey = mode === 'dark' ? 'logo_dark_url' : 'logo_url';
+  await db.execute({
+    sql: `INSERT INTO site_settings (id, key, value, section, type, updated_at)
+          VALUES (lower(hex(randomblob(16))), ?, ?, 'general', 'text', CURRENT_TIMESTAMP)
+          ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
+    args: [settingKey, blob.url],
+  });
+  await cacheDel('site_settings');
+
+  return c.json({ url: blob.url, key: settingKey });
+});
+
 // ---- Admin: publish realtime event ----
 app.post('/admin/publish-event', requireAuth, async (c) => {
   const { is_admin } = getAuth(c);
