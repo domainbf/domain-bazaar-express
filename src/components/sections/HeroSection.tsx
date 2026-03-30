@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { motion } from 'framer-motion';
+import { DomainScrollBands } from './DomainScrollBands';
 
 const ENTER = { hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0 } };
 
@@ -82,16 +83,18 @@ export const HeroSection = () => {
           </div>
         </motion.div>
 
+        <DomainScrollBands />
+
         <motion.div
           variants={ENTER}
           initial="hidden"
           animate="show"
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
-          className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center px-2"
+          className="flex flex-row gap-3 md:gap-4 justify-center px-2"
         >
           <Button
             onClick={() => navigate('/marketplace')}
-            className="px-6 md:px-8 py-2.5 md:py-3 text-base md:text-lg bg-primary hover:bg-primary/90 text-primary-foreground transition-all active:scale-[0.97]"
+            className="flex-1 max-w-[180px] px-4 md:px-8 py-2.5 md:py-3 text-sm md:text-base bg-primary hover:bg-primary/90 text-primary-foreground transition-all active:scale-[0.97]"
             data-testid="button-hero-browse"
           >
             {config.hero_cta_primary}
@@ -99,7 +102,7 @@ export const HeroSection = () => {
           <Button
             onClick={() => navigate('/sell')}
             variant="outline"
-            className="px-6 md:px-8 py-2.5 md:py-3 text-base md:text-lg border-border text-foreground hover:bg-accent transition-all active:scale-[0.97]"
+            className="flex-1 max-w-[180px] px-4 md:px-8 py-2.5 md:py-3 text-sm md:text-base border-border text-foreground hover:bg-accent transition-all active:scale-[0.97]"
             data-testid="button-hero-sell"
           >
             {config.hero_cta_secondary}
