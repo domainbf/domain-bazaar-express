@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Mail, Send, Loader2, ShieldCheck, AlertCircle } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from '@/contexts/AuthContext';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
 
 interface DomainOfferFormProps {
@@ -22,6 +23,7 @@ export const DomainOfferForm = ({
   onClose,
   isAuthenticated 
 }: DomainOfferFormProps) => {
+  const { session } = useAuth();
   const [offer, setOffer] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
@@ -93,33 +95,26 @@ export const DomainOfferForm = ({
         throw new Error('域名信息不完整，无法提交报价');
       }
 
-      const { data: { session } } = await supabase.auth.getSession();
-        
-      // Send offer via the separate edge function
+
       const requestBody = {
-        domain: domain,
-        offer: offer,
-        email: email,
+        domain_id: domainInfo.domainId,
+        seller_id: domainInfo.sellerId,
+        buyer_id: session?.user?.id || null,
+        amount: parseFloat(offer),
+        contact_email: email,
         message: message,
-        buyerId: session?.user?.id || null,
-        domainId: domainInfo.domainId,
-        sellerId: domainInfo.sellerId,
-        captchaToken: captchaToken
+        captcha_token: captchaToken,
       };
 
       try {
-        // 使用supabase.functions.invoke方法调用edge function
-        const { data, error: offerError } = await supabase.functions.invoke('send-offer', {
-          body: requestBody
+        const res = await fetch('/api/data/domain-offers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
+          body: JSON.stringify(requestBody),
         });
-
-        if (offerError) {
-          console.error('Edge Function 调用错误:', offerError);
-          throw new Error(offerError.message || '报价提交失败，请稍后重试');
-        }
-
-        if (data && !data.success) {
-          throw new Error(data.error || '报价提交失败');
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error((errData as any).error || '报价提交失败，请稍后重试');
         }
 
         toast.success('您的报价已成功提交！买家和卖家都将收到邮件通知。');

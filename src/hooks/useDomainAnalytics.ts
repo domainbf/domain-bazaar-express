@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { apiGet, apiPost } from '@/lib/apiClient';
 import { DomainAnalytics } from '@/types/domain';
 
 interface TrendData {
@@ -16,6 +18,7 @@ export const useDomainAnalytics = (domainId: string, initialData?: InitialData) 
   const [trends, setTrends] = useState<TrendData[]>([]);
   const [isLoading, setIsLoading] = useState(!initialData?.analytics);
   const [isFavorited, setIsFavorited] = useState(false);
+  const { user } = useAuth();
 
   const loadAnalytics = useCallback(async () => {
     if (!domainId) return;
@@ -25,10 +28,7 @@ export const useDomainAnalytics = (domainId: string, initialData?: InitialData) 
         .select('*')
         .eq('domain_id', domainId)
         .maybeSingle();
-
-      if (data) {
-        setAnalytics(data);
-      }
+      if (data) setAnalytics(data);
     } catch (err) {
       console.error('Error loading analytics:', err);
     }
@@ -52,7 +52,6 @@ export const useDomainAnalytics = (domainId: string, initialData?: InitialData) 
     if (!domainId) return;
     const sessionKey = `domain_viewed_${domainId}`;
     if (sessionStorage.getItem(sessionKey)) return;
-
     try {
       const { error } = await supabase.rpc('increment_domain_views', { p_domain_id: domainId });
       if (!error) {
@@ -65,63 +64,37 @@ export const useDomainAnalytics = (domainId: string, initialData?: InitialData) 
   }, [domainId]);
 
   const toggleFavorite = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return;
-    }
-
+    if (!user) return;
     try {
       if (isFavorited) {
-        await supabase
-          .from('user_favorites')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('domain_id', domainId);
+        await fetch(`/api/data/favorites/${domainId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${(user as any).token || ''}` },
+        }).catch(console.error);
         setIsFavorited(false);
         setAnalytics(prev => prev ? { ...prev, favorites: Math.max(0, (prev.favorites || 0) - 1) } : null);
-        await supabase
-          .from('domain_analytics')
-          .update({ favorites: Math.max(0, (analytics?.favorites || 1) - 1), last_updated: new Date().toISOString() })
-          .eq('domain_id', domainId);
       } else {
-        const { error: insertError } = await supabase
-          .from('user_favorites')
-          .insert({ user_id: user.id, domain_id: domainId });
-        if (!insertError) {
-          setIsFavorited(true);
-          setAnalytics(prev => prev ? { ...prev, favorites: (prev.favorites || 0) + 1 } : null);
-          await supabase
-            .from('domain_analytics')
-            .update({ favorites: (analytics?.favorites || 0) + 1, last_updated: new Date().toISOString() })
-            .eq('domain_id', domainId);
-        }
+        await apiPost('/data/favorites', { domain_id: domainId }).catch(console.error);
+        setIsFavorited(true);
+        setAnalytics(prev => prev ? { ...prev, favorites: (prev.favorites || 0) + 1 } : null);
       }
     } catch (err) {
       console.error('Error toggling favorite:', err);
     }
-  }, [domainId, isFavorited, analytics]);
+  }, [domainId, isFavorited, user]);
 
   const checkFavoriteStatus = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-
     try {
-      const { data } = await supabase
-        .from('user_favorites')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('domain_id', domainId)
-        .maybeSingle();
-
-      setIsFavorited(!!data);
+      const favorites = await apiGet<{ domain_id: string }[]>('/data/favorites');
+      setIsFavorited((favorites || []).some(f => f.domain_id === domainId));
     } catch (err) {
       console.error('Error checking favorite status:', err);
     }
-  }, [domainId]);
+  }, [domainId, user]);
 
   useEffect(() => {
     if (!domainId) return;
-
     const init = async () => {
       setIsLoading(true);
       await Promise.all([
@@ -131,9 +104,8 @@ export const useDomainAnalytics = (domainId: string, initialData?: InitialData) 
       setTrends(generateTrendData());
       setIsLoading(false);
     };
-
     init();
-  }, [domainId]);
+  }, [domainId, user]);
 
   return {
     analytics,

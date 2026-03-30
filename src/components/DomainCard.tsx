@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGet, apiPost, apiDelete } from '@/lib/apiClient';
 import { DomainOfferForm } from './domain/DomainOfferForm';
 import { Badge } from './ui/badge';
 import { Heart, Shield } from 'lucide-react';
@@ -47,10 +47,8 @@ export const DomainCard = ({
     const checkFavorite = async () => {
       if (!user || !domainId) return;
       try {
-        const { data, error } = await supabase
-          .from('user_favorites').select('id')
-          .eq('user_id', user.id).eq('domain_id', domainId).maybeSingle();
-        if (!error && data) setIsFavorited(true);
+        const favorites = await apiGet<{ domain_id: string }[]>('/data/favorites');
+        setIsFavorited((favorites || []).some(f => f.domain_id === domainId));
       } catch (err) { console.error(err); }
     };
     checkFavorite();
@@ -58,12 +56,12 @@ export const DomainCard = ({
 
   const handleOpenDialog = async () => {
     try {
-      const { data } = await supabase.auth.getSession();
-      setIsAuthenticated(!!data.session);
+      setIsAuthenticated(!!user);
       if (!domainId || !sellerId) {
-        const { data: d, error } = await supabase
-          .from('domain_listings').select('id, owner_id').eq('name', domain).single();
-        if (!error && d) setDomainInfo({ id: d.id, ownerId: d.owner_id });
+        try {
+          const listing = await apiGet<{ id: string; owner_id: string }>(`/data/domain-listings/by-name/${encodeURIComponent(domain)}`);
+          if (listing) setDomainInfo({ id: listing.id, ownerId: listing.owner_id });
+        } catch { /* proceed without domain info */ }
       }
       setIsDialogOpen(true);
     } catch (err) {
@@ -81,16 +79,11 @@ export const DomainCard = ({
     setIsLoadingFavorite(true);
     try {
       if (isFavorited) {
-        const { error } = await supabase.from('user_favorites').delete()
-          .eq('user_id', user.id).eq('domain_id', targetId);
-        if (error) throw error;
+        await apiDelete(`/data/favorites/${targetId}`);
         setIsFavorited(false);
         toast.success('已取消收藏');
       } else {
-        const { error } = await supabase.from('user_favorites').insert({
-          user_id: user.id, domain_id: targetId,
-        });
-        if (error) throw error;
+        await apiPost('/data/favorites', { domain_id: targetId });
         setIsFavorited(true);
         setHeartKey(k => k + 1);
         toast.success('已添加到收藏');

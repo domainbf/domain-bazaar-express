@@ -5,9 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Mail, ArrowLeft, Loader2, AlertCircle, CheckCircle, Send } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
-import { translateAuthError } from '@/utils/translateError';
-import { RESET_PASSWORD_URL } from '@/config/siteConfig';
+import { apiPost } from '@/lib/apiClient';
 
 export const ResetPasswordForm = () => {
   const [email, setEmail] = useState('');
@@ -25,14 +23,11 @@ export const ResetPasswordForm = () => {
     setErrorMessage('');
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: RESET_PASSWORD_URL,
-      });
-      if (error) throw error;
+      await apiPost('/auth/request-reset', { email });
       setIsSubmitted(true);
       toast.success('密码重置链接已发送到您的邮箱');
     } catch (error: any) {
-      const msg = translateAuthError(error.message || '', '发送重置邮件时出错，请稍后再试');
+      const msg = error.message || '发送重置邮件时出错，请稍后再试';
       setErrorMessage(msg);
       toast.error(msg);
     } finally {
@@ -60,7 +55,7 @@ export const ResetPasswordForm = () => {
           <ul className="text-sm text-muted-foreground space-y-1.5 pl-1">
             <li className="flex items-start gap-2">
               <span className="text-primary font-bold mt-0.5">·</span>
-              重置链接有效期为 <strong className="text-foreground">30 分钟</strong>
+              重置链接有效期为 <strong className="text-foreground">60 分钟</strong>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary font-bold mt-0.5">·</span>

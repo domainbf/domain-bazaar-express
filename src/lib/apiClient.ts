@@ -108,3 +108,10 @@ export async function apiPatch<T>(path: string, body: unknown): Promise<T> {
   if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
   return data as T;
 }
+
+export async function apiDelete<T = unknown>(path: string): Promise<T> {
+  const res = await apiFetch(path, { method: 'DELETE' });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((data as any).error || `HTTP ${res.status}`);
+  return data as T;
+}

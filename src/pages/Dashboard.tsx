@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from "@/integrations/supabase/client";
+import { apiGet } from '@/lib/apiClient';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus, Package, Inbox, Send, Eye, TrendingUp, CheckCircle2 } from 'lucide-react';
@@ -30,78 +31,40 @@ export const Dashboard = () => {
   const [isAddDomainOpen, setIsAddDomainOpen] = useState(false);
   const [editingDomain, setEditingDomain] = useState<DomainListing | null>(null);
   const navigate = useNavigate();
-
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { navigate('/auth'); return; }
-  };
+  const { user, session, isLoading: authLoading } = useAuth();
 
   const loadData = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { navigate('/auth'); return; }
-      const userId = session.user.id;
-
-      const [domainRes, receivedRes, sentRes, txRes] = await Promise.all([
-        supabase.from('domain_listings').select('*').eq('owner_id', userId).order('created_at', { ascending: false }),
-        supabase.from('domain_offers').select('*').eq('seller_id', userId).order('created_at', { ascending: false }),
-        supabase.from('domain_offers').select('*').eq('buyer_id', userId).order('created_at', { ascending: false }),
-        supabase.from('transactions').select('id').eq('seller_id', userId).eq('status', 'completed'),
+      const [domains, received, sent, transactions] = await Promise.all([
+        apiGet<DomainListing[]>('/data/my-domains'),
+        apiGet<DomainOffer[]>('/data/domain-offers?role=seller'),
+        apiGet<DomainOffer[]>('/data/domain-offers?role=buyer'),
+        apiGet<{ id: string }[]>('/data/transactions'),
       ]);
 
-      const domains = domainRes.data || [];
-      const received = receivedRes.data || [];
-      const sent = sentRes.data || [];
-
-      setMyDomains(domains as unknown as DomainListing[]);
-
-      const domainIds = domains.map(d => d.id);
-      const domainNameMap = new Map(domains.map(d => [d.id, d.name]));
-
-      const receivedWithDomains = await Promise.all(
-        received.map(async (offer) => {
-          const name = domainNameMap.get(offer.domain_id);
-          if (name) return { ...offer, domain_name: name };
-          const { data: domain } = await supabase.from('domain_listings').select('name').eq('id', offer.domain_id).single();
-          return { ...offer, domain_name: domain?.name || 'Unknown domain' };
-        })
-      );
-
-      const sentWithDomains = await Promise.all(
-        sent.map(async (offer) => {
-          const { data: domain } = await supabase.from('domain_listings').select('name').eq('id', offer.domain_id).single();
-          return { ...offer, domain_name: domain?.name || 'Unknown domain' };
-        })
-      );
-
-      setReceivedOffers(receivedWithDomains as unknown as DomainOffer[]);
-      setSentOffers(sentWithDomains as unknown as DomainOffer[]);
-
-      let totalViews = 0;
-      if (domains.length > 0) {
-        const domainIds = domains.map(d => d.id);
-        const { data: analyticsData } = await supabase.from('domain_analytics').select('views').in('domain_id', domainIds);
-        totalViews = (analyticsData || []).reduce((sum, a) => {
-          const v = typeof a.views === 'number' ? a.views : parseInt(String(a.views ?? '0'), 10) || 0;
-          return sum + v;
-        }, 0);
-      }
+      setMyDomains(domains || []);
+      setReceivedOffers(received || []);
+      setSentOffers(sent || []);
 
       setStats({
-        totalListings: domains.length,
-        pendingOffers: received.filter(o => o.status === 'pending').length,
-        totalViews,
-        completedDeals: txRes.data?.length || 0,
+        totalListings: (domains || []).length,
+        pendingOffers: (received || []).filter((o: any) => o.status === 'pending').length,
+        totalViews: 0,
+        completedDeals: (transactions || []).length,
       });
     } catch (error: any) {
       console.error('Error loading dashboard data:', error);
-      toast.error(error.message || 'Failed to load dashboard data');
+      toast.error(error.message || '加载数据失败');
     } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => { checkAuth(); loadData(); }, []);
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user && !session) { navigate('/auth'); return; }
+    loadData();
+  }, [authLoading, user]);
 
   const handleEditDomain = (domain: DomainListing) => {
     setEditingDomain(domain);

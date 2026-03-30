@@ -4,7 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Mail, Clock, CheckCircle2, XCircle, Package, AlertCircle, ExternalLink, Trash2, Loader2, Eye, ArrowRight, ArrowLeftRight, Check, X } from "lucide-react";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPatch } from "@/lib/apiClient";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
@@ -36,6 +37,7 @@ function parseOfferMessage(offer: DomainOffer): { buyerMessage: string; counterA
 
 export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { config } = useSiteSettings();
   const [processingOffers, setProcessingOffers] = useState<Record<string, boolean>>({});
   const [cancelDialog, setCancelDialog] = useState<{ open: boolean; offerId: string; domainName: string } | null>(null);
@@ -46,29 +48,8 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
   const handleCancelOffer = async (offerId: string) => {
     setProcessingOffers(prev => ({ ...prev, [offerId]: true }));
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) { toast.error('请先登录'); return; }
-
-      const { data: offerData } = await supabase
-        .from('domain_offers').select(`*, domain_listings(name, owner_id)`)
-        .eq('id', offerId).eq('buyer_id', user.id).single();
-
-      const { error } = await supabase
-        .from('domain_offers')
-        .update({ status: 'cancelled', updated_at: new Date().toISOString() })
-        .eq('id', offerId).eq('buyer_id', user.id);
-      if (error) throw error;
-
-      if (offerData?.seller_id && offerData?.domain_listings) {
-        await supabase.from('notifications').insert({
-          user_id: offerData.seller_id,
-          title: '报价已被取消',
-          message: `买家取消了对域名 ${offerData.domain_listings.name} 的 $${Number(offerData.amount).toLocaleString()} 报价`,
-          type: 'offer', related_id: offerId,
-          action_url: '/user-center?tab=transactions',
-        }).catch(console.error);
-      }
-
+      await apiPatch(`/data/domain-offers/${offerId}`, { status: 'cancelled' });
       toast.success('报价已取消');
       setCancelDialog(null);
       if (onRefresh) await onRefresh();
@@ -82,293 +63,18 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
   const handleCounterResponse = async (offer: DomainOffer, action: 'accept' | 'reject') => {
     setProcessingOffers(prev => ({ ...prev, [offer.id]: true }));
     const parsed = parseOfferMessage(offer);
-
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) { toast.error('请先登录'); return; }
-
-      const { data: offerData } = await supabase
-        .from('domain_offers').select(`*, domain_listings(name, owner_id, currency)`)
-        .eq('id', offer.id).single();
-
-      if (!offerData) { toast.error('报价不存在'); return; }
-
       if (action === 'accept') {
-        // Accept counter: use counter_amount as the new agreed price
-        const counterAmt = parsed.counterAmount ?? offerData.amount;
-
-        // Update offer
-        const { error: updateErr } = await supabase
-          .from('domain_offers')
-          .update({ status: 'accepted', amount: counterAmt, updated_at: new Date().toISOString() })
-          .eq('id', offer.id).eq('buyer_id', user.id);
-        if (updateErr) throw updateErr;
-
-        // Create transaction
-        let newTransactionId: string | null = null;
-        if (offerData.seller_id && offerData.domain_listings) {
-          try {
-            const { data: settingsData } = await supabase
-              .from('site_settings').select('value').eq('key', 'commission_rate').maybeSingle();
-            const commissionRate = parseFloat(settingsData?.value || '0.05');
-            const amount = Number(counterAmt);
-            const commissionAmount = Math.max(amount * commissionRate, 10);
-            const sellerAmount = amount - commissionAmount;
-
-            // The transactions table FKs to 'domains', not 'domain_listings'.
-            // Look up or create a 'domains' entry by name to get the correct FK id.
-            const domainName = offerData.domain_listings.name;
-            let domainsId: string | null = null;
-            const { data: existingDomain } = await supabase
-              .from('domains').select('id').eq('name', domainName).maybeSingle();
-            if (existingDomain?.id) {
-              domainsId = existingDomain.id;
-            } else {
-              const { data: newDomain } = await supabase.from('domains').insert({
-                name: domainName, price: amount, status: 'available',
-                owner_id: offerData.seller_id, minimum_price: 0,
-              }).select('id').single();
-              domainsId = newDomain?.id ?? null;
-            }
-
-            if (!domainsId) {
-              toast.error('域名记录查找失败，请联系客服');
-            } else {
-              const { data: txData, error: txErr } = await supabase
-                .from('transactions').insert({
-                  buyer_id: user.id, seller_id: offerData.seller_id,
-                  domain_id: domainsId, offer_id: offer.id,
-                  amount, status: 'payment_pending', payment_method: 'bank_transfer',
-                  commission_rate: commissionRate,
-                  commission_amount: commissionAmount, seller_amount: sellerAmount,
-                }).select('id').single();
-
-              if (txErr) {
-                console.error('Transaction error:', txErr);
-                toast.error('交易记录创建失败，请联系客服');
-              } else if (txData) {
-                newTransactionId = txData.id;
-                await supabase.from('domain_offers').update({ transaction_id: newTransactionId }).eq('id', offer.id);
-                // Mark domain as pending transaction
-                if (offerData.domain_id) {
-                  await supabase.from('domain_listings')
-                    .update({ status: 'pending' })
-                    .eq('id', offerData.domain_id);
-                }
-              }
-            }
-          } catch (txErr) { console.error('Transaction error:', txErr); }
-        }
-
-        // Notify seller
-        if (offerData.seller_id) {
-          const domainName = offerData.domain_listings?.name ?? '域名';
-          await supabase.from('notifications').insert({
-            user_id: offerData.seller_id,
-            title: '🎉 买家接受了还价',
-            message: `买家接受了您对域名 ${domainName} 的还价 $${Number(counterAmt).toLocaleString()}，交易已创建！`,
-            type: 'offer', related_id: offer.id,
-            action_url: newTransactionId ? `/transaction/${newTransactionId}` : '/user-center?tab=transactions',
-          }).catch(console.error);
-
-          // Email seller: buyer accepted counter
-          try {
-            const { data: sellerProfile } = await supabase
-              .from('profiles').select('contact_email').eq('id', offerData.seller_id).maybeSingle();
-            const sellerEmail = sellerProfile?.contact_email;
-            if (sellerEmail) {
-              const siteDomain = (config.site_domain || window.location.origin).replace(/\/$/, '');
-              const siteName = config.site_name || '域见•你';
-              const siteHostname = siteDomain.replace(/^https?:\/\//, '').toUpperCase();
-              const supportEmail = config.contact_email || `support@${siteDomain.replace(/^https?:\/\//, '')}`;
-              const domainDisplay = (domainName).toUpperCase();
-              const sym = offerData.domain_listings?.currency === 'USD' ? '$' : '¥';
-              const counterFormatted = `${sym}${Number(counterAmt).toLocaleString()}`;
-              const year = new Date().getFullYear();
-              const txUrl = newTransactionId ? `${siteDomain}/transaction/${newTransactionId}` : `${siteDomain}/user-center?tab=transactions`;
-              const html = `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>买家接受了您的还价</title>
-  <style>body{margin:0;padding:0;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;}.preheader{display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;}</style>
-</head>
-<body>
-  <span class="preheader">🎉 买家接受了您对 ${domainDisplay} 的还价 ${counterFormatted}，交易已启动！</span>
-  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#f1f5f9;padding:32px 16px;">
-    <tr><td align="center">
-      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;width:100%;">
-        <tr><td style="padding-bottom:24px;text-align:center;">
-          <table cellpadding="0" cellspacing="0" role="presentation" style="display:inline-table;">
-            <tr><td style="background:#0f172a;border-radius:12px;padding:10px 20px;">
-              <span style="color:#f8fafc;font-size:20px;font-weight:800;letter-spacing:-0.5px;">${siteName}</span>
-              <span style="color:#475569;font-size:11px;font-weight:600;margin-left:10px;letter-spacing:2px;text-transform:uppercase;">${siteHostname}</span>
-            </td></tr>
-          </table>
-        </td></tr>
-        <tr><td style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.07);">
-          <div style="height:4px;background:#16a34a;"></div>
-          <div style="padding:40px 40px 32px;text-align:center;border-bottom:1px solid #f1f5f9;">
-            <div style="width:64px;height:64px;background:#f0fdf4;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:32px;">🎉</div>
-            <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;">买家接受了您的还价！</h1>
-            <p style="margin:0;font-size:15px;color:#64748b;">太棒了，交易已成功启动</p>
-          </div>
-          <div style="padding:32px 40px;">
-            <div style="background:#f8fafc;border-radius:12px;padding:20px 24px;margin-bottom:24px;border:1px solid #e2e8f0;">
-              <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
-                <tr><td style="padding-bottom:12px;">
-                  <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;">成交域名</p>
-                  <p style="margin:0;font-size:22px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;">${domainDisplay}</p>
-                </td></tr>
-                <tr><td style="border-top:1px solid #e2e8f0;padding-top:12px;">
-                  <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;">成交金额（您的还价）</p>
-                  <p style="margin:0;font-size:28px;font-weight:900;color:#16a34a;letter-spacing:-1px;">${counterFormatted}</p>
-                </td></tr>
-              </table>
-            </div>
-            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:18px 20px;margin-bottom:24px;">
-              <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#15803d;letter-spacing:1px;text-transform:uppercase;">接下来的步骤</p>
-              <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
-                <tr><td style="padding:3px 0;font-size:13px;color:#166534;"><span style="font-weight:700;margin-right:6px;">①</span>等待买家完成付款</td></tr>
-                <tr><td style="padding:3px 0;font-size:13px;color:#166534;"><span style="font-weight:700;margin-right:6px;">②</span>平台确认收款后通知您进行域名过户</td></tr>
-                <tr><td style="padding:3px 0;font-size:13px;color:#166534;"><span style="font-weight:700;margin-right:6px;">③</span>过户完成后资金将划入您的账户</td></tr>
-              </table>
-            </div>
-            <div style="text-align:center;padding-bottom:8px;">
-              <a href="${txUrl}" style="display:inline-block;background:#0f172a;color:#f8fafc;padding:16px 40px;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;letter-spacing:0.3px;box-shadow:0 4px 14px rgba(15,23,42,0.25);">查看交易详情 →</a>
-            </div>
-          </div>
-          <div style="padding:20px 40px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;">
-            <p style="margin:0;font-size:13px;color:#94a3b8;">有疑问？联系 <a href="mailto:${supportEmail}" style="color:#475569;text-decoration:none;font-weight:600;">${supportEmail}</a></p>
-          </div>
-        </td></tr>
-        <tr><td style="padding:24px 20px 0;text-align:center;">
-          <p style="margin:0;font-size:12px;color:#94a3b8;">© ${year} ${siteName} · ${siteHostname} · All rights reserved</p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body></html>`;
-              supabase.functions.invoke('send-email', {
-                body: { to: sellerEmail, subject: `🎉 买家接受了还价：${domainDisplay} — ${counterFormatted}`, html },
-              }).catch(e => console.error('Seller accept email error:', e));
-            }
-          } catch (e) { console.error('Seller email lookup error:', e); }
-        }
-
-        toast.success('您已接受还价，交易已创建！');
-        setCounterResponseDialog(null);
-        if (onRefresh) await onRefresh();
-        if (newTransactionId) navigate(`/transaction/${newTransactionId}`);
-
+        const counterAmt = parsed.counterAmount ?? offer.amount;
+        await apiPatch(`/data/domain-offers/${offer.id}`, { status: 'accepted', amount: counterAmt });
+        toast.success('已接受卖家还价');
       } else {
-        // Reject counter: revert to rejected status
-        const { error: updateErr } = await supabase
-          .from('domain_offers')
-          .update({ status: 'rejected', updated_at: new Date().toISOString() })
-          .eq('id', offer.id).eq('buyer_id', user.id);
-        if (updateErr) throw updateErr;
-
-        // Notify seller
-        if (offerData.seller_id) {
-          const domainName = offerData.domain_listings?.name ?? '域名';
-          await supabase.from('notifications').insert({
-            user_id: offerData.seller_id,
-            title: '❌ 买家拒绝了还价',
-            message: `买家拒绝了您对域名 ${domainName} 的还价，您可以等待买家重新报价。`,
-            type: 'offer', related_id: offer.id,
-            action_url: '/user-center?tab=transactions',
-          }).catch(console.error);
-
-          // Email seller: buyer rejected counter
-          try {
-            const { data: sellerProfile } = await supabase
-              .from('profiles').select('contact_email').eq('id', offerData.seller_id).maybeSingle();
-            const sellerEmail = sellerProfile?.contact_email;
-            if (sellerEmail) {
-              const siteDomain = (config.site_domain || window.location.origin).replace(/\/$/, '');
-              const siteName = config.site_name || '域见•你';
-              const siteHostname = siteDomain.replace(/^https?:\/\//, '').toUpperCase();
-              const supportEmail = config.contact_email || `support@${siteDomain.replace(/^https?:\/\//, '')}`;
-              const domainDisplay = (domainName).toUpperCase();
-              const sym = offerData.domain_listings?.currency === 'USD' ? '$' : '¥';
-              const parsed = parseOfferMessage(offer);
-              const counterFormatted = `${sym}${Number(parsed.counterAmount ?? offer.amount).toLocaleString()}`;
-              const year = new Date().getFullYear();
-              const html = `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>买家拒绝了您的还价</title>
-  <style>body{margin:0;padding:0;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;}.preheader{display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;}</style>
-</head>
-<body>
-  <span class="preheader">买家拒绝了您对 ${domainDisplay} 的还价 ${counterFormatted}</span>
-  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#f1f5f9;padding:32px 16px;">
-    <tr><td align="center">
-      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;width:100%;">
-        <tr><td style="padding-bottom:24px;text-align:center;">
-          <table cellpadding="0" cellspacing="0" role="presentation" style="display:inline-table;">
-            <tr><td style="background:#0f172a;border-radius:12px;padding:10px 20px;">
-              <span style="color:#f8fafc;font-size:20px;font-weight:800;letter-spacing:-0.5px;">${siteName}</span>
-              <span style="color:#475569;font-size:11px;font-weight:600;margin-left:10px;letter-spacing:2px;text-transform:uppercase;">${siteHostname}</span>
-            </td></tr>
-          </table>
-        </td></tr>
-        <tr><td style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.07);">
-          <div style="height:4px;background:#64748b;"></div>
-          <div style="padding:40px 40px 32px;text-align:center;border-bottom:1px solid #f1f5f9;">
-            <div style="width:64px;height:64px;background:#f8fafc;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:32px;">💬</div>
-            <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;">买家拒绝了您的还价</h1>
-            <p style="margin:0;font-size:15px;color:#64748b;">买家未接受您对 ${domainDisplay} 的还价</p>
-          </div>
-          <div style="padding:32px 40px;">
-            <div style="background:#f8fafc;border-radius:12px;padding:20px 24px;margin-bottom:24px;border:1px solid #e2e8f0;">
-              <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
-                <tr><td style="padding-bottom:12px;">
-                  <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;">您的域名</p>
-                  <p style="margin:0;font-size:22px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;">${domainDisplay}</p>
-                </td></tr>
-                <tr><td style="border-top:1px solid #e2e8f0;padding-top:12px;">
-                  <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;">您的还价（未被接受）</p>
-                  <p style="margin:0;font-size:28px;font-weight:900;color:#475569;letter-spacing:-1px;">${counterFormatted}</p>
-                </td></tr>
-              </table>
-            </div>
-            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;margin-bottom:24px;">
-              <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#475569;letter-spacing:1px;text-transform:uppercase;">可选操作</p>
-              <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
-                <tr><td style="padding:3px 0;font-size:13px;color:#475569;"><span style="font-weight:700;margin-right:6px;">·</span>等待买家重新提交更高的报价</td></tr>
-                <tr><td style="padding:3px 0;font-size:13px;color:#475569;"><span style="font-weight:700;margin-right:6px;">·</span>调整挂牌价格或添加域名详情吸引更多买家</td></tr>
-                <tr><td style="padding:3px 0;font-size:13px;color:#475569;"><span style="font-weight:700;margin-right:6px;">·</span>域名继续正常挂牌，随时接受新报价</td></tr>
-              </table>
-            </div>
-            <div style="text-align:center;padding-bottom:8px;">
-              <a href="${siteDomain}/user-center?tab=transactions" style="display:inline-block;background:#0f172a;color:#f8fafc;padding:16px 40px;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;letter-spacing:0.3px;box-shadow:0 4px 14px rgba(15,23,42,0.25);">查看报价记录 →</a>
-            </div>
-          </div>
-          <div style="padding:20px 40px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;">
-            <p style="margin:0;font-size:13px;color:#94a3b8;">有疑问？联系 <a href="mailto:${supportEmail}" style="color:#475569;text-decoration:none;font-weight:600;">${supportEmail}</a></p>
-          </div>
-        </td></tr>
-        <tr><td style="padding:24px 20px 0;text-align:center;">
-          <p style="margin:0;font-size:12px;color:#94a3b8;">© ${year} ${siteName} · ${siteHostname} · All rights reserved</p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body></html>`;
-              supabase.functions.invoke('send-email', {
-                body: { to: sellerEmail, subject: `买家拒绝了您的还价：${domainDisplay} — ${counterFormatted}`, html },
-              }).catch(e => console.error('Seller reject email error:', e));
-            }
-          } catch (e) { console.error('Seller email lookup error:', e); }
-        }
-
+        await apiPatch(`/data/domain-offers/${offer.id}`, { status: 'rejected' });
         toast.success('已拒绝卖家还价');
-        setCounterResponseDialog(null);
-        if (onRefresh) await onRefresh();
       }
+      setCounterResponseDialog(null);
+      if (onRefresh) await onRefresh();
     } catch (error: any) {
       console.error('Counter response error:', error);
       toast.error(error.message || '操作失败');

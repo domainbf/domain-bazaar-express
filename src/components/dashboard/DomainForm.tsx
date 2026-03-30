@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Loader2 } from 'lucide-react';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from '@/contexts/AuthContext';
+import { apiPatch, apiPost, apiGet } from '@/lib/apiClient';
 import { DomainListing } from "@/types/domain";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -21,6 +23,7 @@ interface DomainFormProps {
 }
 
 export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain, initialData, onSubmit }: DomainFormProps) => {
+  const { user } = useAuth();
   const [domainName, setDomainName] = useState('');
   const [domainPrice, setDomainPrice] = useState('');
   const [domainDescription, setDomainDescription] = useState('');
@@ -61,7 +64,6 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain, initialD
       }
       if (!domainPrice || isNaN(Number(domainPrice))) throw new Error('请输入有效的价格');
       
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('用户未登录');
 
       if (onSubmit) {
@@ -72,27 +74,25 @@ export const DomainForm = ({ isOpen, onClose, onSuccess, editingDomain, initialD
 
       const domainData = {
         name: domainName, price: parseFloat(domainPrice), description: domainDescription,
-        category: domainCategory, highlight: isHighlighted, owner_id: user.id,
+        category: domainCategory, highlight: isHighlighted,
         status: editingDomain?.verification_status === 'verified' ? (editingDomain.status || 'reserved') : 'reserved'
       };
 
       if (editingDomain) {
-        const { error } = await supabase.from('domain_listings').update(domainData).eq('id', editingDomain.id);
-        if (error) throw error;
+        await apiPatch(`/data/domain-listings/${editingDomain.id}`, domainData);
         toast.success('域名已成功更新');
       } else {
-        const { data: inserted, error } = await supabase
-          .from('domain_listings').insert([domainData]).select('id, name');
-        if (error) throw error;
+        const inserted = await apiPost<{ id: string; name: string }>('/data/domain-listings', domainData);
         toast.success('域名已成功添加');
-        if (inserted?.[0]) {
-          const { id, name } = inserted[0];
-          const { data: aiCfg } = await supabase.from('site_settings').select('value')
-            .eq('key', 'modelscope_auto_generate').maybeSingle();
-          if (aiCfg?.value === 'true') {
-            const { generateAndSaveDomainLogo } = await import('@/hooks/useModelScopeAI');
-            generateAndSaveDomainLogo(id, name, (msg) => toast.info(msg));
-          }
+        if (inserted?.id) {
+          const { id, name } = inserted;
+          try {
+            const settings = await apiGet<any>('/data/site-settings');
+            if (settings?.modelscope_auto_generate === 'true') {
+              const { generateAndSaveDomainLogo } = await import('@/hooks/useModelScopeAI');
+              generateAndSaveDomainLogo(id, name, (msg: string) => toast.info(msg));
+            }
+          } catch { /* best effort */ }
         }
       }
       resetForm();

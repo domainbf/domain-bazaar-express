@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { DomainOffer } from "@/types/domain";
 import { Check, X, Mail, AlertCircle, Clock, Package, CheckCircle2, XCircle, Loader2, ArrowRight, MessageSquare, DollarSign, ArrowLeftRight } from 'lucide-react';
 import { useState, useEffect } from "react";
+import { apiPatch } from "@/lib/apiClient";
+import { useAuth } from "@/contexts/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import {
@@ -42,6 +44,7 @@ function parseOfferMessage(offer: DomainOffer): { buyerMessage: string; counterA
 
 export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTableProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { config } = useSiteSettings();
   const [processingOffers, setProcessingOffers] = useState<Record<string, boolean>>({});
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -67,34 +70,12 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
   const handleOfferAction = async (offerId: string, action: 'accepted' | 'rejected' | 'completed') => {
     setProcessingOffers(prev => ({ ...prev, [offerId]: true }));
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) { toast.error('请先登录'); return; }
 
-      const { data: offerData, error: fetchError } = await supabase
-        .from('domain_offers')
-        .select(`*, domain_listings(name, owner_id, currency)`)
-        .eq('id', offerId).single();
-      if (fetchError || !offerData) { toast.error('报价不存在'); return; }
-      if (offerData.seller_id !== user.id) { toast.error('您没有权限处理此报价'); return; }
+      const offerData = offers.find(o => o.id === offerId) as any;
+      if (!offerData) { toast.error('报价不存在'); return; }
 
-      // Only process offers that are in an actionable state (prevent double-process)
-      const allowedStatuses: Record<typeof action, string[]> = {
-        accepted: ['pending', 'countered'],
-        rejected: ['pending', 'countered'],
-        completed: ['buyer_confirmed'],
-      };
-      const currentStatus = offerData.status ?? '';
-      if (!allowedStatuses[action]?.includes(currentStatus)) {
-        toast.error('该报价当前状态无法执行此操作');
-        return;
-      }
-
-      const { error: updateError } = await supabase
-        .from('domain_offers')
-        .update({ status: action, updated_at: new Date().toISOString() })
-        .eq('id', offerId).eq('seller_id', user.id)
-        .in('status', allowedStatuses[action]);
-      if (updateError) throw new Error(`更新失败: ${updateError.message}`);
+      await apiPatch(`/data/domain-offers/${offerId}`, { status: action });
 
       let newTransactionId: string | null = null;
       if (action === 'accepted' && offerData.buyer_id && offerData.domain_listings) {
@@ -317,7 +298,6 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
 
     setIsCountering(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) { toast.error('请先登录'); return; }
 
       const offer = counterDialog.offer;
@@ -337,14 +317,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
         counter_note: counterNote.trim(),
       });
 
-      // 1. Update offer status + message (allow from pending or countered state)
-      const { error: updateErr } = await supabase
-        .from('domain_offers')
-        .update({ status: 'countered', message: encodedMessage, updated_at: new Date().toISOString() })
-        .eq('id', offer.id)
-        .eq('seller_id', user.id)
-        .in('status', ['pending', 'countered']);
-      if (updateErr) throw updateErr;
+      await apiPatch(`/data/domain-offers/${offer.id}`, { status: 'countered', message: encodedMessage });
 
       // 2. In-app notification for buyer
       if (offer.buyer_id) {

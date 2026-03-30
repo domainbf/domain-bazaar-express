@@ -6,10 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Shield, Key, Mail, Eye, EyeOff, Clock, MapPin, Loader2, CheckCircle, AlertTriangle, Info } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { translateAuthError } from '@/utils/translateError';
+import { apiPost } from '@/lib/apiClient';
 import { TwoFactorAuth } from './TwoFactorAuth';
 import { DeviceManagement } from './DeviceManagement';
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -18,16 +17,24 @@ export const AccountSecurity = () => {
   const { user } = useAuth();
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isChangingEmail, setIsChangingEmail] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [newEmail, setNewEmail] = useState('');
+  const [emailPassword, setEmailPassword] = useState('');
+  const [showEmailPassword, setShowEmailPassword] = useState(false);
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
 
   const handleChangePassword = async () => {
+    if (!currentPassword) {
+      toast.error('请输入当前密码');
+      return;
+    }
     if (newPassword !== confirmPassword) {
       toast.error('新密码和确认密码不匹配');
       return;
@@ -39,14 +46,14 @@ export const AccountSecurity = () => {
 
     setIsChangingPassword(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) throw error;
-      toast.success('密码已更新');
+      await apiPost('/auth/change-password', { currentPassword, newPassword });
+      toast.success('密码已更新，请重新登录');
+      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setShowPasswordForm(false);
     } catch (error: any) {
-      toast.error(translateAuthError(error.message || '', '更新密码失败'));
+      toast.error(error.message || '更新密码失败');
     } finally {
       setIsChangingPassword(false);
     }
@@ -61,16 +68,20 @@ export const AccountSecurity = () => {
       toast.error('新邮箱不能与当前邮箱相同');
       return;
     }
+    if (!emailPassword) {
+      toast.error('请输入当前密码以验证身份');
+      return;
+    }
 
     setIsChangingEmail(true);
     try {
-      const { error } = await supabase.auth.updateUser({ email: newEmail });
-      if (error) throw error;
-      toast.success('验证邮件已发送到新邮箱，请查收并确认');
+      await apiPost('/auth/change-email', { newEmail, password: emailPassword });
+      toast.success('邮箱已更新，请重新登录');
       setNewEmail('');
+      setEmailPassword('');
       setShowEmailForm(false);
     } catch (error: any) {
-      toast.error(translateAuthError(error.message || '', '更新邮箱失败'));
+      toast.error(error.message || '更新邮箱失败');
     } finally {
       setIsChangingEmail(false);
     }
@@ -96,7 +107,6 @@ export const AccountSecurity = () => {
   const passwordStrength = getPasswordStrength(newPassword);
   const strengthInfo = getStrengthInfo(passwordStrength);
 
-  // Password requirement checks
   const pwReqs = [
     { met: newPassword.length >= 8, label: '至少8个字符' },
     { met: /[A-Z]/.test(newPassword) && /[a-z]/.test(newPassword), label: '包含大小写字母' },
@@ -106,7 +116,6 @@ export const AccountSecurity = () => {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
-      {/* 安全概览 */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -143,11 +152,7 @@ export const AccountSecurity = () => {
               </div>
               <div>
                 <p className="text-sm font-medium">上次登录</p>
-                <p className="text-xs text-muted-foreground">
-                  {user?.last_sign_in_at
-                    ? new Date(user.last_sign_in_at).toLocaleString('zh-CN')
-                    : '未知'}
-                </p>
+                <p className="text-xs text-muted-foreground">当前会话</p>
               </div>
             </div>
           </div>
@@ -163,10 +168,8 @@ export const AccountSecurity = () => {
         </CardContent>
       </Card>
 
-      {/* 两步验证 */}
       <TwoFactorAuth onStatusChange={setIs2FAEnabled} />
 
-      {/* 修改密码 */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -187,6 +190,27 @@ export const AccountSecurity = () => {
         {showPasswordForm && (
           <CardContent className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="current-password">当前密码</Label>
+              <div className="relative">
+                <Input
+                  id="current-password"
+                  type={showCurrentPassword ? "text" : "password"}
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="输入当前密码"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="new-password">新密码</Label>
               <div className="relative">
                 <Input
@@ -206,7 +230,6 @@ export const AccountSecurity = () => {
                 </button>
               </div>
 
-              {/* 密码强度条 */}
               {newPassword && (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
@@ -225,8 +248,6 @@ export const AccountSecurity = () => {
                       {strengthInfo.text}
                     </span>
                   </div>
-
-                  {/* 密码要求列表 */}
                   <div className="grid grid-cols-2 gap-1">
                     {pwReqs.map((req, i) => (
                       <div key={i} className="flex items-center gap-1.5">
@@ -275,7 +296,7 @@ export const AccountSecurity = () => {
             <div className="flex items-center gap-3">
               <Button
                 onClick={handleChangePassword}
-                disabled={isChangingPassword || !newPassword || !confirmPassword || newPassword !== confirmPassword || newPassword.length < 8}
+                disabled={isChangingPassword || !currentPassword || !newPassword || !confirmPassword || newPassword !== confirmPassword || newPassword.length < 8}
               >
                 {isChangingPassword ? (
                   <>
@@ -290,6 +311,7 @@ export const AccountSecurity = () => {
                 variant="ghost"
                 onClick={() => {
                   setShowPasswordForm(false);
+                  setCurrentPassword('');
                   setNewPassword('');
                   setConfirmPassword('');
                 }}
@@ -301,7 +323,6 @@ export const AccountSecurity = () => {
         )}
       </Card>
 
-      {/* 修改邮箱 */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -310,7 +331,7 @@ export const AccountSecurity = () => {
                 <Mail className="w-5 h-5" />
                 登录邮箱
               </CardTitle>
-              <CardDescription>更换登录邮箱需要验证新邮箱地址</CardDescription>
+              <CardDescription>更换登录邮箱需要验证当前密码</CardDescription>
             </div>
             {!showEmailForm && (
               <Button variant="outline" size="sm" onClick={() => setShowEmailForm(true)}>
@@ -347,25 +368,45 @@ export const AccountSecurity = () => {
                   placeholder="输入新的邮箱地址"
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="email-password">当前密码（验证身份）</Label>
+                <div className="relative">
+                  <Input
+                    id="email-password"
+                    type={showEmailPassword ? "text" : "password"}
+                    value={emailPassword}
+                    onChange={(e) => setEmailPassword(e.target.value)}
+                    placeholder="输入当前密码"
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowEmailPassword(!showEmailPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showEmailPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
               <Alert className="bg-muted/50">
                 <Info className="h-4 w-4" />
                 <AlertDescription className="text-xs">
-                  修改邮箱后，系统会向新邮箱发送验证链接。确认后新邮箱才会生效。
+                  修改邮箱后，请使用新邮箱重新登录。
                 </AlertDescription>
               </Alert>
               <div className="flex items-center gap-3">
                 <Button
                   onClick={handleChangeEmail}
-                  disabled={isChangingEmail || !newEmail}
+                  disabled={isChangingEmail || !newEmail || !emailPassword}
                   variant="outline"
                 >
                   {isChangingEmail ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      发送中...
+                      更新中...
                     </>
                   ) : (
-                    '发送验证邮件'
+                    '确认修改'
                   )}
                 </Button>
                 <Button
@@ -373,6 +414,7 @@ export const AccountSecurity = () => {
                   onClick={() => {
                     setShowEmailForm(false);
                     setNewEmail('');
+                    setEmailPassword('');
                   }}
                 >
                   取消
@@ -383,10 +425,8 @@ export const AccountSecurity = () => {
         </CardContent>
       </Card>
 
-      {/* 设备管理 */}
       <DeviceManagement />
 
-      {/* 登录历史 */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

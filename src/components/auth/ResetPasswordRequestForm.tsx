@@ -3,10 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Mail, AlertCircle, CheckCircle, ArrowLeft, Send } from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { supabase } from '@/integrations/supabase/client';
+import { apiPost } from '@/lib/apiClient';
 import { toast } from 'sonner';
-import { translateAuthError } from '@/utils/translateError';
-import { RESET_PASSWORD_URL } from '@/config/siteConfig';
 
 interface ResetPasswordRequestFormProps {
   onCancel: () => void;
@@ -29,17 +27,12 @@ export const ResetPasswordRequestForm = ({ onCancel, onSuccess }: ResetPasswordR
     setErrorMessage('');
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: RESET_PASSWORD_URL,
-      });
-
-      if (error) throw error;
-
+      await apiPost('/auth/request-reset', { email });
       setIsSent(true);
       toast.success('密码重置邮件已发送');
       if (onSuccess) onSuccess();
     } catch (error: any) {
-      const msg = translateAuthError(error.message || '', '发送密码重置邮件失败，请稍后再试');
+      const msg = error.message || '发送密码重置邮件失败，请稍后再试';
       setErrorMessage(msg);
       toast.error(msg);
     } finally {
@@ -68,7 +61,7 @@ export const ResetPasswordRequestForm = ({ onCancel, onSuccess }: ResetPasswordR
           <ul className="text-sm text-muted-foreground space-y-1.5 pl-1">
             <li className="flex items-start gap-2">
               <span className="text-primary mt-0.5 font-bold">·</span>
-              重置链接有效期为 <strong className="text-foreground">30 分钟</strong>
+              重置链接有效期为 <strong className="text-foreground">60 分钟</strong>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary mt-0.5 font-bold">·</span>

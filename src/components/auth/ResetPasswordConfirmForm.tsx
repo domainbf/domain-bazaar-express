@@ -4,17 +4,13 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, Loader2, EyeIcon, EyeOffIcon, CheckCircle, AlertCircle, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { apiPost } from '@/lib/apiClient';
 
 interface ResetPasswordConfirmFormProps {
-  tokenData: {
-    accessToken: string;
-    refreshToken: string;
-  };
-  sessionReady?: boolean;
+  token: string;
 }
 
-export const ResetPasswordConfirmForm = ({ tokenData, sessionReady = false }: ResetPasswordConfirmFormProps) => {
+export const ResetPasswordConfirmForm = ({ token }: ResetPasswordConfirmFormProps) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -37,11 +33,6 @@ export const ResetPasswordConfirmForm = ({ tokenData, sessionReady = false }: Re
       setErrorMessage('密码至少需要6个字符');
       return false;
     }
-    const s = checkPasswordStrength(password);
-    if (!s.hasLower || !s.hasUpper || !s.hasDigit || !s.hasSpecial) {
-      setErrorMessage('密码需同时包含大写字母、小写字母、数字和特殊字符（如 @#$!）');
-      return false;
-    }
     if (password !== confirmPassword) {
       setErrorMessage('两次输入的密码不匹配');
       return false;
@@ -58,54 +49,21 @@ export const ResetPasswordConfirmForm = ({ tokenData, sessionReady = false }: Re
     setErrorMessage('');
 
     try {
-      // Always re-assert the session before updating the password.
-      // The SDK session may have been cleared between page load and submit.
-      if (tokenData.accessToken) {
-        const { error: sessionError } = await supabase.auth.setSession({
-          access_token: tokenData.accessToken,
-          refresh_token: tokenData.refreshToken,
-        });
-        if (sessionError) {
-          throw new Error('重置链接已过期或无效，请重新申请密码重置');
-        }
-      }
-
-      // Race against a 20-second timeout so the button never gets stuck forever.
-      const updateResult = await Promise.race([
-        supabase.auth.updateUser({ password }),
+      await Promise.race([
+        apiPost('/auth/reset-password', { token, newPassword: password }),
         new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('请求超时，请检查网络后重试')), 20000)
         ),
       ]);
-      const { error: updateError } = updateResult as Awaited<ReturnType<typeof supabase.auth.updateUser>>;
-      if (updateError) {
-        const msg = updateError.message || '';
-        if (msg.includes('different from the old password') || msg.includes('same as the old')) {
-          throw new Error('新密码不能与原密码相同，请设置一个不同的密码');
-        }
-        if (msg.includes('Password should be') || msg.includes('password') || msg.includes('Password')) {
-          throw new Error('密码不符合安全要求：需包含大写字母、小写字母、数字和特殊字符（如 @#$!）');
-        }
-        if (msg.includes('expired') || msg.includes('invalid') || msg.includes('missing')) {
-          throw new Error('重置链接已过期或无效，请重新申请密码重置');
-        }
-        throw updateError;
-      }
 
       setIsSuccess(true);
       toast.success('密码已成功重置！');
-      setTimeout(() => { window.location.href = '/user-center'; }, 1800);
+      setTimeout(() => { window.location.href = '/auth'; }, 1800);
     } catch (error: any) {
       let friendlyMessage = '重置密码失败，请重试';
-      if (
-        error.message?.includes('expired') ||
-        error.message?.includes('invalid') ||
-        error.message?.includes('过期') ||
-        error.message?.includes('无效')
-      ) {
-        friendlyMessage = error.message || '重置链接已过期或无效，请重新申请密码重置';
-      } else if (error.message?.includes('Password')) {
-        friendlyMessage = '密码不符合安全要求，请使用至少6个字符的密码';
+      if (error.message?.includes('expired') || error.message?.includes('invalid') ||
+          error.message?.includes('过期') || error.message?.includes('无效')) {
+        friendlyMessage = '重置链接已过期或无效，请重新申请密码重置';
       } else if (error.message) {
         friendlyMessage = error.message;
       }
@@ -126,10 +84,10 @@ export const ResetPasswordConfirmForm = ({ tokenData, sessionReady = false }: Re
         </div>
         <div>
           <h3 className="text-lg font-semibold text-foreground">密码已成功更新！</h3>
-          <p className="text-sm text-muted-foreground mt-1">正在跳转到用户中心...</p>
+          <p className="text-sm text-muted-foreground mt-1">正在跳转到登录页面...</p>
         </div>
-        <Button onClick={() => navigate('/user-center')} className="w-full">
-          前往用户中心
+        <Button onClick={() => navigate('/auth')} className="w-full">
+          前往登录
         </Button>
       </div>
     );
@@ -148,7 +106,7 @@ export const ResetPasswordConfirmForm = ({ tokenData, sessionReady = false }: Re
         <ShieldCheck className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
         <div className="text-sm text-foreground space-y-0.5">
           <p>请设置您的新密码。</p>
-          <p className="text-muted-foreground">原密码在您点击「确认修改密码」并成功保存<strong className="text-foreground">之后</strong>才会失效，在此之前您仍可用原密码登录。</p>
+          <p className="text-muted-foreground">设置成功后，请使用新密码重新登录。</p>
         </div>
       </div>
 
@@ -201,7 +159,6 @@ export const ResetPasswordConfirmForm = ({ tokenData, sessionReady = false }: Re
         </div>
       </div>
 
-      {/* Password requirements checklist */}
       {password && (() => {
         const s = checkPasswordStrength(password);
         const checks = [

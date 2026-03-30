@@ -224,14 +224,20 @@ app.get('/me', requireAuth, async (c) => {
 app.patch('/profile', requireAuth, async (c) => {
   const { sub } = getAuth(c);
   const body = await c.req.json();
-  const allowed = ['full_name', 'username', 'phone', 'bio', 'company', 'website', 'avatar_url',
-    'is_seller', 'preferred_language', 'preferred_payment_methods', 'notification_preferences'];
+  // Map frontend field aliases to actual DB column names
+  const fieldMap: Record<string, string> = {
+    phone: 'contact_phone',
+    company: 'company_name',
+  };
+  const allowed = ['full_name', 'username', 'contact_phone', 'bio', 'company_name',
+    'contact_email', 'custom_url', 'avatar_url', 'is_seller', 'preferred_payment_methods'];
   const updates: string[] = [];
   const args: unknown[] = [];
   for (const key of allowed) {
-    if (key in body) {
+    const bodyKey = Object.keys(fieldMap).find(k => fieldMap[k] === key) ?? key;
+    if (key in body || bodyKey in body) {
+      const val = body[key] ?? body[bodyKey];
       updates.push(`${key} = ?`);
-      const val = body[key];
       args.push(typeof val === 'object' ? JSON.stringify(val) : val);
     }
   }
@@ -244,6 +250,34 @@ app.patch('/profile', requireAuth, async (c) => {
   const profile = await getProfile(sub);
   bus.publish({ table: 'profiles', eventType: 'UPDATE', new: profile as Record<string, unknown>, userId: sub });
   return c.json({ profile });
+});
+
+// POST /api/auth/change-email
+app.post('/change-email', requireAuth, async (c) => {
+  const { sub } = getAuth(c);
+  const { newEmail, password } = await c.req.json();
+  if (!newEmail || !password) return c.json({ error: '请提供新邮箱和当前密码' }, 400);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) return c.json({ error: '邮箱格式无效' }, 400);
+
+  const authUser = await findAuthUserById(sub);
+  if (!authUser) return c.json({ error: '用户不存在' }, 404);
+
+  const valid = await bcrypt.compare(password, authUser.password_hash as string);
+  if (!valid) return c.json({ error: '当前密码错误' }, 400);
+
+  const existing = await findAuthUser(newEmail);
+  if (existing && (existing.id as string) !== sub) return c.json({ error: '该邮箱已被其他账户使用' }, 409);
+
+  await db.execute({
+    sql: 'UPDATE app_auth_users SET email = ?, updated_at = ? WHERE id = ?',
+    args: [newEmail.toLowerCase(), now(), sub]
+  });
+  await db.execute({
+    sql: 'UPDATE profiles SET contact_email = ?, updated_at = ? WHERE id = ?',
+    args: [newEmail.toLowerCase(), now(), sub]
+  });
+  await invalidateProfileCache(sub);
+  return c.json({ success: true, message: '邮箱已更新' });
 });
 
 // POST /api/auth/change-password

@@ -1,7 +1,8 @@
 
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { useState, useEffect } from 'react';
-import { supabase } from "@/integrations/supabase/client";
+import { apiGet } from '@/lib/apiClient';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { DomainOffer } from '@/types/domain';
@@ -64,56 +65,14 @@ export const TransactionHistory = () => {
     else setIsLoading(true);
     
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) throw new Error('用户未登录');
+      const [received, sent] = await Promise.all([
+        apiGet<DomainOffer[]>('/data/domain-offers?role=seller'),
+        apiGet<DomainOffer[]>('/data/domain-offers?role=buyer'),
+      ]);
 
-      // Load received offers with domain names - 使用单次查询优化
-      const { data: received, error: receivedError } = await supabase
-        .from('domain_offers')
-        .select(`
-          *,
-          domain_listings (
-            name,
-            id
-          )
-        `)
-        .eq('seller_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (receivedError) throw receivedError;
-      
-      const receivedWithDomains = (received || []).map(offer => ({
-        ...offer,
-        domain_name: offer.domain_listings?.name || '未知域名'
-      }));
-      
-      setReceivedOffers(receivedWithDomains);
-
-      // Load sent offers with domain names - 使用单次查询优化
-      const { data: sent, error: sentError } = await supabase
-        .from('domain_offers')
-        .select(`
-          *,
-          domain_listings (
-            name,
-            id
-          )
-        `)
-        .eq('buyer_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (sentError) throw sentError;
-      
-      const sentWithDomains = (sent || []).map(offer => ({
-        ...offer,
-        domain_name: offer.domain_listings?.name || '未知域名'
-      }));
-      
-      setSentOffers(sentWithDomains);
-
-      // Calculate statistics
-      calculateStats(receivedWithDomains, sentWithDomains);
+      setReceivedOffers(received || []);
+      setSentOffers(sent || []);
+      calculateStats(received || [], sent || []);
     } catch (error: any) {
       console.error('Error loading transactions:', error);
       toast.error(error.message || '加载交易记录失败');

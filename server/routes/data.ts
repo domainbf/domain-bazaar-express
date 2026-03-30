@@ -58,6 +58,13 @@ app.get('/domain-listings', async (c) => {
   return c.json(rows);
 });
 
+app.get('/domain-listings/by-name/:name', async (c) => {
+  const name = c.req.param('name');
+  const r = await db.execute({ sql: 'SELECT id, owner_id FROM domain_listings WHERE name = ? LIMIT 1', args: [name] });
+  if (!r.rows[0]) return c.json({ error: '未找到' }, 404);
+  return c.json(rowToObj(r.rows[0]));
+});
+
 app.get('/domain-listings/:id', async (c) => {
   const id = c.req.param('id');
   const cacheKey = `domain_listing:${id}`;
@@ -198,10 +205,13 @@ app.get('/transactions', requireAuth, async (c) => {
 
 // ---- Site Settings (public read, heavily cached) ----
 app.get('/site-settings', async (c) => {
-  const cached = await cacheGet<unknown>('site_settings');
+  const cached = await cacheGet<Record<string, unknown>>('site_settings');
   if (cached) return c.json(cached);
-  const r = await db.execute({ sql: 'SELECT * FROM site_settings LIMIT 1', args: [] });
-  const data = r.rows[0] ? rowToObj(r.rows[0]) : {};
+  const r = await db.execute({ sql: 'SELECT key, value FROM site_settings', args: [] });
+  const data: Record<string, unknown> = {};
+  for (const row of r.rows) {
+    data[row.key as string] = parseJson(row.value);
+  }
   await cacheSet('site_settings', data, 300); // 5 min cache
   return c.json(data);
 });
@@ -218,27 +228,122 @@ app.patch('/site-settings', requireAuth, async (c) => {
   const { is_admin } = getAuth(c);
   if (!is_admin) return c.json({ error: '无权限' }, 403);
   const body = await c.req.json();
-  const allowed = ['site_name', 'site_description', 'contact_email', 'commission_rate',
-    'min_listing_price', 'max_listing_price', 'maintenance_mode', 'announcement',
-    'supported_currencies', 'payment_methods_config'];
+  let updatedCount = 0;
+  for (const [k, v] of Object.entries(body)) {
+    const val = typeof v === 'object' ? JSON.stringify(v) : String(v ?? '');
+    await db.execute({
+      sql: 'UPDATE site_settings SET value = ?, updated_at = ? WHERE key = ?',
+      args: [val, now(), k]
+    });
+    updatedCount++;
+  }
+  if (updatedCount === 0) return c.json({ error: '无可更新字段' }, 400);
+  await cacheDel('site_settings');
+  const r = await db.execute({ sql: 'SELECT key, value FROM site_settings', args: [] });
+  const fresh: Record<string, unknown> = {};
+  for (const row of r.rows) fresh[row.key as string] = parseJson(row.value);
+  bus.publish({ table: 'site_settings', eventType: 'UPDATE', new: fresh });
+  return c.json(fresh);
+});
+
+// ---- Domain Offers ----
+app.get('/domain-offers', requireAuth, async (c) => {
+  const { sub } = getAuth(c);
+  const role = c.req.query('role'); // 'buyer' | 'seller' | omit for both
+  let sql = 'SELECT do.*, dl.name as domain_name FROM domain_offers do LEFT JOIN domain_listings dl ON do.domain_id = dl.id WHERE ';
+  const args: unknown[] = [];
+  if (role === 'buyer') {
+    sql += 'do.buyer_id = ?';
+    args.push(sub);
+  } else if (role === 'seller') {
+    sql += 'do.seller_id = ?';
+    args.push(sub);
+  } else {
+    sql += '(do.buyer_id = ? OR do.seller_id = ?)';
+    args.push(sub, sub);
+  }
+  sql += ' ORDER BY do.created_at DESC';
+  const r = await db.execute({ sql, args });
+  return c.json(r.rows.map(rowToObj));
+});
+
+app.post('/domain-offers', async (c) => {
+  const { v4: uuidv4 } = await import('uuid');
+  const body = await c.req.json();
+  const { domainId, sellerId, buyerId, amount, email, message, captchaToken } = body;
+  if (!domainId || !sellerId || !amount || !email) {
+    return c.json({ error: '缺少必要字段' }, 400);
+  }
+  const id = uuidv4();
+  await db.execute({
+    sql: `INSERT INTO domain_offers (id, domain_id, buyer_id, seller_id, amount, status, message, contact_email, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)`,
+    args: [id, domainId, buyerId || null, sellerId, parseFloat(amount), message || null, email, now(), now()]
+  });
+  const inserted = await db.execute({ sql: 'SELECT * FROM domain_offers WHERE id = ?', args: [id] });
+  return c.json({ success: true, offer: rowToObj(inserted.rows[0]) }, 201);
+});
+
+app.patch('/domain-offers/:id', requireAuth, async (c) => {
+  const { sub } = getAuth(c);
+  const offerId = c.req.param('id');
+  const body = await c.req.json();
+  const allowed = ['status', 'amount', 'message'];
   const updates: string[] = [];
   const args: unknown[] = [];
   for (const k of allowed) {
     if (k in body) {
       updates.push(`${k} = ?`);
-      const v = body[k];
-      args.push(typeof v === 'object' ? JSON.stringify(v) : v);
+      args.push(body[k]);
     }
   }
   if (updates.length === 0) return c.json({ error: '无可更新字段' }, 400);
   updates.push('updated_at = ?');
-  args.push(now());
-  await db.execute({ sql: `UPDATE site_settings SET ${updates.join(', ')}`, args });
-  await cacheDel('site_settings'); // Bust the cache immediately
-  const r = await db.execute({ sql: 'SELECT * FROM site_settings LIMIT 1', args: [] });
-  const fresh = r.rows[0] ? rowToObj(r.rows[0]) : {};
-  bus.publish({ table: 'site_settings', eventType: 'UPDATE', new: fresh });
-  return c.json(fresh);
+  args.push(now(), offerId);
+  await db.execute({
+    sql: `UPDATE domain_offers SET ${updates.join(', ')} WHERE id = ? AND (buyer_id = ? OR seller_id = ?)`,
+    args: [...args, sub, sub]
+  });
+  const r = await db.execute({ sql: 'SELECT * FROM domain_offers WHERE id = ?', args: [offerId] });
+  return c.json({ offer: rowToObj(r.rows[0]) });
+});
+
+// ---- Favorites ----
+app.get('/favorites', requireAuth, async (c) => {
+  const { sub } = getAuth(c);
+  const r = await db.execute({
+    sql: 'SELECT uf.*, dl.name as domain_name FROM user_favorites uf LEFT JOIN domain_listings dl ON uf.domain_id = dl.id WHERE uf.user_id = ? ORDER BY uf.created_at DESC',
+    args: [sub]
+  });
+  return c.json(r.rows.map(rowToObj));
+});
+
+app.post('/favorites', requireAuth, async (c) => {
+  const { v4: uuidv4 } = await import('uuid');
+  const { sub } = getAuth(c);
+  const { domainId } = await c.req.json();
+  if (!domainId) return c.json({ error: '缺少 domainId' }, 400);
+  const existing = await db.execute({
+    sql: 'SELECT id FROM user_favorites WHERE user_id = ? AND domain_id = ?',
+    args: [sub, domainId]
+  });
+  if (existing.rows[0]) return c.json({ id: existing.rows[0].id, already: true });
+  const id = uuidv4();
+  await db.execute({
+    sql: 'INSERT INTO user_favorites (id, user_id, domain_id, created_at) VALUES (?, ?, ?, ?)',
+    args: [id, sub, domainId, now()]
+  });
+  return c.json({ id }, 201);
+});
+
+app.delete('/favorites/:domainId', requireAuth, async (c) => {
+  const { sub } = getAuth(c);
+  const domainId = c.req.param('domainId');
+  await db.execute({
+    sql: 'DELETE FROM user_favorites WHERE user_id = ? AND domain_id = ?',
+    args: [sub, domainId]
+  });
+  return c.json({ success: true });
 });
 
 // ---- Admin: publish realtime event ----
