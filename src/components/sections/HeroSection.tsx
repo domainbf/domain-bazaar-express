@@ -147,7 +147,7 @@ export const HeroSection = () => {
         >
           <Button
             onClick={() => navigate('/marketplace')}
-            className="flex-1 max-w-[180px] px-4 md:px-8 py-2.5 md:py-3 text-sm md:text-base bg-primary hover:bg-primary/90 text-primary-foreground transition-all active:scale-[0.97]"
+            className="flex-1 max-w-[180px] px-4 md:px-8 py-2.5 md:py-3 text-sm md:text-base bg-foreground text-background hover:bg-foreground/90 transition-all active:scale-[0.97]"
             data-testid="button-hero-browse"
           >
             {config.hero_cta_primary}
@@ -155,7 +155,7 @@ export const HeroSection = () => {
           <Button
             onClick={() => navigate('/sell')}
             variant="outline"
-            className="flex-1 max-w-[180px] px-4 md:px-8 py-2.5 md:py-3 text-sm md:text-base border-border text-foreground hover:bg-accent transition-all active:scale-[0.97]"
+            className="flex-1 max-w-[180px] px-4 md:px-8 py-2.5 md:py-3 text-sm md:text-base border-2 border-foreground text-foreground bg-transparent hover:bg-foreground hover:text-background transition-all active:scale-[0.97]"
             data-testid="button-hero-sell"
           >
             {config.hero_cta_secondary}

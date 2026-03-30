@@ -183,7 +183,11 @@ export const DomainCard = ({
         ) : (
           <>
             <Link to={`/domain/${domain}`} className="flex-1" data-testid={`link-domain-detail-${domainId}`}>
-              <Button variant="outline" className="w-full text-xs transition-all active:scale-95" size="sm">
+              <Button
+                variant="outline"
+                className="w-full text-xs transition-all active:scale-95 border-foreground text-foreground hover:bg-foreground hover:text-background"
+                size="sm"
+              >
                 查看详情 →
               </Button>
             </Link>
