@@ -182,6 +182,16 @@ npm run dev      # Start dev server on port 5000
 npm run build    # Build for production
 ```
 
+## Replit Environment Setup
+
+- **Runtime**: Node 20, port 5000 (mapped to external port 80)
+- **Workflow**: "Start application" runs `npm run dev` — no backend server, pure frontend
+- **Environment Variables**: Stored as Replit shared env vars (not secrets — these are public Supabase anon keys)
+  - `VITE_SUPABASE_URL`
+  - `VITE_SUPABASE_PUBLISHABLE_KEY`
+  - `VITE_SUPABASE_PROJECT_ID`
+- **Deployment**: Static build via `npm run build` → `dist/` folder
+
 ## Important Notes
 
 - The SQL migration in `supabase/migrations/add_trading_features.sql` must be run manually
@@ -189,5 +199,5 @@ npm run build    # Build for production
 - Social login (Google/GitHub) requires enabling OAuth providers in Supabase Dashboard → Auth → Providers
 - Password reset emails require deploying the updated `auth-email-webhook` edge function in Supabase Dashboard
 - Admin email settings tab has Resend API key config + real test email button (calls `send-email` edge function directly)
-- `lovable-tagger` must remain installed — project is developed in Lovable
 - All logic goes through Supabase client directly (no Express backend)
+- Supabase Edge Functions remain deployed on the Supabase project (`trqxaizkwuizuhlfmdup`) — they are NOT run locally
