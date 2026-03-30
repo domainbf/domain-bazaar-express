@@ -14,13 +14,13 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold",
         outline:
-          "border-2 border-gray-300 bg-white text-gray-900 hover:bg-gray-100 hover:text-gray-900 dark:text-white dark:hover:bg-gray-800 dark:hover:text-white font-bold",
+          "border-2 border-gray-300 bg-white text-gray-900 hover:bg-gray-100 hover:text-gray-900 dark:border-zinc-600 dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800 dark:hover:text-white font-bold",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 font-bold",
         ghost: "hover:bg-accent hover:text-accent-foreground font-bold",
         link: "text-primary underline-offset-4 hover:underline font-bold",
-        filter: "border-2 border-gray-300 bg-white text-gray-900 hover:bg-gray-100 font-bold shadow-sm", // New variant for filter buttons
-        filterActive: "bg-gray-900 text-white hover:bg-gray-800 font-bold shadow-sm", // Active state for filter buttons
+        filter: "border-2 border-gray-300 bg-white text-gray-900 hover:bg-gray-100 dark:border-zinc-600 dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800 font-bold shadow-sm",
+        filterActive: "bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 font-bold shadow-sm",
       },
       size: {
         default: "h-11 px-4 py-2",

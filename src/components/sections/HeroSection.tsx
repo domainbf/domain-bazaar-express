@@ -39,23 +39,8 @@ export const HeroSection = () => {
   return (
     <section className="relative pt-12 md:pt-20 pb-10 md:pb-16 px-4 bg-background overflow-hidden">
 
-      {/* ── Animated gradient orbs ── */}
+      {/* ── Subtle dark overlay only ── */}
       <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
-        {/* large violet orb top-right */}
-        <div
-          className="absolute -top-40 -right-40 w-[480px] h-[480px] rounded-full animate-glow-pulse"
-          style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.13) 0%, rgba(99,102,241,0.06) 60%, transparent 80%)' }}
-        />
-        {/* cyan orb bottom-left */}
-        <div
-          className="absolute -bottom-24 -left-24 w-[360px] h-[360px] rounded-full animate-glow-pulse"
-          style={{ background: 'radial-gradient(circle, rgba(6,182,212,0.12) 0%, rgba(59,130,246,0.06) 60%, transparent 80%)', animationDelay: '2s' }}
-        />
-        {/* warm amber orb center-left */}
-        <div
-          className="absolute top-1/3 left-1/4 w-[240px] h-[240px] rounded-full animate-glow-pulse"
-          style={{ background: 'radial-gradient(circle, rgba(245,158,11,0.07) 0%, transparent 70%)', animationDelay: '3.5s' }}
-        />
 
         {/* subtle grid overlay */}
         <div
@@ -95,9 +80,9 @@ export const HeroSection = () => {
           initial="hidden"
           animate="show"
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 rounded-full border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 text-sm font-medium"
+          className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 rounded-full border border-border bg-card/50 dark:bg-white/5 text-muted-foreground text-sm font-medium"
         >
-          <span className="inline-block w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-foreground/50 animate-pulse" />
           专业域名交易平台
         </motion.div>
 
@@ -108,8 +93,7 @@ export const HeroSection = () => {
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: 0.05 }}
           className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 leading-tight"
         >
-          <span className="text-foreground">{(config.hero_title || '寻找完美的域名').replace(/域名$/, '')}</span>
-          <span className="text-gradient">域名</span>
+          <span className="text-foreground">{config.hero_title || '寻找完美的域名'}</span>
         </motion.h1>
 
         <motion.p
@@ -143,7 +127,7 @@ export const HeroSection = () => {
             </div>
             <Button
               onClick={handleSearch}
-              className="h-11 md:h-12 px-6 md:px-8 whitespace-nowrap transition-all active:scale-[0.97] bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white border-0 shadow-md hover:shadow-lg"
+              className="h-11 md:h-12 px-6 md:px-8 whitespace-nowrap transition-all active:scale-[0.97] bg-foreground text-background hover:bg-foreground/90 border-0 shadow-md hover:shadow-lg"
               data-testid="button-hero-search"
             >
               <Search className="w-4 h-4 md:w-5 md:h-5 mr-2" />

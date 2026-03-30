@@ -205,27 +205,23 @@ const Index = () => {
         <HowItWorksSection />
 
         {/* Features / How It Works (site-config driven) */}
-        <section className="py-16 md:py-20 relative overflow-hidden">
-          {/* mesh gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-violet-700 to-purple-800 animate-gradient" />
-          <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '28px 28px' }} />
-
+        <section className="py-16 md:py-20 bg-card relative overflow-hidden">
           <div className="relative max-w-6xl mx-auto px-4 md:px-8 z-10">
-            <h2 className="text-2xl md:text-3xl font-bold text-center text-white mb-10 md:mb-16">
+            <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-10 md:mb-16">
               {siteConfig.how_it_works_title || t('homePage.howItWorks')}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
               {[
-                { step: '1', title: siteConfig.step1_title || t('homePage.step1Title'), desc: siteConfig.step1_desc || t('homePage.step1Description'), color: 'border-blue-400/40 bg-white/10' },
-                { step: '2', title: siteConfig.step2_title || t('homePage.step2Title'), desc: siteConfig.step2_desc || t('homePage.step2Description'), color: 'border-violet-400/40 bg-white/10' },
-                { step: '3', title: siteConfig.step3_title || t('homePage.step3Title'), desc: siteConfig.step3_desc || t('homePage.step3Description'), color: 'border-cyan-400/40 bg-white/10' },
-              ].map(({ step, title, desc, color }) => (
-                <div key={step} className={`rounded-2xl p-6 md:p-8 text-center border ${color} backdrop-blur-sm`}>
-                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/20 text-white border border-white/30 flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold">
+                { step: '1', title: siteConfig.step1_title || t('homePage.step1Title'), desc: siteConfig.step1_desc || t('homePage.step1Description') },
+                { step: '2', title: siteConfig.step2_title || t('homePage.step2Title'), desc: siteConfig.step2_desc || t('homePage.step2Description') },
+                { step: '3', title: siteConfig.step3_title || t('homePage.step3Title'), desc: siteConfig.step3_desc || t('homePage.step3Description') },
+              ].map(({ step, title, desc }) => (
+                <div key={step} className="rounded-2xl p-6 md:p-8 text-center border border-border bg-background">
+                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-muted border border-border flex items-center justify-center mx-auto mb-4 md:mb-6 text-xl md:text-2xl font-bold text-foreground">
                     {step}
                   </div>
-                  <h3 className="text-lg md:text-xl font-bold mb-3 text-white">{title}</h3>
-                  <p className="text-white/70 text-sm md:text-base leading-relaxed">{desc}</p>
+                  <h3 className="text-lg md:text-xl font-bold mb-3 text-foreground">{title}</h3>
+                  <p className="text-muted-foreground text-sm md:text-base leading-relaxed">{desc}</p>
                 </div>
               ))}
             </div>
@@ -234,20 +230,19 @@ const Index = () => {
 
         {/* Stats */}
         <section className="py-16 md:py-20 bg-card relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-background via-indigo-50/30 to-background dark:via-indigo-950/15 pointer-events-none" />
           <div className="relative max-w-6xl mx-auto px-4 md:px-8 z-10">
             <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-10 md:mb-14">
               {siteConfig.stats_title || t('homePage.platformStats')}
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
               {[
-                { value: siteConfig.stat_users || '50,000+', label: t('homePage.activeUsers'), grad: 'from-indigo-600 to-violet-600' },
-                { value: siteConfig.stat_countries || '100+', label: t('homePage.countries'), grad: 'from-cyan-500 to-blue-600' },
-                { value: siteConfig.stat_volume || '$100M+', label: t('homePage.transactionVolume'), grad: 'from-emerald-500 to-teal-600' },
-                { value: siteConfig.stat_support || '24/7', label: t('homePage.customerSupport'), grad: 'from-violet-600 to-purple-600' },
-              ].map(({ value, label, grad }) => (
-                <div key={label} className="glow-card text-center p-4 md:p-6 bg-card border border-border rounded-2xl shadow-sm">
-                  <div className={`text-2xl md:text-4xl font-bold mb-2 md:mb-3 bg-gradient-to-r ${grad} bg-clip-text text-transparent`}>
+                { value: siteConfig.stat_users || '50,000+', label: t('homePage.activeUsers') },
+                { value: siteConfig.stat_countries || '100+', label: t('homePage.countries') },
+                { value: siteConfig.stat_volume || '$100M+', label: t('homePage.transactionVolume') },
+                { value: siteConfig.stat_support || '24/7', label: t('homePage.customerSupport') },
+              ].map(({ value, label }) => (
+                <div key={label} className="text-center p-4 md:p-6 bg-background border border-border rounded-2xl">
+                  <div className="text-2xl md:text-4xl font-bold mb-2 md:mb-3 text-foreground">
                     {value}
                   </div>
                   <div className="text-muted-foreground text-xs md:text-sm font-medium">{label}</div>
@@ -261,32 +256,24 @@ const Index = () => {
         <Suspense fallback={null}><SoldDomains /></Suspense>
 
         {/* CTA */}
-        <section className="py-16 md:py-20 relative overflow-hidden">
-          {/* animated mesh gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-indigo-950 to-violet-950 animate-gradient" />
-          {/* subtle radial glow */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full opacity-30 animate-glow-pulse"
-            style={{ background: 'radial-gradient(ellipse, rgba(139,92,246,0.5) 0%, transparent 70%)' }} />
-          <div className="absolute inset-0 opacity-[0.06]"
-            style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '24px 24px' }} />
-
+        <section className="py-16 md:py-20 bg-card relative overflow-hidden">
           <div className="relative max-w-4xl mx-auto px-4 md:px-8 text-center z-10">
-            <h2 className="text-2xl md:text-4xl font-bold mb-6 md:mb-8 text-white">
+            <h2 className="text-2xl md:text-4xl font-bold mb-6 md:mb-8 text-foreground">
               {siteConfig.cta_title || t('homePage.ctaTitle')}
             </h2>
-            <p className="text-base md:text-xl text-white/70 mb-8 md:mb-10 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-base md:text-xl text-muted-foreground mb-8 md:mb-10 max-w-2xl mx-auto leading-relaxed">
               {siteConfig.cta_description || t('homePage.ctaDescription')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/marketplace" className="w-full sm:w-auto">
-                <Button className="w-full sm:w-auto bg-white text-indigo-700 hover:bg-white/90 px-8 py-3 text-base font-bold shadow-lg hover:shadow-xl transition-all active:scale-[0.97]">
+                <Button className="w-full sm:w-auto bg-foreground text-background hover:bg-foreground/90 px-8 py-3 text-base font-bold shadow-lg hover:shadow-xl transition-all active:scale-[0.97]">
                   {siteConfig.cta_btn_primary || t('homePage.browseDomains')}
                 </Button>
               </Link>
               <Link to={user ? "/user-center" : "#"} onClick={user ? undefined : () => setIsAuthModalOpen(true)} className="w-full sm:w-auto">
                 <Button
                   variant="outline"
-                  className="w-full sm:w-auto border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm px-8 py-3 text-base font-bold transition-all active:scale-[0.97]"
+                  className="w-full sm:w-auto px-8 py-3 text-base font-bold transition-all active:scale-[0.97]"
                 >
                   {user ? (siteConfig.cta_btn_secondary || t('homePage.visitUserCenter')) : t('homePage.registerLogin')}
                 </Button>

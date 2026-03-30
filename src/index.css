@@ -63,31 +63,31 @@
   }
 
   .dark {
-    /* ── 深色主题：柔和的深蓝黑，不刺眼 ── */
-    --background: 222 47% 8%;        /* #0b1120  深蓝黑，不是纯黑 */
-    --foreground: 210 35% 94%;       /* 近白，暖色调 */
-    --card: 222 40% 11%;             /* #111827  卡片略亮于背景 */
-    --card-foreground: 210 35% 94%;
-    --popover: 222 40% 11%;
-    --popover-foreground: 210 35% 94%;
-    --primary: 210 35% 94%;
-    --primary-foreground: 222 47% 8%;
-    --secondary: 217 33% 17%;        /* slate-800 层次 */
-    --secondary-foreground: 210 35% 94%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 55%; /* 柔和灰，可读性好 */
-    --accent: 217 33% 20%;
-    --accent-foreground: 210 35% 94%;
+    /* ── 纯黑主题：无蓝色/紫色色调 ── */
+    --background: 0 0% 7%;      /* #121212 纯正深黑 */
+    --foreground: 0 0% 94%;     /* 近白文字 */
+    --card: 0 0% 10%;           /* #1a1a1a 卡片底色 */
+    --card-foreground: 0 0% 94%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 94%;
+    --primary: 0 0% 94%;
+    --primary-foreground: 0 0% 7%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 94%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 63%;   /* 副文字：可读灰 */
+    --accent: 0 0% 18%;
+    --accent-foreground: 0 0% 94%;
     --destructive: 0 60% 35%;
     --destructive-foreground: 0 0% 98%;
-    --border: 217 25% 20%;           /* 边框：略亮，不刺眼 */
-    --input: 217 25% 20%;
-    --ring: 213 31% 70%;
-    --chart-1: 220 70% 55%;
-    --chart-2: 160 55% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 60% 60%;
-    --chart-5: 340 70% 55%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 0 0% 65%;
+    --chart-1: 220 65% 55%;
+    --chart-2: 160 50% 45%;
+    --chart-3: 30 75% 55%;
+    --chart-4: 280 55% 55%;
+    --chart-5: 340 65% 55%;
   }
 }
 
@@ -370,25 +370,12 @@ html {
 .animate-spin-slow   { animation: spin-slow 20s linear infinite; }
 .animate-particle    { animation: particle-drift 6s ease-in-out infinite; }
 
-/* gradient text utility */
-.text-gradient {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 40%, #06b6d4 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.text-gradient-warm {
-  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 50%, #8b5cf6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
 /* glow card */
 .glow-card {
   transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 .glow-card:hover {
-  box-shadow: 0 0 0 1px hsl(var(--border)), 0 8px 32px -4px rgba(99, 102, 241, 0.18), 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 0 0 1px hsl(var(--border)), 0 8px 32px -4px rgba(0,0,0,0.20), 0 2px 8px rgba(0,0,0,0.08);
   transform: translateY(-3px);
 }
 

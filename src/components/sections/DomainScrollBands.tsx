@@ -122,7 +122,7 @@ export function DomainScrollBands() {
       {auctionDomains.length > 0 && (
         <div className="space-y-1.5">
           <div className="flex items-center gap-2 px-1">
-            <Gavel className="h-4 w-4 text-orange-500" />
+            <Gavel className="h-4 w-4 text-foreground/60" />
             <span className="text-sm font-semibold text-foreground">拍卖域名</span>
           </div>
           <MarqueeRow items={auctionDomains} direction="ltr" onChipClick={handleChipClick} />
@@ -132,7 +132,7 @@ export function DomainScrollBands() {
       {hotDomains.length > 0 && (
         <div className="space-y-1.5">
           <div className="flex items-center gap-2 px-1">
-            <Flame className="h-4 w-4 text-red-500" />
+            <Flame className="h-4 w-4 text-foreground/60" />
             <span className="text-sm font-semibold text-foreground">热门域名</span>
           </div>
           <MarqueeRow items={hotDomains} direction="rtl" onChipClick={handleChipClick} />

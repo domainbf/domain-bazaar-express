@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, ChevronRight, Flame } from 'lucide-react';
+import { TrendingUp, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,13 +13,6 @@ interface TrendingDomain {
   views: string;
   growth: string;
 }
-
-const CARD_COLORS = [
-  { bg: 'bg-indigo-50 dark:bg-indigo-950/40', badge: 'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300', icon: 'text-indigo-500' },
-  { bg: 'bg-emerald-50 dark:bg-emerald-950/40', badge: 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300', icon: 'text-emerald-500' },
-  { bg: 'bg-violet-50 dark:bg-violet-950/40', badge: 'bg-violet-100 dark:bg-violet-900/60 text-violet-700 dark:text-violet-300', icon: 'text-violet-500' },
-  { bg: 'bg-amber-50 dark:bg-amber-950/40', badge: 'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300', icon: 'text-amber-500' },
-];
 
 export const TrendingDomains = () => {
   const [trendingData, setTrendingData] = useState<TrendingDomain[]>([]);
@@ -90,17 +83,11 @@ export const TrendingDomains = () => {
   if (trendingData.length === 0) return null;
 
   return (
-    <section className="py-20 relative z-10 overflow-hidden">
-      {/* background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background via-indigo-50/20 to-background dark:via-indigo-950/10 pointer-events-none" />
-
+    <section className="py-20 relative z-10 overflow-hidden bg-card">
       <div className="relative max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between mb-10">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Flame className="w-5 h-5 text-orange-500 animate-pulse" />
-              <p className="text-sm font-semibold text-orange-600 dark:text-orange-400 uppercase tracking-widest">实时热门</p>
-            </div>
+            <p className="text-sm font-semibold text-muted-foreground uppercase tracking-widest mb-1">实时热门</p>
             <h2 className="text-3xl font-bold text-foreground">热门域名</h2>
             <p className="text-muted-foreground mt-1.5 text-sm">实时跟踪最受关注的域名</p>
           </div>
@@ -113,33 +100,30 @@ export const TrendingDomains = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {trendingData.map((item, index) => {
-            const c = CARD_COLORS[index % CARD_COLORS.length];
-            return (
-              <motion.div
-                key={item.domain}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className={`glow-card ${c.bg} border border-border p-6 rounded-2xl shadow-sm`}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <TrendingUp className={`w-5 h-5 ${c.icon}`} />
-                  <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${c.badge}`}>
-                    {item.growth}
-                  </span>
+          {trendingData.map((item, index) => (
+            <motion.div
+              key={item.domain}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, delay: index * 0.1 }}
+              viewport={{ once: true }}
+              className="bg-background border border-border p-6 rounded-2xl hover:border-foreground/20 transition-colors"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <TrendingUp className="w-5 h-5 text-muted-foreground" />
+                <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-muted text-foreground border border-border">
+                  {item.growth}
+                </span>
+              </div>
+              <h3 className="text-xl font-bold text-foreground mb-3 truncate">{item.domain}</h3>
+              <div className="flex justify-between items-center">
+                <div className="text-xs text-muted-foreground">{item.views} 浏览</div>
+                <div className="text-base font-bold text-foreground">
+                  {item.currency === 'CNY' ? '¥' : '$'}{item.price}
                 </div>
-                <h3 className="text-xl font-bold text-foreground mb-3 truncate">{item.domain}</h3>
-                <div className="flex justify-between items-center">
-                  <div className="text-xs text-muted-foreground">{item.views} 浏览</div>
-                  <div className="text-base font-bold text-foreground">
-                    {item.currency === 'CNY' ? '¥' : '$'}{item.price}
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
+              </div>
+            </motion.div>
+          ))}
         </div>
 
         <div className="text-center mt-8 sm:hidden">
