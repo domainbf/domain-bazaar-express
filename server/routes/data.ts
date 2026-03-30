@@ -632,6 +632,38 @@ app.post('/disputes', requireAuth, async (c) => {
 });
 
 // ---- Admin Stats ----
+// GET /api/data/admin/domain-listings — all listings (admin only) with analytics + owner
+app.get('/admin/domain-listings', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const r = await db.execute({ sql: 'SELECT * FROM domain_listings ORDER BY created_at DESC', args: [] });
+  const listings = r.rows.map(rowToObj);
+  if (listings.length === 0) return c.json([]);
+  const ids = listings.map(d => d.id as string);
+  const placeholders = ids.map(() => '?').join(',');
+  const [analyticsRes, profileIdsRes] = await Promise.all([
+    db.execute({ sql: `SELECT domain_id, views, favorites, offers FROM domain_analytics WHERE domain_id IN (${placeholders})`, args: ids }).catch(() => ({ rows: [] })),
+    Promise.resolve(null)
+  ]);
+  const analyticsMap = new Map((analyticsRes as any).rows.map((r: any) => { const o = rowToObj(r); return [o.domain_id as string, o]; }));
+  const ownerIds = [...new Set(listings.map(d => d.owner_id as string).filter(Boolean))];
+  let profilesMap: Map<string, any> = new Map();
+  if (ownerIds.length > 0) {
+    const pp = ownerIds.map(() => '?').join(',');
+    const pRes = await db.execute({ sql: `SELECT id, full_name, username, avatar_url FROM profiles WHERE id IN (${pp})`, args: ownerIds });
+    profilesMap = new Map(pRes.rows.map(r => { const o = rowToObj(r); return [o.id as string, o]; }));
+  }
+  const result = listings.map(d => ({
+    ...d,
+    views: (analyticsMap.get(d.id as string) as any)?.views ?? 0,
+    favorites: (analyticsMap.get(d.id as string) as any)?.favorites ?? 0,
+    offers: (analyticsMap.get(d.id as string) as any)?.offers ?? 0,
+    ownerName: (profilesMap.get(d.owner_id as string) as any)?.full_name ?? (profilesMap.get(d.owner_id as string) as any)?.username ?? '未知',
+    ownerEmail: '',
+  }));
+  return c.json(result);
+});
+
 app.get('/admin/stats', requireAuth, async (c) => {
   const { is_admin } = getAuth(c);
   if (!is_admin) return c.json({ error: '无权限' }, 403);
@@ -787,6 +819,149 @@ app.post('/admin/change-password', requireAuth, async (c) => {
   const hash = await bcrypt.hash(new_password, 12);
   await db.execute({ sql: 'UPDATE app_auth_users SET password_hash = ?, updated_at = ? WHERE id = ?', args: [hash, now(), sub] });
   return c.json({ success: true });
+});
+
+// ---- Admin: delete message ----
+app.delete('/messages/:id', requireAuth, async (c) => {
+  const { sub, is_admin } = getAuth(c);
+  const id = c.req.param('id');
+  const r = await db.execute({ sql: 'SELECT sender_id, receiver_id FROM messages WHERE id = ?', args: [id] });
+  if (!r.rows[0]) return c.json({ error: '未找到' }, 404);
+  const msg = rowToObj(r.rows[0]);
+  if (!is_admin && msg.sender_id !== sub && msg.receiver_id !== sub) return c.json({ error: '无权限' }, 403);
+  await db.execute({ sql: 'DELETE FROM messages WHERE id = ?', args: [id] });
+  return c.json({ success: true });
+});
+
+// ---- Admin: delete notification ----
+app.delete('/notifications/:id', requireAuth, async (c) => {
+  const { sub, is_admin } = getAuth(c);
+  const id = c.req.param('id');
+  if (is_admin) {
+    await db.execute({ sql: 'DELETE FROM notifications WHERE id = ?', args: [id] });
+  } else {
+    await db.execute({ sql: 'DELETE FROM notifications WHERE id = ? AND user_id = ?', args: [id, sub] });
+  }
+  return c.json({ success: true });
+});
+
+// ---- Admin: send notifications ----
+app.post('/admin/notifications', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const body = await c.req.json();
+  const { notifications } = body;
+  if (!Array.isArray(notifications) || notifications.length === 0) return c.json({ error: '无通知数据' }, 400);
+  const { v4: uuidv4 } = await import('uuid');
+  let count = 0;
+  for (const n of notifications) {
+    const id = uuidv4();
+    try {
+      await db.execute({
+        sql: 'INSERT INTO notifications (id, user_id, title, message, type, action_url, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)',
+        args: [id, n.user_id, n.title, n.message, n.type ?? 'system', n.action_url ?? null, now()]
+      });
+      count++;
+    } catch { /* skip duplicates */ }
+  }
+  bus.publish({ table: 'notifications', eventType: 'INSERT', new: { count }, userId: null });
+  return c.json({ success: true, count });
+});
+
+// ---- Admin: user reviews ----
+app.get('/admin/user-reviews', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const r = await db.execute({ sql: 'SELECT * FROM user_reviews ORDER BY created_at DESC', args: [] });
+  return c.json(r.rows.map(rowToObj));
+});
+
+app.patch('/admin/user-reviews/:id', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const id = c.req.param('id');
+  const body = await c.req.json();
+  const updates: string[] = [];
+  const args: unknown[] = [];
+  if ('is_visible' in body) { updates.push('is_visible = ?'); args.push(body.is_visible); }
+  if (updates.length === 0) return c.json({ error: '无可更新字段' }, 400);
+  args.push(id);
+  await db.execute({ sql: `UPDATE user_reviews SET ${updates.join(', ')} WHERE id = ?`, args });
+  return c.json({ success: true });
+});
+
+app.delete('/admin/user-reviews/:id', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  await db.execute({ sql: 'DELETE FROM user_reviews WHERE id = ?', args: [c.req.param('id')] });
+  return c.json({ success: true });
+});
+
+// ---- Admin: support tickets ----
+app.get('/admin/support-tickets', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const r = await db.execute({ sql: 'SELECT * FROM support_tickets ORDER BY updated_at DESC', args: [] });
+  return c.json(r.rows.map(rowToObj));
+});
+
+app.patch('/admin/support-tickets/:id', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const id = c.req.param('id');
+  const body = await c.req.json();
+  const updates: string[] = [];
+  const args: unknown[] = [];
+  if ('status' in body) { updates.push('status = ?'); args.push(body.status); }
+  updates.push('updated_at = ?'); args.push(now());
+  args.push(id);
+  await db.execute({ sql: `UPDATE support_tickets SET ${updates.join(', ')} WHERE id = ?`, args });
+  return c.json({ success: true });
+});
+
+app.post('/admin/ticket-replies', requireAuth, async (c) => {
+  const { sub, is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const body = await c.req.json();
+  const { ticket_id, message } = body;
+  if (!ticket_id || !message) return c.json({ error: '缺少必要字段' }, 400);
+  const { v4: uuidv4 } = await import('uuid');
+  const id = uuidv4();
+  await db.execute({
+    sql: 'INSERT INTO ticket_replies (id, ticket_id, user_id, message, is_admin_reply, created_at) VALUES (?, ?, ?, ?, 1, ?)',
+    args: [id, ticket_id, sub, message, now()]
+  });
+  if (body.auto_close) {
+    await db.execute({ sql: "UPDATE support_tickets SET status = 'resolved', updated_at = ? WHERE id = ?", args: [now(), ticket_id] });
+  }
+  return c.json({ success: true, id });
+});
+
+// ---- Admin: delete domain offer ----
+app.delete('/domain-offers/:id', requireAuth, async (c) => {
+  const { sub, is_admin } = getAuth(c);
+  const id = c.req.param('id');
+  const r = await db.execute({ sql: 'SELECT buyer_id, seller_id FROM domain_offers WHERE id = ?', args: [id] });
+  if (!r.rows[0]) return c.json({ error: '未找到' }, 404);
+  const offer = rowToObj(r.rows[0]);
+  if (!is_admin && offer.buyer_id !== sub && offer.seller_id !== sub) return c.json({ error: '无权限' }, 403);
+  await db.execute({ sql: 'DELETE FROM domain_offers WHERE id = ?', args: [id] });
+  return c.json({ success: true });
+});
+
+// ---- Admin: get/update users ----
+app.get('/admin/users', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const r = await db.execute({
+    sql: `SELECT p.*, u.email, u.is_verified, u.created_at as auth_created_at,
+      (SELECT role FROM admin_roles WHERE user_id = p.id LIMIT 1) as admin_role
+      FROM profiles p
+      LEFT JOIN app_auth_users u ON p.id = u.id
+      ORDER BY p.created_at DESC`,
+    args: []
+  });
+  return c.json(r.rows.map(rowToObj));
 });
 
 export default app;

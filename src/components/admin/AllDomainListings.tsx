@@ -1,6 +1,6 @@
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
-import { useState, useEffect, useMemo } from 'react';
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/apiClient';
 import { toast } from "sonner";
 import { DomainListing } from '@/types/domain';
 import { Button } from "@/components/ui/button";
@@ -51,82 +51,28 @@ export const AllDomainListings = () => {
   const [logoGenerating, setLogoGenerating] = useState<Set<string>>(new Set());
   const [isAddSoldOpen, setIsAddSoldOpen] = useState(false);
   const [newSoldDomain, setNewSoldDomain] = useState({ name: '', price: '', description: '' });
+  const refreshRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     loadDomains();
-    
-    // 设置实时订阅
-    useRealtimeSubscription(
+  }, []);
+
+  // Keep refresh ref stable so the realtime subscription always calls latest version
+  useEffect(() => {
+    refreshRef.current = refreshDomains;
+  });
+
+  useRealtimeSubscription(
     ["domain_listings"],
-    (_event) => { refreshDomains(); },
+    (_event) => { refreshRef.current(); },
     true
   );
-
-    
-  }, []);
 
   const loadDomains = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('domain_listings')
-        .select(`
-          *,
-          domain_analytics(views, favorites, offers)
-        `);
-      
-      if (error) throw error;
-      
-      // 获取所有者信息
-      const ownerIds = [...new Set(data?.map(d => d.owner_id).filter(Boolean) || [])];
-      let profilesMap: Record<string, { username?: string; full_name?: string; contact_email?: string }> = {};
-      
-      if (ownerIds.length > 0) {
-        const { data: profilesData } = await supabase
-          .from('profiles')
-          .select('id, username, full_name, contact_email')
-          .in('id', ownerIds);
-        
-        if (profilesData) {
-          profilesMap = profilesData.reduce((acc, profile) => {
-            acc[profile.id] = profile;
-            return acc;
-          }, {} as Record<string, { username?: string; full_name?: string; contact_email?: string }>);
-        }
-      }
-      
-      const processedDomains: DomainListing[] = data?.map(domain => {
-        const analyticsData = domain.domain_analytics && Array.isArray(domain.domain_analytics) ? domain.domain_analytics[0] : null;
-        const ownerData = domain.owner_id ? profilesMap[domain.owner_id] : null;
-        
-        let viewsValue = 0, favoritesValue = 0, offersValue = 0;
-        
-        if (analyticsData) {
-          viewsValue = typeof analyticsData.views === 'number' ? analyticsData.views : parseInt(String(analyticsData.views), 10) || 0;
-          favoritesValue = typeof analyticsData.favorites === 'number' ? analyticsData.favorites : parseInt(String(analyticsData.favorites), 10) || 0;
-          offersValue = typeof analyticsData.offers === 'number' ? analyticsData.offers : parseInt(String(analyticsData.offers), 10) || 0;
-        }
-        
-        let ownerName = '未知';
-        let ownerEmail = '';
-        if (ownerData && typeof ownerData === 'object') {
-          ownerName = ownerData.username || ownerData.full_name || '未知';
-          ownerEmail = ownerData.contact_email || '';
-        }
-        
-        const { domain_analytics, ...rest } = domain;
-        
-        return {
-          ...rest,
-          views: viewsValue,
-          favorites: favoritesValue,
-          offers: offersValue,
-          ownerName,
-          ownerEmail
-        };
-      }) || [];
-      
-      setDomains(processedDomains);
+      const data = await apiGet<DomainListing[]>('/data/admin/domain-listings');
+      setDomains(data ?? []);
     } catch (error: any) {
       console.error('Error loading domains:', error);
       toast.error('加载域名列表失败');
@@ -144,17 +90,10 @@ export const AllDomainListings = () => {
 
   const toggleHighlight = async (domain: DomainListing) => {
     try {
-      const { error } = await supabase
-        .from('domain_listings')
-        .update({ highlight: !domain.highlight })
-        .eq('id', domain.id);
-      
-      if (error) throw error;
-      
+      await apiPatch(`/data/domain-listings/${domain.id}`, { highlight: !domain.highlight });
       setDomains(domains.map(d => 
         d.id === domain.id ? { ...d, highlight: !domain.highlight } : d
       ));
-      
       toast.success(domain.highlight ? '已取消推荐' : '已设为推荐');
     } catch (error: any) {
       console.error('Error toggling highlight:', error);
@@ -164,30 +103,20 @@ export const AllDomainListings = () => {
 
   const updateDomainStatus = async (domain: DomainListing, status: string) => {
     try {
-      const { error } = await supabase
-        .from('domain_listings')
-        .update({ status })
-        .eq('id', domain.id);
-      
-      if (error) throw error;
-      
+      await apiPatch(`/data/domain-listings/${domain.id}`, { status });
       setDomains(domains.map(d => 
         d.id === domain.id ? { ...d, status } : d
       ));
-      
       toast.success(`状态已更新为: ${getStatusLabel(status)}`);
-
       if (status === 'sold') {
-        const { data: autoSetting } = await supabase
-          .from('site_settings')
-          .select('value')
-          .eq('key', 'modelscope_auto_generate')
-          .maybeSingle();
-        if (autoSetting?.value === 'true') {
-          setLogoGenerating(prev => new Set(prev).add(domain.id));
-          generateAndSaveDomainLogo(domain.id, domain.name, (msg) => toast.info(msg), 'sold', domain.category ?? undefined)
-            .finally(() => setLogoGenerating(prev => { const s = new Set(prev); s.delete(domain.id); return s; }));
-        }
+        try {
+          const settings = await apiGet<Record<string, string>>('/data/site-settings');
+          if ((settings as any)?.modelscope_auto_generate === 'true') {
+            setLogoGenerating(prev => new Set(prev).add(domain.id));
+            generateAndSaveDomainLogo(domain.id, domain.name, (msg) => toast.info(msg), 'sold', domain.category ?? undefined)
+              .finally(() => setLogoGenerating(prev => { const s = new Set(prev); s.delete(domain.id); return s; }));
+          }
+        } catch { /* ignore logo auto-gen errors */ }
       }
     } catch (error: any) {
       console.error('Error updating status:', error);
@@ -210,32 +139,25 @@ export const AllDomainListings = () => {
   const handleAddSoldDomain = async () => {
     if (!newSoldDomain.name.trim()) { toast.error('请输入域名'); return; }
     try {
-      const { data: inserted, error } = await supabase
-        .from('domain_listings')
-        .insert({
-          name: newSoldDomain.name.trim().toLowerCase(),
-          price: parseFloat(newSoldDomain.price) || 0,
-          description: newSoldDomain.description || '已售域名',
-          status: 'sold',
-          category: 'standard',
-        })
-        .select()
-        .single();
-      if (error) throw error;
+      const inserted = await apiPost<DomainListing>('/data/domain-listings', {
+        name: newSoldDomain.name.trim().toLowerCase(),
+        price: parseFloat(newSoldDomain.price) || 0,
+        description: newSoldDomain.description || '已售域名',
+        status: 'sold',
+        category: 'standard',
+      });
       toast.success('已售域名添加成功！');
-      setDomains(prev => [inserted as DomainListing, ...prev]);
+      setDomains(prev => [inserted, ...prev]);
       setNewSoldDomain({ name: '', price: '', description: '' });
       setIsAddSoldOpen(false);
-      const { data: autoSetting } = await supabase
-        .from('site_settings')
-        .select('value')
-        .eq('key', 'modelscope_auto_generate')
-        .maybeSingle();
-      if (autoSetting?.value === 'true' && inserted) {
-        setLogoGenerating(prev => new Set(prev).add(inserted.id));
-        generateAndSaveDomainLogo(inserted.id, inserted.name, (msg) => toast.info(msg), 'sold')
-          .finally(() => setLogoGenerating(prev => { const s = new Set(prev); s.delete(inserted.id); return s; }));
-      }
+      try {
+        const settings = await apiGet<Record<string, string>>('/data/site-settings');
+        if ((settings as any)?.modelscope_auto_generate === 'true' && inserted) {
+          setLogoGenerating(prev => new Set(prev).add(inserted.id));
+          generateAndSaveDomainLogo(inserted.id, inserted.name, (msg) => toast.info(msg), 'sold')
+            .finally(() => setLogoGenerating(prev => { const s = new Set(prev); s.delete(inserted.id); return s; }));
+        }
+      } catch { /* ignore */ }
     } catch (err: any) {
       toast.error('添加失败: ' + err.message);
     }
@@ -243,15 +165,8 @@ export const AllDomainListings = () => {
 
   const deleteDomain = async (domainId: string) => {
     if (!confirm('确定要删除这个域名吗？此操作不可撤销。')) return;
-    
     try {
-      const { error } = await supabase
-        .from('domain_listings')
-        .delete()
-        .eq('id', domainId);
-      
-      if (error) throw error;
-      
+      await apiDelete(`/data/domain-listings/${domainId}`);
       setDomains(domains.filter(d => d.id !== domainId));
       toast.success('域名已删除');
     } catch (error: any) {
@@ -262,21 +177,14 @@ export const AllDomainListings = () => {
 
   const handleEditDomain = async () => {
     if (!editingDomain) return;
-    
     try {
-      const { error } = await supabase
-        .from('domain_listings')
-        .update({
-          name: editingDomain.name,
-          price: editingDomain.price,
-          description: editingDomain.description,
-          category: editingDomain.category,
-          status: editingDomain.status
-        })
-        .eq('id', editingDomain.id);
-      
-      if (error) throw error;
-      
+      await apiPatch(`/data/domain-listings/${editingDomain.id}`, {
+        name: editingDomain.name,
+        price: editingDomain.price,
+        description: editingDomain.description,
+        category: editingDomain.category,
+        status: editingDomain.status
+      });
       setDomains(domains.map(d => d.id === editingDomain.id ? editingDomain : d));
       toast.success('域名信息已更新');
       setIsEditDialogOpen(false);
