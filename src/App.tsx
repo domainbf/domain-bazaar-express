@@ -1,6 +1,6 @@
 
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { useEffect, Suspense, lazy, memo } from 'react';
+import { useEffect, useRef, useState, Suspense, lazy, memo } from 'react';
 
 import { ErrorBoundary } from 'react-error-boundary';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -8,6 +8,7 @@ import { CustomScripts } from './components/common/CustomScripts';
 import { PWAInstallBanner } from './components/pwa/PWAInstallBanner';
 import { TopProgressBar } from './components/common/TopProgressBar';
 import { GlobalBottomNav } from './components/mobile/GlobalBottomNav';
+import { FeedbackButton } from './components/common/FeedbackButton';
 
 // Route-based code splitting
 const Index = lazy(() => import('./pages/Index'));
@@ -22,7 +23,7 @@ const AuthCallback = lazy(() => import('./pages/AuthCallback').then(m => ({ defa
 const UserCenter = lazy(() => import('./pages/UserCenter').then(m => ({ default: m.UserCenter })));
 const UserProfilePage = lazy(() => import('./pages/UserProfile').then(m => ({ default: m.UserProfilePage })));
 const DomainDetailPage = lazy(() => import('./components/domain/DomainDetailPage').then(m => ({ default: m.DomainDetailPage })));
-const DomainManagement = lazy(() => import('./components/usercenter/DomainManagement').then(m => ({ default: m.DomainManagement })));
+const MyDomainsPage = lazy(() => import('./pages/MyDomainsPage').then(m => ({ default: m.MyDomainsPage })));
 const ContactPage = lazy(() => import('./pages/ContactPage').then(m => ({ default: m.ContactPage })));
 const FAQPage = lazy(() => import('./pages/FAQPage').then(m => ({ default: m.FAQPage })));
 const SecurityCenter = lazy(() => import('./pages/SecurityCenter'));
@@ -44,7 +45,9 @@ const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
 const DisclaimerPage = lazy(() => import('./pages/DisclaimerPage'));
 
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
-  // Detect chunk-load / dynamic-import failures (stale service worker cache)
+  const reported = useRef(false);
+  const [crashId] = useState(() => Math.random().toString(36).slice(2, 9).toUpperCase());
+
   const isChunkError = !!(
     error?.message?.includes('dynamically imported module') ||
     error?.message?.includes('Loading chunk') ||
@@ -52,7 +55,6 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
     error?.name === 'ChunkLoadError'
   );
 
-  // Auto-reload once when a chunk error is detected
   useEffect(() => {
     if (!isChunkError) return;
     const reloaded = sessionStorage.getItem('_chunk_reload');
@@ -61,6 +63,24 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
       window.location.reload();
     }
   }, [isChunkError]);
+
+  useEffect(() => {
+    if (isChunkError || reported.current) return;
+    reported.current = true;
+    fetch('/api/data/crash-report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        crashId,
+        message: error?.message,
+        stack: error?.stack,
+        url: window.location.href,
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString(),
+        boundary: 'app-root',
+      }),
+    }).catch(() => {});
+  }, [isChunkError, error, crashId]);
 
   if (isChunkError) {
     return (
@@ -79,8 +99,11 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="text-center p-8 bg-card rounded-lg shadow-lg max-w-md w-full border border-border">
-        <h2 className="text-2xl font-bold text-destructive mb-4">页面加载出错</h2>
-        <p className="text-muted-foreground mb-4">抱歉，页面遇到了问题。请尝试刷新页面或返回首页。</p>
+        <h2 className="text-2xl font-bold text-destructive mb-2">页面加载出错</h2>
+        <p className="text-xs text-muted-foreground/50 mb-3 font-mono">错误ID: {crashId}</p>
+        <p className="text-muted-foreground mb-4 text-sm">
+          抱歉，页面遇到了问题，已自动通知管理员。<br/>请尝试重试或返回首页。
+        </p>
         {error?.message && (
           <p className="text-xs text-muted-foreground/60 bg-muted rounded px-3 py-2 mb-4 text-left font-mono break-all">
             {error.message}
@@ -153,7 +176,7 @@ const AnimatedRoutes = memo(() => {
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/user-center" element={<ProtectedRoute><UserCenter /></ProtectedRoute>} />
         <Route path="/user-center/*" element={<ProtectedRoute><UserCenter /></ProtectedRoute>} />
-        <Route path="/domain-management" element={<ProtectedRoute><DomainManagement /></ProtectedRoute>} />
+        <Route path="/domain-management" element={<ProtectedRoute><MyDomainsPage /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute adminOnly={true}><AdminPanel /></ProtectedRoute>} />
         <Route path="/admin/*" element={<ProtectedRoute adminOnly={true}><AdminPanel /></ProtectedRoute>} />
         <Route path="/domain-verification/:domainId" element={<ProtectedRoute><DomainVerification /></ProtectedRoute>} />
@@ -226,6 +249,7 @@ function App() {
           which breaks position:fixed on children. Rendering here ensures
           the nav is always fixed to the viewport on mobile. */}
       <GlobalBottomNav />
+      <FeedbackButton />
     </ErrorBoundary>
   );
 }

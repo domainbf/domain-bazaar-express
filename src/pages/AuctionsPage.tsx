@@ -69,15 +69,12 @@ export const AuctionsPage = () => {
 
   useEffect(() => {
     loadAuctions();
-
-    useRealtimeSubscription(
-    ["domain_auctions","auction_bids"],
-    (_event) => { loadAuctions(); },
-    true
-  );
-
-    
   }, [loadAuctions]);
+
+  useRealtimeSubscription(
+    ["domain_auctions", "auction_bids"],
+    (_event) => { loadAuctions(); }
+  );
 
   const activeAuctions = auctions.filter(a => a.status === 'active' && !isPast(new Date(a.end_time)));
   const endedAuctions = auctions.filter(a => a.status !== 'active' || isPast(new Date(a.end_time)));

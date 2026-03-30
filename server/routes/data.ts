@@ -907,4 +907,141 @@ app.post('/admin/publish-event', requireAuth, async (c) => {
   return c.json({ ok: true });
 });
 
+// ---- Crash report (frontend auto-reports uncaught errors) ----
+app.post('/crash-report', async (c) => {
+  try {
+    const body = await c.req.json();
+    const { url, errorMessage, errorStack, userId, userEmail, browser, timestamp, crashId } = body;
+    const brand = await getBrandConfig();
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+<style>
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;margin:0;padding:24px}
+  .card{background:#fff;border-radius:8px;padding:24px;max-width:680px;margin:0 auto;border:1px solid #e5e7eb}
+  h1{font-size:20px;color:#dc2626;margin:0 0 4px}
+  .meta{font-size:13px;color:#6b7280;margin-bottom:20px}
+  .section{margin-bottom:16px}
+  .label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#9ca3af;margin-bottom:4px}
+  .value{font-size:14px;color:#111;word-break:break-all}
+  .stack{background:#1e1e1e;color:#d4d4d4;font-family:'Courier New',monospace;font-size:12px;padding:14px;border-radius:6px;white-space:pre-wrap;word-break:break-all;overflow:auto}
+  .badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+</style></head><body>
+<div class="card">
+  <h1>⚠ 程序崩溃报告</h1>
+  <div class="meta">崩溃 ID: <strong>${crashId || 'N/A'}</strong> &nbsp;·&nbsp; ${new Date(timestamp || Date.now()).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}</div>
+
+  <div class="section">
+    <div class="label">出错页面</div>
+    <div class="value">${url || '未知'}</div>
+  </div>
+
+  <div class="section">
+    <div class="label">错误信息</div>
+    <div class="value"><span class="badge">ERROR</span> ${errorMessage || '未知错误'}</div>
+  </div>
+
+  ${userId ? `<div class="section">
+    <div class="label">用户信息</div>
+    <div class="value">ID: ${userId}${userEmail ? ' &nbsp;·&nbsp; ' + userEmail : ''}</div>
+  </div>` : '<div class="section"><div class="label">用户信息</div><div class="value">未登录用户</div></div>'}
+
+  <div class="section">
+    <div class="label">浏览器 / 设备</div>
+    <div class="value">${browser || navigator?.userAgent || '未知'}</div>
+  </div>
+
+  ${errorStack ? `<div class="section">
+    <div class="label">错误堆栈</div>
+    <pre class="stack">${errorStack.substring(0, 3000)}</pre>
+  </div>` : ''}
+</div></body></html>`;
+
+    await sendEmail(
+      brand.supportEmail,
+      `[崩溃报告] ${errorMessage?.substring(0, 60) || '未知错误'} — ${brand.siteName}`,
+      html
+    );
+    return c.json({ ok: true });
+  } catch (e) {
+    return c.json({ ok: true }); // Always succeed to not re-trigger error
+  }
+});
+
+// ---- User feedback / bug report ----
+app.post('/feedback', async (c) => {
+  try {
+    const body = await c.req.json();
+    const { type, subject, message, url, userId, userEmail, browser, timestamp } = body;
+    const brand = await getBrandConfig();
+
+    const typeLabels: Record<string, string> = {
+      bug: '🐛 Bug 反馈',
+      suggestion: '💡 功能建议',
+      complaint: '📢 投诉建议',
+      other: '💬 其他反馈',
+    };
+    const typeLabel = typeLabels[type] || '反馈';
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+<style>
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;margin:0;padding:24px}
+  .card{background:#fff;border-radius:8px;padding:24px;max-width:680px;margin:0 auto;border:1px solid #e5e7eb}
+  h1{font-size:20px;color:#111;margin:0 0 4px}
+  .meta{font-size:13px;color:#6b7280;margin-bottom:20px}
+  .section{margin-bottom:16px}
+  .label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#9ca3af;margin-bottom:4px}
+  .value{font-size:14px;color:#111;word-break:break-all}
+  .message-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:14px;font-size:14px;color:#374151;white-space:pre-wrap;line-height:1.6}
+  .badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600}
+  .badge-bug{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+  .badge-suggestion{background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe}
+  .badge-complaint{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}
+  .badge-other{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
+</style></head><body>
+<div class="card">
+  <h1>用户反馈 — ${brand.siteName}</h1>
+  <div class="meta">${new Date(timestamp || Date.now()).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}</div>
+
+  <div class="section">
+    <div class="label">反馈类型</div>
+    <div class="value"><span class="badge badge-${type || 'other'}">${typeLabel}</span></div>
+  </div>
+
+  <div class="section">
+    <div class="label">主题</div>
+    <div class="value">${subject || '（无主题）'}</div>
+  </div>
+
+  ${userEmail ? `<div class="section">
+    <div class="label">用户信息</div>
+    <div class="value">${userEmail}${userId ? ' (ID: ' + userId + ')' : ''}</div>
+  </div>` : ''}
+
+  <div class="section">
+    <div class="label">来源页面</div>
+    <div class="value">${url || '未知'}</div>
+  </div>
+
+  <div class="section">
+    <div class="label">详细描述</div>
+    <div class="message-box">${(message || '（无描述）').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+  </div>
+
+  <div class="section">
+    <div class="label">浏览器 / 设备</div>
+    <div class="value">${browser || '未知'}</div>
+  </div>
+</div></body></html>`;
+
+    await sendEmail(
+      brand.supportEmail,
+      `[用户反馈] ${typeLabel} — ${subject || '无主题'} — ${brand.siteName}`,
+      html
+    );
+    return c.json({ ok: true });
+  } catch (e) {
+    return c.json({ ok: false, error: 'Failed to send feedback' }, 500);
+  }
+});
+
 export default app;
