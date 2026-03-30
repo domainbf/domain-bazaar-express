@@ -24,7 +24,7 @@ const fetchDomainDetails = async (identifier: string | undefined) => {
   // 并行获取所有相关数据
   const [profileResult, analyticsResult, priceHistoryResult, similarDomainsResult] = await Promise.all([
     domainData.owner_id
-      ? supabase.from('profiles').select('id, username, full_name, avatar_url, bio, contact_email, seller_rating, seller_verified').eq('id', domainData.owner_id).maybeSingle()
+      ? supabase.from('profiles').select('id, username, full_name, avatar_url, bio, seller_rating, seller_verified').eq('id', domainData.owner_id).maybeSingle()
       : Promise.resolve({ data: null, error: null }),
     supabase.from('domain_analytics').select('views, favorites, offers').eq('domain_id', domainData.id).maybeSingle(),
     supabase.from('domain_price_history').select('*').eq('domain_id', domainData.id).order('created_at', { ascending: true }).limit(50),
@@ -66,7 +66,6 @@ const fetchDomainDetails = async (identifier: string | undefined) => {
       full_name: profileResult.data.full_name,
       avatar_url: profileResult.data.avatar_url,
       bio: profileResult.data.bio,
-      contact_email: profileResult.data.contact_email,
       seller_rating: profileResult.data.seller_rating,
       seller_verified: profileResult.data.seller_verified,
     } : undefined,

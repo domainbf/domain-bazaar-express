@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Star, CheckCircle2 } from "lucide-react";
+import { Star, CheckCircle2, MessageSquare } from "lucide-react";
 import { UserProfile } from "@/types/userProfile";
 
 interface DomainOwnerInfoProps {
@@ -53,12 +53,10 @@ export const DomainOwnerInfo: React.FC<DomainOwnerInfoProps> = ({ owner }) => {
           </div>
         )}
 
-        {owner.contact_email && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Mail className="h-4 w-4" />
-            <span className="truncate">{owner.contact_email}</span>
-          </div>
-        )}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <MessageSquare className="h-4 w-4 shrink-0" />
+          <span>通过平台报价与卖家联系</span>
+        </div>
       </CardContent>
     </Card>
   );
