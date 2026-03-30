@@ -13,9 +13,10 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Star, Check, RefreshCw, Search, Download, Eye, Trash2, Edit, Globe, Filter, TrendingUp } from 'lucide-react';
+import { MoreHorizontal, Star, Check, CheckCircle, RefreshCw, Search, Download, Eye, Trash2, Edit, Globe, Filter, TrendingUp, Plus, Sparkles, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { generateAndSaveDomainLogo } from '@/hooks/useModelScopeAI';
 import {
   Select,
   SelectContent,
@@ -46,6 +47,9 @@ export const AllDomainListings = () => {
   const [sortBy, setSortBy] = useState<string>('created_at');
   const [editingDomain, setEditingDomain] = useState<DomainListing | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [logoGenerating, setLogoGenerating] = useState<Set<string>>(new Set());
+  const [isAddSoldOpen, setIsAddSoldOpen] = useState(false);
+  const [newSoldDomain, setNewSoldDomain] = useState({ name: '', price: '', description: '' });
 
   useEffect(() => {
     loadDomains();
@@ -183,9 +187,68 @@ export const AllDomainListings = () => {
       ));
       
       toast.success(`状态已更新为: ${getStatusLabel(status)}`);
+
+      if (status === 'sold') {
+        const { data: autoSetting } = await supabase
+          .from('site_settings')
+          .select('value')
+          .eq('key', 'modelscope_auto_generate')
+          .maybeSingle();
+        if (autoSetting?.value === 'true') {
+          setLogoGenerating(prev => new Set(prev).add(domain.id));
+          generateAndSaveDomainLogo(domain.id, domain.name, (msg) => toast.info(msg), 'sold', domain.category ?? undefined)
+            .finally(() => setLogoGenerating(prev => { const s = new Set(prev); s.delete(domain.id); return s; }));
+        }
+      }
     } catch (error: any) {
       console.error('Error updating status:', error);
       toast.error('更新状态失败');
+    }
+  };
+
+  const generateLogoForDomain = async (domain: DomainListing) => {
+    setLogoGenerating(prev => new Set(prev).add(domain.id));
+    await generateAndSaveDomainLogo(
+      domain.id,
+      domain.name,
+      (msg) => toast.info(msg),
+      undefined,
+      domain.category ?? undefined
+    );
+    setLogoGenerating(prev => { const s = new Set(prev); s.delete(domain.id); return s; });
+  };
+
+  const handleAddSoldDomain = async () => {
+    if (!newSoldDomain.name.trim()) { toast.error('请输入域名'); return; }
+    try {
+      const { data: inserted, error } = await supabase
+        .from('domain_listings')
+        .insert({
+          name: newSoldDomain.name.trim().toLowerCase(),
+          price: parseFloat(newSoldDomain.price) || 0,
+          description: newSoldDomain.description || '已售域名',
+          status: 'sold',
+          category: 'standard',
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      toast.success('已售域名添加成功！');
+      setDomains(prev => [inserted as DomainListing, ...prev]);
+      setNewSoldDomain({ name: '', price: '', description: '' });
+      setIsAddSoldOpen(false);
+      const { data: autoSetting } = await supabase
+        .from('site_settings')
+        .select('value')
+        .eq('key', 'modelscope_auto_generate')
+        .maybeSingle();
+      if (autoSetting?.value === 'true' && inserted) {
+        setLogoGenerating(prev => new Set(prev).add(inserted.id));
+        generateAndSaveDomainLogo(inserted.id, inserted.name, (msg) => toast.info(msg), 'sold')
+          .finally(() => setLogoGenerating(prev => { const s = new Set(prev); s.delete(inserted.id); return s; }));
+      }
+    } catch (err: any) {
+      toast.error('添加失败: ' + err.message);
     }
   };
 
@@ -389,7 +452,11 @@ export const AllDomainListings = () => {
           <Globe className="h-5 w-5" />
           所有域名列表
         </h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Button size="sm" onClick={() => setIsAddSoldOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            添加已售域名
+          </Button>
           <Button variant="outline" size="sm" onClick={exportDomains}>
             <Download className="h-4 w-4 mr-2" />
             导出CSV
@@ -553,6 +620,16 @@ export const AllDomainListings = () => {
                         设为保留
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => generateLogoForDomain(domain)}
+                        disabled={logoGenerating.has(domain.id)}
+                      >
+                        {logoGenerating.has(domain.id)
+                          ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />生成中...</>
+                          : <><Sparkles className="h-4 w-4 mr-2" />生成AI Logo</>
+                        }
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem className="text-red-600" onClick={() => deleteDomain(domain.id)}>
                         <Trash2 className="h-4 w-4 mr-2" />
                         删除
@@ -649,6 +726,57 @@ export const AllDomainListings = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>取消</Button>
             <Button onClick={handleEditDomain}>保存更改</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 添加已售域名 Dialog */}
+      <Dialog open={isAddSoldOpen} onOpenChange={setIsAddSoldOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5" />
+              添加已售域名
+            </DialogTitle>
+            <DialogDescription>
+              添加历史成交域名到平台展示，可自动生成AI Logo
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>域名 <span className="text-red-500">*</span></Label>
+              <Input
+                placeholder="example.com"
+                value={newSoldDomain.name}
+                onChange={e => setNewSoldDomain(p => ({ ...p, name: e.target.value }))}
+              />
+            </div>
+            <div>
+              <Label>成交价格 (¥)</Label>
+              <Input
+                type="number"
+                placeholder="0 表示面议"
+                value={newSoldDomain.price}
+                onChange={e => setNewSoldDomain(p => ({ ...p, price: e.target.value }))}
+              />
+            </div>
+            <div>
+              <Label>备注</Label>
+              <Textarea
+                placeholder="可选，用于展示说明"
+                value={newSoldDomain.description}
+                onChange={e => setNewSoldDomain(p => ({ ...p, description: e.target.value }))}
+                rows={2}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Sparkles className="h-3 w-3" />
+              若已配置 ModelScope API 且开启自动生成，添加后将自动生成域名Logo
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddSoldOpen(false)}>取消</Button>
+            <Button onClick={handleAddSoldDomain}>添加域名</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

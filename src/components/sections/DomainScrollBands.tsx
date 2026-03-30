@@ -1,13 +1,16 @@
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Gavel, Flame } from 'lucide-react';
+import { Gavel, Flame, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
+export type BandType = 'auction' | 'hot' | 'sold';
 
 interface DomainChip {
   id: string;
   name: string;
   price: number;
   logoUrl?: string;
+  bandType?: BandType;
 }
 
 function formatPrice(price: number) {
@@ -49,13 +52,13 @@ function LogoCard({
           <img
             src={item.logoUrl}
             alt={item.name}
-            className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity"
-            style={{ filter: 'grayscale(100%) contrast(1.2)' }}
+            className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 transition-opacity duration-200"
+            style={{ filter: 'grayscale(100%) contrast(1.15)' }}
           />
-          <div className="absolute inset-0 bg-background/40" />
+          <div className="absolute inset-0 bg-background/30" />
           <div className="relative z-10 flex flex-col items-center gap-0.5">
-            <span className="text-xs font-black text-foreground tracking-widest leading-none">{base}</span>
-            {ext && <span className="text-[10px] text-muted-foreground font-medium">{ext}</span>}
+            <span className="text-xs font-black text-foreground tracking-widest leading-none drop-shadow">{base}</span>
+            {ext && <span className="text-[9px] text-muted-foreground font-medium">{ext}</span>}
           </div>
         </>
       ) : (
@@ -74,7 +77,7 @@ function LogoCard({
         </div>
       )}
       <span className="absolute bottom-1.5 right-2 text-[10px] text-muted-foreground/70 font-mono tabular-nums">
-        {formatPrice(item.price)}
+        {item.bandType === 'sold' ? '已售' : formatPrice(item.price)}
       </span>
     </button>
   );
@@ -89,14 +92,12 @@ function MarqueeRow({
   direction: 'ltr' | 'rtl';
   onChipClick: (id: string) => void;
 }) {
-  const trackRef = useRef<HTMLDivElement>(null);
   if (!items.length) return null;
   const doubled = [...items, ...items];
 
   return (
     <div className="overflow-hidden w-full">
       <div
-        ref={trackRef}
         className={direction === 'rtl' ? 'animate-marquee-rtl' : 'animate-marquee-ltr'}
         style={{ display: 'flex', width: 'max-content', willChange: 'transform' }}
         onMouseEnter={(e) => (e.currentTarget.style.animationPlayState = 'paused')}
@@ -115,14 +116,32 @@ function MarqueeRow({
   );
 }
 
-export function DomainScrollBands() {
+async function fetchLogoMap(ids: string[]): Promise<Record<string, string>> {
+  if (!ids.length) return {};
+  const uniqueIds = [...new Set(ids)];
+  const keys = uniqueIds.map(id => `domain_logo_${id}`);
+  const { data } = await supabase.from('site_settings').select('key, value').in('key', keys);
+  const map: Record<string, string> = {};
+  (data || []).forEach(r => {
+    const id = r.key.replace('domain_logo_', '');
+    if (r.value) map[id] = r.value;
+  });
+  return map;
+}
+
+export function DomainScrollBands({
+  showSold = false,
+}: {
+  showSold?: boolean;
+}) {
   const navigate = useNavigate();
   const [auctionDomains, setAuctionDomains] = useState<DomainChip[]>([]);
   const [hotDomains, setHotDomains] = useState<DomainChip[]>([]);
+  const [soldDomains, setSoldDomains] = useState<DomainChip[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const [auctionRes, hotRes, analyticsRes] = await Promise.all([
+      const queries: Promise<any>[] = [
         supabase
           .from('domain_auctions')
           .select('id, starting_price, current_price, domain:domain_listings(id, name, price)')
@@ -139,70 +158,67 @@ export function DomainScrollBands() {
           .select('domain_id, views')
           .order('views', { ascending: false })
           .limit(40),
-      ]);
+      ];
+
+      if (showSold) {
+        queries.push(
+          supabase
+            .from('domain_listings')
+            .select('id, name, price')
+            .eq('status', 'sold')
+            .order('created_at', { ascending: false })
+            .limit(30)
+        );
+      }
+
+      const [auctionRes, hotRes, analyticsRes, soldRes] = await Promise.all(queries);
 
       const allIds: string[] = [];
+
       const auctionChips: DomainChip[] = [];
       if (auctionRes.data?.length) {
-        auctionRes.data
-          .filter((a) => a.domain)
-          .forEach((a) => {
-            const id = (a.domain as any)?.id ?? a.id;
-            allIds.push(id);
-            auctionChips.push({
-              id,
-              name: (a.domain as any)?.name ?? '域名',
-              price: Number(a.current_price) || Number(a.starting_price) || 0,
-            });
-          });
+        auctionRes.data.filter((a: any) => a.domain).forEach((a: any) => {
+          const id = (a.domain as any)?.id ?? a.id;
+          allIds.push(id);
+          auctionChips.push({ id, name: (a.domain as any)?.name ?? '域名', price: Number(a.current_price) || Number(a.starting_price) || 0, bandType: 'auction' });
+        });
       }
 
       const hotChips: DomainChip[] = [];
       if (hotRes.data?.length) {
         const analyticsMap = new Map<string, number>();
-        (analyticsRes.data ?? []).forEach((a) => {
-          if (a.domain_id) analyticsMap.set(a.domain_id, Number(a.views) || 0);
-        });
-        const sorted = [...hotRes.data]
-          .sort((a, b) => (analyticsMap.get(b.id) ?? 0) - (analyticsMap.get(a.id) ?? 0))
-          .slice(0, 20);
-        sorted.forEach((d) => {
+        (analyticsRes.data ?? []).forEach((a: any) => { if (a.domain_id) analyticsMap.set(a.domain_id, Number(a.views) || 0); });
+        const sorted = [...hotRes.data].sort((a: any, b: any) => (analyticsMap.get(b.id) ?? 0) - (analyticsMap.get(a.id) ?? 0)).slice(0, 20);
+        sorted.forEach((d: any) => {
           allIds.push(d.id);
-          hotChips.push({ id: d.id, name: d.name ?? '域名', price: Number(d.price) || 0 });
+          hotChips.push({ id: d.id, name: d.name ?? '域名', price: Number(d.price) || 0, bandType: 'hot' });
         });
       }
 
-      let logoMap: Record<string, string> = {};
-      if (allIds.length) {
-        const logoKeys = [...new Set(allIds)].map(id => `domain_logo_${id}`);
-        const { data: logoData } = await supabase
-          .from('site_settings')
-          .select('key, value')
-          .in('key', logoKeys);
-        if (logoData?.length) {
-          logoData.forEach(r => {
-            const id = r.key.replace('domain_logo_', '');
-            if (r.value) logoMap[id] = r.value;
-          });
-        }
+      const soldChips: DomainChip[] = [];
+      if (showSold && soldRes?.data?.length) {
+        soldRes.data.forEach((d: any) => {
+          allIds.push(d.id);
+          soldChips.push({ id: d.id, name: d.name ?? '域名', price: Number(d.price) || 0, bandType: 'sold' });
+        });
       }
 
-      const withLogos = (chips: DomainChip[]) =>
-        chips.map(c => ({ ...c, logoUrl: logoMap[c.id] || undefined }));
+      const logoMap = await fetchLogoMap(allIds);
+      const withLogos = (chips: DomainChip[]) => chips.map(c => ({ ...c, logoUrl: logoMap[c.id] }));
 
-      const finalAuction = withLogos(auctionChips);
-      const finalHot = withLogos(hotChips);
+      const fa = withLogos(auctionChips);
+      const fh = withLogos(hotChips);
+      const fs = withLogos(soldChips);
 
-      setAuctionDomains(finalAuction.length >= 5 ? finalAuction : [...finalAuction, ...finalAuction]);
-      setHotDomains(finalHot.length >= 5 ? finalHot : [...finalHot, ...finalHot]);
+      setAuctionDomains(fa.length >= 4 ? fa : [...fa, ...fa]);
+      setHotDomains(fh.length >= 4 ? fh : [...fh, ...fh]);
+      setSoldDomains(fs.length >= 4 ? fs : [...fs, ...fs]);
     };
 
     fetchData();
-  }, []);
+  }, [showSold]);
 
-  const handleChipClick = (id: string) => {
-    navigate(`/domain/${id}`);
-  };
+  const handleChipClick = (id: string) => navigate(`/domain/${id}`);
 
   if (!auctionDomains.length && !hotDomains.length) return null;
 
@@ -225,6 +241,16 @@ export function DomainScrollBands() {
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">热门域名</span>
           </div>
           <MarqueeRow items={hotDomains} direction="rtl" onChipClick={handleChipClick} />
+        </div>
+      )}
+
+      {showSold && soldDomains.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 px-1">
+            <CheckCircle className="h-3.5 w-3.5 text-foreground/50" />
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">成交案例</span>
+          </div>
+          <MarqueeRow items={soldDomains} direction="ltr" onChipClick={handleChipClick} />
         </div>
       )}
     </div>

@@ -21,6 +21,7 @@ import { SkeletonCardGrid } from '@/components/common/SkeletonCard';
 
 import { Footer } from '@/components/sections/Footer';
 import { HowItWorksSection } from '@/components/sections/HowItWorksSection';
+import { DealsShowcaseSection } from '@/components/sections/DealsShowcaseSection';
 
 const DomainEstimator = lazy(() => import('@/components/tools/DomainEstimator').then(m => ({ default: m.DomainEstimator })));
 const DomainMonitor = lazy(() => import('@/components/tools/DomainMonitor').then(m => ({ default: m.DomainMonitor })));
@@ -201,6 +202,8 @@ const Index = () => {
             </Tabs>
           </div>
         </section>
+
+        <DealsShowcaseSection />
 
         <HowItWorksSection />
 
