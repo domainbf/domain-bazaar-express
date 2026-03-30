@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { apiGet, apiPost, apiPatch } from '@/lib/apiClient';
 import { supabase } from '@/integrations/supabase/client';
 import { DomainVerification, VerificationCheckResult } from '@/types/domain';
 import { toast } from 'sonner';

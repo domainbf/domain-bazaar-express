@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { apiGet, apiPost, apiPatch } from '@/lib/apiClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navbar } from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
@@ -139,36 +139,13 @@ export default function TransactionDetail() {
   const loadTransaction = async () => {
     setIsLoading(true);
     try {
-      const { data: tx, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('id', id)
-        .single();
-      if (error) throw error;
-      setTransaction(tx as TransactionData);
-
-      // transactions.domain_id references the 'domains' table (not 'domain_listings')
-      const [domainRes, escrowRes] = await Promise.all([
-        supabase.from('domains').select('name, price').eq('id', tx.domain_id).single(),
-        supabase.from('escrow_services').select('*').eq('transaction_id', tx.id).maybeSingle(),
-      ]);
-
-      if (domainRes.data) setDomain(domainRes.data as DomainInfo);
-      if (escrowRes.data) setEscrow(escrowRes.data as EscrowInfo);
-
-      const profileIds = [tx.buyer_id, tx.seller_id].filter(Boolean) as string[];
-      if (profileIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, full_name, username, avatar_url')
-          .in('id', profileIds);
-        if (profiles) {
-          const buyerProfile = profiles.find(p => p.id === tx.buyer_id);
-          const sellerProfile = profiles.find(p => p.id === tx.seller_id);
-          if (buyerProfile) setBuyer(buyerProfile as ProfileInfo);
-          if (sellerProfile) setSeller(sellerProfile as ProfileInfo);
-        }
-      }
+      const data = await apiGet(`/data/transactions/${id}`);
+      if (!data?.transaction) throw new Error('Not found');
+      setTransaction(data.transaction as TransactionData);
+      if (data.domain) setDomain(data.domain as DomainInfo);
+      if (data.escrow) setEscrow(data.escrow as EscrowInfo);
+      if (data.buyer) setBuyer(data.buyer as ProfileInfo);
+      if (data.seller) setSeller(data.seller as ProfileInfo);
     } catch {
       toast.error('加载交易信息失败');
       navigate('/user-center?tab=transactions');
@@ -195,28 +172,17 @@ export default function TransactionDetail() {
     if (!transaction) return;
     setActionLoading(true);
     try {
-      await supabase.from('transactions').update({
+      await apiPatch(`/data/transactions/${transaction.id}`, {
         transfer_confirmed_seller: true,
         seller_confirmed_at: new Date().toISOString(),
         status: 'domain_transferred',
-        updated_at: new Date().toISOString(),
-      }).eq('id', transaction.id);
-
-      if (escrow) {
-        await supabase.from('escrow_services').update({
-          domain_transferred_at: new Date().toISOString(),
-          status: 'domain_transferred',
-        }).eq('id', escrow.id);
-      }
-
-      await supabase.from('notifications').insert({
-        user_id: transaction.buyer_id,
-        type: 'domain_transferred',
-        title: '域名已转移',
-        message: `卖家已确认转移域名 ${domain?.name}，请登录验证并确认收到。`,
-        data: { transaction_id: transaction.id },
+        escrow_id: escrow?.id,
+        escrow_update: escrow ? { domain_transferred_at: new Date().toISOString(), status: 'domain_transferred' } : undefined,
+        notify_user_id: transaction.buyer_id,
+        notify_type: 'domain_transferred',
+        notify_title: '域名已转移',
+        notify_message: `卖家已确认转移域名 ${domain?.name}，请登录验证并确认收到。`,
       });
-
       toast.success('已确认域名转移，等待买家验证确认');
       loadTransaction();
     } catch {
@@ -230,50 +196,20 @@ export default function TransactionDetail() {
     if (!transaction) return;
     setActionLoading(true);
     try {
-      await supabase.from('transactions').update({
+      await apiPatch(`/data/transactions/${transaction.id}`, {
         transfer_confirmed_buyer: true,
         buyer_confirmed_at: new Date().toISOString(),
         status: 'completed',
         completed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }).eq('id', transaction.id);
-
-      if (escrow) {
-        await supabase.from('escrow_services').update({
-          buyer_approved_at: new Date().toISOString(),
-          released_at: new Date().toISOString(),
-          status: 'released',
-        }).eq('id', escrow.id);
-      }
-
-      // Update domain_listings by name since transaction.domain_id references 'domains' table
-      if (domain?.name) {
-        await supabase.from('domain_listings').update({
-          status: 'sold',
-          updated_at: new Date().toISOString(),
-        }).eq('name', domain.name);
-      }
-
-      if (transaction.seller_id) {
-        const { data: sellerProfile } = await supabase
-          .from('profiles')
-          .select('total_sales')
-          .eq('id', transaction.seller_id)
-          .maybeSingle();
-        const currentSales = (sellerProfile as any)?.total_sales ?? 0;
-        await supabase.from('profiles').update({
-          total_sales: currentSales + 1,
-        }).eq('id', transaction.seller_id);
-      }
-
-      await supabase.from('notifications').insert({
-        user_id: transaction.seller_id,
-        type: 'transaction_completed',
-        title: '交易完成！',
-        message: `买家已确认收到域名 ${domain?.name}，资金已释放到您的账户。`,
-        data: { transaction_id: transaction.id },
+        domain_name: domain?.name,
+        domain_status: 'sold',
+        escrow_id: escrow?.id,
+        escrow_update: escrow ? { buyer_approved_at: new Date().toISOString(), released_at: new Date().toISOString(), status: 'released' } : undefined,
+        notify_user_id: transaction.seller_id,
+        notify_type: 'transaction_completed',
+        notify_title: '交易完成！',
+        notify_message: `买家已确认收到域名 ${domain?.name}，资金已释放到您的账户。`,
       });
-
       toast.success('交易完成！感谢您的信任');
       loadTransaction();
     } catch {
@@ -291,26 +227,12 @@ export default function TransactionDetail() {
     setActionLoading(true);
     try {
       const respondentId = isBuyer ? transaction.seller_id : transaction.buyer_id;
-      await supabase.from('disputes').insert({
+      await apiPost('/data/disputes', {
         transaction_id: transaction.id,
-        initiator_id: user?.id,
         respondent_id: respondentId,
         reason: disputeReason,
         description: disputeDesc,
         status: 'open',
-      });
-
-      await supabase.from('transactions').update({
-        status: 'disputed',
-        updated_at: new Date().toISOString(),
-      }).eq('id', transaction.id);
-
-      await supabase.from('notifications').insert({
-        user_id: respondentId,
-        type: 'dispute_opened',
-        title: '收到纠纷申诉',
-        message: `交易 ${domain?.name} 收到纠纷申诉，平台将介入处理。`,
-        data: { transaction_id: transaction.id },
       });
 
       toast.success('纠纷已提交，平台将在24小时内介入处理');

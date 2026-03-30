@@ -1,9 +1,10 @@
+import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, CheckCircle, XCircle, Search, AlertTriangle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiGet, apiPost, apiPatch } from '@/lib/apiClient';
 
 interface DnsRecordCheckerProps {
   recordName: string;

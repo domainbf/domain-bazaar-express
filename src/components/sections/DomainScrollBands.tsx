@@ -1,5 +1,6 @@
-import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useState, useRef } from 'react';
+import { apiGet } from '@/lib/apiClient';
 import { Gavel, Flame, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -120,12 +121,12 @@ async function fetchLogoMap(ids: string[]): Promise<Record<string, string>> {
   if (!ids.length) return {};
   const uniqueIds = [...new Set(ids)];
   const keys = uniqueIds.map(id => `domain_logo_${id}`);
-  const { data } = await supabase.from('site_settings').select('key, value').in('key', keys);
+  const settings = await apiGet('/data/site-settings').catch(() => ({}) as Record<string, string>);
   const map: Record<string, string> = {};
-  (data || []).forEach(r => {
-    const id = r.key.replace('domain_logo_', '');
-    if (r.value) map[id] = r.value;
-  });
+  for (const key of keys) {
+    const id = key.replace('domain_logo_', '');
+    if (settings[key]) map[id] = settings[key] as string;
+  }
   return map;
 }
 

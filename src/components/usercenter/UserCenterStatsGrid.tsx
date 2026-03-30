@@ -1,3 +1,4 @@
+import { supabase } from '@/integrations/supabase/client';
 
 import { Card, CardContent } from "@/components/ui/card";
 import { User } from "@supabase/supabase-js";

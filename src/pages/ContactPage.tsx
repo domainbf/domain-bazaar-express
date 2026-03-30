@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from 'sonner';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
-import { supabase } from '@/integrations/supabase/client';
+import { apiGet, apiPost, apiPatch } from '@/lib/apiClient';
 import { 
   Mail, 
   Phone, 
@@ -184,12 +184,10 @@ export const ContactPage: React.FC = () => {
 </body>
 </html>`;
 
-      await supabase.functions.invoke('send-email', {
-        body: {
-          to: supportEmail,
-          subject: `[客服] ${categoryLabel}：${formData.subject} — ${formData.name}`,
-          html,
-        },
+      await apiPost('/data/contact-email', {
+        to: supportEmail,
+        subject: `[客服] ${categoryLabel}：${formData.subject} — ${formData.name}`,
+        html,
       });
       
       toast.success('消息发送成功！我们会在24小时内回复您。');

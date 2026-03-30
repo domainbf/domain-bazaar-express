@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/apiClient';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';

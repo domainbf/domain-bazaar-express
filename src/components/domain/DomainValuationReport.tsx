@@ -1,3 +1,4 @@
+import { supabase } from '@/integrations/supabase/client';
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +18,7 @@ import {
   Info
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { apiGet, apiPost, apiPatch } from '@/lib/apiClient';
 
 interface DomainValuationReportProps {
   domainName: string;

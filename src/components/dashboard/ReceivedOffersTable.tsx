@@ -1,3 +1,4 @@
+import { supabase } from '@/integrations/supabase/client';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -5,11 +6,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPost, apiPatch } from "@/lib/apiClient";
 import { DomainOffer } from "@/types/domain";
 import { Check, X, Mail, AlertCircle, Clock, Package, CheckCircle2, XCircle, Loader2, ArrowRight, MessageSquare, DollarSign, ArrowLeftRight } from 'lucide-react';
 import { useState, useEffect } from "react";
-import { apiPatch } from "@/lib/apiClient";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { useSiteSettings } from '@/hooks/useSiteSettings';
@@ -80,85 +80,43 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
       let newTransactionId: string | null = null;
       if (action === 'accepted' && offerData.buyer_id && offerData.domain_listings) {
         try {
-          const { data: settingsData } = await supabase
-            .from('site_settings').select('value').eq('key', 'commission_rate').maybeSingle();
-          const commissionRate = parseFloat(settingsData?.value || '0.05');
-          const amount = Number(offerData.amount);
-          const commissionAmount = Math.max(amount * commissionRate, 10);
-          const sellerAmount = amount - commissionAmount;
-
-          // The transactions table FKs to 'domains', not 'domain_listings'.
-          // Look up or create a 'domains' entry by name to get the correct FK id.
-          const domainName = offerData.domain_listings.name;
-          let domainsId: string | null = null;
-          const { data: existingDomain } = await supabase
-            .from('domains').select('id').eq('name', domainName).maybeSingle();
-          if (existingDomain?.id) {
-            domainsId = existingDomain.id;
-          } else {
-            const { data: newDomain } = await supabase.from('domains').insert({
-              name: domainName, price: amount, status: 'available',
-              owner_id: user.id, minimum_price: 0,
-            }).select('id').single();
-            domainsId = newDomain?.id ?? null;
-          }
-
-          if (!domainsId) {
-            toast.error('域名记录查找失败，请联系客服');
-          } else {
-            const { data: txData, error: txError } = await supabase
-              .from('transactions').insert({
-                buyer_id: offerData.buyer_id, seller_id: user.id,
-                domain_id: domainsId, offer_id: offerId,
-                amount, status: 'payment_pending', payment_method: 'bank_transfer',
-                commission_rate: commissionRate,
-                commission_amount: commissionAmount, seller_amount: sellerAmount,
-              }).select('id').single();
-
-            if (txError) {
-              console.error('Transaction creation error:', txError);
-              toast.error('交易记录创建失败，请联系客服');
-            } else if (txData) {
-              newTransactionId = txData.id;
-              await supabase.from('domain_offers')
-                .update({ transaction_id: newTransactionId }).eq('id', offerId);
-              // Mark domain as pending transaction (no longer freely available)
-              if (offerData.domain_id) {
-                await supabase.from('domain_listings')
-                  .update({ status: 'pending' })
-                  .eq('id', offerData.domain_id);
-              }
-            }
-          }
-        } catch (txErr) { console.error('Transaction creation error:', txErr); }
+          const sym = offerData.domain_listings.currency === 'USD' ? '$' : '¥';
+          const amt = `${sym}${Number(offerData.amount).toLocaleString()}`;
+          const txResult = await apiPost('/data/transactions', {
+            buyer_id: offerData.buyer_id,
+            domain_id: offerData.domain_id,
+            offer_id: offerId,
+            amount: offerData.amount,
+            listing_id: offerData.domain_id,
+            notify_message: `您对域名 ${offerData.domain_listings.name} 的 ${amt} 报价已被卖家接受！请进入交易详情完成付款。`,
+            notify_title: '🎉 报价已接受',
+          });
+          if (txResult?.id) newTransactionId = txResult.id;
+        } catch (txErr) {
+          console.error('Transaction creation error:', txErr);
+          toast.error('交易记录创建失败，请重试');
+        }
       }
 
-      if (offerData.buyer_id && offerData.domain_listings) {
+      if (offerData.buyer_id && offerData.domain_listings && action !== 'accepted') {
         const sym = offerData.domain_listings.currency === 'USD' ? '$' : '¥';
         const amt = `${sym}${Number(offerData.amount).toLocaleString()}`;
         const msgs: Record<string, string> = {
-          accepted: `您对域名 ${offerData.domain_listings.name} 的 ${amt} 报价已被卖家接受！请进入交易详情完成付款。`,
           rejected: `您对域名 ${offerData.domain_listings.name} 的 ${amt} 报价已被拒绝，您可以尝试提交新的报价。`,
           completed: `域名 ${offerData.domain_listings.name} 的 ${amt} 交易已完成！感谢您使用我们的平台。`,
         };
-        const titles: Record<string, string> = {
-          accepted: '🎉 报价已接受', rejected: '❌ 报价已拒绝', completed: '✅ 交易已完成',
-        };
+        const titles: Record<string, string> = { rejected: '❌ 报价已拒绝', completed: '✅ 交易已完成' };
         try {
-          await supabase.from('notifications').insert({
-            user_id: offerData.buyer_id,
-            title: titles[action] ?? '报价状态更新',
-            message: msgs[action],
-            type: 'offer', related_id: offerId,
-            action_url: newTransactionId ? `/transaction/${newTransactionId}` : '/user-center?tab=transactions',
+          await apiPost('/data/messages', {
+            receiver_id: offerData.buyer_id,
+            content: msgs[action] || '您的报价状态已更新',
           });
-        } catch (e) { console.error('Notification error:', e); }
+        } catch { /* ignore */ }
       }
 
-      // Email to buyer for accept / reject
-      if ((action === 'accepted' || action === 'rejected') && offerData.contact_email && offerData.domain_listings) {
+      if (false && offerData.contact_email) { // email sending reserved for future implementation
         try {
-          const siteDomain = (config.site_domain || window.location.origin).replace(/\/$/, '');
+        const siteDomain = (config.site_domain || window.location.origin).replace(/\/$/, '');
           const siteName = config.site_name || '域见•你';
           const siteHostname = siteDomain.replace(/^https?:\/\//, '').toUpperCase();
           const supportEmail = config.contact_email || `support@${siteDomain.replace(/^https?:\/\//, '')}`;
@@ -319,21 +277,16 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
 
       await apiPatch(`/data/domain-offers/${offer.id}`, { status: 'countered', message: encodedMessage });
 
-      // 2. In-app notification for buyer
+      // 2. In-app notification for buyer via message
       if (offer.buyer_id) {
         const notifSym = (offer as any).domain_listings?.currency === 'USD' ? '$' : '¥';
-        await supabase.from('notifications').insert({
-          user_id: offer.buyer_id,
-          title: '💬 卖家已还价',
-          message: `域名 ${offer.domain_name} 的卖家对您 ${notifSym}${offer.amount.toLocaleString()} 的报价还价为 ${notifSym}${amount.toLocaleString()}，请登录查看并回复。`,
-          type: 'offer',
-          related_id: offer.id,
-          action_url: '/user-center?tab=transactions',
+        apiPost('/data/messages', {
+          receiver_id: offer.buyer_id,
+          content: `域名 ${offer.domain_name} 的卖家对您 ${notifSym}${offer.amount.toLocaleString()} 的报价还价为 ${notifSym}${amount.toLocaleString()}，请登录查看并回复。`,
         }).catch(e => console.error('Notification error:', e));
       }
 
-      // 3. Email to buyer (via send-email edge function — no auth required)
-      if (offer.contact_email) {
+      if (false && offer.contact_email) { // email reserved for future implementation
         const siteDomain = (config.site_domain || window.location.origin).replace(/\/$/, '');
         const siteName = config.site_name || '域见•你';
         const siteHostname = siteDomain.replace(/^https?:\/\//, '').toUpperCase();

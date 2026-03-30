@@ -1,3 +1,4 @@
+import { supabase } from '@/integrations/supabase/client';
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -7,9 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Eye, Bell, BellOff, Trash2, Plus, RefreshCw, Globe, Clock, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/apiClient';
 import { useAppCache } from '@/hooks/useAppCache';
-import { Tables } from '@/integrations/supabase/types';
+
 import { motion, AnimatePresence } from 'framer-motion';
 
 type MonitoredDomain = Tables<'domain_monitoring'>;

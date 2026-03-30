@@ -1,7 +1,7 @@
 
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect, Suspense, lazy, memo } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+
 import { ErrorBoundary } from 'react-error-boundary';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { CustomScripts } from './components/common/CustomScripts';
@@ -133,50 +133,7 @@ RouteLoadingFallback.displayName = 'RouteLoadingFallback';
 // Each page's own mount animation handles the visual transition
 const AnimatedRoutes = memo(() => {
   const location = useLocation();
-  const navigate = useNavigate();
 
-  // Global Supabase auth-callback interceptor.
-  // Supabase JS SDK processes URL hash fragments synchronously at module load time,
-  // BEFORE React renders — so window.location.hash is already cleared by the time
-  // useEffect runs. We must also listen to onAuthStateChange for PASSWORD_RECOVERY.
-  useEffect(() => {
-    // --- Method A: hash is still present (slower environments / first render) ---
-    const hash = window.location.hash;
-    if (hash) {
-      const params = new URLSearchParams(hash.replace(/^#/, ''));
-      const type = params.get('type');
-      const path = window.location.pathname;
-      if (type === 'recovery' && path !== '/reset-password') {
-        navigate('/reset-password' + hash, { replace: true });
-        return;
-      } else if (type === 'signup' && path !== '/auth') {
-        navigate('/auth' + hash, { replace: true });
-        return;
-      } else if (type === 'email_change' && path !== '/user-center') {
-        navigate('/user-center' + hash, { replace: true });
-        return;
-      }
-    }
-
-    // --- Method B: Supabase already consumed the hash — catch via auth events ---
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        if (window.location.pathname !== '/reset-password') {
-          navigate('/reset-password', {
-            replace: true,
-            state: {
-              fromRecovery: true,
-              accessToken: session?.access_token,
-              refreshToken: session?.refresh_token,
-            },
-          });
-        }
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });

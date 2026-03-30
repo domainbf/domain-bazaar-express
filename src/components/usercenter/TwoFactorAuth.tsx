@@ -10,6 +10,7 @@ import {
   Shield, ShieldCheck, ShieldOff, Smartphone, Key, Copy, Check, 
   Loader2, AlertTriangle, QrCode, RefreshCw, Info
 } from 'lucide-react';
+import { apiGet, apiPost, apiPatch } from '@/lib/apiClient';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';

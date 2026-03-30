@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -18,22 +17,7 @@ export const AuthCallback = () => {
       return;
     }
 
-    supabase.auth.verifyOtp({ token_hash: tokenHash, type })
-      .then(({ error: verifyError }) => {
-        if (verifyError) {
-          setError('链接已失效或已使用，请重新申请');
-          return;
-        }
-        if (type === 'recovery') {
-          navigate('/reset-password', { replace: true });
-        } else if (type === 'signup' || type === 'magiclink') {
-          navigate('/auth', { replace: true });
-        } else if (type === 'email_change') {
-          navigate('/user-center', { replace: true });
-        } else {
-          navigate('/', { replace: true });
-        }
-      });
+    setError('此链接已迁移到新系统，请重新申请操作');
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

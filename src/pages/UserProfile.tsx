@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { supabase } from "@/integrations/supabase/client";
+import { apiGet } from '@/lib/apiClient';
 import { Navbar } from '@/components/Navbar';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { Button } from '@/components/ui/button';
@@ -41,40 +41,15 @@ export const UserProfilePage = () => {
       setError(null);
 
       try {
-        let profileData: any = null;
-        const { data: byUrl } = await supabase.from('profiles').select('*').eq('custom_url', profileId).single();
-        if (byUrl) {
-          profileData = byUrl;
-        } else {
-          const { data: byId, error: idError } = await supabase.from('profiles').select('*').eq('id', profileId).single();
-          if (idError) { setError('找不到该用户资料'); setIsLoading(false); return; }
-          profileData = byId;
-        }
-
+        const result = await apiGet(`/data/profiles/${profileId}`);
+        if (!result || !result.profile) { setError('找不到该用户资料'); setIsLoading(false); return; }
+        const profileData = result.profile;
         setProfile(profileData);
-
-        const [domainRes, txRes] = await Promise.all([
-          supabase.from('domain_listings').select('*').eq('owner_id', profileData.id).eq('status', 'available').order('created_at', { ascending: false }),
-          supabase.from('transactions').select('id').eq('seller_id', profileData.id).eq('status', 'completed'),
-        ]);
-
-        const domainList = domainRes.data || [];
-        setDomains(domainList as unknown as ProfileDomain[]);
-
-        let totalViews = 0;
-        if (domainList.length > 0) {
-          const domainIds = domainList.map((d: any) => d.id);
-          const { data: analyticsData } = await supabase.from('domain_analytics').select('views').in('domain_id', domainIds);
-          totalViews = (analyticsData || []).reduce((sum, a) => {
-            const v = typeof a.views === 'number' ? a.views : parseInt(String(a.views ?? '0'), 10) || 0;
-            return sum + v;
-          }, 0);
-        }
-
+        setDomains((result.domains || []) as unknown as ProfileDomain[]);
         setSellerStats({
-          totalListings: domainList.length,
-          totalViews,
-          completedDeals: txRes.data?.length || 0,
+          totalListings: result.stats?.totalListings || 0,
+          totalViews: result.stats?.totalViews || 0,
+          completedDeals: result.stats?.completedDeals || 0,
         });
       } catch (err: any) {
         console.error('Error loading user profile:', err);

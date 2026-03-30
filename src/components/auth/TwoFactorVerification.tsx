@@ -1,9 +1,10 @@
+import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, Loader2, AlertCircle, Key } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiGet, apiPost, apiPatch } from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 

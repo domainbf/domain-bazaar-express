@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState, useEffect, useCallback } from 'react';
 import { apiGet, apiPost } from '@/lib/apiClient';
+import { useAuth } from '@/contexts/AuthContext';
 import { DomainAnalytics } from '@/types/domain';
 
 interface TrendData {
@@ -53,8 +53,8 @@ export const useDomainAnalytics = (domainId: string, initialData?: InitialData) 
     const sessionKey = `domain_viewed_${domainId}`;
     if (sessionStorage.getItem(sessionKey)) return;
     try {
-      const { error } = await supabase.rpc('increment_domain_views', { p_domain_id: domainId });
-      if (!error) {
+      await apiPost(`/data/domain-views/${domainId}`, {});
+      {
         sessionStorage.setItem(sessionKey, 'true');
         setAnalytics(prev => prev ? { ...prev, views: (prev.views || 0) + 1 } : null);
       }

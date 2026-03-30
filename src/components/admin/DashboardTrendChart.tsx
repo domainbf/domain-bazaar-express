@@ -1,6 +1,7 @@
+import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from '@/integrations/supabase/client';
+import { apiGet } from '@/lib/apiClient';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { TrendingUp, BarChart3, PieChart as PieIcon } from 'lucide-react';

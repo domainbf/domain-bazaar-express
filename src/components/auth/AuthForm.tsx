@@ -8,8 +8,6 @@ import { toast } from 'sonner';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { supabase } from '@/integrations/supabase/client';
-import { SIGNUP_REDIRECT_URL } from '@/config/siteConfig';
 
 interface AuthFormProps {
   mode: 'signin' | 'signup';
@@ -38,28 +36,12 @@ export const AuthForm = ({
   });
   const { signIn, signUp, isAuthenticating } = useAuth();
 
-  const handleGoogleLogin = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: SIGNUP_REDIRECT_URL },
-      });
-      if (error) throw error;
-    } catch {
-      toast.error('Google 登录失败，请确认已在 Supabase 启用 Google OAuth');
-    }
+  const handleGoogleLogin = () => {
+    toast.info('Google 第三方登录功能即将上线，请使用邮箱登录');
   };
 
-  const handleGithubLogin = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: { redirectTo: SIGNUP_REDIRECT_URL },
-      });
-      if (error) throw error;
-    } catch {
-      toast.error('GitHub 登录失败，请确认已在 Supabase 启用 GitHub OAuth');
-    }
+  const handleGithubLogin = () => {
+    toast.info('GitHub 第三方登录功能即将上线，请使用邮箱登录');
   };
 
   // Restore remembered email

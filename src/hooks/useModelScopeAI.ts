@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { apiGet, apiPost, apiPatch } from '@/lib/apiClient';
 
 export interface ModelScopeConfig {
   apiKey: string;
@@ -8,17 +8,12 @@ export interface ModelScopeConfig {
 export type DomainLogoType = 'auction' | 'hot' | 'premium' | 'sold' | 'tech' | 'short' | 'general';
 
 async function getModelScopeConfig(): Promise<ModelScopeConfig | null> {
-  const { data } = await supabase
-    .from('site_settings')
-    .select('key, value')
-    .in('key', ['modelscope_api_key', 'modelscope_model']);
-  if (!data?.length) return null;
-  const map: Record<string, string> = {};
-  data.forEach(r => { map[r.key] = r.value || ''; });
-  if (!map['modelscope_api_key']) return null;
+  const settings = await apiGet<Record<string, string>>('/data/site-settings');
+  const apiKey = settings?.modelscope_api_key || '';
+  if (!apiKey) return null;
   return {
-    apiKey: map['modelscope_api_key'],
-    model: map['modelscope_model'] || 'iic/Z-Image-Turbo',
+    apiKey,
+    model: settings?.modelscope_model || 'iic/Z-Image-Turbo',
   };
 }
 
@@ -157,16 +152,7 @@ export async function generateAndSaveDomainLogo(
     }
     onProgress?.(`正在生成 ${domainName} 的域名Logo...`);
     const imageUrl = await generateDomainLogo(domainName, config, type, category);
-    await supabase.from('site_settings').upsert(
-      {
-        key: `domain_logo_${domainId}`,
-        value: imageUrl,
-        section: 'domain_logos',
-        type: 'text',
-        description: `AI Logo for domain ${domainName}`,
-      },
-      { onConflict: 'key' }
-    );
+    await apiPatch('/data/site-settings', { updates: { [`domain_logo_${domainId}`]: imageUrl } });
     onProgress?.(`✓ ${domainName} Logo 生成成功！`);
     return imageUrl;
   } catch (err: any) {
@@ -176,12 +162,8 @@ export async function generateAndSaveDomainLogo(
 }
 
 export async function getDomainLogoUrl(domainId: string): Promise<string | null> {
-  const { data } = await supabase
-    .from('site_settings')
-    .select('value')
-    .eq('key', `domain_logo_${domainId}`)
-    .maybeSingle();
-  return data?.value || null;
+  const settings = await apiGet<Record<string, string>>('/data/site-settings');
+  return settings?.[`domain_logo_${domainId}`] || null;
 }
 
 export async function batchGenerateLogos(
@@ -200,10 +182,7 @@ export async function batchGenerateLogos(
     onProgress?.(`生成 ${d.name} 的Logo...`, domains.length, i);
     try {
       const url = await generateDomainLogo(d.name, config, d.type, d.category);
-      await supabase.from('site_settings').upsert(
-        { key: `domain_logo_${d.id}`, value: url, section: 'domain_logos', type: 'text', description: `AI Logo for ${d.name}` },
-        { onConflict: 'key' }
-      );
+      await apiPatch('/data/site-settings', { updates: { [`domain_logo_${d.id}`]: url } });
       success++;
     } catch {
       failed++;

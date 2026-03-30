@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { apiPost } from '@/lib/apiClient';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/sections/Footer';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,7 @@ import { AlertTriangle, Shield, Clock, CheckCircle2, MessageSquare, FileText } f
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { apiGet, apiPost, apiPatch } from '@/lib/apiClient';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const DISPUTE_TYPES = [
@@ -126,12 +127,10 @@ export default function DisputePage() {
   </table>
 </body>
 </html>`;
-      await supabase.functions.invoke('send-email', {
-        body: {
-          to: supportEmail,
-          subject: `[纠纷申诉] ${disputeLabel} — ${user.email}`,
-          html,
-        },
+      await apiPost('/data/contact-email', {
+        to: supportEmail,
+        subject: `[纠纷申诉] ${disputeLabel} — ${user.email}`,
+        html,
       });
       setSubmitted(true);
     } catch {

@@ -1,6 +1,6 @@
+import { supabase } from '@/integrations/supabase/client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { Domain, SearchFilters, SearchSuggestion } from '@/types/domain';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -205,10 +205,6 @@ export const useEnhancedSearch = () => {
         results_count: totalCount
       };
 
-      await supabase.from('user_activities').insert({
-        activity_type: 'search',
-        metadata: metadata
-      });
     } catch (error) {
       console.error('Failed to log search activity:', error);
     }

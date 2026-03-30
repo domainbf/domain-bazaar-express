@@ -1,5 +1,5 @@
 import { useCallback, useState, useEffect, useRef } from 'react';
-import { supabase } from "@/integrations/supabase/client";
+import { apiGet } from "@/lib/apiClient";
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
 import { Domain } from '@/types/domain';
@@ -16,76 +16,13 @@ export const useDomainsData = () => {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const channelRef = useRef<null>(null);
 
-  const createAnalyticsRecord = async (domainId: string) => {
-    try {
-      const { error } = await supabase.from('domain_analytics').insert({
-        domain_id: domainId,
-        views: 0,
-        favorites: 0,
-        offers: 0
-      });
-      
-      if (error) {
-        console.error('Error creating analytics record:', error);
-      }
-    } catch (error) {
-      console.error('Error creating analytics record:', error);
-    }
-  };
-
   // 缓存域名数据获取函数
   const fetchDomainsData = useCallback(async (): Promise<Domain[]> => {
     if (!user) return [];
-
-    const { data: domainsData, error: domainsError } = await supabase
-      .from('domain_listings')
-      .select('*')
-      .eq('owner_id', user.id)
-      .order('created_at', { ascending: false });
-    
-    if (domainsError) throw domainsError;
-    
-    if (!domainsData || domainsData.length === 0) {
-      return [];
-    }
-
-    // 获取分析数据
-    const domainIds = domainsData.map(d => d.id);
-    const { data: analyticsData, error: analyticsError } = await supabase
-      .from('domain_analytics')
-      .select('*')
-      .in('domain_id', domainIds);
-    
-    if (analyticsError) {
-      console.error("Error fetching analytics data", analyticsError);
-    }
-
-    const analyticsMap = new Map();
-    if (analyticsData) {
-      analyticsData.forEach(item => {
-        analyticsMap.set(item.domain_id, item);
-      });
-    }
-    
-    const processedDomains = domainsData.map(domain => {
-      const analytics = analyticsMap.get(domain.id);
-      return {
-        ...domain,
-        views: analytics?.views || 0,
-        favorites: analytics?.favorites || 0,
-        offers: analytics?.offers || 0,
-      };
-    });
-
-    // 为缺失 analytics 的域名创建记录
-    const missingAnalytics = domainsData.filter(domain => !analyticsMap.has(domain.id));
-    for (const domain of missingAnalytics) {
-      await createAnalyticsRecord(domain.id);
-    }
-
+    const data = await apiGet('/data/my-domains');
+    const domains = Array.isArray(data) ? data : [];
     setLastUpdated(new Date());
-    console.log('Domains loaded successfully');
-    return processedDomains as Domain[];
+    return domains as Domain[];
   }, [user]);
 
   // 使用缓存钩子

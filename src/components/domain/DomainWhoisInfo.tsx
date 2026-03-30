@@ -1,3 +1,4 @@
+import { supabase } from '@/integrations/supabase/client';
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -7,7 +8,7 @@ import {
   Globe, Calendar, Server, Shield, RefreshCw, ExternalLink,
   AlertCircle, CheckCircle2, Clock, Building2, Lock, Unlock
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGet, apiPost, apiPatch } from '@/lib/apiClient';
 import { format, parseISO, isValid, differenceInDays } from "date-fns";
 import { zhCN } from "date-fns/locale";
 

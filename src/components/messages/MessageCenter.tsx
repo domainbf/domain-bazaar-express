@@ -1,6 +1,7 @@
+import { supabase } from '@/integrations/supabase/client';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiGet, apiPost, apiPatch } from '@/lib/apiClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -62,16 +63,16 @@ export const MessageCenter = ({ otherUserId, transactionId, domainId, offerId }:
   const loadMessages = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .or(`and(sender_id.eq.${user?.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${user?.id})`)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      setMessages((data ?? []) as Message[]);
-
-      const unread = (data ?? []).filter((m: Message) => m.receiver_id === user?.id && !m.is_read);
+      const data = await apiGet('/data/messages');
+      const all: Message[] = Array.isArray(data) ? data : [];
+      const filtered = all
+        .filter((m: Message) =>
+          (m.sender_id === user?.id && m.receiver_id === otherUserId) ||
+          (m.sender_id === otherUserId && m.receiver_id === user?.id)
+        )
+        .sort((a: Message, b: Message) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      setMessages(filtered);
+      const unread = filtered.filter((m: Message) => m.receiver_id === user?.id && !m.is_read);
       unread.forEach((m: Message) => markAsRead(m.id));
     } catch {
       toast.error('加载消息失败');
@@ -81,16 +82,14 @@ export const MessageCenter = ({ otherUserId, transactionId, domainId, offerId }:
   };
 
   const loadOtherUser = async () => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('full_name, username')
-      .eq('id', otherUserId)
-      .single();
-    if (data) setOtherUser(data as OtherUserProfile);
+    try {
+      const data = await apiGet(`/data/profiles/${otherUserId}`);
+      if (data?.profile) setOtherUser({ full_name: data.profile.full_name, username: data.profile.username });
+    } catch { /* ignore */ }
   };
 
   const markAsRead = async (messageId: string) => {
-    await supabase.from('messages').update({ is_read: true }).eq('id', messageId);
+    try { await apiPatch(`/data/messages/${messageId}/read`, {}); } catch { /* ignore */ }
   };
 
   const sendMessage = async () => {
@@ -99,16 +98,13 @@ export const MessageCenter = ({ otherUserId, transactionId, domainId, offerId }:
     const content = newMessage.trim();
     setNewMessage('');
     try {
-      const { error } = await supabase.from('messages').insert({
-        sender_id: user.id,
+      await apiPost('/data/messages', {
         receiver_id: otherUserId,
         content,
         transaction_id: transactionId ?? null,
         domain_id: domainId ?? null,
         offer_id: offerId ?? null,
       });
-      if (error) throw error;
-
       const tempMsg: Message = {
         id: `temp-${Date.now()}`,
         sender_id: user.id,
@@ -118,14 +114,6 @@ export const MessageCenter = ({ otherUserId, transactionId, domainId, offerId }:
         created_at: new Date().toISOString(),
       };
       setMessages(prev => [...prev, tempMsg]);
-
-      await supabase.from('notifications').insert({
-        user_id: otherUserId,
-        type: 'message',
-        title: '收到新消息',
-        message: content.length > 50 ? content.slice(0, 50) + '...' : content,
-        data: { sender_id: user.id, transaction_id: transactionId },
-      });
     } catch {
       toast.error('发送失败，请重试');
       setNewMessage(content);

@@ -8,7 +8,7 @@ A comprehensive domain name trading marketplace built with React, Vite, TypeScri
 - **Styling**: Tailwind CSS + shadcn/ui components
 - **State**: TanStack Query + React Context for auth
 - **Auth**: Custom JWT backend (Hono + Node.js, port 3001) with bcrypt password hashing, 15min access tokens + 30-day refresh tokens stored in localStorage
-- **Database**: Turso SQLite (libSQL) — all data stored in Turso. Supabase is legacy/secondary (only admin panels and domain tools still use it).
+- **Database**: Turso SQLite (libSQL) — all data stored in Turso. Supabase is legacy/secondary (verification, DNS tools, and some admin panels still use it for complex queries).
 - **Email**: Resend API via SMTP credentials stored in `smtp_settings` table (host: smtp.resend.com, from: noreply@nic.rw)
 - **Real-time**: Custom SSE endpoint at `/api/realtime/stream` with in-memory EventBus. All components use `useRealtimeSubscription` hook.
 - **Routing**: React Router v6 with lazy-loaded routes

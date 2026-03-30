@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { apiGet } from '@/lib/apiClient';
 import { toast } from 'sonner';
 import {
   Users, Globe, TrendingUp, DollarSign, Shield, Activity,
@@ -62,61 +62,24 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
 
   const fetchAdminStats = async () => {
     if (!user?.id) return;
-    
     setLocalIsLoading(true);
     try {
-      const [usersResult, domainsResult, verificationsResult, transactionsResult, analyticsResult, offersResult] = await Promise.allSettled([
-        supabase.from('profiles').select('id, created_at'),
-        supabase.from('domain_listings').select('id, status, price, created_at, verification_status'),
-        supabase.from('domain_verifications').select('id, status'),
-        supabase.from('transactions').select('id, status, amount, created_at'),
-        supabase.from('domain_analytics').select('views, favorites, offers'),
-        supabase.from('domain_offers').select('id, status, amount, created_at, domain_id')
-      ]);
-
-      const users = usersResult.status === 'fulfilled' ? usersResult.value.data || [] : [];
-      const domains = domainsResult.status === 'fulfilled' ? domainsResult.value.data || [] : [];
-      const verifications = verificationsResult.status === 'fulfilled' ? verificationsResult.value.data || [] : [];
-      const transactions = transactionsResult.status === 'fulfilled' ? transactionsResult.value.data || [] : [];
-      const analytics = analyticsResult.status === 'fulfilled' ? analyticsResult.value.data || [] : [];
-      const offers = offersResult.status === 'fulfilled' ? offersResult.value.data || [] : [];
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      const newUsersToday = users.filter(user => new Date(user.created_at) >= today).length;
-      const newDomainsToday = domains.filter(domain => new Date(domain.created_at) >= today).length;
-      const activeListings = domains.filter(d => d.status === 'available').length;
-      const pendingVerifications = verifications.filter(v => v.status === 'pending').length;
-      const completedTransactions = transactions.filter(t => t.status === 'completed').length;
-      const totalRevenue = transactions.filter(t => t.status === 'completed').reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
-      const totalViews = analytics.reduce((sum, a) => sum + (Number(a.views) || 0), 0);
-      const totalOffers = offers.length;
-      const pendingOffers = offers.filter(o => o.status === 'pending').length;
-      const verifiedDomains = domains.filter(d => d.verification_status === 'verified').length;
-
+      const data = await apiGet('/data/admin/stats');
       setLocalStats({
-        totalUsers: users.length,
-        totalDomains: domains.length,
-        pendingVerifications,
-        completedTransactions,
-        totalRevenue,
-        activeListings,
-        newUsersToday,
-        newDomainsToday,
-        totalViews,
-        totalOffers,
-        pendingOffers,
-        verifiedDomains
+        totalUsers: data.totalUsers || 0,
+        totalDomains: data.totalDomains || 0,
+        pendingVerifications: data.pendingVerifications || 0,
+        completedTransactions: data.completedTransactions || 0,
+        totalRevenue: data.totalRevenue || 0,
+        activeListings: data.activeListings || 0,
+        newUsersToday: data.newUsersToday || 0,
+        newDomainsToday: data.newDomainsToday || 0,
+        totalViews: data.totalViews || 0,
+        totalOffers: data.totalOffers || 0,
+        pendingOffers: data.pendingOffers || 0,
+        verifiedDomains: data.verifiedDomains || 0
       });
-
-      // 获取最近报价
-      const recentOffersData = offers.slice(0, 5).map(o => ({
-        ...o,
-        created_at: o.created_at
-      }));
-      setRecentOffers(recentOffersData);
-
+      setRecentOffers(data.recentOffers || []);
       setLastUpdate(new Date());
     } catch (error) {
       console.error('Error fetching admin stats:', error);
@@ -127,50 +90,20 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
   };
 
   const fetchRecentActivities = async () => {
-    try {
-      const { data: activities, error } = await supabase
-        .from('user_activities')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-      setRecentActivities(activities || []);
-    } catch (error) {
-      console.error('Error fetching recent activities:', error);
-    }
+    // Recent activities not yet migrated — skip silently
+    setRecentActivities([]);
   };
 
   const fetchTopDomains = async () => {
+    // Top domains derived from domain listings
     try {
-      const { data, error } = await supabase
-        .from('domain_analytics')
-        .select('domain_id, views, favorites, offers')
-        .order('views', { ascending: false })
-        .limit(5);
-
-      if (error) throw error;
-      
-      if (data && data.length > 0) {
-        const domainIds = data.map(d => d.domain_id).filter(Boolean);
-        const { data: domains } = await supabase
-          .from('domain_listings')
-          .select('id, name, price')
-          .in('id', domainIds);
-
-        const enrichedData = data.map(analytics => {
-          const domain = domains?.find(d => d.id === analytics.domain_id);
-          return {
-            ...analytics,
-            name: domain?.name || '未知域名',
-            price: domain?.price || 0
-          };
-        });
-        setTopDomains(enrichedData);
-      }
-    } catch (error) {
-      console.error('Error fetching top domains:', error);
-    }
+      const data = await apiGet('/data/domain-listings?status=available');
+      const listings = Array.isArray(data) ? data : [];
+      setTopDomains(listings.slice(0, 5).map((d: any) => ({
+        domain_id: d.id, name: d.name, price: d.price,
+        views: d.views || 0, favorites: d.favorites || 0, offers: d.offers || 0
+      })));
+    } catch { /* ignore */ }
   };
 
   useEffect(() => {

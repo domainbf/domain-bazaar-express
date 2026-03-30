@@ -1,5 +1,6 @@
+import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
-import { supabase } from "@/integrations/supabase/client";
+import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/apiClient';
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -133,12 +134,7 @@ export const SiteSettings = () => {
     }
     setIsChangingPassword(true);
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const response = await supabase.functions.invoke('admin-password', {
-        body: { action: 'change_own_password', password: newPassword },
-      });
-      if (response.error) throw new Error(response.error.message);
-      if (response.data?.error) throw new Error(response.data.error);
+      await apiPost('/data/admin/change-password', { new_password: newPassword });
       toast.success('密码修改成功');
       setNewPassword('');
       setConfirmPassword('');
@@ -160,11 +156,7 @@ export const SiteSettings = () => {
     }
     setIsChangingUserPassword(true);
     try {
-      const response = await supabase.functions.invoke('admin-password', {
-        body: { action: 'change_user_password', email: targetEmail, password: targetPassword },
-      });
-      if (response.error) throw new Error(response.error.message);
-      if (response.data?.error) throw new Error(response.data.error);
+      await apiPost('/data/admin/change-password', { target_email: targetEmail, new_password: targetPassword });
       toast.success(`用户 ${targetEmail} 密码已更新`);
       setTargetEmail('');
       setTargetPassword('');
@@ -199,9 +191,7 @@ export const SiteSettings = () => {
   const saveWhoisConfig = async () => {
     setIsSavingWhois(true);
     try {
-      await supabase.from('site_settings').upsert([
-        { key: 'whois_api_key', value: whoisApiKey, description: 'WHOIS/RDAP API Key (www.x.rw)', section: 'api', type: 'text' },
-      ], { onConflict: 'key' });
+      await apiPatch('/data/site-settings', { whois_api_key: whoisApiKey });
       toast.success('WHOIS API 配置已保存');
     } catch (e: any) {
       toast.error('保存失败：' + (e.message || '未知错误'));
@@ -218,14 +208,12 @@ export const SiteSettings = () => {
     setIsTestingWhois(true);
     setWhoisTestResult(null);
     try {
-      const { data, error } = await supabase.functions.invoke('whois-query', {
-        body: { domain: whoisTestDomain.trim() },
-      });
-      if (error || !data?.success) {
-        setWhoisTestResult({ ok: false, msg: data?.error || error?.message || '查询失败' });
+      const data = await apiPost('/data/admin/whois-test', { domain: whoisTestDomain.trim() });
+      if (!data?.success) {
+        setWhoisTestResult({ ok: false, msg: data?.error || '查询失败' });
       } else {
-        const d = data.data;
-        setWhoisTestResult({ ok: true, msg: `查询成功！注册商: ${d.registrar || '未知'} | 注册日期: ${d.createdDate || '未知'} | RDAP: ${d.rdap ? '是' : '否'}` });
+        const d = data.data || {};
+        setWhoisTestResult({ ok: true, msg: `查询成功！注册商: ${d.registrar || '未知'} | 注册日期: ${d.createdDate || '未知'}` });
       }
     } catch (e: any) {
       setWhoisTestResult({ ok: false, msg: e.message || '查询异常' });
@@ -252,11 +240,11 @@ export const SiteSettings = () => {
   const saveModelScopeConfig = async () => {
     setIsSavingMs(true);
     try {
-      await supabase.from('site_settings').upsert([
-        { key: 'modelscope_api_key', value: msApiKey, section: 'api', type: 'text', description: 'ModelScope API Key' },
-        { key: 'modelscope_model', value: msModel, section: 'api', type: 'text', description: 'ModelScope AI model' },
-        { key: 'modelscope_auto_generate', value: String(msAutoGenerate), section: 'api', type: 'boolean', description: '添加域名时自动生成Logo' },
-      ], { onConflict: 'key' });
+      await apiPatch('/data/site-settings', {
+        modelscope_api_key: msApiKey,
+        modelscope_model: msModel,
+        modelscope_auto_generate: String(msAutoGenerate),
+      });
       toast.success('ModelScope 配置已保存');
     } catch (e: any) {
       toast.error('保存失败：' + (e.message || '未知错误'));
@@ -341,9 +329,9 @@ export const SiteSettings = () => {
         { key: 'hours_phone', value: contactInfo.hours_phone, description: '电话支持时间', section: 'contact', type: 'text' },
         { key: 'hours_weekday', value: contactInfo.hours_weekday, description: '服务工作日', section: 'contact', type: 'text' },
       ];
-      for (const row of rows) {
-        await supabase.from('site_settings').upsert([row], { onConflict: 'key' });
-      }
+      const updates: Record<string, string> = {};
+      for (const row of rows) { updates[row.key] = row.value; }
+      await apiPatch('/data/site-settings', updates);
       toast.success('联系方式设置已保存');
     } catch (e: any) {
       toast.error('保存失败：' + e.message);
@@ -367,9 +355,9 @@ export const SiteSettings = () => {
         { key: 'smtp_from_email', value: smtp.from_email, description: '发件邮箱', section: 'email', type: 'text' },
         { key: 'smtp_from_name', value: smtp.from_name, description: '发件人名称', section: 'email', type: 'text' },
       ];
-      for (const row of rows) {
-        await supabase.from('site_settings').upsert([row], { onConflict: 'key' });
-      }
+      const smtpUpdates: Record<string, string> = {};
+      for (const row of rows) { smtpUpdates[row.key] = row.value; }
+      await apiPatch('/data/site-settings', smtpUpdates);
       setSmtpSaved(true);
       toast.success('SMTP 设置已保存');
     } catch (e: any) {
@@ -384,23 +372,8 @@ export const SiteSettings = () => {
     setIsSendingTest(true);
     setEmailTestResult(null);
     try {
-      const fromAddr = smtp.from_name && smtp.from_email
-        ? `${smtp.from_name} <${smtp.from_email}>`
-        : smtp.from_email || undefined;
-      const { data, error } = await supabase.functions.invoke('send-email', {
-        body: {
-          to: testEmailAddr,
-          ...(fromAddr ? { from: fromAddr } : {}),
-          subject: `【${smtp.from_name || '邮件系统'}】SMTP 邮件系统测试`,
-          html: (() => {
-            const _domain = (contactInfo.site_domain || window.location.origin).replace(/\/$/, '');
-            const _hostname = _domain.replace(/^https?:\/\//, '').toUpperCase();
-            const _name = smtp.from_name || '邮件系统';
-            return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="font-family:sans-serif;background:#f1f5f9;padding:32px 16px;"><div style="max-width:560px;margin:0 auto;"><div style="background:#0f172a;border-radius:12px;padding:10px 20px;display:inline-block;margin-bottom:24px;"><span style="color:#f8fafc;font-size:18px;font-weight:800;">${_name}</span><span style="color:#64748b;font-size:12px;margin-left:8px;">${_hostname}</span></div><div style="background:#fff;border-radius:16px;padding:40px;box-shadow:0 4px 6px rgba(0,0,0,0.07);"><div style="text-align:center;margin-bottom:24px;"><span style="font-size:48px;">✅</span><h2 style="margin:16px 0 8px;color:#0f172a;">SMTP 邮件系统正常</h2><p style="color:#64748b;margin:0;">SMTP 配置验证成功</p></div><div style="background:#f8fafc;border-radius:8px;padding:16px;font-size:13px;color:#475569;"><p style="margin:0 0 6px;"><strong>SMTP 主机：</strong>${smtp.host}:${smtp.port}</p><p style="margin:0 0 6px;"><strong>发件人：</strong>${smtp.from_name} &lt;${smtp.from_email}&gt;</p><p style="margin:0 0 6px;"><strong>收件人：</strong>${testEmailAddr}</p><p style="margin:0;"><strong>发送时间：</strong>${new Date().toLocaleString('zh-CN')}</p></div></div><p style="text-align:center;color:#94a3b8;font-size:12px;margin-top:20px;">© ${new Date().getFullYear()} ${_name} · ${_hostname}</p></div></body></html>`;
-          })(),
-        },
-      });
-      if (error || data?.success === false) throw new Error(error?.message || data?.error || '发送失败');
+      const data = await apiPost('/data/admin/send-test-email', { to: testEmailAddr, smtp });
+      if (data?.success === false) throw new Error(data?.error || '发送失败');
       setEmailTestResult({ ok: true, msg: `测试邮件已发送至 ${testEmailAddr}，请检查收件箱` });
       toast.success(`测试邮件已发送至 ${testEmailAddr}`);
     } catch (e: any) {
@@ -415,13 +388,8 @@ export const SiteSettings = () => {
   const loadSettings = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('site_settings')
-        .select('*')
-        .order('section', { ascending: true });
-      
-      if (error) throw error;
-      setSettings(data || []);
+      const data = await apiGet('/data/admin/site-settings');
+      setSettings(Array.isArray(data) ? data : []);
     } catch (error: any) {
       console.error('加载网站设置时出错:', error);
       toast.error('加载网站设置失败');
@@ -439,14 +407,11 @@ export const SiteSettings = () => {
   const saveSettings = async () => {
     setIsSaving(true);
     try {
+      const updates: Record<string, string> = {};
       for (const setting of settings) {
-        const { error } = await supabase
-          .from('site_settings')
-          .update({ value: setting.value })
-          .eq('id', setting.id);
-        
-        if (error) throw error;
+        updates[setting.key] = setting.value;
       }
+      await apiPatch('/data/site-settings', updates);
       toast.success('设置已成功保存');
     } catch (error: any) {
       console.error('保存设置时出错:', error);
@@ -463,14 +428,7 @@ export const SiteSettings = () => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('site_settings')
-        .insert([newSetting])
-        .select()
-        .single();
-
-      if (error) throw error;
-
+      const data = await apiPost('/data/admin/site-settings', newSetting);
       setSettings([...settings, data]);
       setNewSetting({ key: '', value: '', description: '', section: 'general', type: 'text' });
       setIsAddDialogOpen(false);
@@ -483,15 +441,10 @@ export const SiteSettings = () => {
 
   const deleteSetting = async (id: string) => {
     if (!confirm('确定要删除此设置项吗？')) return;
-    
+    const setting = settings.find(s => s.id === id);
+    if (!setting) return;
     try {
-      const { error } = await supabase
-        .from('site_settings')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
+      await apiDelete(`/data/admin/site-settings/${encodeURIComponent(setting.key)}`);
       setSettings(settings.filter(s => s.id !== id));
       toast.success('设置项已删除');
     } catch (error: any) {

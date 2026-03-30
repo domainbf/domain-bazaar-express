@@ -1,10 +1,10 @@
+import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Monitor, Smartphone, Tablet, Globe, Trash2, Shield, Clock, MapPin, Loader2, AlertTriangle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -134,15 +134,6 @@ export const DeviceManagement = () => {
   const handleRevokeDevice = async (deviceId: string) => {
     setIsRevoking(deviceId);
     try {
-      // 记录操作到 user_activities
-      if (user) {
-        await supabase.from('user_activities').insert({
-          user_id: user.id,
-          activity_type: 'device_revoked',
-          metadata: { revoked_device_id: deviceId },
-          user_agent: navigator.userAgent
-        });
-      }
       setDevices(prev => prev.filter(d => d.id !== deviceId));
       toast.success('已移除该设备的登录授权');
     } catch (error: any) {
@@ -154,13 +145,6 @@ export const DeviceManagement = () => {
 
   const handleRevokeAll = async () => {
     try {
-      if (user) {
-        await supabase.from('user_activities').insert({
-          user_id: user.id,
-          activity_type: 'all_devices_revoked',
-          user_agent: navigator.userAgent
-        });
-      }
       // 登出当前设备（这会使所有token失效）
       await logOut();
       toast.success('已登出所有设备，请重新登录');

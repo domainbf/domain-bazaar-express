@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from 'react';
+import { apiPatch } from '@/lib/apiClient';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -77,9 +78,9 @@ export const CommissionSettings = () => {
         { key: 'min_commission', value: config.min_commission },
         { key: 'commission_currency', value: config.commission_currency },
       ];
-      for (const item of updates) {
-        await supabase.from('site_settings').upsert(item, { onConflict: 'key' });
-      }
+      const patchObj: Record<string, string> = {};
+      for (const item of updates) { patchObj[item.key] = item.value; }
+      await apiPatch('/data/site-settings', patchObj);
       toast.success('手续费设置已保存');
     } catch {
       toast.error('保存失败');
