@@ -1,6 +1,6 @@
 # NIC.BN Domain Marketplace (域见•你)
 
-A comprehensive domain name trading marketplace built with React, Vite, TypeScript, Hono, and Turso.
+A comprehensive domain name trading marketplace built with React, Vite, TypeScript, Hono, and PostgreSQL.
 
 ## Architecture
 
@@ -8,9 +8,10 @@ A comprehensive domain name trading marketplace built with React, Vite, TypeScri
 - **Styling**: Tailwind CSS + shadcn/ui components
 - **State**: TanStack Query + React Context for auth
 - **Auth**: Custom JWT backend (Hono + Node.js, port 3001) with bcrypt password hashing, 15min access tokens + 30-day refresh tokens stored in localStorage
-- **Database**: Turso SQLite (libSQL) — all data stored in Turso. Supabase is legacy/secondary (verification, DNS tools, and some admin panels still use it for complex queries).
+- **Database**: Replit PostgreSQL — all data stored in the Replit-managed PostgreSQL database (DATABASE_URL secret). Schema initialized via `scripts/init-db.sql`.
 - **Email**: Resend API via SMTP credentials stored in `smtp_settings` table (host: smtp.resend.com, from: noreply@nic.rw)
-- **Real-time**: Custom SSE endpoint at `/api/realtime/stream` with in-memory EventBus. All components use `useRealtimeSubscription` hook.
+- **Real-time**: Custom SSE endpoint at `/api/realtime/stream` with in-memory EventBus backed by Redis pub/sub. All components use `useRealtimeSubscription` hook.
+- **Cache/Sessions**: Redis (REDIS_URL) for session storage, rate limiting, and caching
 - **Routing**: React Router v6 with lazy-loaded routes
 - **i18n**: i18next with Chinese/English support
 - **PWA**: vite-plugin-pwa with workbox service worker
@@ -45,7 +46,7 @@ This drops login latency from 60s (timeout) → ~1.2s.
 - `server/index.ts` — Local dev Hono API server entry
 - `server/routes/auth.ts` — JWT auth routes
 - `server/routes/realtime.ts` — SSE endpoint + publish endpoint
-- `server/db.ts` — Turso libSQL client
+- `server/db.ts` — Replit PostgreSQL client (pg Pool with LibSQL-compatible API wrapper)
 - `server/jwt.ts` — jose JWT sign/verify
 - `server/eventBus.ts` — Node EventEmitter pub/sub bus
 - `src/lib/apiClient.ts` — JWT-aware fetch wrapper with auto-refresh

@@ -84,7 +84,7 @@ app.get('/domain-listings/:id/detail', async (c) => {
   const isUUID = /^[0-9a-f-]{36}$/i.test(idParam);
   const r = isUUID
     ? await db.execute({ sql: 'SELECT * FROM domain_listings WHERE id = ?', args: [idParam] })
-    : await db.execute({ sql: 'SELECT * FROM domain_listings WHERE name = ? COLLATE NOCASE', args: [idParam] });
+    : await db.execute({ sql: 'SELECT * FROM domain_listings WHERE LOWER(name) = LOWER(?)', args: [idParam] });
   if (!r.rows[0]) return c.json({ error: '未找到' }, 404);
   const domain = rowToObj(r.rows[0]);
 

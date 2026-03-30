@@ -108,7 +108,7 @@ app.post('/register', async (c) => {
 
   const displayName = full_name || emailLower.split('@')[0];
   await db.execute({
-    sql: 'INSERT OR IGNORE INTO profiles (id, full_name, created_at, updated_at) VALUES (?,?,?,?)',
+    sql: 'INSERT INTO profiles (id, full_name, created_at, updated_at) VALUES (?,?,?,?) ON CONFLICT (id) DO NOTHING',
     args: [id, displayName, t, t]
   });
 
