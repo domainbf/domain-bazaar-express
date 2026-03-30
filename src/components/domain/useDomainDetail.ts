@@ -33,18 +33,6 @@ const fetchDomainDetails = async (identifier: string | undefined) => {
 
   const analytics = analyticsResult.data || { views: 0, favorites: 0, offers: 0 };
 
-  // 异步更新浏览量（不阻塞返回）
-  supabase.from('domain_analytics').upsert(
-    {
-      domain_id: domainData.id,
-      views: (analytics.views || 0) + 1,
-      favorites: analytics.favorites || 0,
-      offers: analytics.offers || 0,
-      last_updated: new Date().toISOString(),
-    },
-    { onConflict: 'domain_id' }
-  ).then();
-
   const processedDomain: Domain = {
     id: domainData.id,
     name: domainData.name || '',

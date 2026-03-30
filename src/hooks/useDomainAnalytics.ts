@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { DomainAnalytics } from '@/types/domain';
 
@@ -8,183 +7,132 @@ interface TrendData {
   views: number;
 }
 
-export const useDomainAnalytics = (domainId: string) => {
-  const [analytics, setAnalytics] = useState<DomainAnalytics | null>(null);
+interface InitialData {
+  analytics?: DomainAnalytics | null;
+}
+
+export const useDomainAnalytics = (domainId: string, initialData?: InitialData) => {
+  const [analytics, setAnalytics] = useState<DomainAnalytics | null>(initialData?.analytics ?? null);
   const [trends, setTrends] = useState<TrendData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!initialData?.analytics);
   const [isFavorited, setIsFavorited] = useState(false);
 
-  // Load domain analytics
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
+    if (!domainId) return;
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('domain_analytics')
         .select('*')
         .eq('domain_id', domainId)
         .maybeSingle();
 
-      if (error) {
-        console.error('Error loading analytics:', error);
-        return;
-      }
-
       if (data) {
         setAnalytics(data);
-      } else {
-        // Create analytics record if it doesn't exist using upsert
-        const { data: newAnalytics, error: insertError } = await supabase
-          .from('domain_analytics')
-          .upsert({ domain_id: domainId, views: 0, favorites: 0, offers: 0 }, { onConflict: 'domain_id' })
-          .select()
-          .single();
-        
-        if (insertError) {
-          console.error('Error creating analytics:', insertError);
-        } else if (newAnalytics) {
-          setAnalytics(newAnalytics);
-        }
       }
-    } catch (error) {
-      console.error('Error in loadAnalytics:', error);
+    } catch (err) {
+      console.error('Error loading analytics:', err);
     }
-  };
+  }, [domainId]);
 
-  // Generate mock trend data for the last 30 days
-  const generateTrendData = () => {
-    const trends: TrendData[] = [];
+  const generateTrendData = useCallback((): TrendData[] => {
+    const result: TrendData[] = [];
     const today = new Date();
-    
     for (let i = 29; i >= 0; i--) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
-      
-      // Generate some mock data with a trend
-      const baseViews = Math.max(0, Math.floor(Math.random() * 10) + i * 0.1);
-      
-      trends.push({
+      result.push({
         date: date.toISOString().split('T')[0],
-        views: baseViews
+        views: Math.max(0, Math.floor(Math.random() * 10 + (29 - i) * 0.2)),
       });
     }
-    
-    return trends;
-  };
+    return result;
+  }, []);
 
-  // Record a view - 使用会话去重，防止重复统计
-  const recordView = async () => {
+  const recordView = useCallback(async () => {
+    if (!domainId) return;
+    const sessionKey = `domain_viewed_${domainId}`;
+    if (sessionStorage.getItem(sessionKey)) return;
+
     try {
-      // 检查本次会话是否已经记录过该域名的浏览
-      const sessionKey = `domain_viewed_${domainId}`;
-      const hasViewed = sessionStorage.getItem(sessionKey);
-      
-      if (hasViewed) {
-        console.log('Already viewed in this session');
-        return;
-      }
-
-      // 使用 RPC 函数进行原子操作，避免竞态条件
-      const { data, error } = await supabase.rpc('increment_domain_views', {
-        p_domain_id: domainId
-      });
-
-      if (error) {
-        console.error('Error recording view:', error);
-      } else {
-        // 标记本次会话已浏览
+      const { error } = await supabase.rpc('increment_domain_views', { p_domain_id: domainId });
+      if (!error) {
         sessionStorage.setItem(sessionKey, 'true');
-        
-        // 重新加载统计数据
-        await loadAnalytics();
+        setAnalytics(prev => prev ? { ...prev, views: (prev.views || 0) + 1 } : null);
       }
-    } catch (error) {
-      console.error('Error recording view:', error);
+    } catch (err) {
+      console.error('Error recording view:', err);
     }
-  };
+  }, [domainId]);
 
-  // Toggle favorite
-  const toggleFavorite = async () => {
+  const toggleFavorite = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return;
+    }
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.error('User not authenticated');
-        return;
-      }
-
       if (isFavorited) {
-        // Remove favorite
         await supabase
           .from('user_favorites')
           .delete()
           .eq('user_id', user.id)
           .eq('domain_id', domainId);
-        
         setIsFavorited(false);
-      } else {
-        // Add favorite
+        setAnalytics(prev => prev ? { ...prev, favorites: Math.max(0, (prev.favorites || 0) - 1) } : null);
         await supabase
+          .from('domain_analytics')
+          .update({ favorites: Math.max(0, (analytics?.favorites || 1) - 1), last_updated: new Date().toISOString() })
+          .eq('domain_id', domainId);
+      } else {
+        const { error: insertError } = await supabase
           .from('user_favorites')
           .insert({ user_id: user.id, domain_id: domainId });
-        
-        setIsFavorited(true);
+        if (!insertError) {
+          setIsFavorited(true);
+          setAnalytics(prev => prev ? { ...prev, favorites: (prev.favorites || 0) + 1 } : null);
+          await supabase
+            .from('domain_analytics')
+            .update({ favorites: (analytics?.favorites || 0) + 1, last_updated: new Date().toISOString() })
+            .eq('domain_id', domainId);
+        }
       }
-
-      // Update analytics
-      const newFavoriteCount = (analytics?.favorites || 0) + (isFavorited ? -1 : 1);
-      const { error } = await supabase
-        .from('domain_analytics')
-        .upsert({ 
-          domain_id: domainId, 
-          views: analytics?.views || 0,
-          favorites: newFavoriteCount,
-          offers: analytics?.offers || 0,
-          last_updated: new Date().toISOString()
-        }, { onConflict: 'domain_id' });
-
-      if (error) {
-        console.error('Error updating analytics:', error);
-      } else {
-        // Update local state immediately
-        setAnalytics(prev => prev ? { ...prev, favorites: newFavoriteCount } : null);
-      }
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
+    } catch (err) {
+      console.error('Error toggling favorite:', err);
     }
-  };
+  }, [domainId, isFavorited, analytics]);
 
-  // Check if domain is favorited by current user
-  const checkFavoriteStatus = async () => {
+  const checkFavoriteStatus = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
       const { data } = await supabase
         .from('user_favorites')
         .select('id')
         .eq('user_id', user.id)
         .eq('domain_id', domainId)
-        .single();
+        .maybeSingle();
 
       setIsFavorited(!!data);
-    } catch (error) {
-      console.error('Error checking favorite status:', error);
+    } catch (err) {
+      console.error('Error checking favorite status:', err);
     }
-  };
+  }, [domainId]);
 
   useEffect(() => {
-    const initializeAnalytics = async () => {
+    if (!domainId) return;
+
+    const init = async () => {
       setIsLoading(true);
-      await loadAnalytics();
-      await checkFavoriteStatus();
-      
-      // Generate mock trend data
+      await Promise.all([
+        initialData?.analytics ? Promise.resolve() : loadAnalytics(),
+        checkFavoriteStatus(),
+      ]);
       setTrends(generateTrendData());
-      
       setIsLoading(false);
     };
 
-    if (domainId) {
-      initializeAnalytics();
-    }
+    init();
   }, [domainId]);
 
   return {
@@ -193,6 +141,7 @@ export const useDomainAnalytics = (domainId: string) => {
     isLoading,
     isFavorited,
     recordView,
-    toggleFavorite
+    toggleFavorite,
+    loadAnalytics,
   };
 };

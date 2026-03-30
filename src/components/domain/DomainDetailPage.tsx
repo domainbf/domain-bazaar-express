@@ -83,7 +83,7 @@ const cardHoverVariants = {
 
 export const DomainDetailPage = () => {
   const { domain, similarDomains, priceHistory, isLoading, error } = useDomainDetail();
-  const { analytics, isFavorited, recordView, toggleFavorite } = useDomainAnalytics(domain?.id || '');
+  const { analytics, trends, isFavorited, recordView, toggleFavorite } = useDomainAnalytics(domain?.id || '');
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const [activeAuction, setActiveAuction] = useState<AuctionType | null>(null);
   const { user } = useAuth();
@@ -419,7 +419,14 @@ export const DomainDetailPage = () => {
                 </span>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6">
-                <DomainAnalytics domainId={domain.id} createdAt={domain.created_at} />
+                <DomainAnalytics
+                  domainId={domain.id}
+                  createdAt={domain.created_at}
+                  analytics={analytics}
+                  trends={trends}
+                  isFavorited={isFavorited}
+                  toggleFavorite={toggleFavorite}
+                />
               </AccordionContent>
             </AccordionItem>
           </Accordion>

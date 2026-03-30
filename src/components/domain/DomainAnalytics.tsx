@@ -1,162 +1,116 @@
-
-import { useEffect } from 'react';
-import { useDomainAnalytics } from '@/hooks/useDomainAnalytics';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DomainAnalytics as DomainAnalyticsType } from '@/types/domain';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Eye, Heart, Star, TrendingUp, Clock } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { Eye, Heart, TrendingUp, Clock } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+
+interface TrendData {
+  date: string;
+  views: number;
+}
 
 interface DomainAnalyticsProps {
   domainId: string;
   createdAt?: string;
+  analytics: DomainAnalyticsType | null;
+  trends: TrendData[];
+  isFavorited: boolean;
+  toggleFavorite: () => void;
 }
 
-export const DomainAnalytics = ({ domainId, createdAt }: DomainAnalyticsProps) => {
-  const { 
-    analytics, 
-    isLoading, 
-    trends, 
-    recordView, 
-    toggleFavorite,
-    isFavorited 
-  } = useDomainAnalytics(domainId);
+const formatDate = (dateStr: string) => {
+  const d = new Date(dateStr);
+  return `${d.getMonth() + 1}/${d.getDate()}`;
+};
+
+const daysSinceListing = (createdAt?: string) => {
+  if (!createdAt) return 'N/A';
+  const created = new Date(createdAt);
+  const today = new Date();
+  const diffDays = Math.ceil(Math.abs(today.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+  return diffDays;
+};
+
+export const DomainAnalytics = ({
+  createdAt,
+  analytics,
+  trends,
+  isFavorited,
+  toggleFavorite,
+}: DomainAnalyticsProps) => {
   const isMobile = useIsMobile();
 
-  // 移除这里的recordView调用，统一在DomainDetailPage中处理
-  // useEffect(() => {
-  //   recordView();
-  // }, []);
-  
-  const daysSinceListing = () => {
-    if (!createdAt) return 'N/A';
-    const created = new Date(createdAt);
-    const today = new Date();
-    const diffTime = Math.abs(today.getTime() - created.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-6">
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString();
-  };
+  const stats = [
+    { icon: Eye, label: '浏览量', value: analytics?.views ?? 0, color: 'text-blue-600' },
+    { icon: Heart, label: '收藏数', value: analytics?.favorites ?? 0, color: 'text-red-500' },
+    { icon: TrendingUp, label: '报价数', value: analytics?.offers ?? 0, color: 'text-green-600' },
+    { icon: Clock, label: '在售天数', value: daysSinceListing(createdAt), color: 'text-purple-600' },
+  ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">域名数据</h2>
-        <Button
-          variant={isFavorited ? "default" : "outline"}
-          size="sm"
-          onClick={() => toggleFavorite()}
-          className="flex items-center gap-1"
-        >
-          <Heart className={`h-4 w-4 ${isFavorited ? 'fill-white' : ''}`} />
-          {isFavorited ? '已收藏' : '收藏'}
-        </Button>
+    <div className="space-y-5">
+      <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-4'} gap-3`}>
+        {stats.map(({ icon: Icon, label, value, color }) => (
+          <div key={label} className="flex flex-col items-center justify-center p-4 bg-muted/40 rounded-xl border">
+            <Icon className={`h-5 w-5 mb-1 ${color}`} />
+            <p className="text-2xl font-black">{value}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
+          </div>
+        ))}
       </div>
 
-      <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-4'} gap-4`}>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-1 text-muted-foreground">
-              <Eye className="h-4 w-4" />
-              浏览量
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{analytics?.views || 0}</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-1 text-muted-foreground">
-              <Heart className="h-4 w-4" />
-              收藏数
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{analytics?.favorites || 0}</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-1 text-muted-foreground">
-              <TrendingUp className="h-4 w-4" />
-              报价数
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{analytics?.offers || 0}</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-1 text-muted-foreground">
-              <Clock className="h-4 w-4" />
-              在售天数
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{daysSinceListing()}</p>
-          </CardContent>
-        </Card>
-      </div>
-      
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center justify-between">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center justify-between">
             <span>浏览量趋势</span>
-            <Badge variant="outline" className="font-normal">
-              过去30天
-            </Badge>
+            <Badge variant="outline" className="font-normal text-xs">过去30天</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[200px] w-full">
+          <div className="h-[180px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={trends}
-                margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
-              >
-                <XAxis 
-                  dataKey="date" 
-                  tick={{ fontSize: 12 }}
-                  tickFormatter={(value) => {
-                    const date = new Date(value);
-                    return date.getDate().toString();
-                  }}
-                  minTickGap={15}
+              <LineChart data={trends} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 11 }}
+                  tickFormatter={formatDate}
+                  minTickGap={20}
                 />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip formatter={(value) => [value, '浏览量']} labelFormatter={formatDate} />
-                <Line 
-                  type="monotone" 
-                  dataKey="views" 
-                  stroke="#3b82f6" 
+                <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                <Tooltip
+                  formatter={(value) => [value, '浏览量']}
+                  labelFormatter={(label) => new Date(label).toLocaleDateString('zh-CN')}
+                  contentStyle={{ fontSize: 12 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="views"
+                  stroke="hsl(var(--primary))"
                   strokeWidth={2}
-                  dot={{ r: 1 }}
-                  activeDot={{ r: 5 }}
+                  dot={false}
+                  activeDot={{ r: 4 }}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </CardContent>
       </Card>
+
+      <div className="text-center">
+        <button
+          onClick={toggleFavorite}
+          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 ${
+            isFavorited
+              ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
+              : 'bg-muted text-muted-foreground border-border hover:bg-accent'
+          }`}
+        >
+          <Heart className={`h-4 w-4 ${isFavorited ? 'fill-current' : ''}`} />
+          {isFavorited ? '已收藏此域名' : '收藏此域名'}
+        </button>
+      </div>
     </div>
   );
 };
