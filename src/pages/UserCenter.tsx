@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UserCenterStatsGrid } from '@/components/usercenter/UserCenterStatsGrid';
 import { UserCenterTabsContent } from '@/components/usercenter/UserCenterTabsContent';
+import { ComponentErrorBoundary } from '@/components/common/ComponentErrorBoundary';
 import { ProfileSettings } from '@/components/usercenter/ProfileSettings';
 import { AccountSecurity } from '@/components/usercenter/AccountSecurity';
 import { Button } from "@/components/ui/button";
@@ -143,25 +144,31 @@ export const UserCenter = () => {
 
         {/* Content: profile gets its own special layout */}
         {activeTab === 'profile' ? (
-          <MobileProfileSection
-            user={user}
-            profile={profile}
-            isAdmin={isAdmin}
-            displayName={displayName}
-            avatarInitial={avatarInitial}
-            unreadCount={unreadCount}
-            onTabChange={handleTabChange}
-            navigate={navigate}
-          />
+          <ComponentErrorBoundary fallbackMessage="个人中心加载失败，请刷新重试">
+            <MobileProfileSection
+              user={user}
+              profile={profile}
+              isAdmin={isAdmin}
+              displayName={displayName}
+              avatarInitial={avatarInitial}
+              unreadCount={unreadCount}
+              onTabChange={handleTabChange}
+              navigate={navigate}
+            />
+          </ComponentErrorBoundary>
         ) : (
           <div className="px-4 pt-4">
             {/* Stats strip only on domains/transactions */}
             {(activeTab === 'domains' || activeTab === 'transactions') && (
               <div className="mb-4">
-                <UserCenterStatsGrid profile={profile} user={user} compact />
+                <ComponentErrorBoundary fallbackMessage="统计数据加载失败">
+                  <UserCenterStatsGrid profile={profile} user={user} compact />
+                </ComponentErrorBoundary>
               </div>
             )}
-            <MobileTabContent activeTab={activeTab} />
+            <ComponentErrorBoundary fallbackMessage="页面内容加载失败，请刷新重试">
+              <MobileTabContent activeTab={activeTab} />
+            </ComponentErrorBoundary>
           </div>
         )}
 
@@ -243,7 +250,9 @@ export const UserCenter = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, duration: 0.3 }}
         >
-          <UserCenterStatsGrid profile={profile} user={user} />
+          <ComponentErrorBoundary fallbackMessage="统计数据加载失败">
+            <UserCenterStatsGrid profile={profile} user={user} />
+          </ComponentErrorBoundary>
         </motion.div>
 
         {/* Desktop tabs */}
@@ -284,7 +293,9 @@ export const UserCenter = () => {
                 </TabsList>
               </div>
               <div className="p-6">
-                <UserCenterTabsContent />
+                <ComponentErrorBoundary fallbackMessage="页面内容加载失败，请刷新重试">
+                  <UserCenterTabsContent />
+                </ComponentErrorBoundary>
               </div>
             </Tabs>
           </div>

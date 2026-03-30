@@ -169,42 +169,42 @@ export const UserCenterTabsContent = () => {
       <TabsContent value="profile" className="mt-0">
         <ComponentErrorBoundary fallbackMessage="个人资料模块加载出错，请重试">
           <ProfileCompletion onNavigateTab={() => setProfileTab('info')} />
-        </ComponentErrorBoundary>
 
-        {isMobile ? (
-          <>
-            <MobilePillNav
-              items={PROFILE_TABS.map(t => ({ id: t.id, shortLabel: t.label, icon: t.icon }))}
-              active={profileTab}
-              onChange={setProfileTab}
-            />
-            <ProfileContent key={profileTab} tab={profileTab} />
-          </>
-        ) : (
-          <>
-            <div className="flex gap-1 mb-5 border-b border-border pb-3">
-              {PROFILE_TABS.map((tab) => {
-                const Icon = tab.icon;
-                const sel = profileTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setProfileTab(tab.id)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all
-                      ${sel
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                      }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-            <ProfileContent key={profileTab} tab={profileTab} />
-          </>
-        )}
+          {isMobile ? (
+            <>
+              <MobilePillNav
+                items={PROFILE_TABS.map(t => ({ id: t.id, shortLabel: t.label, icon: t.icon }))}
+                active={profileTab}
+                onChange={setProfileTab}
+              />
+              <ProfileContent key={profileTab} tab={profileTab} />
+            </>
+          ) : (
+            <>
+              <div className="flex gap-1 mb-5 border-b border-border pb-3">
+                {PROFILE_TABS.map((tab) => {
+                  const Icon = tab.icon;
+                  const sel = profileTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setProfileTab(tab.id)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all
+                        ${sel
+                          ? 'bg-primary/10 text-primary'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                        }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <ProfileContent key={profileTab} tab={profileTab} />
+            </>
+          )}
+        </ComponentErrorBoundary>
       </TabsContent>
     </div>
   );

@@ -48,9 +48,14 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="text-center p-8 bg-card rounded-lg shadow-lg max-w-md w-full border border-border">
         <h2 className="text-2xl font-bold text-destructive mb-4">页面加载出错</h2>
-        <p className="text-muted-foreground mb-6">抱歉，页面遇到了问题。请尝试刷新页面或返回首页。</p>
+        <p className="text-muted-foreground mb-4">抱歉，页面遇到了问题。请尝试刷新页面或返回首页。</p>
+        {error?.message && (
+          <p className="text-xs text-muted-foreground/60 bg-muted rounded px-3 py-2 mb-4 text-left font-mono break-all">
+            {error.message}
+          </p>
+        )}
         <div className="space-y-3">
-          <button onClick={resetErrorBoundary} className="w-full px-4 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium">
+          <button onClick={resetErrorBoundary} className="w-full px-4 py-3 bg-foreground text-background rounded-lg hover:bg-foreground/90 transition-colors font-medium">
             重试
           </button>
           <button onClick={() => window.location.href = '/'} className="w-full px-4 py-3 border border-border rounded-lg hover:bg-accent transition-colors text-foreground">
