@@ -63,30 +63,31 @@
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 6%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 6%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    /* ── 深色主题：柔和的深蓝黑，不刺眼 ── */
+    --background: 222 47% 8%;        /* #0b1120  深蓝黑，不是纯黑 */
+    --foreground: 210 35% 94%;       /* 近白，暖色调 */
+    --card: 222 40% 11%;             /* #111827  卡片略亮于背景 */
+    --card-foreground: 210 35% 94%;
+    --popover: 222 40% 11%;
+    --popover-foreground: 210 35% 94%;
+    --primary: 210 35% 94%;
+    --primary-foreground: 222 47% 8%;
+    --secondary: 217 33% 17%;        /* slate-800 层次 */
+    --secondary-foreground: 210 35% 94%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 55%; /* 柔和灰，可读性好 */
+    --accent: 217 33% 20%;
+    --accent-foreground: 210 35% 94%;
+    --destructive: 0 60% 35%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
+    --border: 217 25% 20%;           /* 边框：略亮，不刺眼 */
+    --input: 217 25% 20%;
+    --ring: 213 31% 70%;
+    --chart-1: 220 70% 55%;
+    --chart-2: 160 55% 45%;
     --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --chart-4: 280 60% 60%;
+    --chart-5: 340 70% 55%;
   }
 }
 
@@ -94,8 +95,13 @@
   * {
     @apply border-border;
   }
+  /* 昼夜切换平滑过渡 */
+  html {
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
   body {
     @apply bg-background text-foreground min-h-screen font-sans antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   @media (max-width: 640px) {

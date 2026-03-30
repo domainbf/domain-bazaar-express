@@ -36,7 +36,7 @@ window.addEventListener('error', handleGlobalError);
 window.addEventListener('unhandledrejection', handleUnhandledRejection);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+  <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
