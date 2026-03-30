@@ -46,15 +46,13 @@ export const MessageCenter = ({ otherUserId, transactionId, domainId, offerId }:
     if (!user || !otherUserId) return;
     loadMessages();
     loadOtherUser();
+  }, [user, otherUserId]);
 
-    useRealtimeSubscription(
+  useRealtimeSubscription(
     ["messages"],
     (_event) => { loadMessages(); },
-    true
+    !!user && !!otherUserId
   );
-
-    
-  }, [user, otherUserId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });

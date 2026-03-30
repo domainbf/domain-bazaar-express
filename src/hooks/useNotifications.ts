@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { apiGet, apiPatch, apiPost } from '@/lib/apiClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { Notification } from '@/types/domain';
@@ -88,9 +88,9 @@ export const useNotifications = () => {
     toast.success('已将所有通知标记为已读');
   };
 
-  const refreshNotifications = () => {
+  const refreshNotifications = useCallback(() => {
     if (user) queryClient.invalidateQueries({ queryKey: NOTIF_KEY(user.id) });
-  };
+  }, [user?.id, queryClient]);
 
   return {
     notifications: notifications as Notification[],

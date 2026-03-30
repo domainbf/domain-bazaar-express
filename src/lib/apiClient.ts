@@ -1,7 +1,9 @@
 // In dev: Vite proxies /api → localhost:3001
 // In prod: VITE_API_URL points to deployed API server (e.g. https://api.nic.rw)
-const BASE = (import.meta.env.VITE_API_URL as string | undefined)
-  ? `${import.meta.env.VITE_API_URL}/api`
+// Must start with http:// or https:// — bare hostnames like "api.nic.rw" are rejected.
+const _rawApiUrl = import.meta.env.VITE_API_URL as string | undefined;
+const BASE = (_rawApiUrl && /^https?:\/\//i.test(_rawApiUrl))
+  ? `${_rawApiUrl}/api`
   : '/api';
 
 let accessToken: string | null = null;

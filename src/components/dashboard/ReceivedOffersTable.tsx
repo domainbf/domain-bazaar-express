@@ -55,14 +55,10 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
   const [counterNote, setCounterNote] = useState('');
   const [isCountering, setIsCountering] = useState(false);
 
-  useEffect(() => {
-    useRealtimeSubscription(
+  useRealtimeSubscription(
     ["domain_offers"],
-    (_event) => { onRefresh?.(); },
-    true
+    (_event) => { onRefresh?.(); }
   );
-    
-  }, [onRefresh]);
 
   const handleOfferAction = async (offerId: string, action: 'accepted' | 'rejected' | 'completed') => {
     setProcessingOffers(prev => ({ ...prev, [offerId]: true }));

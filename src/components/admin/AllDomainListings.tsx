@@ -54,16 +54,12 @@ export const AllDomainListings = () => {
 
   useEffect(() => {
     loadDomains();
-    
-    // 设置实时订阅
-    useRealtimeSubscription(
-    ["domain_listings"],
-    (_event) => { refreshDomains(); },
-    true
-  );
-
-    
   }, []);
+
+  useRealtimeSubscription(
+    ["domain_listings"],
+    (_event) => { refreshDomains(); }
+  );
 
   const loadDomains = async () => {
     setIsLoading(true);

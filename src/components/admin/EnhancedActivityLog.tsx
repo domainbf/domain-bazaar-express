@@ -44,15 +44,12 @@ export const EnhancedActivityLog = () => {
 
   useEffect(() => {
     loadActivities();
-    
-    useRealtimeSubscription(
-    ["user_activities"],
-    (_event) => { loadActivities(); },
-    true
-  );
-
-    
   }, [page, filterType]);
+
+  useRealtimeSubscription(
+    ["user_activities"],
+    (_event) => { loadActivities(); }
+  );
 
   const loadActivities = async () => {
     setIsLoading(true);

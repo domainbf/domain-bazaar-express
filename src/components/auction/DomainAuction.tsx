@@ -33,16 +33,12 @@ export const DomainAuction: React.FC<DomainAuctionProps> = ({ auction: initialAu
   useEffect(() => {
     loadRecentBids();
     loadUserAutoBid();
-
-    // Subscribe to real-time bid updates
-    useRealtimeSubscription(
-    ["domain_auctions","auction_bids"],
-    (_event) => { loadRecentBids(); },
-    true
-  );
-
-    
   }, [auction.id, user?.id]);
+
+  useRealtimeSubscription(
+    ["domain_auctions", "auction_bids"],
+    (_event) => { loadRecentBids(); }
+  );
 
   useEffect(() => {
     const updateTimer = () => {

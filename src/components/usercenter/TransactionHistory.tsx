@@ -49,15 +49,10 @@ export const TransactionHistory = () => {
   }, []);
 
   // 实时监听发出的报价状态变化
-  useEffect(() => {
-    useRealtimeSubscription(
+  useRealtimeSubscription(
     ["transactions"],
-    (_event) => { loadTransactions(); },
-    true
+    (_event) => { loadTransactions(); }
   );
-
-    
-  }, []);
 
   const loadTransactions = async () => {
     const refreshing = !isLoading;

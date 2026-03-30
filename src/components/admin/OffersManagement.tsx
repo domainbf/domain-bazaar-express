@@ -53,15 +53,12 @@ export const OffersManagement = () => {
 
   useEffect(() => {
     loadOffers();
-
-    useRealtimeSubscription(
-    ["domain_offers"],
-    (_event) => { loadOffers(); },
-    true
-  );
-
-    
   }, []);
+
+  useRealtimeSubscription(
+    ["domain_offers"],
+    (_event) => { loadOffers(); }
+  );
 
   const loadOffers = async () => {
     setIsLoading(true);

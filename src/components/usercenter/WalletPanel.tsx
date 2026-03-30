@@ -156,15 +156,11 @@ export const WalletPanel = () => {
   }, [loadWalletData]);
 
   // Realtime: refresh wallet when payment_transactions change for this user
-  useEffect(() => {
-    if (!user) return;
-    useRealtimeSubscription(
+  useRealtimeSubscription(
     ["payment_transactions"],
     (_event) => { loadWalletData(); },
-    true
+    !!user
   );
-    
-  }, [user, loadWalletData]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);

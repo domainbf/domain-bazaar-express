@@ -74,16 +74,12 @@ export const AdminActivityLog = () => {
 
   useEffect(() => {
     loadActivities();
-    
-    // 设置实时订阅
-    useRealtimeSubscription(
-    ["user_activities"],
-    (_event) => { loadActivities(); },
-    true
-  );
-
-    
   }, []);
+
+  useRealtimeSubscription(
+    ["user_activities"],
+    (_event) => { loadActivities(); }
+  );
 
   const loadActivities = async () => {
     setIsLoading(true);

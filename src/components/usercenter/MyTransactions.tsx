@@ -90,15 +90,12 @@ export const MyTransactions = () => {
 
   useEffect(() => {
     loadTransactions();
-
-    useRealtimeSubscription(
-    ["transactions"],
-    (_event) => { loadTransactions(); },
-    true
-  );
-
-    
   }, [loadTransactions]);
+
+  useRealtimeSubscription(
+    ["transactions"],
+    (_event) => { loadTransactions(); }
+  );
 
   const handleRefresh = () => {
     setIsRefreshing(true);
