@@ -1,72 +1,19 @@
-import { Pool } from 'pg';
+import { createClient } from '@libsql/client';
 
-const DATABASE_URL = process.env.DATABASE_URL;
-if (!DATABASE_URL) throw new Error('DATABASE_URL is required');
+const rawUrl = process.env.TURSO_DATABASE_URL;
+const authToken = process.env.TURSO_AUTH_TOKEN;
 
-const pool = new Pool({
-  connectionString: DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
-});
+if (!rawUrl) throw new Error('TURSO_DATABASE_URL is required');
+if (!authToken) throw new Error('TURSO_AUTH_TOKEN is required');
 
-pool.on('error', (err) => console.error('[pg] pool error:', err.message));
+// Force HTTPS transport instead of WebSocket (libsql://) to avoid cold-start
+// connection hangs in Vercel serverless. @libsql/client supports both.
+const url = rawUrl.replace(/^libsql:\/\//, 'https://');
 
-function convertPlaceholders(sql: string): string {
-  let i = 0;
-  return sql.replace(/\?/g, () => `$${++i}`);
-}
-
-type SqlArg = string | number | boolean | null | undefined;
-
-interface ExecuteOptions {
-  sql: string;
-  args?: SqlArg[];
-}
-
-interface ExecuteResult {
-  rows: Record<string, unknown>[];
-}
-
-export const db = {
-  async execute(options: ExecuteOptions | string): Promise<ExecuteResult> {
-    let sql: string;
-    let args: SqlArg[] = [];
-    if (typeof options === 'string') {
-      sql = options;
-    } else {
-      sql = options.sql;
-      args = options.args || [];
-    }
-    const pgSql = convertPlaceholders(sql);
-    const result = await pool.query(pgSql, args as unknown[]);
-    return { rows: result.rows as Record<string, unknown>[] };
-  },
-
-  async executeMultiple(sql: string): Promise<void> {
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
-      const statements = sql
-        .split(';')
-        .map(s => s.trim())
-        .filter(s => s.length > 0);
-      for (const stmt of statements) {
-        await client.query(stmt);
-      }
-      await client.query('COMMIT');
-    } catch (err) {
-      await client.query('ROLLBACK');
-      throw err;
-    } finally {
-      client.release();
-    }
-  },
-};
+export const db = createClient({ url, authToken });
 
 export async function initDb() {
-  await pool.query(`
+  await db.executeMultiple(`
     CREATE TABLE IF NOT EXISTS app_auth_users (
       id TEXT PRIMARY KEY,
       email TEXT UNIQUE NOT NULL,
