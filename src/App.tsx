@@ -60,7 +60,7 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
   );
 }
 
-// Minimal skeleton loading — no spinner, just structure
+// Minimal skeleton loading — theme-aware, no hard-coded colors
 const RouteLoadingFallback = memo(() => (
   <div className="min-h-screen bg-background">
     <div className="h-14 border-b border-border skeleton-shimmer" />
@@ -90,7 +90,8 @@ const RouteLoadingFallback = memo(() => (
 ));
 RouteLoadingFallback.displayName = 'RouteLoadingFallback';
 
-// Routes component — memoized to avoid re-renders from parent
+// Routes component — NO key on wrapper: avoids full subtree remounts on every navigation
+// Each page's own mount animation handles the visual transition
 const AnimatedRoutes = memo(() => {
   const location = useLocation();
 
@@ -101,7 +102,7 @@ const AnimatedRoutes = memo(() => {
   return (
     <>
       <TopProgressBar />
-      <div key={location.pathname} className="animate-slide-up" style={{ animationDuration: '0.3s' }}>
+      <div key={location.pathname} className="animate-in">
       <Routes location={location}>
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<AuthPage />} />
@@ -148,18 +149,26 @@ AnimatedRoutes.displayName = 'AnimatedRoutes';
 
 function App() {
   useEffect(() => {
-    // Preload critical routes after first paint
+    // Preload bottom-nav pages immediately (these are the most visited)
+    import('./pages/Marketplace').catch(() => {});
+    import('./pages/AuctionsPage').catch(() => {});
+    import('./pages/UserCenter').catch(() => {});
+
+    // Preload secondary routes after first paint settles
     const timer = setTimeout(() => {
-      import('./pages/Marketplace').catch(() => {});
       import('./components/domain/DomainDetailPage').catch(() => {});
-    }, 1500);
-    
-    // Preload secondary routes after idle
-    const timer2 = setTimeout(() => {
       import('./pages/AuthPage').catch(() => {});
-      import('./pages/UserCenter').catch(() => {});
       import('./pages/Dashboard').catch(() => {});
-    }, 4000);
+      import('./pages/SellDomain').catch(() => {});
+    }, 800);
+    
+    // Preload remaining pages in idle time
+    const timer2 = setTimeout(() => {
+      import('./pages/FAQPage').catch(() => {});
+      import('./pages/ContactPage').catch(() => {});
+      import('./pages/ValuationPage').catch(() => {});
+      import('./pages/HelpPage').catch(() => {});
+    }, 3000);
     
     return () => { clearTimeout(timer); clearTimeout(timer2); };
   }, []);

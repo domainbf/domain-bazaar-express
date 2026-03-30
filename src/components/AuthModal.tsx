@@ -51,7 +51,7 @@ export const AuthModal = ({
 
   return (
     <Dialog open={isModalOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="bg-white border-gray-200 max-w-md">
+      <DialogContent className="bg-card border-border max-w-md">
         <AuthModalHeader title={getTitle()} />
         
         {showResetPassword ? (

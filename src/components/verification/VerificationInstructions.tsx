@@ -43,8 +43,8 @@ export const VerificationInstructions = ({
     
     if (daysLeft <= 2) {
       return (
-        <Alert variant="warning" className="mb-4">
-          <AlertDescription>
+        <Alert className="mb-4 border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/20">
+          <AlertDescription className="text-yellow-800 dark:text-yellow-300">
             此验证将在 {daysLeft} 天后过期。请尽快完成验证。
           </AlertDescription>
         </Alert>
@@ -85,40 +85,40 @@ export const VerificationInstructions = ({
               domainName={domainName}
             />
             
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
-              <h4 className="font-semibold text-blue-900 mb-3">📋 DNS TXT记录设置指南</h4>
+            <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg border border-primary/20">
+              <h4 className="font-semibold text-foreground mb-3">📋 DNS TXT记录设置指南</h4>
               
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-blue-800 mb-2">请在您的DNS服务商添加以下TXT记录：</p>
-                  <div className="bg-white p-3 rounded-md space-y-2 border border-blue-100">
+                  <p className="text-sm font-medium text-foreground mb-2">请在您的DNS服务商添加以下TXT记录：</p>
+                  <div className="bg-card p-3 rounded-md space-y-2 border border-border">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-600">记录类型:</span>
+                      <span className="text-xs text-muted-foreground">记录类型:</span>
                       <div className="flex items-center gap-2">
-                        <code className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">TXT</code>
+                        <code className="text-sm font-mono bg-muted px-2 py-1 rounded text-foreground">TXT</code>
                         <CopyButton value="TXT" />
                       </div>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-600">主机记录:</span>
+                      <span className="text-xs text-muted-foreground">主机记录:</span>
                       <div className="flex items-center gap-2">
-                        <code className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">_domainverify</code>
+                        <code className="text-sm font-mono bg-muted px-2 py-1 rounded text-foreground">_domainverify</code>
                         <CopyButton value="_domainverify" />
                       </div>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <span className="text-xs text-gray-600">完整记录名称:</span>
+                      <span className="text-xs text-muted-foreground">完整记录名称:</span>
                       <div className="flex items-center gap-2">
-                        <code className="text-xs font-mono bg-gray-100 px-2 py-1 rounded flex-1 break-all">
+                        <code className="text-xs font-mono bg-muted px-2 py-1 rounded text-foreground flex-1 break-all">
                           {verification.verification_data.recordName}
                         </code>
                         <CopyButton value={verification.verification_data.recordName} />
                       </div>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <span className="text-xs text-gray-600">记录值:</span>
+                      <span className="text-xs text-muted-foreground">记录值:</span>
                       <div className="flex items-center gap-2">
-                        <code className="text-xs font-mono bg-gray-100 px-2 py-1 rounded flex-1 break-all">
+                        <code className="text-xs font-mono bg-muted px-2 py-1 rounded text-foreground flex-1 break-all">
                           {verification.verification_data.recordValue}
                         </code>
                         <CopyButton value={verification.verification_data.recordValue} />
@@ -127,12 +127,12 @@ export const VerificationInstructions = ({
                   </div>
                 </div>
 
-                <Alert className="bg-yellow-50 border-yellow-200">
-                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                  <AlertDescription className="text-sm text-yellow-800">
+                <Alert className="border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/20">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                  <AlertDescription className="text-sm text-yellow-800 dark:text-yellow-300">
                     <strong>重要提示：</strong>
                     <ul className="mt-2 space-y-1 list-disc list-inside">
-                      <li><strong>主机记录</strong>只需填写 <code className="bg-yellow-100 px-1 rounded">_domainverify</code></li>
+                      <li><strong>主机记录</strong>只需填写 <code className="bg-yellow-100 dark:bg-yellow-900/50 px-1 rounded">_domainverify</code></li>
                       <li>不要填写完整域名（如 _domainverify.{domainName}）</li>
                       <li>大多数DNS服务商会自动添加域名后缀</li>
                       <li>有些服务商显示"主机记录"，有些显示"名称"或"Host"</li>
@@ -141,44 +141,28 @@ export const VerificationInstructions = ({
                 </Alert>
 
                 <div className="space-y-2">
-                  <h5 className="text-sm font-semibold text-blue-900">常见DNS服务商设置方法：</h5>
-                  <div className="space-y-2 text-xs text-gray-700">
-                    <div className="bg-white p-2 rounded border border-blue-100">
-                      <strong>阿里云/万网：</strong>
-                      <ul className="mt-1 ml-4 list-disc space-y-0.5">
-                        <li>记录类型选择：TXT</li>
-                        <li>主机记录填写：<code className="bg-gray-100 px-1">_domainverify</code></li>
-                        <li>记录值粘贴：验证码</li>
-                        <li>TTL默认即可（建议600秒）</li>
-                      </ul>
-                    </div>
-                    <div className="bg-white p-2 rounded border border-blue-100">
-                      <strong>腾讯云DNSPod：</strong>
-                      <ul className="mt-1 ml-4 list-disc space-y-0.5">
-                        <li>记录类型：TXT</li>
-                        <li>主机记录：<code className="bg-gray-100 px-1">_domainverify</code></li>
-                        <li>记录值：粘贴完整验证码</li>
-                        <li>TTL：600（或默认）</li>
-                      </ul>
-                    </div>
-                    <div className="bg-white p-2 rounded border border-blue-100">
-                      <strong>Cloudflare：</strong>
-                      <ul className="mt-1 ml-4 list-disc space-y-0.5">
-                        <li>Type: TXT</li>
-                        <li>Name: <code className="bg-gray-100 px-1">_domainverify</code></li>
-                        <li>Content: 粘贴验证码</li>
-                        <li>TTL: Auto（或自定义）</li>
-                      </ul>
-                    </div>
-                    <div className="bg-white p-2 rounded border border-blue-100">
-                      <strong>GoDaddy：</strong>
-                      <ul className="mt-1 ml-4 list-disc space-y-0.5">
-                        <li>Type: TXT</li>
-                        <li>Host: <code className="bg-gray-100 px-1">_domainverify</code></li>
-                        <li>TXT Value: 粘贴验证码</li>
-                        <li>TTL: 1 Hour（或默认）</li>
-                      </ul>
-                    </div>
+                  <h5 className="text-sm font-semibold text-foreground">常见DNS服务商设置方法：</h5>
+                  <div className="space-y-2 text-xs text-muted-foreground">
+                    {[
+                      { name: '阿里云/万网', steps: ['记录类型选择：TXT', '主机记录填写：_domainverify', '记录值粘贴：验证码', 'TTL默认即可（建议600秒）'] },
+                      { name: '腾讯云DNSPod', steps: ['记录类型：TXT', '主机记录：_domainverify', '记录值：粘贴完整验证码', 'TTL：600（或默认）'] },
+                      { name: 'Cloudflare', steps: ['Type: TXT', 'Name: _domainverify', 'Content: 粘贴验证码', 'TTL: Auto（或自定义）'] },
+                      { name: 'GoDaddy', steps: ['Type: TXT', 'Host: _domainverify', 'TXT Value: 粘贴验证码', 'TTL: 1 Hour（或默认）'] },
+                    ].map(({ name, steps }) => (
+                      <div key={name} className="bg-muted/50 p-2 rounded border border-border">
+                        <strong className="text-foreground">{name}：</strong>
+                        <ul className="mt-1 ml-4 list-disc space-y-0.5">
+                          {steps.map((s, i) => (
+                            <li key={i}>{s.includes('_domainverify') && !s.startsWith('记录') && !s.startsWith('主机') && !s.startsWith('Host') && !s.startsWith('Name')
+                              ? s
+                              : s.includes('_domainverify')
+                                ? <span>{s.split('_domainverify')[0]}<code className="bg-muted px-1 rounded text-foreground">_domainverify</code>{s.split('_domainverify')[1]}</span>
+                                : s
+                            }</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -199,30 +183,30 @@ export const VerificationInstructions = ({
           </div>
         ) : verification.verification_type === 'file' ? (
           <div className="space-y-4">
-            <p>在您的Web服务器上创建验证文件：</p>
-            <div className={`${isMobile ? 'overflow-x-auto' : ''} bg-gray-50 p-4 rounded-md space-y-3`}>
+            <p className="text-foreground">在您的Web服务器上创建验证文件：</p>
+            <div className={`${isMobile ? 'overflow-x-auto' : ''} bg-muted p-4 rounded-md space-y-3`}>
               <div>
-                <p className="text-sm font-medium">文件位置:</p>
+                <p className="text-sm font-medium text-foreground">文件位置:</p>
                 <div className="flex items-center mt-1">
-                  <p className="text-sm font-mono bg-gray-100 p-1 rounded flex-1">
+                  <p className="text-sm font-mono bg-card p-1 rounded flex-1 text-foreground">
                     {verification.verification_data.fileLocation}
                   </p>
                   <CopyButton value={verification.verification_data.fileLocation} />
                 </div>
               </div>
               <div>
-                <p className="text-sm font-medium">文件内容:</p>
+                <p className="text-sm font-medium text-foreground">文件内容:</p>
                 <div className="flex items-center mt-1">
-                  <p className="text-sm font-mono bg-gray-100 p-1 rounded flex-1">
+                  <p className="text-sm font-mono bg-card p-1 rounded flex-1 text-foreground">
                     {verification.verification_data.fileContent}
                   </p>
                   <CopyButton value={verification.verification_data.fileContent} />
                 </div>
               </div>
               <div>
-                <p className="text-sm font-medium">文件URL:</p>
+                <p className="text-sm font-medium text-foreground">文件URL:</p>
                 <div className="flex items-center mt-1">
-                  <p className="text-sm font-mono bg-gray-100 p-1 rounded flex-1">
+                  <p className="text-sm font-mono bg-card p-1 rounded flex-1 text-foreground">
                     https://{domainName}{verification.verification_data.fileLocation}
                   </p>
                   <a 
@@ -237,88 +221,30 @@ export const VerificationInstructions = ({
               </div>
             </div>
           </div>
-        ) : verification.verification_type === 'whois' ? (
-          <div className="space-y-4">
-            <p>在您的域名WHOIS信息中添加以下验证码：</p>
-            <div className={`${isMobile ? 'overflow-x-auto' : ''} bg-gray-50 p-4 rounded-md space-y-3`}>
-              <div>
-                <p className="text-sm font-medium">验证码:</p>
-                <div className="flex items-center mt-1">
-                  <p className="text-sm font-mono bg-gray-100 p-1 rounded flex-1 overflow-x-auto">
-                    {verification.verification_data.tokenValue}
-                  </p>
-                  <CopyButton value={verification.verification_data.tokenValue} />
-                </div>
-              </div>
-              <div className="mt-3">
-                <p className="text-sm font-medium">操作步骤:</p>
-                <ol className="mt-2 space-y-2 text-sm text-gray-600 list-decimal pl-5">
-                  <li>登录到您的域名注册商账户</li>
-                  <li>找到域名 {domainName} 的WHOIS信息或联系信息设置</li>
-                  <li>将上述验证码添加到备注字段或描述字段中</li>
-                  <li>保存更改</li>
-                  <li>等待WHOIS信息更新后点击"检查验证"按钮</li>
-                </ol>
-              </div>
-              <div className="flex items-center mt-3 p-2 bg-yellow-50 rounded border border-yellow-200">
-                <Database className="h-4 w-4 text-yellow-600 mr-2 flex-shrink-0" />
-                <p className="text-xs text-yellow-700">
-                  WHOIS信息更新可能需要24-48小时才能生效，请耐心等待。
-                </p>
-              </div>
-            </div>
-          </div>
         ) : verification.verification_type === 'email' ? (
           <div className="space-y-4">
-            <p>通过邮箱验证域名所有权：</p>
-            <div className={`${isMobile ? 'overflow-x-auto' : ''} bg-gray-50 p-4 rounded-md space-y-3`}>
+            <p className="text-foreground">通过邮箱验证域名所有权：</p>
+            <div className={`${isMobile ? 'overflow-x-auto' : ''} bg-muted p-4 rounded-md space-y-3`}>
               <div>
-                <p className="text-sm font-medium">验证邮件已发送至:</p>
+                <p className="text-sm font-medium text-foreground">验证邮件已发送至:</p>
                 <div className="flex items-center mt-1">
-                  <p className="text-sm font-mono bg-gray-100 p-1 rounded flex-1">
+                  <p className="text-sm font-mono bg-card p-1 rounded flex-1 text-foreground">
                     {verification.verification_data.adminEmail}
                   </p>
                 </div>
               </div>
               <div className="mt-3">
-                <p className="text-sm font-medium">操作步骤:</p>
-                <ol className="mt-2 space-y-2 text-sm text-gray-600 list-decimal pl-5">
+                <p className="text-sm font-medium text-foreground">操作步骤:</p>
+                <ol className="mt-2 space-y-2 text-sm text-muted-foreground list-decimal pl-5">
                   <li>检查您的邮箱 {verification.verification_data.adminEmail}</li>
                   <li>在邮件中找到验证链接并点击</li>
                   <li>验证完成后，返回此页面点击"检查验证"按钮</li>
                 </ol>
               </div>
-              <div className="flex items-center mt-3 p-2 bg-yellow-50 rounded border border-yellow-200">
-                <Mail className="h-4 w-4 text-yellow-600 mr-2 flex-shrink-0" />
-                <p className="text-xs text-yellow-700">
+              <div className="flex items-center mt-3 p-2 bg-yellow-50 dark:bg-yellow-950/20 rounded border border-yellow-200 dark:border-yellow-800">
+                <Mail className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mr-2 shrink-0" />
+                <p className="text-xs text-yellow-700 dark:text-yellow-300">
                   如果您没有收到验证邮件，可以点击下方"重新发送验证邮件"按钮。
-                </p>
-              </div>
-              <div className="flex items-center mt-3 p-2 bg-blue-50 rounded border border-blue-200">
-                <AlertTriangle className="h-4 w-4 text-blue-600 mr-2 flex-shrink-0" />
-                <p className="text-xs text-blue-700">
-                  请确保 {verification.verification_data.adminEmail} 是您能够访问的邮箱地址。
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : verification.verification_type === 'html' ? (
-          <div className="space-y-4">
-            <p>在您的网站HTML页面中添加Meta标签：</p>
-            <div className={`${isMobile ? 'overflow-x-auto' : ''} bg-gray-50 p-4 rounded-md space-y-3`}>
-              <div>
-                <p className="text-sm font-medium">Meta标签:</p>
-                <div className="flex items-center mt-1">
-                  <p className="text-sm font-mono bg-gray-100 p-1 rounded flex-1 overflow-x-auto">
-                    {`<meta name="${verification.verification_data.metaName}" content="${verification.verification_data.token}">`}
-                  </p>
-                  <CopyButton value={`<meta name="${verification.verification_data.metaName}" content="${verification.verification_data.token}">`} />
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium">放置位置:</p>
-                <p className="text-sm text-gray-600">
-                  将上述Meta标签添加到网站首页的&lt;head&gt;部分
                 </p>
               </div>
             </div>

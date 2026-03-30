@@ -24,28 +24,28 @@ export const UserCenterHelpCard: React.FC<Props> = ({ open, onClose }) => {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-          <div className="bg-white p-3 rounded border border-blue-100">
+          <div className="bg-muted p-3 rounded border border-border">
             <h3 className="font-bold text-blue-800 mb-1 flex items-center gap-1">
               <ClipboardList className="h-4 w-4" />
               我的域名
             </h3>
             <p className="text-gray-600">管理您拥有的域名，上架或下架它们</p>
           </div>
-          <div className="bg-white p-3 rounded border border-blue-100">
+          <div className="bg-muted p-3 rounded border border-border">
             <h3 className="font-bold text-blue-800 mb-1 flex items-center gap-1">
               <ClipboardList className="h-4 w-4" />
               交易记录
             </h3>
             <p className="text-gray-600">查看您的所有域名买卖交易记录</p>
           </div>
-          <div className="bg-white p-3 rounded border border-blue-100">
+          <div className="bg-muted p-3 rounded border border-border">
             <h3 className="font-bold text-blue-800 mb-1 flex items-center gap-1">
               <Bell className="h-4 w-4" />
               通知中心
             </h3>
             <p className="text-gray-600">查看系统发送给您的所有通知和消息</p>
           </div>
-          <div className="bg-white p-3 rounded border border-blue-100">
+          <div className="bg-muted p-3 rounded border border-border">
             <h3 className="font-bold text-blue-800 mb-1 flex items-center gap-1">
               <User className="h-4 w-4" />
               个人资料

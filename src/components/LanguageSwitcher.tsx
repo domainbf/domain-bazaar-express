@@ -57,7 +57,7 @@ export const LanguageSwitcher = ({ className = "", iconOnly = false }: LanguageS
             <Globe className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="bg-white">
+        <DropdownMenuContent align="end" className="bg-popover">
           <DropdownMenuItem 
             onClick={() => handleLanguageChange('zh')}
             className={i18n.language === 'zh' ? 'bg-gray-100' : ''}
@@ -90,7 +90,7 @@ export const LanguageSwitcher = ({ className = "", iconOnly = false }: LanguageS
           </span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="bg-white">
+      <DropdownMenuContent align="end" className="bg-popover">
         <DropdownMenuItem 
           onClick={() => handleLanguageChange('zh')}
           className={i18n.language === 'zh' ? 'bg-gray-100' : ''}

@@ -19,7 +19,7 @@ export const PriceRangeFilter = ({ priceRange, setPriceRange }: PriceRangeFilter
             type="number"
             value={priceRange.min}
             onChange={(e) => setPriceRange({...priceRange, min: e.target.value})}
-            className="w-32 bg-white border-gray-300"
+            className="w-32 bg-background border-input"
             placeholder={t('marketplace.price.minPlaceholder')}
             min="0"
           />
@@ -30,7 +30,7 @@ export const PriceRangeFilter = ({ priceRange, setPriceRange }: PriceRangeFilter
             type="number"
             value={priceRange.max}
             onChange={(e) => setPriceRange({...priceRange, max: e.target.value})}
-            className="w-32 bg-white border-gray-300"
+            className="w-32 bg-background border-input"
             placeholder={t('marketplace.price.maxPlaceholder')}
             min="0"
           />
