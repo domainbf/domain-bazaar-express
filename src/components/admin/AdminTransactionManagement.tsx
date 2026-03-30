@@ -12,6 +12,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { RefreshCw, Search, Eye, CheckCircle, XCircle, AlertTriangle, DollarSign, Clock, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { buildEmail, infoTable, amountBlock } from '@/lib/emailTemplate';
 
 interface AdminTransaction {
   id: string;
@@ -51,6 +53,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export const AdminTransactionManagement = () => {
+  const { config } = useSiteSettings();
   const [transactions, setTransactions] = useState<AdminTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -126,10 +129,127 @@ export const AdminTransactionManagement = () => {
             .update({ status: 'sold', updated_at: new Date().toISOString() })
             .eq('id', selectedTx.domain_id);
         } else if (newStatus === 'cancelled' || newStatus === 'refunded') {
-          // Restore domain to available if transaction is cancelled/refunded
           await supabase.from('domain_listings')
-            .update({ status: 'available', updated_at: new Date().toISOString() })
+            .update({ status: 'active', updated_at: new Date().toISOString() })
             .eq('id', selectedTx.domain_id);
+        }
+      }
+
+      // Send email notifications based on the new status
+      if (selectedTx) {
+        const brand = {
+          siteName: config.site_name || '域见•你',
+          siteHostname: (config.site_domain || window.location.origin).replace(/^https?:\/\//, '').toUpperCase(),
+          siteDomain: config.site_domain || window.location.origin,
+          supportEmail: config.contact_email || 'support@nic.rw',
+        };
+        const domainName = (selectedTx.domain_name || '').toUpperCase() || '域名';
+        const txUrl = `${brand.siteDomain}/user-center?tab=transactions`;
+        const fmtAmount = `¥${Number(selectedTx.amount || 0).toLocaleString()}`;
+        const fmtSeller = selectedTx.seller_amount != null ? `¥${Number(selectedTx.seller_amount).toLocaleString()}` : fmtAmount;
+        const txInfo = infoTable([
+          { label: '交易编号', value: txId.substring(0, 8).toUpperCase() },
+          { label: '域名', value: domainName, highlight: true },
+          { label: '交易金额', value: fmtAmount, highlight: true },
+          { label: '状态', value: STATUS_LABELS[newStatus] || newStatus },
+          ...(actionNote ? [{ label: '管理员备注', value: actionNote }] : []),
+        ]);
+
+        const sendTxEmail = (to: string | null | undefined, subject: string, html: string) => {
+          if (!to || !to.includes('@')) return;
+          supabase.functions.invoke('send-email', { body: { to, subject, html } }).catch(() => {});
+        };
+
+        if (newStatus === 'in_escrow') {
+          // Buyer: payment confirmed, funds in escrow
+          sendTxEmail(selectedTx.buyer_email, `✅ 付款已确认：${domainName} 资金安全担保中`, buildEmail({
+            previewText: `您的付款已确认，${domainName} 资金已进入安全担保`,
+            accentColor: '#16a34a',
+            headerEmoji: '🔒',
+            title: '付款确认，资金安全担保',
+            subtitle: `${domainName} 正在过户流程中`,
+            body: `<p style="margin:0 0 20px;font-size:15px;color:#374151;">平台已确认收到您的付款，资金已进入安全担保账户，域名正在办理过户手续。</p>${txInfo}`,
+            ctaLabel: '查看交易进度',
+            ctaUrl: txUrl,
+            brand,
+          }));
+          // Seller: buyer has paid
+          sendTxEmail(selectedTx.seller_email, `💰 买家已付款：${domainName} 等待过户`, buildEmail({
+            previewText: `买家已付款，${domainName} 资金已进入平台担保`,
+            accentColor: '#0f172a',
+            headerEmoji: '💰',
+            title: '买家已付款，请配合过户',
+            subtitle: `${domainName} 交易进入担保阶段`,
+            body: `<p style="margin:0 0 20px;font-size:15px;color:#374151;">买家已完成付款，资金已由平台安全担保。请尽快配合完成域名过户，过户完成后款项将划入您的账户。</p>${txInfo}${amountBlock({ label: '您的到账金额', amount: fmtSeller, sublabel: '过户完成后结算', color: '#16a34a' })}`,
+            ctaLabel: '查看交易详情',
+            ctaUrl: txUrl,
+            brand,
+          }));
+        } else if (newStatus === 'domain_transferred') {
+          // Buyer: domain transferred, please confirm
+          sendTxEmail(selectedTx.buyer_email, `📦 域名已转移：请确认接收 ${domainName}`, buildEmail({
+            previewText: `${domainName} 域名已转移，请登录确认接收`,
+            accentColor: '#7c3aed',
+            headerEmoji: '📦',
+            title: '域名已转移，请确认接收',
+            subtitle: `请登录 ${brand.siteHostname} 确认域名已到账`,
+            body: `<p style="margin:0 0 20px;font-size:15px;color:#374151;">卖家已完成域名转移，请登录平台确认域名已成功转入您的账户。确认无误后，款项将自动结算给卖家。</p>${txInfo}`,
+            ctaLabel: '确认接收域名',
+            ctaUrl: txUrl,
+            brand,
+          }));
+        } else if (newStatus === 'completed') {
+          // Buyer: transaction complete
+          sendTxEmail(selectedTx.buyer_email, `🎉 交易完成：${domainName} 已归属您名下`, buildEmail({
+            previewText: `恭喜！${domainName} 域名已完成过户，交易圆满成功`,
+            accentColor: '#16a34a',
+            headerEmoji: '🎉',
+            title: '交易完成，域名到手！',
+            subtitle: `${domainName} 已成功归属您名下`,
+            body: `<p style="margin:0 0 20px;font-size:15px;color:#374151;">恭喜您！域名交易已圆满完成，${domainName} 已正式归属您名下。感谢您使用 ${brand.siteName} 平台。</p>${txInfo}`,
+            ctaLabel: '查看我的域名',
+            ctaUrl: txUrl,
+            brand,
+          }));
+          // Seller: payment released
+          sendTxEmail(selectedTx.seller_email, `💸 款项已到账：${domainName} 交易结算完成`, buildEmail({
+            previewText: `${domainName} 交易完成，款项已划入您的账户`,
+            accentColor: '#16a34a',
+            headerEmoji: '💸',
+            title: '款项已结算到账',
+            subtitle: `${domainName} 交易圆满完成`,
+            body: `<p style="margin:0 0 20px;font-size:15px;color:#374151;">域名交易已完成，扣除平台手续费后的款项已划入您的账户。感谢您使用 ${brand.siteName} 平台进行域名出售。</p>${txInfo}${amountBlock({ label: '结算金额', amount: fmtSeller, sublabel: '已扣除平台手续费', color: '#16a34a' })}`,
+            ctaLabel: '查看交易记录',
+            ctaUrl: txUrl,
+            brand,
+          }));
+        } else if (newStatus === 'cancelled') {
+          // Both: cancellation notice
+          const cancelHtml = buildEmail({
+            previewText: `${domainName} 交易已取消`,
+            accentColor: '#94a3b8',
+            headerEmoji: '❌',
+            title: '交易已取消',
+            subtitle: `${domainName} 交易已由平台取消`,
+            body: `<p style="margin:0 0 20px;font-size:15px;color:#374151;">此次交易已由平台取消。如有疑问请联系客服。</p>${txInfo}`,
+            ctaLabel: '联系客服',
+            ctaUrl: `${brand.siteDomain}/support`,
+            brand,
+          });
+          sendTxEmail(selectedTx.buyer_email, `交易已取消：${domainName}`, cancelHtml);
+          sendTxEmail(selectedTx.seller_email, `交易已取消：${domainName}`, cancelHtml);
+        } else if (newStatus === 'refunded') {
+          sendTxEmail(selectedTx.buyer_email, `退款通知：${domainName} 交易款项退还中`, buildEmail({
+            previewText: `${domainName} 交易退款已发起`,
+            accentColor: '#f97316',
+            headerEmoji: '↩️',
+            title: '退款已发起',
+            subtitle: `${fmtAmount} 将退还至您的原支付账户`,
+            body: `<p style="margin:0 0 20px;font-size:15px;color:#374151;">平台已发起退款，款项将在 3-7 个工作日内退还至您的原支付账户，请注意查收。</p>${txInfo}`,
+            ctaLabel: '查看退款状态',
+            ctaUrl: txUrl,
+            brand,
+          }));
         }
       }
 

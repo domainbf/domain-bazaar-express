@@ -10,6 +10,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { buildEmail, infoTable, quoteBlock } from '@/lib/emailTemplate';
 import {
   Plus, MessageCircle, Clock, CheckCircle, XCircle, ChevronRight,
   Send, Loader2, Headphones, ArrowLeft, RefreshCw
@@ -67,6 +69,7 @@ async function sendTicketEmail(opts: {
 
 export const SupportTickets = () => {
   const { user, profile } = useAuth();
+  const { config } = useSiteSettings();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [replies, setReplies] = useState<Reply[]>([]);
@@ -153,45 +156,64 @@ export const SupportTickets = () => {
         .eq('key', 'contact_email')
         .single();
       const adminEmail = cfg?.value || 'domain@nic.rw';
+      const brand = {
+        siteName: config.site_name || '域见•你',
+        siteHostname: (config.site_domain || window.location.origin).replace(/^https?:\/\//, '').toUpperCase(),
+        siteDomain: config.site_domain || window.location.origin,
+        supportEmail: config.contact_email || adminEmail,
+      };
 
       // Email admin about new ticket
       await sendTicketEmail({
         to: adminEmail,
         subject: `[新工单 #${ticket.ticket_number}] ${form.subject}`,
-        html: `
-          <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
-            <h2 style="color:#1a1a1a">收到新工单</h2>
-            <table style="width:100%;border-collapse:collapse;margin:16px 0">
-              <tr><td style="padding:8px;color:#666;width:100px">工单编号</td><td style="padding:8px;font-weight:600">#${ticket.ticket_number}</td></tr>
-              <tr style="background:#f9f9f9"><td style="padding:8px;color:#666">用户</td><td style="padding:8px">${userName} &lt;${user.email}&gt;</td></tr>
-              <tr><td style="padding:8px;color:#666">类别</td><td style="padding:8px">${CATEGORY_LABELS[form.category]}</td></tr>
-              <tr style="background:#f9f9f9"><td style="padding:8px;color:#666">标题</td><td style="padding:8px;font-weight:600">${form.subject}</td></tr>
-            </table>
-            <div style="background:#f5f5f5;border-left:4px solid #666;padding:16px;border-radius:4px">
-              <p style="margin:0;white-space:pre-wrap">${form.description}</p>
-            </div>
-            <p style="margin-top:24px"><a href="${window.location.origin}/admin?tab=tickets" style="background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none">前往后台处理</a></p>
-          </div>
-        `,
+        html: buildEmail({
+          previewText: `新支持工单来自 ${userName}：${form.subject}`,
+          accentColor: '#f59e0b',
+          headerEmoji: '🎫',
+          title: '收到新支持工单',
+          subtitle: `来自用户 ${userName}，请尽快处理`,
+          body: `
+            ${infoTable([
+              { label: '工单编号', value: `#${ticket.ticket_number}`, highlight: true },
+              { label: '用户', value: `${userName} <${user.email}>` },
+              { label: '类别', value: CATEGORY_LABELS[form.category] },
+              { label: '标题', value: form.subject, highlight: true },
+            ])}
+            <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">用户描述</p>
+            ${quoteBlock(form.description, 'amber')}
+          `,
+          ctaLabel: '前往后台处理',
+          ctaUrl: `${brand.siteDomain}/admin?tab=tickets`,
+          footerNote: `工单 #${ticket.ticket_number} · ${brand.siteName} 管理后台`,
+          brand,
+        }),
       });
 
       // Confirmation email to user
       await sendTicketEmail({
         to: user.email!,
-        subject: `您的工单 #${ticket.ticket_number} 已收到 — 域见·你`,
-        html: `
-          <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
-            <h2 style="color:#1a1a1a">工单已提交成功</h2>
-            <p>您好 ${userName}，</p>
-            <p>您的工单已收到，我们将尽快为您处理。</p>
-            <table style="width:100%;border-collapse:collapse;margin:16px 0;background:#f9f9f9;border-radius:8px">
-              <tr><td style="padding:12px;color:#666">工单编号</td><td style="padding:12px;font-weight:600">#${ticket.ticket_number}</td></tr>
-              <tr><td style="padding:12px;color:#666">标题</td><td style="padding:12px">${form.subject}</td></tr>
-              <tr><td style="padding:12px;color:#666">类别</td><td style="padding:12px">${CATEGORY_LABELS[form.category]}</td></tr>
-            </table>
-            <p>您可以登录平台随时查看工单进度和回复。</p>
-          </div>
-        `,
+        subject: `工单 #${ticket.ticket_number} 已收到 — ${brand.siteName}`,
+        html: buildEmail({
+          previewText: `您的工单已收到，我们将在工作日24小时内回复您`,
+          accentColor: 'linear-gradient(90deg,#0f172a 0%,#334155 100%)',
+          headerEmoji: '✅',
+          title: '工单已提交成功',
+          subtitle: '我们已收到您的工单，将尽快为您处理',
+          body: `
+            <p style="margin:0 0 20px;font-size:15px;color:#374151;">您好 <strong>${userName}</strong>，感谢您联系我们！</p>
+            ${infoTable([
+              { label: '工单编号', value: `#${ticket.ticket_number}`, highlight: true },
+              { label: '标题', value: form.subject },
+              { label: '类别', value: CATEGORY_LABELS[form.category] },
+              { label: '预计回复', value: '工作日 24 小时内' },
+            ])}
+            <p style="margin:0 0 20px;font-size:14px;color:#64748b;line-height:1.7;">如有紧急情况，请直接发送邮件至 <a href="mailto:${brand.supportEmail}" style="color:#0f172a;font-weight:600;">${brand.supportEmail}</a>。</p>
+          `,
+          ctaLabel: '查看我的工单',
+          ctaUrl: `${brand.siteDomain}/user-center?tab=support`,
+          brand,
+        }),
       });
 
       toast.success(`工单 #${ticket.ticket_number} 已提交，确认邮件已发送到您的邮箱`);
@@ -226,19 +248,35 @@ export const SupportTickets = () => {
         .eq('key', 'contact_email')
         .single();
       const adminEmail = cfg?.value || 'domain@nic.rw';
+      const replyBrand = {
+        siteName: config.site_name || '域见•你',
+        siteHostname: (config.site_domain || window.location.origin).replace(/^https?:\/\//, '').toUpperCase(),
+        siteDomain: config.site_domain || window.location.origin,
+        supportEmail: config.contact_email || adminEmail,
+      };
       await sendTicketEmail({
         to: adminEmail,
         subject: `[工单 #${selectedTicket.ticket_number} 新回复] ${selectedTicket.subject}`,
-        html: `
-          <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
-            <h2>工单 #${selectedTicket.ticket_number} 有新回复</h2>
-            <p><strong>${userName}</strong> 回复了：</p>
-            <div style="background:#f5f5f5;border-left:4px solid #666;padding:16px;border-radius:4px">
-              <p style="margin:0;white-space:pre-wrap">${replyText.trim()}</p>
-            </div>
-            <p style="margin-top:24px"><a href="${window.location.origin}/admin?tab=tickets" style="background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none">前往后台查看</a></p>
-          </div>
-        `,
+        html: buildEmail({
+          previewText: `用户 ${userName} 回复了工单 #${selectedTicket.ticket_number}`,
+          accentColor: '#3b82f6',
+          headerEmoji: '💬',
+          title: '工单有新回复',
+          subtitle: `工单 #${selectedTicket.ticket_number} · ${CATEGORY_LABELS[selectedTicket.category] || '一般咨询'}`,
+          body: `
+            ${infoTable([
+              { label: '工单编号', value: `#${selectedTicket.ticket_number}`, highlight: true },
+              { label: '工单标题', value: selectedTicket.subject },
+              { label: '回复用户', value: `${userName} <${user.email}>` },
+            ])}
+            <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">用户回复内容</p>
+            ${quoteBlock(replyText.trim(), 'gray')}
+          `,
+          ctaLabel: '前往后台查看',
+          ctaUrl: `${replyBrand.siteDomain}/admin?tab=tickets`,
+          footerNote: `${replyBrand.siteName} 管理后台 · 自动通知`,
+          brand: replyBrand,
+        }),
       });
 
       setReplyText('');

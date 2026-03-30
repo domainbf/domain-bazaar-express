@@ -8,6 +8,8 @@ import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { buildEmail, infoTable, quoteBlock } from '@/lib/emailTemplate';
 import {
   Clock, RefreshCw, CheckCircle, XCircle, ChevronRight,
   Send, Loader2, Headphones, ArrowLeft, User, Calendar, Tag
@@ -69,6 +71,7 @@ type FilterStatus = 'all' | 'open' | 'in_progress' | 'resolved' | 'closed';
 
 export const AdminTickets = () => {
   const { profile } = useAuth();
+  const { config } = useSiteSettings();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selected, setSelected] = useState<Ticket | null>(null);
   const [replies, setReplies] = useState<Reply[]>([]);
@@ -146,20 +149,35 @@ export const AdminTickets = () => {
       }
 
       // Email user
+      const brand = {
+        siteName: config.site_name || '域见•你',
+        siteHostname: (config.site_domain || window.location.origin).replace(/^https?:\/\//, '').toUpperCase(),
+        siteDomain: config.site_domain || window.location.origin,
+        supportEmail: config.contact_email || 'support@nic.rw',
+      };
       await sendTicketEmail({
         to: selected.user_email,
         subject: `[工单 #${selected.ticket_number}] 客服已回复您的问题`,
-        html: `
-          <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
-            <h2 style="color:#1a1a1a">您的工单有新回复</h2>
-            <p>您好 ${selected.user_name || selected.user_email}，</p>
-            <p>您的工单 <strong>#${selected.ticket_number}「${selected.subject}」</strong> 客服已回复：</p>
-            <div style="background:#f5f5f5;border-left:4px solid #1a1a1a;padding:16px;border-radius:4px;margin:16px 0">
-              <p style="margin:0;white-space:pre-wrap">${replyText.trim()}</p>
-            </div>
-            <p><a href="${window.location.origin}/user-center" style="background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none">登录查看完整回复</a></p>
-          </div>
-        `,
+        html: buildEmail({
+          previewText: `您的工单 #${selected.ticket_number}「${selected.subject}」已收到客服回复`,
+          accentColor: 'linear-gradient(90deg,#0f172a 0%,#334155 100%)',
+          headerEmoji: '💬',
+          title: '客服已回复您的工单',
+          subtitle: `工单 #${selected.ticket_number} · ${CATEGORY_LABELS[selected.category] || '一般咨询'}`,
+          body: `
+            <p style="margin:0 0 20px;font-size:15px;color:#374151;">您好 <strong>${selected.user_name || selected.user_email}</strong>，</p>
+            ${infoTable([
+              { label: '工单编号', value: `#${selected.ticket_number}`, highlight: true },
+              { label: '工单标题', value: selected.subject, highlight: true },
+              { label: '类别', value: CATEGORY_LABELS[selected.category] || '一般咨询' },
+            ])}
+            <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">客服回复内容</p>
+            ${quoteBlock(replyText.trim(), 'blue')}
+          `,
+          ctaLabel: '查看完整对话',
+          ctaUrl: `${brand.siteDomain}/user-center?tab=support`,
+          brand,
+        }),
       });
 
       setReplyText('');

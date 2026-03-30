@@ -246,13 +246,42 @@ All of the following have been applied directly to the Supabase project via Mana
   - Uses `/auth/v1/verify?token_hash&type=recovery&redirect_to=` URL format
   - Returns 200 immediately; email sent in EdgeRuntime.waitUntil background task
 - `send-email` (v124) — SMTP/Resend email dispatcher
+- `send-offer` (latest) — **Bug fixed**: domain lookup uses `.in("status", ["available", "active"])` not `.eq("status", "available")`. Both buyer + seller offer notification emails sent here with modern inline-style HTML templates.
 - All other functions (payment, WHOIS, DNS, AI evaluation, etc.) at their current versions
 
 ### Deploying edge functions
-To redeploy a function after local code changes, use the Management API:
+Preferred: Use the Supabase CLI with access token — supports multi-file bundles:
+```bash
+SUPABASE_ACCESS_TOKEN=<token> npx supabase functions deploy <slug> --project-ref trqxaizkwuizuhlfmdup
+```
+For single-file functions, the Management API PATCH approach also works:
 ```javascript
 PATCH https://api.supabase.com/v1/projects/trqxaizkwuizuhlfmdup/functions/{slug}
 Authorization: Bearer ${SUPABASE_MANAGEMENT_TOKEN}
 Body: { name, body: sourceCodeString, verify_jwt: false }
 ```
 The `SUPABASE_MANAGEMENT_TOKEN` is stored as a Replit shared env var.
+
+## Email Template System (March 2026)
+
+All email templates have been upgraded to use modern inline-style HTML (no CSS classes, compatible with all email clients).
+
+### Frontend Email Utility (`src/lib/emailTemplate.ts`)
+Shared builder used by admin and support components:
+- `buildEmail(config)` — wraps content in branded header/footer with logo, site name, gradient bar
+- `infoTable(rows)` — key-value details table with alternating rows
+- `quoteBlock(content)` — indented italic quote display block
+- `amountBlock(amount, label)` — large bold price display
+- `alertBanner(text, type)` — warning/info/success alert box
+- Uses `useSiteSettings` hook for dynamic site_name, contact_email, site_domain
+
+### Edge Function Templates (`supabase/functions/send-offer/templates/`)
+- `userOfferTemplate.ts` — buyer confirmation email (offer submitted, escrow promo, security warning)
+- `ownerOfferTemplate.ts` — seller notification email (new offer received, action tips, escrow promo)
+Both use full inline styles, preheader text, table-based layout for Gmail/Outlook compatibility.
+
+### Components with Email Integration
+- `AdminTransactionManagement.tsx` — emails on ALL status transitions (in_escrow, domain_transferred, completed, cancelled, refunded) — both buyer and seller notified
+- `AdminTickets.tsx` — admin-to-user ticket reply emails
+- `SupportTickets.tsx` — ticket status emails (new ticket admin notify, user confirmation, admin reply)
+- `ReceivedOffersTable.tsx` — offer accept/reject/counter emails from seller dashboard

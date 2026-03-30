@@ -150,7 +150,7 @@ serve(async (req) => {
         .from("domain_listings")
         .select("id, name, owner_id, price")
         .eq("name", domain)
-        .eq("status", "available")
+        .in("status", ["available", "active"])
         .maybeSingle();
 
       if (domainError) {

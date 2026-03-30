@@ -1,118 +1,141 @@
 
-export function getUserEmailHtml(domain: string, offer: string, message: string | undefined, dashboardUrl: string): string {
-  const primaryDashboardUrl = dashboardUrl || `/user-center`;
+export function getUserEmailHtml(
+  domain: string,
+  offer: string,
+  message: string | undefined,
+  dashboardUrl: string,
+  siteName = '域见•你',
+  siteHostname = 'NIC.RW',
+  siteDomain = 'https://nic.rw',
+  supportEmail = 'support@nic.rw',
+): string {
+  const primaryDashboardUrl = dashboardUrl || `${siteDomain}/user-center`;
   const offerNum = parseFloat(offer) || 0;
-  const escrowFee = (offerNum * 0.01).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const formatted = `¥${offerNum.toLocaleString()}`;
+  const escrowFee = `¥${(offerNum * 0.01).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const domainUpper = domain.toUpperCase();
+  const year = new Date().getFullYear();
+  const previewText = `您对 ${domainUpper} 的 ${formatted} 报价已成功提交，等待卖家回复`;
 
-  return `
-    <!DOCTYPE html>
-    <html lang="zh-CN">
-      <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>报价提交成功</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Microsoft YaHei', sans-serif;
-            line-height: 1.6; color: #111827; background: #f3f4f6; padding: 20px;
-          }
-          .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-          .header { background: #111827; padding: 32px 24px; text-align: center; }
-          .header h1 { color: white; margin: 0; font-size: 22px; font-weight: 600; }
-          .logo { color: white; font-size: 24px; font-weight: 700; margin-bottom: 8px; }
-          .content { padding: 32px 24px; }
-          .button { display: inline-block; background: #111827; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 500; margin: 20px 0; }
-          .footer { text-align: center; padding: 24px; font-size: 13px; color: #6b7280; background: #f9fafb; border-top: 1px solid #e5e7eb; }
-          .offer-card { background: #f9fafb; padding: 24px; border-radius: 6px; margin: 20px 0; border: 1px solid #e5e7eb; }
-          .offer-details { background: #ffffff; padding: 0; border-radius: 6px; margin: 20px 0; border: 1px solid #e5e7eb; overflow: hidden; }
-          .offer-details table { width: 100%; border-collapse: collapse; }
-          .offer-details td, .offer-details th { padding: 12px 16px; text-align: left; border-bottom: 1px solid #f3f4f6; }
-          .offer-details tr:last-child td, .offer-details tr:last-child th { border-bottom: none; }
-          .offer-details th { background: #f9fafb; font-weight: 500; color: #6b7280; width: 30%; font-size: 14px; }
-          .offer-details td { color: #111827; font-weight: 500; }
-          .price-highlight { color: #111827; font-weight: 700; font-size: 32px; text-align: center; margin: 16px 0; }
-          .domain-name { font-weight: 600; color: #111827; }
-          .actions { text-align: center; margin: 24px 0; }
-          h2 { color: #111827; margin-bottom: 16px; font-size: 18px; font-weight: 600; }
-          p { margin: 12px 0; line-height: 1.6; color: #374151; }
-          .info-box { background: #f9fafb; padding: 16px; border-radius: 6px; border-left: 3px solid #111827; margin: 20px 0; }
-          .info-box ul { margin: 8px 0; padding-left: 20px; }
-          .info-box li { margin: 6px 0; color: #374151; }
-          .status-badge { display: inline-block; padding: 4px 12px; background: #fef3c7; color: #92400e; border-radius: 4px; font-size: 14px; font-weight: 500; }
-          .escrow-box { background: #f0fdf4; padding: 20px; border-radius: 8px; border: 1px solid #bbf7d0; margin: 20px 0; }
-          .escrow-box h3 { color: #15803d; font-size: 15px; font-weight: 700; margin-bottom: 12px; }
-          .fee-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
-          .fee-table td { padding: 6px 10px; border: 1px solid #86efac; }
-          .fee-table td:first-child { background: #dcfce7; color: #166534; font-weight: 600; width: 55%; }
-          .fee-table td:last-child { color: #111827; font-weight: 700; }
-          .warning-box { background: #fffbeb; padding: 14px 16px; border-radius: 6px; border: 1px solid #fde68a; margin: 20px 0; font-size: 13px; color: #92400e; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <div class="logo">🌐 域见•你</div>
-            <h1>报价提交成功</h1>
+  return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>报价提交成功 — ${siteName}</title>
+  <style>body{margin:0;padding:0;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;}.preheader{display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;max-height:0;overflow:hidden;}</style>
+</head>
+<body>
+  <span class="preheader">${previewText}</span>
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#f1f5f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;width:100%;">
+
+        <!-- Logo -->
+        <tr><td style="padding-bottom:24px;text-align:center;">
+          <a href="${siteDomain}" style="text-decoration:none;">
+            <table cellpadding="0" cellspacing="0" role="presentation" style="display:inline-table;">
+              <tr><td style="background:#0f172a;border-radius:12px;padding:10px 20px;">
+                <span style="color:#f8fafc;font-size:20px;font-weight:800;letter-spacing:-0.5px;">${siteName}</span>
+                <span style="color:#475569;font-size:11px;font-weight:600;margin-left:10px;letter-spacing:2px;text-transform:uppercase;">${siteHostname}</span>
+              </td></tr>
+            </table>
+          </a>
+        </td></tr>
+
+        <!-- Card -->
+        <tr><td style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.07);">
+          <div style="height:4px;background:linear-gradient(90deg,#0f172a 0%,#334155 50%,#64748b 100%);"></div>
+
+          <!-- Card header -->
+          <div style="padding:40px 40px 32px;text-align:center;border-bottom:1px solid #f1f5f9;">
+            <div style="width:64px;height:64px;background:#f0fdf4;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:32px;border:1px solid #bbf7d0;">✅</div>
+            <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;">报价提交成功</h1>
+            <p style="margin:0;font-size:15px;color:#64748b;">您的报价已发送给卖家，请耐心等待回复</p>
           </div>
-          <div class="content">
-            <h2>✅ 您的域名报价已成功提交</h2>
-            <p>感谢您对域名 <span class="domain-name">${domain}</span> 的关注！</p>
 
-            <div class="offer-card">
-              <div class="price-highlight">¥${offer}</div>
-              <p style="text-align: center; margin: 8px 0; color: #6b7280; font-size: 14px;">报价金额</p>
+          <!-- Card body -->
+          <div style="padding:32px 40px;">
+
+            <!-- Domain + Price highlight -->
+            <div style="background:#f8fafc;border-radius:12px;padding:24px;margin-bottom:24px;border:1px solid #e2e8f0;text-align:center;">
+              <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;">报价域名</p>
+              <p style="margin:0 0 16px;font-size:24px;font-weight:800;color:#0f172a;">${domainUpper}</p>
+              <div style="display:inline-block;background:#0f172a;border-radius:10px;padding:12px 32px;">
+                <p style="margin:0 0 2px;font-size:10px;font-weight:600;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;">您的报价</p>
+                <p style="margin:0;font-size:30px;font-weight:900;color:#f8fafc;letter-spacing:-1px;">${formatted}</p>
+              </div>
             </div>
 
-            <div class="offer-details">
-              <table>
-                <tr><th>域名</th><td><strong>${domain}</strong></td></tr>
-                <tr><th>报价金额</th><td style="font-size: 18px; font-weight: 700;">¥${offer}</td></tr>
-                <tr><th>状态</th><td><span class="status-badge">等待卖家回复</span></td></tr>
-                <tr><th>提交时间</th><td>${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}</td></tr>
-                ${message ? `<tr><th>您的留言</th><td style="font-style: italic; color: #6b7280;">"${message}"</td></tr>` : ''}
+            <!-- Details table -->
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:24px;">
+              <tr>
+                <td style="padding:12px 16px;background:#f8fafc;font-size:12px;font-weight:700;color:#94a3b8;width:35%;letter-spacing:0.5px;text-transform:uppercase;border-bottom:1px solid #f1f5f9;">域名</td>
+                <td style="padding:12px 16px;font-size:14px;color:#0f172a;font-weight:700;border-bottom:1px solid #f1f5f9;">${domainUpper}</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 16px;background:#f8fafc;font-size:12px;font-weight:700;color:#94a3b8;width:35%;letter-spacing:0.5px;text-transform:uppercase;border-bottom:1px solid #f1f5f9;">报价金额</td>
+                <td style="padding:12px 16px;font-size:18px;color:#0f172a;font-weight:900;border-bottom:1px solid #f1f5f9;">${formatted}</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 16px;background:#f8fafc;font-size:12px;font-weight:700;color:#94a3b8;width:35%;letter-spacing:0.5px;text-transform:uppercase;${message ? 'border-bottom:1px solid #f1f5f9;' : ''}">状态</td>
+                <td style="padding:12px 16px;font-size:14px;${message ? 'border-bottom:1px solid #f1f5f9;' : ''}"><span style="display:inline-block;padding:3px 10px;background:#fef9c3;color:#854d0e;border-radius:4px;font-size:12px;font-weight:700;">等待卖家回复</span></td>
+              </tr>
+              ${message ? `<tr>
+                <td style="padding:12px 16px;background:#f8fafc;font-size:12px;font-weight:700;color:#94a3b8;width:35%;letter-spacing:0.5px;text-transform:uppercase;">您的留言</td>
+                <td style="padding:12px 16px;font-size:13px;color:#475569;font-style:italic;">"${message}"</td>
+              </tr>` : ''}
+            </table>
+
+            <!-- Next steps -->
+            <div style="background:#f8fafc;border-left:4px solid #0f172a;border-radius:0 10px 10px 0;padding:20px;margin-bottom:24px;">
+              <p style="margin:0 0 12px;font-size:14px;font-weight:700;color:#0f172a;">接下来会发生什么？</p>
+              <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
+                <tr><td style="padding:3px 0;font-size:13px;color:#475569;"><span style="font-weight:700;color:#0f172a;margin-right:8px;">①</span>您的报价已发送给域名所有者</td></tr>
+                <tr><td style="padding:3px 0;font-size:13px;color:#475569;"><span style="font-weight:700;color:#0f172a;margin-right:8px;">②</span>卖家将在 48 小时内回复您的报价</td></tr>
+                <tr><td style="padding:3px 0;font-size:13px;color:#475569;"><span style="font-weight:700;color:#0f172a;margin-right:8px;">③</span>收到回复后，您将第一时间收到邮件通知</td></tr>
+                <tr><td style="padding:3px 0;font-size:13px;color:#475569;"><span style="font-weight:700;color:#0f172a;margin-right:8px;">④</span>达成共识后，可通过平台完成担保交易</td></tr>
               </table>
             </div>
 
-            <div class="info-box">
-              <p style="margin: 0 0 8px 0;"><strong style="color: #111827;">📌 接下来</strong></p>
-              <ul>
-                <li>您的报价已发送给域名所有者</li>
-                <li>卖家将在 48 小时内回复您的报价</li>
-                <li>您可以随时在用户中心查看报价状态</li>
-                <li>收到回复后我们会第一时间通知您</li>
-              </ul>
-            </div>
-
-            <!-- 平台担保交易推广 -->
-            <div class="escrow-box">
-              <h3>🛡️ 达成共识后，选择平台担保交易</h3>
-              <p style="color: #166534; font-size: 13px; margin: 0 0 10px 0;">当卖家接受您的报价后，可通过平台发起担保交易。平台全程托管资金，确保您付款后域名安全转移到您名下，才会向卖家放款，真正做到零风险。</p>
-              <table class="fee-table">
-                <tr><td>货币转换手续费</td><td>按实际汇率结算（如适用）</td></tr>
-                <tr><td>平台担保服务费</td><td>交易总价 × 1%</td></tr>
-                <tr><td>本笔预估担保费（参考）</td><td>¥${escrowFee}</td></tr>
+            <!-- Escrow promotion -->
+            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:18px 20px;margin-bottom:24px;">
+              <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#15803d;">🛡️ 平台担保交易保障</p>
+              <p style="margin:0 0 10px;font-size:13px;color:#166534;line-height:1.6;">当卖家接受报价后，通过平台担保交易可确保资金和域名同步安全转移，平台全程监管，真正零风险。</p>
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="font-size:12px;">
+                <tr>
+                  <td style="padding:5px 10px;background:#dcfce7;color:#166534;font-weight:700;border:1px solid #86efac;width:55%;">平台担保服务费（参考）</td>
+                  <td style="padding:5px 10px;color:#0f172a;font-weight:700;border:1px solid #86efac;">${escrowFee}（1%）</td>
+                </tr>
               </table>
-              <p style="color: #166534; font-size: 12px; margin: 10px 0 0 0;">✅ 域名完成转移并经您确认后，资金才会放款给卖家，全程平台监管。</p>
             </div>
 
-            <!-- 平台政策提醒 -->
-            <div class="warning-box">
-              ⚠️ <strong>安全提醒：</strong>请务必通过本平台完成交易，切勿在站外私下转账。平台担保可保障您的资金和域名安全，站外交易风险自负，平台不予受理纠纷。
+            <!-- Security warning -->
+            <div style="background:#fefce8;border:1px solid #fef08a;border-radius:10px;padding:14px 16px;margin-bottom:24px;">
+              <p style="margin:0;font-size:13px;color:#713f12;line-height:1.6;">⚠️ <strong>安全提醒：</strong>请务必通过本平台完成交易，切勿在站外私下转账。平台担保可保障您的资金和域名安全，站外交易风险自负，平台不予受理纠纷。</p>
             </div>
 
-            <div class="actions">
-              <a href="${primaryDashboardUrl}" class="button">查看我的报价状态</a>
+            <!-- CTA -->
+            <div style="text-align:center;">
+              <a href="${primaryDashboardUrl}" style="display:inline-block;background:#0f172a;color:#f8fafc;padding:16px 40px;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;box-shadow:0 4px 14px rgba(15,23,42,0.2);">查看我的报价状态 →</a>
             </div>
 
-            <p style="margin-top: 24px;">感谢您使用 域见•你 域名交易平台，祝您交易顺利！</p>
           </div>
-          <div class="footer">
-            <p>© ${new Date().getFullYear()} 域见•你 域名交易平台</p>
-            <p style="font-size: 12px; color: #9ca3af; margin-top: 8px;">您收到此邮件是因为您提交了域名报价</p>
+
+          <!-- Card footer -->
+          <div style="padding:20px 40px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;">
+            <p style="margin:0;font-size:13px;color:#94a3b8;">有疑问？联系 <a href="mailto:${supportEmail}" style="color:#475569;text-decoration:none;font-weight:600;">${supportEmail}</a></p>
           </div>
-        </div>
-      </body>
-    </html>
-  `;
+        </td></tr>
+
+        <!-- Footer -->
+        <tr><td style="padding:24px 20px 0;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#94a3b8;">© ${year} ${siteName} · ${siteHostname} · 本邮件由系统自动发送，请勿回复</p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
 }
