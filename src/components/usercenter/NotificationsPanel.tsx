@@ -16,7 +16,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export const NotificationsPanel = () => {
   const { user } = useAuth();
-  const { notifications, isLoading, markAsRead, markAllAsRead, unreadCount } = useNotifications();
+  const { notifications, isLoading, markAsRead, markAllAsRead, unreadCount, refreshNotifications } = useNotifications();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
@@ -55,10 +55,8 @@ export const NotificationsPanel = () => {
         .eq('user_id', user?.id);
 
       if (error) throw error;
-      // The useNotifications hook should re-fetch, but also remove from local state
       toast.success('通知已删除');
-      // Force re-render by triggering a state change
-      window.dispatchEvent(new CustomEvent('notifications-updated'));
+      refreshNotifications();
     } catch (error: any) {
       toast.error('删除失败');
     } finally {
@@ -80,7 +78,7 @@ export const NotificationsPanel = () => {
 
       if (error) throw error;
       toast.success('已清除所有已读通知');
-      window.dispatchEvent(new CustomEvent('notifications-updated'));
+      refreshNotifications();
     } catch (error: any) {
       toast.error('清除失败');
     }

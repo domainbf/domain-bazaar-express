@@ -1,210 +1,133 @@
-
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/contexts/AuthContext';
 import { Notification } from '@/types/domain';
 import { toast } from 'sonner';
 
+const NOTIF_KEY = (userId: string) => ['notifications', userId] as const;
+
+const fetchNotifications = async (userId: string): Promise<Notification[]> => {
+  try {
+    const { data, error } = await supabase
+      .rpc('get_user_notifications', { user_id_param: userId });
+    if (error) throw error;
+    return (data ?? []) as unknown as Notification[];
+  } catch {
+    const { data } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    return (data ?? []) as unknown as Notification[];
+  }
+};
+
+// Module-level singleton to prevent multiple realtime channels for same user
+let realtimeUserId: string | null = null;
+let realtimeChannel: ReturnType<typeof supabase.channel> | null = null;
+
+const ensureRealtimeChannel = (
+  userId: string,
+  onNew: (n: Notification) => void
+) => {
+  if (realtimeUserId === userId && realtimeChannel) return;
+  if (realtimeChannel) {
+    supabase.removeChannel(realtimeChannel);
+    realtimeChannel = null;
+  }
+  realtimeUserId = userId;
+  realtimeChannel = supabase
+    .channel('notifications-singleton')
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
+      (payload) => onNew(payload.new as Notification)
+    )
+    .subscribe();
+};
+
 export const useNotifications = () => {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const queryClient = useQueryClient();
 
-  const loadNotifications = useCallback(async () => {
-    if (!user) {
-      setNotifications([]);
-      setUnreadCount(0);
-      setIsLoading(false);
-      return;
-    }
+  const { data: notifications = [], isLoading } = useQuery({
+    queryKey: user ? NOTIF_KEY(user.id) : ['notifications', 'none'],
+    queryFn: () => (user ? fetchNotifications(user.id) : Promise.resolve([])),
+    enabled: !!user,
+    staleTime: 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
 
-    setIsLoading(true);
-    try {
-      // Using RPC function to get user notifications
-      const { data, error } = await supabase
-        .rpc('get_user_notifications', { user_id_param: user.id });
+  const unreadCount = (notifications as Notification[]).filter(n => !n.is_read).length;
 
-      if (error) throw error;
-
-      // Convert to notification type and set state
-      const typedNotifications = data as unknown as Notification[];
-      setNotifications(typedNotifications);
-      
-      // Calculate unread count
-      const unread = typedNotifications.filter(n => !n.is_read).length;
-      setUnreadCount(unread);
-    } catch (error: any) {
-      console.error('Error loading notifications:', error);
-      
-      // Fallback: use direct table query
-      try {
-        const { data } = await supabase
-          .from('notifications')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(50);
-          
-        if (data) {
-          const typedNotifications = data as unknown as Notification[];
-          setNotifications(typedNotifications);
-          const unread = typedNotifications.filter(n => !n.is_read).length;
-          setUnreadCount(unread);
-        }
-      } catch (fallbackError) {
-        console.error('Error in fallback notifications query:', fallbackError);
-        setNotifications([]);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user]);
+  // Singleton realtime subscription — only one channel active at a time
+  useEffect(() => {
+    if (!user) return;
+    ensureRealtimeChannel(user.id, (newNotif) => {
+      queryClient.setQueryData(
+        NOTIF_KEY(user.id),
+        (old: Notification[] = []) => [newNotif, ...old]
+      );
+      toast.info(newNotif.title, {
+        description: newNotif.message,
+        action: newNotif.action_url
+          ? { label: '查看', onClick: () => { window.location.href = newNotif.action_url || '#'; } }
+          : undefined,
+      });
+    });
+    return () => {
+      // Don't tear down on unmount — the singleton outlives any single component
+    };
+  }, [user?.id, queryClient]);
 
   const markAsRead = async (notificationId: string) => {
+    if (!user) return;
+    queryClient.setQueryData(NOTIF_KEY(user.id), (old: Notification[] = []) =>
+      old.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
+    );
     try {
-      // Use RPC function to mark as read
-      const { error } = await supabase
-        .rpc('mark_notification_as_read', { 
-          notification_id_param: notificationId 
-        });
-
+      const { error } = await supabase.rpc('mark_notification_as_read', {
+        notification_id_param: notificationId,
+      });
       if (error) throw error;
-
-      // Update local state
-      setNotifications(prev => 
-        prev.map(n => 
-          n.id === notificationId ? { ...n, is_read: true } : n
-        )
-      );
-      
-      // Recalculate unread count
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (error: any) {
-      console.error('Error marking notification as read:', error);
-      
-      // Fallback: direct update
-      try {
-        const { error: fallbackError } = await supabase
-          .from('notifications')
-          .update({ is_read: true })
-          .eq('id', notificationId);
-          
-        if (!fallbackError) {
-          setNotifications(prev => 
-            prev.map(n => 
-              n.id === notificationId ? { ...n, is_read: true } : n
-            )
-          );
-          setUnreadCount(prev => Math.max(0, prev - 1));
-        }
-      } catch (fallbackError) {
-        console.error('Error in fallback update:', fallbackError);
-      }
+    } catch {
+      await supabase.from('notifications').update({ is_read: true }).eq('id', notificationId);
     }
   };
 
   const markAllAsRead = async () => {
-    if (!user || notifications.length === 0) return;
-
+    if (!user) return;
+    queryClient.setQueryData(NOTIF_KEY(user.id), (old: Notification[] = []) =>
+      old.map(n => ({ ...n, is_read: true }))
+    );
     try {
-      // Use RPC function to mark all as read
-      const { error } = await supabase
-        .rpc('mark_all_notifications_as_read', { 
-          user_id_param: user.id 
-        });
-
+      const { error } = await supabase.rpc('mark_all_notifications_as_read', {
+        user_id_param: user.id,
+      });
       if (error) throw error;
-
-      // Update local state
-      setNotifications(prev => 
-        prev.map(n => ({ ...n, is_read: true }))
-      );
-      
-      // Reset unread count
-      setUnreadCount(0);
-      toast.success('已将所有通知标记为已读');
-    } catch (error: any) {
-      console.error('Error marking all notifications as read:', error);
-      
-      // Fallback: direct update
-      try {
-        const { error: fallbackError } = await supabase
-          .from('notifications')
-          .update({ is_read: true })
-          .eq('user_id', user.id)
-          .eq('is_read', false);
-          
-        if (!fallbackError) {
-          setNotifications(prev => 
-            prev.map(n => ({ ...n, is_read: true }))
-          );
-          setUnreadCount(0);
-          toast.success('已将所有通知标记为已读');
-        }
-      } catch (fallbackError) {
-        console.error('Error in fallback batch update:', fallbackError);
-      }
+    } catch {
+      await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
     }
+    toast.success('已将所有通知标记为已读');
   };
 
-  // Load notifications when user changes
-  useEffect(() => {
-    loadNotifications();
-  }, [user, loadNotifications]);
-
-  // Listen for manual refresh events (e.g. after delete)
-  useEffect(() => {
-    const handler = () => loadNotifications();
-    window.addEventListener('notifications-updated', handler);
-    return () => window.removeEventListener('notifications-updated', handler);
-  }, [loadNotifications]);
-
-  // Real-time subscription for new notifications
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel('notifications-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`
-        },
-        (payload) => {
-          console.log('New notification received:', payload);
-          const newNotification = payload.new as Notification;
-          
-          // Add to notifications list
-          setNotifications(prev => [newNotification, ...prev]);
-          setUnreadCount(prev => prev + 1);
-          
-          // Show toast notification
-          toast.info(newNotification.title, {
-            description: newNotification.message,
-            action: newNotification.action_url ? {
-              label: '查看',
-              onClick: () => window.location.href = newNotification.action_url || '#'
-            } : undefined
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
+  const refreshNotifications = () => {
+    if (user) queryClient.invalidateQueries({ queryKey: NOTIF_KEY(user.id) });
+  };
 
   return {
-    notifications,
+    notifications: notifications as Notification[],
     unreadCount,
     isLoading,
     markAsRead,
     markAllAsRead,
-    refreshNotifications: loadNotifications
+    refreshNotifications,
   };
 };

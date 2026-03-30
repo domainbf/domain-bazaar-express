@@ -2,12 +2,10 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface SiteConfig {
-  // Brand
   site_name: string;
   site_domain: string;
   logo_url: string;
   favicon_url: string;
-  // Contact
   contact_phone: string;
   contact_email: string;
   contact_address: string;
@@ -16,13 +14,11 @@ export interface SiteConfig {
   hours_phone: string;
   hours_weekday: string;
   support_hours: string;
-  // Hero Section
   hero_title: string;
   hero_subtitle: string;
   hero_search_placeholder: string;
   hero_cta_primary: string;
   hero_cta_secondary: string;
-  // How It Works
   how_it_works_title: string;
   step1_title: string;
   step1_desc: string;
@@ -30,24 +26,19 @@ export interface SiteConfig {
   step2_desc: string;
   step3_title: string;
   step3_desc: string;
-  // Stats
   stats_title: string;
   stat_users: string;
   stat_countries: string;
   stat_volume: string;
   stat_support: string;
-  // CTA
   cta_title: string;
   cta_description: string;
   cta_btn_primary: string;
   cta_btn_secondary: string;
-  // Legal page content overrides (empty = use default)
   legal_terms_content: string;
   legal_privacy_content: string;
   legal_disclaimer_content: string;
-  // Footer
   footer_text: string;
-  // Scripts
   custom_head_script: string;
   custom_body_script: string;
 }
@@ -96,62 +87,87 @@ const defaultConfig: SiteConfig = {
 
 const ALL_KEYS = Object.keys(defaultConfig);
 
+/* ── Module-level singletons ──────────────────────────────────────
+   One fetch, one realtime channel — shared across all consumers.
+────────────────────────────────────────────────────────────────── */
 let cachedConfig: SiteConfig | null = null;
+let fetchPromise: Promise<SiteConfig> | null = null;
 let listeners: Array<(c: SiteConfig) => void> = [];
+let realtimeChannel: ReturnType<typeof supabase.channel> | null = null;
 
 export const fetchSiteConfig = async (): Promise<SiteConfig> => {
-  try {
-    const { data, error } = await supabase
-      .from('site_settings')
-      .select('key, value')
-      .in('key', ALL_KEYS);
-    
-    if (error) throw error;
-    
-    const config = { ...defaultConfig };
-    data?.forEach(item => {
-      if (item.key in config && item.value) {
-        (config as any)[item.key] = item.value;
-      }
-    });
-    
-    cachedConfig = config;
-    return config;
-  } catch {
-    return cachedConfig || defaultConfig;
-  }
+  // If a fetch is already in flight, reuse it
+  if (fetchPromise) return fetchPromise;
+
+  fetchPromise = (async () => {
+    try {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('key, value')
+        .in('key', ALL_KEYS);
+
+      if (error) throw error;
+
+      const config = { ...defaultConfig };
+      data?.forEach(item => {
+        if (item.key in config && item.value) {
+          (config as any)[item.key] = item.value;
+        }
+      });
+
+      cachedConfig = config;
+      listeners.forEach(l => l(config));
+      return config;
+    } catch {
+      return cachedConfig ?? defaultConfig;
+    } finally {
+      fetchPromise = null;
+    }
+  })();
+
+  return fetchPromise;
+};
+
+/* Set up ONE realtime channel for the entire app lifetime */
+const ensureRealtimeChannel = () => {
+  if (realtimeChannel) return;
+  realtimeChannel = supabase
+    .channel('site-settings-singleton')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, () => {
+      fetchSiteConfig();
+    })
+    .subscribe();
 };
 
 export const useSiteSettings = () => {
-  const [config, setConfig] = useState<SiteConfig>(cachedConfig || defaultConfig);
+  const [config, setConfig] = useState<SiteConfig>(cachedConfig ?? defaultConfig);
   const [isLoading, setIsLoading] = useState(!cachedConfig);
 
   useEffect(() => {
     let mounted = true;
 
-    const load = async () => {
-      const c = await fetchSiteConfig();
-      if (mounted) {
-        setConfig(c);
-        setIsLoading(false);
-      }
+    // Start realtime channel singleton (idempotent)
+    ensureRealtimeChannel();
+
+    // Register as a listener for future updates
+    const listener = (c: SiteConfig) => {
+      if (mounted) { setConfig(c); setIsLoading(false); }
     };
-
-    load();
-
-    const channel = supabase
-      .channel('site_settings_realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, () => {
-        load();
-      })
-      .subscribe();
-
-    const listener = (c: SiteConfig) => { if (mounted) setConfig(c); };
     listeners.push(listener);
+
+    // If we already have cached data, use it immediately
+    if (cachedConfig) {
+      setConfig(cachedConfig);
+      setIsLoading(false);
+    } else {
+      // Trigger fetch — deduped at module level
+      fetchSiteConfig().then(c => {
+        if (mounted) { setConfig(c); setIsLoading(false); }
+      });
+    }
 
     return () => {
       mounted = false;
-      supabase.removeChannel(channel);
       listeners = listeners.filter(l => l !== listener);
     };
   }, []);

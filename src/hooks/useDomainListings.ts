@@ -3,24 +3,26 @@ import { supabase } from '@/integrations/supabase/client';
 import { Domain } from '@/types/domain';
 
 /* ── Fetcher ──────────────────────────────────────────────────── */
-// Parallel fetch: listings + ALL analytics in one round-trip
-// No domain-ID waterfall — both queries launch simultaneously.
+// 1. Fetch listings first (fast — indexed, filtered, limited to 200)
+// 2. Fetch analytics filtered to only those domain IDs (no full-table scan)
 const fetchAvailableDomains = async (): Promise<Domain[]> => {
-  const [listingsRes, analyticsRes] = await Promise.all([
-    supabase
-      .from('domain_listings')
-      .select('id,name,price,category,description,status,highlight,is_verified,created_at,owner_id,verification_status')
-      .eq('status', 'available')
-      .order('created_at', { ascending: false })
-      .limit(200),
-    supabase
-      .from('domain_analytics')
-      .select('domain_id,views,favorites,offers'),
-  ]);
+  const listingsRes = await supabase
+    .from('domain_listings')
+    .select('id,name,price,category,description,status,highlight,is_verified,created_at,owner_id,verification_status')
+    .eq('status', 'available')
+    .order('created_at', { ascending: false })
+    .limit(200);
 
   if (listingsRes.error) throw new Error(listingsRes.error.message);
   const listings = listingsRes.data ?? [];
   if (!listings.length) return [];
+
+  // Only fetch analytics for domains we actually have — avoids full-table scan
+  const domainIds = listings.map(d => d.id);
+  const analyticsRes = await supabase
+    .from('domain_analytics')
+    .select('domain_id,views,favorites,offers')
+    .in('domain_id', domainIds);
 
   const analyticsMap = new Map<string, { views: number; favorites: number; offers: number }>();
   (analyticsRes.data ?? []).forEach((a) => {
@@ -59,8 +61,8 @@ export const useDomainListings = () => {
   return useQuery({
     queryKey: DOMAIN_LISTINGS_KEY,
     queryFn: fetchAvailableDomains,
-    staleTime: 3 * 60 * 1000,      // 3 min — fresh enough, no unnecessary refetch
-    gcTime:    15 * 60 * 1000,     // keep in memory 15 min
+    staleTime: 3 * 60 * 1000,
+    gcTime:    15 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     retry: 2,
