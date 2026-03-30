@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { translateAuthError } from '@/utils/translateError';
+import { RESET_PASSWORD_URL } from '@/config/siteConfig';
 
 interface ResetPasswordRequestFormProps {
   onCancel: () => void;
@@ -29,7 +30,7 @@ export const ResetPasswordRequestForm = ({ onCancel, onSuccess }: ResetPasswordR
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: RESET_PASSWORD_URL,
       });
 
       if (error) throw error;

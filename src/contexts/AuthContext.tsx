@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { UserProfile } from '@/types/userProfile';
 import { toast } from 'sonner';
 import { signInWithEmailPassword, signUpWithEmailPassword, signOut as authSignOut, resetUserPassword } from '@/utils/authUtils';
+import { SIGNUP_REDIRECT_URL } from '@/config/siteConfig';
 
 interface AuthContextType {
   user: User | null;
@@ -246,7 +247,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       const result = await signUpWithEmailPassword(email, password, { 
         metadata,
-        redirectTo: `${window.location.origin}/`
+        redirectTo: SIGNUP_REDIRECT_URL
       });
       
       if (result.success) {

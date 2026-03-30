@@ -2,6 +2,7 @@
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { translateAuthError } from '@/utils/translateError';
+import { SIGNUP_REDIRECT_URL, RESET_PASSWORD_URL } from '@/config/siteConfig';
 
 export const signInWithEmailPassword = async (email: string, password: string) => {
   try {
@@ -21,15 +22,12 @@ export const signInWithEmailPassword = async (email: string, password: string) =
 
 export const signUpWithEmailPassword = async (email: string, password: string, options?: { metadata?: { [key: string]: any }, redirectTo?: string }) => {
   try {
-    // 使用当前域名进行重定向，确保预览和生产环境都能正常工作
-    const defaultRedirectUrl = `${window.location.origin}/`;
-    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: options?.metadata || {},
-        emailRedirectTo: options?.redirectTo || defaultRedirectUrl
+        emailRedirectTo: options?.redirectTo || SIGNUP_REDIRECT_URL
       }
     });
     
@@ -83,7 +81,7 @@ export const isHookTimeoutError = (error: any): boolean => {
 export const resetUserPassword = async (email: string) => {
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: RESET_PASSWORD_URL,
     });
     
     if (error) {

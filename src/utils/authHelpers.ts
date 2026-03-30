@@ -2,6 +2,7 @@
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { translateAuthError } from '@/utils/translateError';
+import { SIGNUP_REDIRECT_URL } from '@/config/siteConfig';
 
 export const fetchUserProfile = async (userId: string) => {
   try {
@@ -89,7 +90,7 @@ export const handleAuthError = (error: any, action: string) => {
   if (raw.includes('Email not confirmed')) {
     const msg = '请先验证您的邮箱，然后再尝试登录。';
     if (error.email) {
-      sendVerificationEmail(error.email, `${window.location.origin}/`)
+      sendVerificationEmail(error.email, SIGNUP_REDIRECT_URL)
         .then(() => toast.info('✉️ 验证邮件已重新发送，请检查您的邮箱'));
     }
     toast.error(msg);

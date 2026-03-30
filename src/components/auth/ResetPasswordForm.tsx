@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { translateAuthError } from '@/utils/translateError';
+import { RESET_PASSWORD_URL } from '@/config/siteConfig';
 
 export const ResetPasswordForm = () => {
   const [email, setEmail] = useState('');
@@ -25,7 +26,7 @@ export const ResetPasswordForm = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: RESET_PASSWORD_URL,
       });
       if (error) throw error;
       setIsSubmitted(true);

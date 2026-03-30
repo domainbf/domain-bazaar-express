@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from '@/integrations/supabase/client';
+import { SIGNUP_REDIRECT_URL } from '@/config/siteConfig';
 
 interface AuthFormProps {
   mode: 'signin' | 'signup';
@@ -41,7 +42,7 @@ export const AuthForm = ({
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${window.location.origin}/` },
+        options: { redirectTo: SIGNUP_REDIRECT_URL },
       });
       if (error) throw error;
     } catch {
@@ -53,7 +54,7 @@ export const AuthForm = ({
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
-        options: { redirectTo: `${window.location.origin}/` },
+        options: { redirectTo: SIGNUP_REDIRECT_URL },
       });
       if (error) throw error;
     } catch {
