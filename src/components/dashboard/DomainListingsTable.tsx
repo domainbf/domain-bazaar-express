@@ -281,7 +281,7 @@ export const DomainListingsTable = ({
                         size="sm" 
                         variant="outline" 
                         onClick={() => onEdit(domain)}
-                        className="border-border text-black hover:bg-muted"
+                        className="border-border text-foreground hover:bg-muted"
                         title="编辑域名"
                       >
                         <Edit className="w-4 h-4" />

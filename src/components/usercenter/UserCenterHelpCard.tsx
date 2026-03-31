@@ -29,28 +29,28 @@ export const UserCenterHelpCard: React.FC<Props> = ({ open, onClose }) => {
               <ClipboardList className="h-4 w-4" />
               我的域名
             </h3>
-            <p className="text-gray-600">管理您拥有的域名，上架或下架它们</p>
+            <p className="text-muted-foreground text-xs">管理您拥有的域名，上架或下架它们</p>
           </div>
           <div className="bg-muted p-3 rounded border border-border">
             <h3 className="font-bold text-blue-600 dark:text-blue-400 mb-1 flex items-center gap-1">
               <ClipboardList className="h-4 w-4" />
               交易记录
             </h3>
-            <p className="text-gray-600">查看您的所有域名买卖交易记录</p>
+            <p className="text-muted-foreground text-xs">查看您的所有域名买卖交易记录</p>
           </div>
           <div className="bg-muted p-3 rounded border border-border">
             <h3 className="font-bold text-blue-600 dark:text-blue-400 mb-1 flex items-center gap-1">
               <Bell className="h-4 w-4" />
               通知中心
             </h3>
-            <p className="text-gray-600">查看系统发送给您的所有通知和消息</p>
+            <p className="text-muted-foreground text-xs">查看系统发送给您的所有通知和消息</p>
           </div>
           <div className="bg-muted p-3 rounded border border-border">
             <h3 className="font-bold text-blue-600 dark:text-blue-400 mb-1 flex items-center gap-1">
               <User className="h-4 w-4" />
               个人资料
             </h3>
-            <p className="text-gray-600">更新您的个人信息和账户设置</p>
+            <p className="text-muted-foreground text-xs">更新您的个人信息和账户设置</p>
           </div>
         </div>
         <div className="mt-4 flex justify-end">

@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 export const ContactSection = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // 处理表单提交
   };
 
   return (
@@ -33,7 +32,7 @@ export const ContactSection = () => {
                   <Phone className="w-6 h-6 text-violet-400" />
                 </div>
                 <div>
-                  <div className="text-white font-medium">电话咨询</div>
+                  <div className="text-foreground font-medium">电话咨询</div>
                   <div className="text-muted-foreground">400-123-4567</div>
                 </div>
               </div>
@@ -43,7 +42,7 @@ export const ContactSection = () => {
                   <Mail className="w-6 h-6 text-cyan-400" />
                 </div>
                 <div>
-                  <div className="text-white font-medium">邮件支持</div>
+                  <div className="text-foreground font-medium">邮件支持</div>
                   <div className="text-muted-foreground">support@example.com</div>
                 </div>
               </div>
@@ -53,7 +52,7 @@ export const ContactSection = () => {
                   <MessageSquare className="w-6 h-6 text-amber-400" />
                 </div>
                 <div>
-                  <div className="text-white font-medium">在线客服</div>
+                  <div className="text-foreground font-medium">在线客服</div>
                   <div className="text-muted-foreground">7x24小时在线服务</div>
                 </div>
               </div>
@@ -69,35 +68,35 @@ export const ContactSection = () => {
           >
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-foreground/80 mb-2">
                   您的姓名
                 </label>
                 <Input 
                   type="text" 
                   placeholder="请输入您的姓名"
-                  className="w-full bg-card/5 border-violet-500/20"
+                  className="w-full"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-foreground/80 mb-2">
                   联系邮箱
                 </label>
                 <Input 
                   type="email" 
                   placeholder="请输入您的邮箱"
-                  className="w-full bg-card/5 border-violet-500/20"
+                  className="w-full"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-foreground/80 mb-2">
                   咨询内容
                 </label>
                 <textarea 
                   rows={4}
                   placeholder="请详细描述您的需求"
-                  className="w-full bg-card/5 border-violet-500/20 rounded-md p-3 text-white"
+                  className="w-full bg-background border border-input text-foreground placeholder:text-muted-foreground rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-primary transition-all duration-200 resize-none"
                 />
               </div>
               

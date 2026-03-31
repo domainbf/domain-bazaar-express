@@ -155,7 +155,6 @@ export const AuthForm = ({
         
         const success = await signIn(email, password);
         if (success) {
-          toast.success('登录成功！');
           if (onSuccess) onSuccess();
         }
       }
@@ -261,6 +260,7 @@ export const AuthForm = ({
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
+              autoComplete="name"
               className="h-11 bg-background border-input focus:border-primary focus:ring-2 focus:ring-ring/20 transition-all duration-200"
               placeholder="请输入您的真实姓名"
               required
@@ -278,6 +278,7 @@ export const AuthForm = ({
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
             className="h-11 bg-background border-input focus:border-primary focus:ring-2 focus:ring-ring/20 transition-all duration-200"
             placeholder="请输入您的邮箱地址"
             required
@@ -295,6 +296,7 @@ export const AuthForm = ({
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
               className="h-11 bg-background border-input focus:border-primary focus:ring-2 focus:ring-ring/20 transition-all duration-200 pr-12"
               placeholder={mode === 'signup' ? "至少6个字符" : "请输入您的密码"}
               required
@@ -346,6 +348,7 @@ export const AuthForm = ({
                 type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
                 className="h-11 bg-background border-input focus:border-primary focus:ring-2 focus:ring-ring/20 transition-all duration-200 pr-12"
                 placeholder="请再次输入密码进行确认"
                 required
@@ -374,7 +377,7 @@ export const AuthForm = ({
               />
               <label
                 htmlFor="remember-me"
-                className="text-sm text-muted-foreground cursor-pointer select-none leading-none"
+                className="text-sm text-foreground/70 cursor-pointer select-none leading-none"
               >
                 记住我
               </label>
@@ -382,7 +385,7 @@ export const AuthForm = ({
             <button 
               type="button"
               onClick={handleForgotPasswordClick}
-              className="text-sm text-muted-foreground hover:text-primary hover:underline transition-colors cursor-pointer font-medium"
+              className="text-sm text-foreground/60 hover:text-primary hover:underline transition-colors cursor-pointer font-medium"
             >
               忘记密码？
             </button>
@@ -446,7 +449,7 @@ export const AuthForm = ({
 
         <div className="text-center pt-4 border-t border-border">
           {mode === 'signin' ? (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-foreground/60">
               还没有账户？{' '}
               <button 
                 type="button"
@@ -457,7 +460,7 @@ export const AuthForm = ({
               </button>
             </p>
           ) : (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-foreground/60">
               已有账户？{' '}
               <button 
                 type="button"

@@ -14,7 +14,7 @@ export const PriceRangeFilter = ({ priceRange, setPriceRange }: PriceRangeFilter
     <div className="bg-muted/40 p-4 rounded-lg mb-6">
       <div className="flex flex-wrap gap-4 items-end">
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">{t('marketplace.price.minLabel')}</label>
+          <label className="text-sm font-medium text-foreground/70">{t('marketplace.price.minLabel')}</label>
           <Input
             type="number"
             value={priceRange.min}
@@ -25,7 +25,7 @@ export const PriceRangeFilter = ({ priceRange, setPriceRange }: PriceRangeFilter
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">{t('marketplace.price.maxLabel')}</label>
+          <label className="text-sm font-medium text-foreground/70">{t('marketplace.price.maxLabel')}</label>
           <Input
             type="number"
             value={priceRange.max}
@@ -38,7 +38,6 @@ export const PriceRangeFilter = ({ priceRange, setPriceRange }: PriceRangeFilter
         <Button
           onClick={() => setPriceRange({min: '', max: ''})}
           variant="filter"
-          className="text-gray-900"
         >
           {t('marketplace.price.reset')}
         </Button>

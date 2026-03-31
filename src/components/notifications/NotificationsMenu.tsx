@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Bell, Check, Trash2 } from 'lucide-react';
+import { Bell, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -17,15 +17,12 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 export const NotificationsMenu = () => {
   const { user } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead, isLoading } = useNotifications();
   const [open, setOpen] = useState(false);
-  const isMobile = useIsMobile();
 
-  // Handle user clicking on a notification
   const handleNotificationClick = (notification: Notification) => {
     if (!notification.is_read) {
       markAsRead(notification.id);
@@ -33,7 +30,6 @@ export const NotificationsMenu = () => {
     setOpen(false);
   };
 
-  // Get appropriate icon for notification type
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'offer':
@@ -43,11 +39,10 @@ export const NotificationsMenu = () => {
       case 'transaction':
         return <span className="text-purple-500">💳</span>;
       default:
-        return <span className="text-gray-500">📢</span>;
+        return <span className="text-muted-foreground">📢</span>;
     }
   };
 
-  // Format the date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return new Date().toDateString() === date.toDateString()
@@ -89,11 +84,11 @@ export const NotificationsMenu = () => {
         <ScrollArea className="h-[300px]">
           <DropdownMenuGroup>
             {isLoading ? (
-              <div className="p-4 text-center text-gray-500">加载中...</div>
+              <div className="p-4 text-center text-muted-foreground text-sm">加载中...</div>
             ) : notifications.length === 0 ? (
-              <div className="p-6 text-center text-gray-500">
+              <div className="p-6 text-center text-muted-foreground">
                 <Bell className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                <p>暂无通知</p>
+                <p className="text-sm">暂无通知</p>
               </div>
             ) : (
               notifications.map((notification) => (
@@ -111,12 +106,12 @@ export const NotificationsMenu = () => {
                       {getNotificationIcon(notification.type)}
                     </div>
                     <div className="flex-1 overflow-hidden">
-                      <div className="font-medium text-sm">{notification.title}</div>
-                      <div className="text-xs text-gray-500 line-clamp-2">{notification.message}</div>
-                      <div className="text-xs text-gray-400 mt-1">{formatDate(notification.created_at)}</div>
+                      <div className="font-medium text-sm text-foreground">{notification.title}</div>
+                      <div className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{notification.message}</div>
+                      <div className="text-xs text-muted-foreground/70 mt-1">{formatDate(notification.created_at)}</div>
                     </div>
                     {!notification.is_read && (
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-1"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-1 shrink-0" />
                     )}
                   </Link>
                 </DropdownMenuItem>

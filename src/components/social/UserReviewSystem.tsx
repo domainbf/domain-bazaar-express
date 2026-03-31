@@ -202,7 +202,7 @@ export const UserReviewSystem: React.FC<UserReviewSystemProps> = ({
                     className={`h-5 w-5 ${
                       star <= Math.round(averageRating)
                         ? 'text-yellow-400 fill-current'
-                        : 'text-gray-300'
+                        : 'text-muted-foreground/40'
                     }`}
                   />
                 ))}
@@ -275,7 +275,7 @@ export const UserReviewSystem: React.FC<UserReviewSystemProps> = ({
                       className={`h-6 w-6 transition-colors ${
                         star <= (hoveredRating || rating)
                           ? 'text-yellow-400 fill-current'
-                          : 'text-gray-300 hover:text-yellow-200'
+                          : 'text-muted-foreground/40 hover:text-yellow-200'
                       }`}
                     />
                   </button>
@@ -344,7 +344,7 @@ export const UserReviewSystem: React.FC<UserReviewSystemProps> = ({
                             className={`h-4 w-4 ${
                               star <= review.rating
                                 ? 'text-yellow-400 fill-current'
-                                : 'text-gray-300'
+                                : 'text-muted-foreground/40'
                             }`}
                           />
                         ))}
