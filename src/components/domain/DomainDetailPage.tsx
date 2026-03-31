@@ -32,10 +32,6 @@ import {
 import { DomainOwnerInfo } from "./DomainOwnerInfo";
 import { DomainWhoisInfo } from "./DomainWhoisInfo";
 import { OfferHistory } from "./OfferHistory";
-const DomainValuationReport = lazy(() => import("./DomainValuationReport").then(m => ({ default: m.DomainValuationReport })));
-const PriceHistoryChart = lazy(() => import("./PriceHistoryChart").then(m => ({ default: m.PriceHistoryChart })));
-const DomainAnalytics = lazy(() => import("./DomainAnalytics").then(m => ({ default: m.DomainAnalytics })));
-const DomainValuationTool = lazy(() => import("./DomainValuationTool").then(m => ({ default: m.DomainValuationTool })));
 import { SimilarDomainsGrid } from "./SimilarDomainsGrid";
 import { DomainShareButtons } from "./DomainShareButtons";
 import { CurrencyConverter } from "./CurrencyConverter";
@@ -43,6 +39,7 @@ import { DomainAuction } from "@/components/auction/DomainAuction";
 import { CreateAuctionDialog } from "@/components/auction/CreateAuctionDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { DomainAuction as AuctionType } from "@/types/domain";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Accordion,
@@ -50,6 +47,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+
+const DomainValuationReport = lazy(() => import("./DomainValuationReport").then(m => ({ default: m.DomainValuationReport })));
+const PriceHistoryChart = lazy(() => import("./PriceHistoryChart").then(m => ({ default: m.PriceHistoryChart })));
+const DomainAnalytics = lazy(() => import("./DomainAnalytics").then(m => ({ default: m.DomainAnalytics })));
+const DomainValuationTool = lazy(() => import("./DomainValuationTool").then(m => ({ default: m.DomainValuationTool })));
 
 // 页面过渡动画配置
 const pageVariants = {

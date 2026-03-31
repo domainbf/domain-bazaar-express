@@ -10,8 +10,9 @@ import {
   AlertTriangle, CheckCircle, Clock, BarChart3, RefreshCw,
   Eye, Heart, MessageSquare, ArrowUpRight, ArrowDownRight, Calendar
 } from 'lucide-react';
-const DashboardTrendChart = lazy(() => import('./DashboardTrendChart').then(m => ({ default: m.DashboardTrendChart })));
 import { EnhancedActivityLog } from './EnhancedActivityLog';
+
+const DashboardTrendChart = lazy(() => import('./DashboardTrendChart').then(m => ({ default: m.DashboardTrendChart })));
 
 interface AdminStats {
   totalUsers: number;

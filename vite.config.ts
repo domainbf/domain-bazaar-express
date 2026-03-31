@@ -83,50 +83,17 @@ export default defineConfig(({ mode }) => ({
         lang: 'zh-CN',
         categories: ['business', 'finance', 'shopping'],
         icons: [
-          {
-            src: '/icons/pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: '/icons/pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-          },
-          {
-            src: '/icons/pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'maskable',
-          },
+          { src: '/icons/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/icons/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/icons/pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
         screenshots: [
-          {
-            src: '/og-image.png',
-            sizes: '1200x630',
-            type: 'image/png',
-            label: '域见•你 域名交易平台首页',
-          },
+          { src: '/og-image.png', sizes: '1200x630', type: 'image/png', label: '域见•你 域名交易平台首页' },
         ],
         shortcuts: [
-          {
-            name: '浏览域名',
-            short_name: '浏览',
-            url: '/marketplace',
-            icons: [{ src: '/icons/pwa-192x192.png', sizes: '192x192' }],
-          },
-          {
-            name: '我的中心',
-            short_name: '我的',
-            url: '/user-center',
-            icons: [{ src: '/icons/pwa-192x192.png', sizes: '192x192' }],
-          },
-          {
-            name: '域名拍卖',
-            short_name: '拍卖',
-            url: '/auction',
-            icons: [{ src: '/icons/pwa-192x192.png', sizes: '192x192' }],
-          },
+          { name: '浏览域名', short_name: '浏览', url: '/marketplace', icons: [{ src: '/icons/pwa-192x192.png', sizes: '192x192' }] },
+          { name: '我的中心', short_name: '我的', url: '/user-center', icons: [{ src: '/icons/pwa-192x192.png', sizes: '192x192' }] },
+          { name: '域名拍卖', short_name: '拍卖', url: '/auction', icons: [{ src: '/icons/pwa-192x192.png', sizes: '192x192' }] },
         ],
       },
     }),
@@ -139,15 +106,22 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          if (id.includes('recharts') || id.includes('@visx') || id.includes('d3-')) return 'charts';
-          if (id.includes('framer-motion')) return 'motion';
-          if (id.includes('lucide-react')) return 'icons';
-          if (id.includes('@supabase/supabase-js') || id.includes('@supabase/realtime')) return 'supabase';
-          if (id.includes('@tanstack/react-query')) return 'query';
-          if (id.includes('i18next') || id.includes('react-i18next')) return 'i18n';
-          if (id.includes('@radix-ui')) return 'radix';
-          if (id.includes('react-dom') || id.includes('react-router-dom') || (id.includes('node_modules/react/') && !id.includes('react-dom'))) return 'vendor';
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          supabase: ['@supabase/supabase-js'],
+          query: ['@tanstack/react-query'],
+          charts: ['recharts'],
+          i18n: ['i18next', 'react-i18next'],
+          motion: ['framer-motion'],
+          radix: [
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-accordion',
+            '@radix-ui/react-select',
+            '@radix-ui/react-toast',
+            '@radix-ui/react-tooltip',
+          ],
         },
       },
     },
@@ -157,7 +131,6 @@ export default defineConfig(({ mode }) => ({
     cssCodeSplit: true,
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
-    exclude: ['recharts', 'framer-motion'],
+    include: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query', 'framer-motion'],
   },
 }));
