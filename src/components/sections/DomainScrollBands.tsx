@@ -1,5 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
-import { apiGet } from '@/lib/apiClient';
 import { Gavel, Flame, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useHomeData } from '@/hooks/useHomeData';
@@ -102,18 +100,10 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
 
   const { data: homeData } = useHomeData();
 
-  const { data: auctionRaw } = useQuery({
-    queryKey: ['home', 'auctions'],
-    queryFn: () => apiGet<Array<{ id: string; name: string; price: number }>>('/data/auctions'),
-    staleTime: 5 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-  });
-
   const logoMap = homeData?.logoMap ?? {};
 
-  const auctionDomains: DomainChip[] = (auctionRaw ?? []).map(a => ({
+  // auctionDomains are now bundled inside the /data/home response — no extra request needed
+  const auctionDomains: DomainChip[] = (homeData?.auctionDomains ?? []).map(a => ({
     id: a.id,
     name: a.name,
     price: a.price,

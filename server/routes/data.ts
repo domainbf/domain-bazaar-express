@@ -401,7 +401,8 @@ app.get('/home', async (c) => {
   const data = await cacheGetOrSet(
     'home_data',
     async () => {
-      const [hotRes, soldRes, logoRes] = await Promise.all([
+      // Fetch Turso data + Supabase auctions all in parallel
+      const [hotRes, soldRes, logoRes, auctionData] = await Promise.all([
         db.execute({
           sql: `SELECT dl.id, dl.name, dl.price
                 FROM domain_listings dl
@@ -419,6 +420,23 @@ app.get('/home', async (c) => {
           sql: `SELECT key, value FROM site_settings WHERE key LIKE 'domain_logo_%'`,
           args: [],
         }),
+        // Inline the auctions fetch so the browser only makes ONE request
+        (async () => {
+          try {
+            const { supabaseAdmin } = await import('../supabase.js');
+            const { data: rows, error } = await supabaseAdmin
+              .from('domain_auctions')
+              .select('id, starting_price, current_price, domain:domain_listings(id, name, price)')
+              .eq('status', 'active')
+              .limit(20);
+            if (error) return [];
+            return (rows ?? []).filter((a: any) => a.domain).map((a: any) => ({
+              id: (a.domain as any)?.id ?? a.id,
+              name: (a.domain as any)?.name ?? '域名',
+              price: Number(a.current_price) || Number(a.starting_price) || 0,
+            }));
+          } catch { return []; }
+        })(),
       ]);
 
       const logoMap: Record<string, string> = {};
@@ -429,15 +447,17 @@ app.get('/home', async (c) => {
 
       const hotDomains = hotRes.rows.map(rowToObj);
       const soldDomains = soldRes.rows.map(rowToObj);
-      return { hotDomains, soldDomains, logoMap, totalSold: soldDomains.length };
+      return { hotDomains, soldDomains, auctionDomains: auctionData, logoMap, totalSold: soldDomains.length };
     },
     300,  // 5 min fresh
     300,  // serve stale for 5 min while revalidating
   );
+  // Allow CDN/browser to serve cached response for 60s, then stale-while-revalidate 240s
+  c.header('Cache-Control', 'public, max-age=60, stale-while-revalidate=240');
   return c.json(data);
 });
 
-// ---- Active Auctions (Supabase-only table, Redis 5 min) ----
+// ---- Active Auctions (kept for backwards compat; data is now bundled in /home) ----
 app.get('/auctions', async (c) => {
   const { cacheGetOrSet } = await import('../redis.js');
   const data = await cacheGetOrSet(
@@ -459,6 +479,7 @@ app.get('/auctions', async (c) => {
     300,
     300,
   );
+  c.header('Cache-Control', 'public, max-age=60, stale-while-revalidate=240');
   return c.json(data);
 });
 
@@ -476,6 +497,7 @@ app.get('/site-settings', async (c) => {
     600,  // fresh for 10 min
     300,  // serve stale for extra 5 min while refreshing
   );
+  c.header('Cache-Control', 'public, max-age=120, stale-while-revalidate=480');
   return c.json(data);
 });
 

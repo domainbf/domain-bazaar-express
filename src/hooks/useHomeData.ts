@@ -11,6 +11,7 @@ export interface HomeDomainItem {
 interface RawHomeData {
   hotDomains: Array<{ id: unknown; name: unknown; price: unknown }>;
   soldDomains: Array<{ id: unknown; name: unknown; price: unknown }>;
+  auctionDomains?: Array<{ id: unknown; name: unknown; price: unknown }>;
   logoMap: Record<string, string>;
   totalSold: number;
 }
@@ -18,11 +19,12 @@ interface RawHomeData {
 export interface HomeData {
   hotDomains: HomeDomainItem[];
   soldDomains: HomeDomainItem[];
+  auctionDomains: HomeDomainItem[];
   logoMap: Record<string, string>;
   totalSold: number;
 }
 
-const fetchHomeData = async (): Promise<HomeData> => {
+export const fetchHomeData = async (): Promise<HomeData> => {
   const raw = await apiGet<RawHomeData>('/data/home');
   const logoMap: Record<string, string> = raw?.logoMap ?? {};
 
@@ -36,6 +38,7 @@ const fetchHomeData = async (): Promise<HomeData> => {
   return {
     hotDomains: (raw?.hotDomains ?? []).map(mapItem),
     soldDomains: (raw?.soldDomains ?? []).map(mapItem),
+    auctionDomains: (raw?.auctionDomains ?? []).map(mapItem),
     logoMap,
     totalSold: raw?.totalSold ?? 0,
   };

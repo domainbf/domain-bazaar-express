@@ -10,6 +10,7 @@ import './index.css'
 import { AuthProvider } from './contexts/AuthContext.tsx'
 import { LoadingProvider } from './contexts/LoadingContext.tsx'
 import './i18n'
+import { HOME_DATA_KEY, fetchHomeData } from './hooks/useHomeData.ts'
 
 // Only retry on network errors, not on 4xx/5xx API errors
 function shouldRetry(failureCount: number, error: unknown): boolean {
@@ -37,6 +38,15 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// ── Prefetch critical homepage data immediately on script load ─────────────
+// Fires before React renders anything — so by the time HomePage mounts
+// the fetch is already in-flight (or resolved from cache).
+queryClient.prefetchQuery({
+  queryKey: HOME_DATA_KEY,
+  queryFn: fetchHomeData,
+  staleTime: 5 * 60 * 1000,
+}).catch(() => {/* silent — useHomeData handles errors */});
 
 const handleGlobalError = (event: ErrorEvent) => {
   console.error("Global error caught:", event.error);
