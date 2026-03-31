@@ -1,8 +1,8 @@
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect, useState, useRef } from 'react';
-import { apiGet } from '@/lib/apiClient';
 import { Gavel, Flame, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useHomeData } from '@/hooks/useHomeData';
 
 export type BandType = 'auction' | 'hot' | 'sold';
 
@@ -26,15 +26,7 @@ function getDomainInitials(name: string): string {
   return base.slice(0, 3);
 }
 
-function LogoCard({
-  item,
-  onClick,
-  index,
-}: {
-  item: DomainChip;
-  onClick: () => void;
-  index: number;
-}) {
+function LogoCard({ item, onClick, index }: { item: DomainChip; onClick: () => void; index: number }) {
   const initials = getDomainInitials(item.name);
   const ext = item.name.includes('.') ? '.' + item.name.split('.').slice(1).join('.') : '';
   const base = item.name.split('.')[0].toUpperCase();
@@ -66,9 +58,7 @@ function LogoCard({
         <div className="flex flex-col items-center gap-1">
           <span
             className="font-black text-foreground leading-none tracking-tight select-none"
-            style={{
-              fontSize: initials.length <= 2 ? '1.75rem' : initials.length <= 3 ? '1.35rem' : '1.1rem',
-            }}
+            style={{ fontSize: initials.length <= 2 ? '1.75rem' : initials.length <= 3 ? '1.35rem' : '1.1rem' }}
           >
             {initials}
           </span>
@@ -84,18 +74,13 @@ function LogoCard({
   );
 }
 
-function MarqueeRow({
-  items,
-  direction,
-  onChipClick,
-}: {
+function MarqueeRow({ items, direction, onChipClick }: {
   items: DomainChip[];
   direction: 'ltr' | 'rtl';
   onChipClick: (id: string) => void;
 }) {
   if (!items.length) return null;
   const doubled = [...items, ...items];
-
   return (
     <div className="overflow-hidden w-full">
       <div
@@ -105,119 +90,56 @@ function MarqueeRow({
         onMouseLeave={(e) => (e.currentTarget.style.animationPlayState = 'running')}
       >
         {doubled.map((item, i) => (
-          <LogoCard
-            key={`${item.id}-${i}`}
-            item={item}
-            onClick={() => onChipClick(item.id)}
-            index={i}
-          />
+          <LogoCard key={`${item.id}-${i}`} item={item} onClick={() => onChipClick(item.id)} index={i} />
         ))}
       </div>
     </div>
   );
 }
 
-async function fetchLogoMap(ids: string[]): Promise<Record<string, string>> {
-  if (!ids.length) return {};
-  const uniqueIds = [...new Set(ids)];
-  const keys = uniqueIds.map(id => `domain_logo_${id}`);
-  const settings = await apiGet('/data/site-settings').catch(() => ({}) as Record<string, string>);
-  const map: Record<string, string> = {};
-  for (const key of keys) {
-    const id = key.replace('domain_logo_', '');
-    if (settings[key]) map[id] = settings[key] as string;
-  }
-  return map;
-}
-
-export function DomainScrollBands({
-  showSold = false,
-}: {
-  showSold?: boolean;
-}) {
+export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) {
   const navigate = useNavigate();
-  const [auctionDomains, setAuctionDomains] = useState<DomainChip[]>([]);
-  const [hotDomains, setHotDomains] = useState<DomainChip[]>([]);
-  const [soldDomains, setSoldDomains] = useState<DomainChip[]>([]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const queries: Promise<any>[] = [
-        supabase
-          .from('domain_auctions')
-          .select('id, starting_price, current_price, domain:domain_listings(id, name, price)')
-          .eq('status', 'active')
-          .limit(20),
-        supabase
-          .from('domain_listings')
-          .select('id, name, price')
-          .eq('status', 'available')
-          .order('created_at', { ascending: false })
-          .limit(40),
-        supabase
-          .from('domain_analytics')
-          .select('domain_id, views')
-          .order('views', { ascending: false })
-          .limit(40),
-      ];
+  const { data: homeData } = useHomeData();
 
-      if (showSold) {
-        queries.push(
-          supabase
-            .from('domain_listings')
-            .select('id, name, price')
-            .eq('status', 'sold')
-            .order('created_at', { ascending: false })
-            .limit(30)
-        );
-      }
+  const { data: auctionRaw } = useQuery({
+    queryKey: ['home', 'auctions'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('domain_auctions')
+        .select('id, starting_price, current_price, domain:domain_listings(id, name, price)')
+        .eq('status', 'active')
+        .limit(20);
+      return data ?? [];
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
 
-      const [auctionRes, hotRes, analyticsRes, soldRes] = await Promise.all(queries);
+  const logoMap = homeData?.logoMap ?? {};
 
-      const allIds: string[] = [];
+  const auctionDomains: DomainChip[] = (auctionRaw ?? [])
+    .filter((a: any) => a.domain)
+    .map((a: any) => {
+      const id = (a.domain as any)?.id ?? a.id;
+      return {
+        id,
+        name: (a.domain as any)?.name ?? '域名',
+        price: Number(a.current_price) || Number(a.starting_price) || 0,
+        logoUrl: logoMap[id],
+        bandType: 'auction' as BandType,
+      };
+    });
 
-      const auctionChips: DomainChip[] = [];
-      if (auctionRes.data?.length) {
-        auctionRes.data.filter((a: any) => a.domain).forEach((a: any) => {
-          const id = (a.domain as any)?.id ?? a.id;
-          allIds.push(id);
-          auctionChips.push({ id, name: (a.domain as any)?.name ?? '域名', price: Number(a.current_price) || Number(a.starting_price) || 0, bandType: 'auction' });
-        });
-      }
+  const rawHot = homeData?.hotDomains ?? [];
+  const hotDomains: DomainChip[] = rawHot.slice(0, 20).map(d => ({ ...d, bandType: 'hot' as BandType }));
 
-      const hotChips: DomainChip[] = [];
-      if (hotRes.data?.length) {
-        const analyticsMap = new Map<string, number>();
-        (analyticsRes.data ?? []).forEach((a: any) => { if (a.domain_id) analyticsMap.set(a.domain_id, Number(a.views) || 0); });
-        const sorted = [...hotRes.data].sort((a: any, b: any) => (analyticsMap.get(b.id) ?? 0) - (analyticsMap.get(a.id) ?? 0)).slice(0, 20);
-        sorted.forEach((d: any) => {
-          allIds.push(d.id);
-          hotChips.push({ id: d.id, name: d.name ?? '域名', price: Number(d.price) || 0, bandType: 'hot' });
-        });
-      }
+  const rawSold = showSold ? (homeData?.soldDomains ?? []) : [];
+  const soldDomains: DomainChip[] = rawSold.slice(0, 30).map(d => ({ ...d, bandType: 'sold' as BandType }));
 
-      const soldChips: DomainChip[] = [];
-      if (showSold && soldRes?.data?.length) {
-        soldRes.data.forEach((d: any) => {
-          allIds.push(d.id);
-          soldChips.push({ id: d.id, name: d.name ?? '域名', price: Number(d.price) || 0, bandType: 'sold' });
-        });
-      }
-
-      const logoMap = await fetchLogoMap(allIds);
-      const withLogos = (chips: DomainChip[]) => chips.map(c => ({ ...c, logoUrl: logoMap[c.id] }));
-
-      const fa = withLogos(auctionChips);
-      const fh = withLogos(hotChips);
-      const fs = withLogos(soldChips);
-
-      setAuctionDomains(fa.length >= 4 ? fa : [...fa, ...fa]);
-      setHotDomains(fh.length >= 4 ? fh : [...fh, ...fh]);
-      setSoldDomains(fs.length >= 4 ? fs : [...fs, ...fs]);
-    };
-
-    fetchData();
-  }, [showSold]);
+  const pad = (arr: DomainChip[]) => (arr.length >= 4 ? arr : [...arr, ...arr]);
 
   const handleChipClick = (id: string) => navigate(`/domain/${id}`);
 
@@ -231,7 +153,7 @@ export function DomainScrollBands({
             <Gavel className="h-3.5 w-3.5 text-foreground/50" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">拍卖域名</span>
           </div>
-          <MarqueeRow items={auctionDomains} direction="ltr" onChipClick={handleChipClick} />
+          <MarqueeRow items={pad(auctionDomains)} direction="ltr" onChipClick={handleChipClick} />
         </div>
       )}
 
@@ -241,7 +163,7 @@ export function DomainScrollBands({
             <Flame className="h-3.5 w-3.5 text-foreground/50" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">热门域名</span>
           </div>
-          <MarqueeRow items={hotDomains} direction="rtl" onChipClick={handleChipClick} />
+          <MarqueeRow items={pad(hotDomains)} direction="rtl" onChipClick={handleChipClick} />
         </div>
       )}
 
@@ -251,7 +173,7 @@ export function DomainScrollBands({
             <CheckCircle className="h-3.5 w-3.5 text-foreground/50" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">成交案例</span>
           </div>
-          <MarqueeRow items={soldDomains} direction="ltr" onChipClick={handleChipClick} />
+          <MarqueeRow items={pad(soldDomains)} direction="ltr" onChipClick={handleChipClick} />
         </div>
       )}
     </div>

@@ -1,31 +1,20 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Domain } from '@/types/domain';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Trophy } from 'lucide-react';
+import { useHomeData } from '@/hooks/useHomeData';
+import { Domain } from '@/types/domain';
 
 export const SoldDomains = () => {
-  const [soldDomains, setSoldDomains] = useState<Domain[]>([]);
+  const { data: homeData } = useHomeData();
 
-  useEffect(() => {
-    const loadSoldDomains = async () => {
-      const { data } = await supabase
-        .from('domain_listings')
-        .select('*')
-        .eq('status', 'sold')
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (data) {
-        setSoldDomains(data.map(d => ({
-          id: d.id, name: d.name, price: Number(d.price),
-          category: d.category || 'standard', status: d.status || 'sold',
-          owner_id: d.owner_id || '', created_at: d.created_at || new Date().toISOString()
-        })));
-      }
-    };
-    loadSoldDomains();
-  }, []);
+  const soldDomains: Domain[] = (homeData?.soldDomains ?? []).slice(0, 10).map(d => ({
+    id: d.id,
+    name: d.name,
+    price: d.price,
+    category: 'standard',
+    status: 'sold',
+    owner_id: '',
+    created_at: new Date().toISOString(),
+  }));
 
   if (soldDomains.length === 0) return null;
 

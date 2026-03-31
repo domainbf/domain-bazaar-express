@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useHomeData } from '@/hooks/useHomeData';
 
 interface SoldDomain {
   id: string;
@@ -94,55 +93,17 @@ function MarqueeTrack({ items, direction, onClick }: {
 
 export function DealsShowcaseSection() {
   const navigate = useNavigate();
-  const [soldDomains, setSoldDomains] = useState<SoldDomain[]>([]);
-  const [totalSold, setTotalSold] = useState(0);
+  const { data: homeData } = useHomeData();
 
-  useEffect(() => {
-    const fetchSold = async () => {
-      const [soldRes, countRes] = await Promise.all([
-        supabase
-          .from('domain_listings')
-          .select('id, name, price')
-          .eq('status', 'sold')
-          .order('created_at', { ascending: false })
-          .limit(40),
-        supabase
-          .from('domain_listings')
-          .select('id', { count: 'exact', head: true })
-          .eq('status', 'sold'),
-      ]);
+  const raw = homeData?.soldDomains ?? [];
+  const totalSold = homeData?.totalSold ?? 0;
 
-      const domains: SoldDomain[] = (soldRes.data || []).map((d: any) => ({
-        id: d.id,
-        name: d.name,
-        price: Number(d.price) || 0,
-      }));
+  if (!raw.length) return null;
 
-      if (domains.length) {
-        const logoKeys = domains.map(d => `domain_logo_${d.id}`);
-        const { data: logoData } = await supabase
-          .from('site_settings').select('key, value').in('key', logoKeys);
-        const logoMap: Record<string, string> = {};
-        (logoData || []).forEach((r: any) => {
-          const id = r.key.replace('domain_logo_', '');
-          if (r.value) logoMap[id] = r.value;
-        });
-        domains.forEach(d => { d.logoUrl = logoMap[d.id]; });
-      }
-
-      setTotalSold(countRes.count || domains.length);
-      const padded = domains.length >= 4 ? domains : [...domains, ...domains];
-      setSoldDomains(padded);
-    };
-
-    fetchSold();
-  }, []);
-
-  if (!soldDomains.length) return null;
-
-  const half = Math.ceil(soldDomains.length / 2);
-  const row1 = soldDomains.slice(0, half);
-  const row2 = soldDomains.slice(half);
+  const padded: SoldDomain[] = raw.length >= 4 ? raw : [...raw, ...raw];
+  const half = Math.ceil(padded.length / 2);
+  const row1 = padded.slice(0, half);
+  const row2 = padded.slice(half);
 
   return (
     <section className="py-10 md:py-14 border-y border-border bg-background overflow-hidden">

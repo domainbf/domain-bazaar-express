@@ -397,6 +397,48 @@ app.post('/transactions', requireAuth, async (c) => {
   return c.json(inserted, 201);
 });
 
+// ---- Homepage Data (hot + sold domains + logos, Redis 5 min) ----
+app.get('/home', async (c) => {
+  const { cacheGetOrSet } = await import('../redis.js');
+  const data = await cacheGetOrSet(
+    'home_data',
+    async () => {
+      const [hotRes, soldRes, logoRes] = await Promise.all([
+        db.execute({
+          sql: `SELECT dl.id, dl.name, dl.price
+                FROM domain_listings dl
+                LEFT JOIN domain_analytics da ON dl.id = da.domain_id
+                WHERE dl.status = 'available'
+                ORDER BY COALESCE(da.views, 0) DESC
+                LIMIT 40`,
+          args: [],
+        }),
+        db.execute({
+          sql: `SELECT id, name, price FROM domain_listings WHERE status = 'sold' ORDER BY created_at DESC LIMIT 40`,
+          args: [],
+        }),
+        db.execute({
+          sql: `SELECT key, value FROM site_settings WHERE key LIKE 'domain_logo_%'`,
+          args: [],
+        }),
+      ]);
+
+      const logoMap: Record<string, string> = {};
+      for (const row of logoRes.rows) {
+        const id = (row.key as string).replace('domain_logo_', '');
+        if (row.value) logoMap[id] = row.value as string;
+      }
+
+      const hotDomains = hotRes.rows.map(rowToObj);
+      const soldDomains = soldRes.rows.map(rowToObj);
+      return { hotDomains, soldDomains, logoMap, totalSold: soldDomains.length };
+    },
+    300,  // 5 min fresh
+    300,  // serve stale for 5 min while revalidating
+  );
+  return c.json(data);
+});
+
 // ---- Site Settings (public read, heavily cached 10 min + 5 min stale) ----
 app.get('/site-settings', async (c) => {
   const { cacheGetOrSet } = await import('../redis.js');
