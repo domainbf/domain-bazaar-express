@@ -38,7 +38,7 @@ app.get('/api/health', async (c) => {
   return c.json({ ok: true, ts: new Date().toISOString(), redis: redisOk });
 });
 
-// Fire-and-forget background init
+// ── Background init (fire-and-forget per cold start) ──────────────────────
 let bgInitDone = false;
 function bgInit() {
   if (bgInitDone) return;
@@ -49,10 +49,9 @@ function bgInit() {
   ]).then(() => console.log('[api] background init complete'));
 }
 
-// Read body from IncomingMessage as Buffer — handles Vercel's streaming correctly
+// ── Read request body into a Buffer ───────────────────────────────────────
 function readBody(req: IncomingMessage): Promise<Buffer> {
   return new Promise((resolve, reject) => {
-    // If body is already available (some runtimes pre-buffer it)
     if ((req as any).body) {
       const b = (req as any).body;
       if (Buffer.isBuffer(b)) return resolve(b);
@@ -63,46 +62,79 @@ function readBody(req: IncomingMessage): Promise<Buffer> {
     req.on('data', (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
     req.on('end', () => resolve(Buffer.concat(chunks)));
     req.on('error', reject);
-    // Safety: if the stream is already ended (no more data), resolve empty
     if ((req as any).complete) resolve(Buffer.concat(chunks));
   });
 }
 
+// ── Pipe a Web ReadableStream → Node ServerResponse (for SSE) ─────────────
+async function pipeStream(readable: ReadableStream<Uint8Array>, req: IncomingMessage, res: ServerResponse) {
+  const reader = readable.getReader();
+  let cancelled = false;
+
+  const cancel = () => {
+    cancelled = true;
+    reader.cancel().catch(() => {});
+  };
+
+  req.on('close', cancel);
+  req.on('error', cancel);
+
+  try {
+    while (!cancelled) {
+      const { done, value } = await reader.read();
+      if (done || cancelled) break;
+      if (!res.writable) break;
+      // write() returns false when the internal buffer is full → wait for drain
+      const ok = res.write(Buffer.from(value));
+      if (!ok) await new Promise<void>(r => res.once('drain', r));
+    }
+  } catch {
+    // client disconnected or stream error — normal for SSE
+  } finally {
+    req.off('close', cancel);
+    req.off('error', cancel);
+    if (!res.writableEnded) res.end();
+  }
+}
+
+// ── Main Vercel handler ────────────────────────────────────────────────────
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   bgInit();
 
-  // Build a proper URL from the request
   const proto = (req.headers['x-forwarded-proto'] as string) || 'https';
-  const host = (req.headers['host'] as string) || 'nic.rw';
-  const url = `${proto}://${host}${req.url}`;
+  const host  = (req.headers['host'] as string) || 'nic.rw';
+  const url   = `${proto}://${host}${req.url}`;
 
-  // Read body upfront so it's available for all route handlers
   const body = await readBody(req);
 
-  // Convert headers to a plain record
   const headers: Record<string, string> = {};
-  const raw = req.headers;
-  for (const [k, v] of Object.entries(raw)) {
+  for (const [k, v] of Object.entries(req.headers)) {
     if (v !== undefined) headers[k] = Array.isArray(v) ? v.join(', ') : v;
   }
 
-  // Build a Web API Request object for Hono
   const webReq = new Request(url, {
     method: req.method || 'GET',
     headers,
     body: body.length > 0 ? body : undefined,
   });
 
-  // Call Hono's fetch handler
   const webRes = await app.fetch(webReq);
 
-  // Write status and headers
+  // Write HTTP status + response headers
   res.statusCode = webRes.status;
-  webRes.headers.forEach((value, key) => {
-    res.setHeader(key, value);
-  });
+  webRes.headers.forEach((value, key) => res.setHeader(key, value));
 
-  // Write body
+  const isSSE = (webRes.headers.get('content-type') || '').includes('text/event-stream');
+
+  if (isSSE && webRes.body) {
+    // Flush headers to the client immediately so the SSE connection is established
+    // before any event data arrives (critical for EventSource reconnect logic).
+    res.flushHeaders();
+    await pipeStream(webRes.body, req, res);
+    return;
+  }
+
+  // Normal (non-streaming) response — buffer and send
   const resBody = await webRes.arrayBuffer();
   res.end(Buffer.from(resBody));
 }
