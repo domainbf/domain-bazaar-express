@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Settings, Globe, Mail, Shield, Plus, Trash2, Save, Database, Palette, Key, Eye, EyeOff, Send, CheckCircle, XCircle, Loader2, AlertCircle, Phone, Puzzle, TestTube2, Zap, Info, Power, UserX, Wrench } from 'lucide-react';
+import { Settings, Globe, Mail, Shield, Plus, Trash2, Save, Database, Palette, Key, Eye, EyeOff, Send, CheckCircle, XCircle, Loader2, AlertCircle, Phone, Puzzle, TestTube2, Zap, Info, Power, UserX, Wrench, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -108,6 +108,9 @@ export const SiteSettings = () => {
   const [isSavingMs, setIsSavingMs] = useState(false);
   const [msTestResult, setMsTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [isTestingMs, setIsTestingMs] = useState(false);
+  const [isBatchingHot, setIsBatchingHot] = useState(false);
+  const [isBatchingAuction, setIsBatchingAuction] = useState(false);
+  const [batchProgress, setBatchProgress] = useState('');
 
   // Site control state
   const [siteClosed, setSiteClosed] = useState(false);
@@ -334,6 +337,48 @@ export const SiteSettings = () => {
       setMsTestResult({ ok: false, msg: e.message || '测试失败，请检查API Key和模型' });
     } finally {
       setIsTestingMs(false);
+    }
+  };
+
+  const batchGenerateHotLogos = async () => {
+    setIsBatchingHot(true);
+    setBatchProgress('');
+    try {
+      const { batchGenerateLogos } = await import('@/hooks/useModelScopeAI');
+      const homeData = await apiGet<{ hotDomains: Array<{ id: string; name: string }> }>('/data/home');
+      const domains = (homeData?.hotDomains ?? []).map(d => ({ id: String(d.id), name: d.name }));
+      if (domains.length === 0) { setBatchProgress('没有找到推荐域名'); return; }
+      const result = await batchGenerateLogos(domains, (msg, total, done) => {
+        setBatchProgress(`[${done}/${total}] ${msg}`);
+      });
+      setBatchProgress(`批量完成：成功 ${result.success} 个，失败 ${result.failed} 个`);
+      toast.success(`推荐域名 Logo 批量生成完毕（成功 ${result.success} / ${domains.length}）`);
+    } catch (e: any) {
+      setBatchProgress('批量生成出错：' + (e.message || '未知错误'));
+      toast.error('批量生成失败');
+    } finally {
+      setIsBatchingHot(false);
+    }
+  };
+
+  const batchGenerateAuctionLogos = async () => {
+    setIsBatchingAuction(true);
+    setBatchProgress('');
+    try {
+      const { batchGenerateLogos } = await import('@/hooks/useModelScopeAI');
+      const auctionData = await apiGet<Array<{ id: string; name: string }>>('/data/auctions');
+      const domains = (auctionData ?? []).map(d => ({ id: String(d.id), name: d.name, type: 'auction' as const }));
+      if (domains.length === 0) { setBatchProgress('没有找到拍卖域名'); return; }
+      const result = await batchGenerateLogos(domains, (msg, total, done) => {
+        setBatchProgress(`[${done}/${total}] ${msg}`);
+      });
+      setBatchProgress(`批量完成：成功 ${result.success} 个，失败 ${result.failed} 个`);
+      toast.success(`拍卖域名 Logo 批量生成完毕（成功 ${result.success} / ${domains.length}）`);
+    } catch (e: any) {
+      setBatchProgress('批量生成出错：' + (e.message || '未知错误'));
+      toast.error('批量生成失败');
+    } finally {
+      setIsBatchingAuction(false);
     }
   };
 
@@ -1594,6 +1639,11 @@ export const SiteSettings = () => {
                 <AlertDescription>
                   推荐模型：<strong>Z-Image-Turbo</strong>（速度快）、<strong>Flux.1</strong>（质量高）。
                   生成的 Logo 会自动适配黑白主题，存储后显示在首页滚动域名卡片中。
+                  <br />
+                  <span className="text-xs text-muted-foreground mt-1 block">
+                    首次使用需在 ModelScope 账户页面<strong>绑定阿里云账号</strong>，否则 API 请求会返回 401 错误。
+                    绑定入口：<a href="https://modelscope.cn/my/myinfo" target="_blank" rel="noopener noreferrer" className="underline">modelscope.cn → 账户信息 → 绑定阿里云</a>
+                  </span>
                 </AlertDescription>
               </Alert>
 
@@ -1646,7 +1696,7 @@ export const SiteSettings = () => {
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button onClick={saveModelScopeConfig} disabled={isSavingMs}>
                   {isSavingMs ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />}
                   保存配置
@@ -1657,7 +1707,23 @@ export const SiteSettings = () => {
                     : <TestTube2 className="h-4 w-4 mr-1.5" />}
                   测试生成
                 </Button>
+                <Button variant="outline" onClick={batchGenerateHotLogos} disabled={isBatchingHot || isBatchingAuction || !msApiKey}>
+                  {isBatchingHot
+                    ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
+                    : <Sparkles className="h-4 w-4 mr-1.5" />}
+                  批量生成推荐域名 Logo
+                </Button>
+                <Button variant="outline" onClick={batchGenerateAuctionLogos} disabled={isBatchingHot || isBatchingAuction || !msApiKey}>
+                  {isBatchingAuction
+                    ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
+                    : <Sparkles className="h-4 w-4 mr-1.5" />}
+                  批量生成拍卖域名 Logo
+                </Button>
               </div>
+
+              {batchProgress && (
+                <p className="text-sm text-muted-foreground font-mono bg-muted/40 rounded px-3 py-2">{batchProgress}</p>
+              )}
 
               {msTestResult && (
                 <Alert className={msTestResult.ok ? 'border-green-500/30 bg-green-500/10 dark:border-green-800 dark:bg-green-950/30' : 'border-red-500/30 bg-red-500/10 dark:border-red-800 dark:bg-red-950/30'}>

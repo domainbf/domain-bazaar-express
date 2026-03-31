@@ -263,7 +263,18 @@ export async function generateDomainLogo(
 
   if (!res.ok) {
     const errText = await res.text().catch(() => res.statusText);
-    throw new Error(`ModelScope API 错误 ${res.status}: ${errText}`);
+    let errMsg = errText;
+    try {
+      const errJson = JSON.parse(errText);
+      errMsg = errJson?.errors?.message
+        || errJson?.error?.message
+        || errJson?.message
+        || errText;
+    } catch { /* not JSON, keep raw text */ }
+    if (res.status === 401) {
+      throw new Error(`API 认证失败（401）：${errMsg}。请前往 modelscope.cn 账户设置绑定阿里云账号后重试。`);
+    }
+    throw new Error(`ModelScope API 错误 ${res.status}: ${errMsg}`);
   }
 
   const json = await res.json();
