@@ -62,7 +62,7 @@ async function sendEmail(to: string | string[], subject: string, html: string): 
   for (const row of r.rows) settings[row.key as string] = row.value as string;
   const apiKey = settings.resend_api_key || settings.smtp_password || '';
   if (!apiKey) return;
-  const fromEmail = settings.smtp_from_email || 'noreply@nic.bn';
+  const fromEmail = settings.smtp_from_email || 'noreply@nic.rw';
   const fromName = settings.smtp_from_name || '域见·你';
   const recipients = Array.isArray(to) ? to : [to];
   await fetch('https://api.resend.com/emails', {
@@ -79,8 +79,8 @@ async function getBrandConfig() {
   for (const row of r.rows) s[row.key as string] = row.value as string;
   return {
     siteName: s.site_name || '域见·你',
-    siteDomain: (s.site_domain || 'https://nic.bn').replace(/\/$/, ''),
-    supportEmail: s.contact_email || 'support@nic.bn',
+    siteDomain: (s.site_domain || 'https://nic.rw').replace(/\/$/, ''),
+    supportEmail: s.contact_email || 'support@nic.rw',
   };
 }
 
@@ -865,7 +865,7 @@ app.post('/contact-email', async (c) => {
   const { name, email, subject, message } = body;
   if (!email || !message) return c.json({ error: '缺少必要字段' }, 400);
   const settingsRes = await db.execute({ sql: "SELECT value FROM site_settings WHERE key = 'contact_email' LIMIT 1", args: [] });
-  const contactEmail = (settingsRes.rows[0]?.value as string) || 'support@nic.bn';
+  const contactEmail = (settingsRes.rows[0]?.value as string) || 'domain@nic.rw';
   const html = `<h2>新联系消息</h2>
     <p><strong>发件人：</strong>${name || '匿名'} &lt;${email}&gt;</p>
     <p><strong>主题：</strong>${subject || '无'}</p>
@@ -1008,7 +1008,7 @@ app.post('/admin/send-test-email', requireAuth, async (c) => {
   if (!to) return c.json({ error: '缺少收件人' }, 400);
   // Use provided SMTP config or read from DB
   let apiKey = smtp?.password || smtp?.apiKey || '';
-  let fromEmail = smtp?.from_email || 'noreply@nic.bn';
+  let fromEmail = smtp?.from_email || 'noreply@nic.rw';
   let fromName = smtp?.from_name || '域见·你';
   if (!apiKey) {
     const r = await db.execute("SELECT key, value FROM site_settings WHERE key IN ('resend_api_key','smtp_password','smtp_from_email','smtp_from_name')");

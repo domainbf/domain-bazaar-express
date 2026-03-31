@@ -315,7 +315,7 @@ async function sendEmail(to: string, subject: string, html: string): Promise<voi
   for (const row of r.rows) settings[row.key as string] = row.value as string;
 
   const apiKey = settings.resend_api_key || settings.smtp_password || '';
-  const fromEmail = settings.smtp_from_email || 'noreply@nic.bn';
+  const fromEmail = settings.smtp_from_email || 'noreply@nic.rw';
   const fromName = settings.smtp_from_name || '域见·你';
 
   if (!apiKey) {
@@ -344,9 +344,9 @@ async function getSiteBaseUrl(): Promise<string> {
   try {
     const r = await db.execute("SELECT value FROM site_settings WHERE key = 'site_domain' LIMIT 1");
     const domain = r.rows[0]?.value as string | undefined;
-    return (domain || 'https://nic.bn').replace(/\/$/, '');
+    return (domain || 'https://nic.rw').replace(/\/$/, '');
   } catch {
-    return 'https://nic.bn';
+    return 'https://nic.rw';
   }
 }
 
@@ -379,7 +379,7 @@ app.post('/request-reset', async (c) => {
   <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
     <div style="background:#111;padding:28px 32px;text-align:center;">
       <h1 style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:1px;">域见·你</h1>
-      <p style="margin:4px 0 0;color:#aaa;font-size:13px;">NIC.BN 域名交易平台</p>
+      <p style="margin:4px 0 0;color:#aaa;font-size:13px;">NIC.RW 域名交易平台</p>
     </div>
     <div style="padding:36px 32px;">
       <h2 style="margin:0 0 16px;color:#111;font-size:20px;">重置您的密码</h2>

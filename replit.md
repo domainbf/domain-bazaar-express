@@ -1,4 +1,4 @@
-# NIC.BN / 域见·你 — 中文域名交易平台
+# NIC.RW / 域见·你 — 中文域名交易平台
 
 ## 项目概述
 专业域名交易平台，支持域名浏览、报价、还价、成交全流程。
@@ -140,7 +140,7 @@
 - **密码重置邮件**: `baseUrl` 从硬编码 `https://nic.rw` 改为读取 `site_settings.site_domain`
 - **服务端 navigator 移除**: crash-report HTML 模板中的 `navigator?.userAgent` 已删除（服务端无 navigator）
 - **邮件发件源统一**: `auth.ts` 改为读取 `site_settings`（而非旧 `smtp_settings` 表），与 `data.ts` 保持一致
-- **硬编码域名清理**: 所有 fallback 邮箱从 `noreply@nic.rw` / `domain@nic.rw` 统一改为 `noreply@nic.bn` / `support@nic.bn`
+- **硬编码域名规范**: 所有 fallback 邮箱统一使用 `noreply@nic.rw` / `domain@nic.rw`（正式域名）
 - **反馈内容长度限制**: message ≤ 5000字，subject ≤ 200字
 
 ## 已知限制
