@@ -874,6 +874,33 @@ app.delete('/favorites/:domainId', requireAuth, async (c) => {
   return c.json({ success: true });
 });
 
+// ---- Domain Views (record a page view) ----
+app.post('/domain-views/:id', async (c) => {
+  const domainId = c.req.param('id');
+  if (!domainId) return c.json({ error: '缺少域名ID' }, 400);
+  try {
+    const existing = await db.execute({
+      sql: 'SELECT id FROM domain_analytics WHERE domain_id = ? LIMIT 1',
+      args: [domainId],
+    });
+    if (existing.rows.length > 0) {
+      await db.execute({
+        sql: 'UPDATE domain_analytics SET views = COALESCE(views,0)+1, last_updated = ? WHERE domain_id = ?',
+        args: [new Date().toISOString(), domainId],
+      });
+    } else {
+      const { randomUUID } = await import('crypto');
+      await db.execute({
+        sql: 'INSERT INTO domain_analytics (id, domain_id, views, favorites, offers, last_updated) VALUES (?,?,1,0,0,?)',
+        args: [randomUUID(), domainId, new Date().toISOString()],
+      });
+    }
+    return c.json({ success: true });
+  } catch (e: any) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
 // ---- Contact Email ----
 app.post('/contact-email', async (c) => {
   const body = await c.req.json();
