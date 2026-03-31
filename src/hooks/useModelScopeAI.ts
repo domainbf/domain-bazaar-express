@@ -165,19 +165,10 @@ function detectLogoType(domainName: string, category?: string): DomainLogoType {
   const base = parts[0];
   const tld = parts.length > 1 ? parts[parts.length - 1] : '';
 
-  // 单字符：极稀有资产
   if (base.length === 1) return 'single';
-
-  // 纯数字域名
   if (/^\d+$/.test(base)) return 'numeric';
-
-  // 国别后缀（2位 ccTLD）
   if (tld.length === 2 && CCTLD_SET.has(tld)) return 'country';
-
-  // 短域名（2–4 字符）
   if (base.length <= 4) return 'short';
-
-  // 科技关键词
   if (/^(ai|tech|dev|code|api|cloud|data|app|web|net|soft|byte|bit|pixel|hack|open|smart|cyber|node|stack|saas|paas|faas|k8s|devops)/.test(base)) return 'tech';
 
   return 'general';
@@ -216,6 +207,18 @@ export function buildLogoPrompt(domainName: string, type?: DomainLogoType, categ
   return `${stylePrompt}, created ${subject}. MANDATORY CONSTRAINT: pure black and white ONLY — solid black (#000000) and solid white (#FFFFFF), absolutely no gray, no color, no tonal variation. Square 1:1 format, white background, professional vector-style logo artwork suitable for print and screen at any scale. Negative: ${negativeHints}`;
 }
 
+// ─── 模型配置表 ─────────────────────────────────────────────────────────
+// ModelScope 平台经验证的模型 ID 及其调用方式
+// asyncRequired: true = 不支持同步调用，必须使用异步模式+轮询
+
+export const MS_MODELS: Array<{ id: string; label: string; asyncRequired: boolean; free: boolean }> = [
+  { id: 'black-forest-labs/FLUX.1-schnell', label: 'FLUX.1 Schnell（速度最快，免费推荐）', asyncRequired: false, free: true },
+  { id: 'black-forest-labs/FLUX.1-dev',    label: 'FLUX.1 Dev（质量更高，异步模式）',    asyncRequired: true,  free: false },
+  { id: 'AI-ModelScope/stable-diffusion-xl-base-1.0', label: 'Stable Diffusion XL（均衡，异步模式）', asyncRequired: true, free: true },
+];
+
+const MS_API_BASE = 'https://api-inference.modelscope.cn/v1';
+
 // ─── ModelScope 配置 ─────────────────────────────────────────────────────
 
 async function getModelScopeConfig(): Promise<ModelScopeConfig | null> {
@@ -228,12 +231,114 @@ async function getModelScopeConfig(): Promise<ModelScopeConfig | null> {
   };
 }
 
-const MODEL_ENDPOINTS: Record<string, string> = {
-  'black-forest-labs/FLUX.1-schnell':            'https://api-inference.modelscope.cn/v1/images/generations',
-  'black-forest-labs/FLUX.1-dev':               'https://api-inference.modelscope.cn/v1/images/generations',
-  'stabilityai/stable-diffusion-xl-base-1.0':   'https://api-inference.modelscope.cn/v1/images/generations',
-  'stabilityai/stable-diffusion-3-5-large':     'https://api-inference.modelscope.cn/v1/images/generations',
-};
+// ─── 异步任务轮询 ─────────────────────────────────────────────────────────
+// ModelScope 异步任务接口：GET /v1/tasks/{task_id}
+// 状态：PENDING → RUNNING → SUCCEEDED / FAILED
+
+async function pollAsyncTask(
+  taskId: string,
+  apiKey: string,
+  maxWaitMs = 120_000,
+  intervalMs = 2_500,
+): Promise<string> {
+  const deadline = Date.now() + maxWaitMs;
+  while (Date.now() < deadline) {
+    await new Promise(r => setTimeout(r, intervalMs));
+    const res = await fetch(`${MS_API_BASE}/tasks/${taskId}`, {
+      headers: { 'Authorization': `Bearer ${apiKey}` },
+    });
+    if (!res.ok) {
+      const t = await res.text().catch(() => res.statusText);
+      throw new Error(`轮询任务失败（${res.status}）：${t}`);
+    }
+    const json = await res.json();
+    const status: string = json?.task_status || json?.status || '';
+    if (status === 'SUCCEEDED') {
+      const url =
+        json?.task_result?.images?.[0]?.url ||
+        json?.result?.images?.[0]?.url ||
+        json?.output?.images?.[0]?.url ||
+        json?.images?.[0]?.url ||
+        json?.data?.[0]?.url ||
+        '';
+      if (!url) throw new Error('异步任务完成但未返回图片 URL');
+      return url;
+    }
+    if (status === 'FAILED' || status === 'ERROR') {
+      const msg = json?.task_result?.message || json?.message || '任务失败';
+      throw new Error(`生成任务失败：${msg}`);
+    }
+    // PENDING / RUNNING → 继续等待
+  }
+  throw new Error('生成超时（超过 120 秒），请稍后重试或切换为 FLUX.1 Schnell 模型');
+}
+
+// ─── 发起图像生成请求 ─────────────────────────────────────────────────────
+
+async function callImageGeneration(
+  prompt: string,
+  model: string,
+  apiKey: string,
+  forceAsync: boolean,
+): Promise<string> {
+  const headers: Record<string, string> = {
+    'Authorization': `Bearer ${apiKey}`,
+    'Content-Type': 'application/json',
+  };
+  if (forceAsync) headers['X-ModelScope-Async-Mode'] = 'true';
+
+  const body = JSON.stringify({
+    model,
+    prompt,
+    negative_prompt: 'color, colorful, gradient, rainbow, red, blue, green, yellow, purple, orange, pink, brown, teal, cyan, shadow, 3d render, realistic photo, photography, blurry',
+    n: 1,
+    size: '512x512',
+  });
+
+  const res = await fetch(`${MS_API_BASE}/images/generations`, { method: 'POST', headers, body });
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => res.statusText);
+    let errMsg = errText;
+    try {
+      const errJson = JSON.parse(errText);
+      errMsg = errJson?.message || errJson?.error?.message || errJson?.errors?.message || errText;
+    } catch { /* keep raw */ }
+
+    // 模型不存在
+    if (errMsg.toLowerCase().includes('model not exists') || errMsg.toLowerCase().includes('not found')) {
+      throw new Error(`模型不存在：${model}。请在后台更换为 "FLUX.1 Schnell（推荐）" 模型`);
+    }
+
+    // 需要异步模式 → 自动重试
+    if (!forceAsync && (errMsg.toLowerCase().includes('async') || errMsg.toLowerCase().includes('asynchronous'))) {
+      return callImageGeneration(prompt, model, apiKey, true);
+    }
+
+    if (res.status === 401) {
+      throw new Error(`API 认证失败（401）：密钥无效或未绑定阿里云账号，请前往 modelscope.cn → 账户设置 → 绑定阿里云后重试`);
+    }
+
+    throw new Error(`ModelScope API 错误 ${res.status}: ${errMsg}`);
+  }
+
+  const json = await res.json();
+
+  // 同步返回图片 URL
+  const syncUrl =
+    json?.data?.[0]?.url ||
+    json?.images?.[0]?.url ||
+    json?.output?.images?.[0]?.url ||
+    json?.url ||
+    '';
+  if (syncUrl) return syncUrl;
+
+  // 异步任务：有 task_id，进入轮询
+  const taskId = json?.task_id || json?.id || '';
+  if (taskId) return pollAsyncTask(taskId, apiKey);
+
+  throw new Error('API 未返回图片 URL 或任务 ID，请检查模型或密钥是否正确');
+}
 
 // ─── 生成单个域名 Logo ────────────────────────────────────────────────────
 
@@ -244,46 +349,9 @@ export async function generateDomainLogo(
   category?: string
 ): Promise<string> {
   const prompt = buildLogoPrompt(domainName, type, category);
-  const endpoint = MODEL_ENDPOINTS[config.model] || MODEL_ENDPOINTS['black-forest-labs/FLUX.1-schnell'];
-
-  const res = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${config.apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: config.model,
-      prompt,
-      negative_prompt: 'color, colorful, gradient, rainbow, red, blue, green, yellow, purple, orange, pink, brown, teal, cyan, shadow, 3d render, realistic photo, photography, blurry',
-      n: 1,
-      size: '512x512',
-    }),
-  });
-
-  if (!res.ok) {
-    const errText = await res.text().catch(() => res.statusText);
-    let errMsg = errText;
-    try {
-      const errJson = JSON.parse(errText);
-      errMsg = errJson?.errors?.message
-        || errJson?.error?.message
-        || errJson?.message
-        || errText;
-    } catch { /* not JSON, keep raw text */ }
-    if (res.status === 401) {
-      throw new Error(`API 认证失败（401）：${errMsg}。请前往 modelscope.cn 账户设置绑定阿里云账号后重试。`);
-    }
-    throw new Error(`ModelScope API 错误 ${res.status}: ${errMsg}`);
-  }
-
-  const json = await res.json();
-  const imageUrl = json?.data?.[0]?.url || json?.images?.[0]?.url || json?.url || '';
-
-  if (!imageUrl) {
-    throw new Error('API 未返回图片 URL，请检查模型或密钥是否正确');
-  }
-  return imageUrl;
+  const modelMeta = MS_MODELS.find(m => m.id === config.model);
+  const forceAsync = modelMeta?.asyncRequired ?? false;
+  return callImageGeneration(prompt, config.model, config.apiKey, forceAsync);
 }
 
 // ─── 生成并保存单个域名 Logo ─────────────────────────────────────────────

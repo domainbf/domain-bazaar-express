@@ -1224,12 +1224,29 @@ app.get('/admin/reviews', requireAuth, async (c) => {
   const { is_admin } = getAuth(c);
   if (!is_admin) return c.json({ error: '无权限' }, 403);
   const { supabaseAdmin } = await import('../supabase.js');
-  const { data, error } = await supabaseAdmin
+  const { data: reviews, error } = await supabaseAdmin
     .from('user_reviews')
-    .select('*, reviewer:reviewer_id(full_name, contact_email)')
+    .select('*')
     .order('created_at', { ascending: false });
   if (error) return c.json({ error: error.message }, 500);
-  return c.json(data || []);
+  if (!reviews || reviews.length === 0) return c.json([]);
+  // Fetch reviewer profiles separately (no FK constraint in DB)
+  const reviewerIds = [...new Set(reviews.map((r: any) => r.reviewer_id).filter(Boolean))];
+  let profileMap: Record<string, any> = {};
+  if (reviewerIds.length > 0) {
+    const { data: profiles } = await supabaseAdmin
+      .from('profiles')
+      .select('id, full_name, contact_email')
+      .in('id', reviewerIds);
+    if (profiles) {
+      for (const p of profiles) profileMap[p.id] = p;
+    }
+  }
+  const enriched = reviews.map((r: any) => ({
+    ...r,
+    reviewer: r.reviewer_id ? profileMap[r.reviewer_id] || null : null,
+  }));
+  return c.json(enriched);
 });
 
 app.patch('/admin/reviews/:id', requireAuth, async (c) => {

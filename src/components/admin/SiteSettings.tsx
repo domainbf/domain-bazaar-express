@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { apiGet, apiPost, apiPatch, apiDelete, apiFetch } from '@/lib/apiClient';
+import { MS_MODELS } from '@/hooks/useModelScopeAI';
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -207,7 +208,11 @@ export const SiteSettings = () => {
       if (!data || typeof data !== 'object') return;
       setWhoisApiKey(data['whois_api_key'] || '');
       setMsApiKey(data['modelscope_api_key'] || '');
-      setMsModel(data['modelscope_model'] || 'black-forest-labs/FLUX.1-schnell');
+      const savedModel = data['modelscope_model'] || 'black-forest-labs/FLUX.1-schnell';
+      const validModel = MS_MODELS.find(m => m.id === savedModel)
+        ? savedModel
+        : 'black-forest-labs/FLUX.1-schnell';
+      setMsModel(validModel);
       setMsAutoGenerate(data['modelscope_auto_generate'] === 'true');
       const loadedHost = data['smtp_host'] || '';
       setSmtp({
@@ -1823,13 +1828,26 @@ export const SiteSettings = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="black-forest-labs/FLUX.1-schnell">Flux.1 Schnell（速度最快，推荐）</SelectItem>
-                    <SelectItem value="stabilityai/stable-diffusion-xl-base-1.0">Stable Diffusion XL（均衡）</SelectItem>
-                    <SelectItem value="black-forest-labs/FLUX.1-dev">Flux.1 Dev（最高质量）</SelectItem>
-                    <SelectItem value="stabilityai/stable-diffusion-3-5-large">Stable Diffusion 3.5 Large（旗舰）</SelectItem>
+                    {MS_MODELS.map(m => (
+                      <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground">所有模型均使用黑白风格提示词，生成结果与网站风格一致</p>
+                <div className="space-y-1 pt-1">
+                  {(() => {
+                    const selected = MS_MODELS.find(m => m.id === msModel);
+                    return selected?.asyncRequired ? (
+                      <Alert className="border-blue-500/30 bg-blue-500/5 py-2">
+                        <Info className="h-3.5 w-3.5 text-blue-600" />
+                        <AlertDescription className="text-xs text-blue-700 dark:text-blue-400">
+                          此模型使用<strong>异步模式</strong>调用（平台要求），生成时间约 15–60 秒，系统会自动轮询等待结果，无需手动操作。
+                        </AlertDescription>
+                      </Alert>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">此模型为同步调用，通常 5–15 秒内返回结果。所有模型均使用黑白风格提示词。</p>
+                    );
+                  })()}
+                </div>
               </div>
 
               <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/20">
