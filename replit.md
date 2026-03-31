@@ -101,11 +101,36 @@
 `initDb()` 通过 `CREATE TABLE IF NOT EXISTS` 确保以下表存在：
 `app_auth_users`, `app_sessions`, `user_feedback`, `site_settings`, `domain_listings`, `domain_analytics`, `domain_offers`, `transactions`, `payment_transactions`, `disputes`, `user_profiles`
 
+## 连接优化 (server/index.ts + server/redis.ts)
+- **Keep-alive**: Turso 每4分钟 / Redis 每3分钟发送 ping 防止冷启动
+- **gzip 压缩**: `hono/compress` 中间件对所有响应启用 gzip/deflate
+- **Redis 重连**: 指数退避策略 (300ms → 600ms → max 3000ms)，max 5次
+- **TCP KeepAlive**: Redis 连接 `keepAlive: 30_000` 防止静默断开
+- **缓存容错**: `cacheGet/cacheSet/cacheDel` 加 try/catch，Redis 离线时 degrade gracefully
+- **新增 `cacheGetOrSet`**: Stale-while-revalidate 模式，先返回旧缓存再后台刷新
+
+## 缓存 TTL 优化 (server/routes/data.ts)
+- `site_settings`: 60s → 600s fresh + 300s stale (cacheGetOrSet)
+- `domain_listings`: 60s → 90s
+- `domain_listing/:id`: 120s → 180s
+- `admin_stats`: 新增 120s 缓存，支持 `?refresh=1` 强制刷新
+
+## 健康检查端点 (GET /api/health)
+返回 `{ ok, redis, redisLatencyMs, db, dbLatencyMs, uptime }`，管理后台每30秒自动轮询展示实时状态
+
+## 前端优化
+- **useSiteSettings**: 从 Supabase 改为 `apiGet('/data/site-settings')`（重大修复：全站曾显示默认占位文字）
+- **React Query**: 智能 retry（跳过401/403/404），指数退避 retryDelay，`refetchOnReconnect: true`
+- **GlobalBottomNav**: 在 `/admin` 路径下自动隐藏，避免与后台自有导航冲突
+- **移动端管理后台**: UserManagement 表格添加 `overflow-x-auto min-w-[700px]`
+- **首页筛选器**: 添加 `scrollbar-hide` + 右侧渐变提示可滑动
+
 ## 管理后台修复记录
 - **admin stats**: 视图数从 `domain_listings.views` 改为 `domain_analytics.views`；各查询用 `safe()` 包裹防单表故障崩溃
 - **site_settings PATCH**: 改为 SELECT-then-UPDATE/INSERT 模式（原 ON CONFLICT 在无 UNIQUE 约束时报错）
 - **SiteSettings.tsx**: 删除 Supabase 调用 (loadSmtpConfig/loadContactConfig/loadBrandConfig/loadWhoisConfig/loadModelScopeConfig)，统一改为 `apiGet('/data/site-settings')`
 - **移动端 tabs**: 从 `flex-wrap` 改为横向滚动 `overflow-x-auto`
+- **AdminDashboard 系统状态面板**: 从静态硬编码改为实时 `/api/health` 数据，显示 DB/Redis 延迟和进程运行时长
 
 ## 已知限制
 - 支持工单系统使用 Supabase (设计如此)

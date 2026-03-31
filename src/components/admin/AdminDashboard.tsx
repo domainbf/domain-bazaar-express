@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, lazy, Suspense, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,8 @@ import { toast } from 'sonner';
 import {
   Users, Globe, TrendingUp, DollarSign, Shield, Activity,
   AlertTriangle, CheckCircle, Clock, BarChart3, RefreshCw,
-  Eye, Heart, MessageSquare, ArrowUpRight, ArrowDownRight, Calendar
+  Eye, Heart, MessageSquare, ArrowUpRight, ArrowDownRight, Calendar,
+  Wifi, WifiOff, Database, Zap
 } from 'lucide-react';
 import { EnhancedActivityLog } from './EnhancedActivityLog';
 
@@ -56,15 +57,17 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
   const [recentOffers, setRecentOffers] = useState<any[]>([]);
   const [topDomains, setTopDomains] = useState<any[]>([]);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [health, setHealth] = useState<{ ok: boolean; redis: boolean; db: boolean; redisLatencyMs: number; dbLatencyMs: number; uptime: number } | null>(null);
 
   const stats = propStats || localStats;
   const isLoading = propIsLoading !== undefined ? propIsLoading : localIsLoading;
 
-  const fetchAdminStats = async () => {
+  const fetchAdminStats = useCallback(async (forceRefresh = false) => {
     if (!user?.id) return;
     setLocalIsLoading(true);
     try {
-      const data = await apiGet('/data/admin/stats');
+      const url = forceRefresh ? '/data/admin/stats?refresh=1' : '/data/admin/stats';
+      const data = await apiGet(url);
       setLocalStats({
         totalUsers: data.totalUsers || 0,
         totalDomains: data.totalDomains || 0,
@@ -87,48 +90,57 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
     } finally {
       setLocalIsLoading(false);
     }
-  };
+  }, [user?.id]);
 
-  const fetchRecentActivities = async () => {
-    // Recent activities not yet migrated — skip silently
+  const fetchRecentActivities = useCallback(async () => {
     setRecentActivities([]);
-  };
+  }, []);
 
-  const fetchTopDomains = async () => {
-    // Top domains derived from domain listings
+  const fetchTopDomains = useCallback(async () => {
     try {
-      const data = await apiGet('/data/domain-listings?status=available');
+      const data = await apiGet('/data/domain-listings?status=available&analytics=1&limit=20');
       const listings = Array.isArray(data) ? data : [];
-      setTopDomains(listings.slice(0, 5).map((d: any) => ({
+      // Sort by views descending, take top 5
+      const sorted = listings.sort((a: any, b: any) => (b.views || 0) - (a.views || 0));
+      setTopDomains(sorted.slice(0, 5).map((d: any) => ({
         domain_id: d.id, name: d.name, price: d.price,
         views: d.views || 0, favorites: d.favorites || 0, offers: d.offers || 0
       })));
     } catch { /* ignore */ }
-  };
+  }, []);
+
+  const fetchHealth = useCallback(async () => {
+    try {
+      const data = await fetch('/api/health').then(r => r.json());
+      setHealth(data);
+    } catch { /* ignore health failures silently */ }
+  }, []);
 
   useEffect(() => {
     if (isAdmin && !propStats) {
       fetchAdminStats();
       fetchRecentActivities();
       fetchTopDomains();
-      
-      const interval = setInterval(() => {
+      fetchHealth();
+
+      const statsInterval = setInterval(() => {
         fetchAdminStats();
-        fetchRecentActivities();
-        fetchTopDomains();
       }, 5 * 60 * 1000);
 
-      return () => clearInterval(interval);
+      const healthInterval = setInterval(fetchHealth, 30 * 1000);
+
+      return () => {
+        clearInterval(statsInterval);
+        clearInterval(healthInterval);
+      };
     }
-  }, [isAdmin, propStats]);
+  }, [isAdmin, propStats, fetchAdminStats, fetchRecentActivities, fetchTopDomains, fetchHealth]);
 
   const handleRefresh = async () => {
     if (propOnRefresh) {
       await propOnRefresh();
     } else {
-      await fetchAdminStats();
-      await fetchRecentActivities();
-      await fetchTopDomains();
+      await Promise.all([fetchAdminStats(true), fetchRecentActivities(), fetchTopDomains(), fetchHealth()]);
     }
     toast.success('数据已刷新');
   };
@@ -450,27 +462,44 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
         )}
 
         {/* 系统健康状态 */}
-        <Card className="border-green-500/30 bg-green-500/10">
+        <Card className={health?.ok === false ? 'border-red-500/30 bg-red-500/5' : 'border-green-500/30 bg-green-500/10'}>
           <CardHeader className="pb-3">
-            <CardTitle className="text-green-600 dark:text-green-400 flex items-center gap-2">
-              <CheckCircle className="h-5 w-5" />
+            <CardTitle className={`flex items-center gap-2 ${health?.ok === false ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+              {health?.ok === false ? <WifiOff className="h-5 w-5" /> : <CheckCircle className="h-5 w-5" />}
               系统状态
+              {health && (
+                <Badge variant="outline" className="ml-auto text-xs font-normal">
+                  运行 {Math.floor((health.uptime || 0) / 3600)}h {Math.floor(((health.uptime || 0) % 3600) / 60)}m
+                </Badge>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="grid grid-cols-3 gap-3 text-sm text-center">
+              <div className="grid grid-cols-3 gap-2 text-sm text-center">
+                {/* API */}
                 <div className="bg-card/60 rounded-lg p-2">
-                  <div className="text-green-600 dark:text-green-400 font-semibold">运行中</div>
+                  <Zap className="h-4 w-4 mx-auto mb-1 text-green-500" />
+                  <div className="text-green-600 dark:text-green-400 font-semibold text-xs">运行中</div>
                   <div className="text-muted-foreground text-xs mt-0.5">API服务</div>
                 </div>
+                {/* DB */}
                 <div className="bg-card/60 rounded-lg p-2">
-                  <div className="text-green-600 dark:text-green-400 font-semibold">已连接</div>
-                  <div className="text-muted-foreground text-xs mt-0.5">数据库</div>
+                  <Database className={`h-4 w-4 mx-auto mb-1 ${health?.db === false ? 'text-red-500' : 'text-green-500'}`} />
+                  <div className={`font-semibold text-xs ${health?.db === false ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                    {health ? (health.db ? `${health.dbLatencyMs}ms` : '断开') : '检测中'}
+                  </div>
+                  <div className="text-muted-foreground text-xs mt-0.5">Turso DB</div>
                 </div>
+                {/* Redis */}
                 <div className="bg-card/60 rounded-lg p-2">
-                  <div className="text-green-600 dark:text-green-400 font-semibold">缓存正常</div>
-                  <div className="text-muted-foreground text-xs mt-0.5">Redis</div>
+                  {health?.redis === false
+                    ? <WifiOff className="h-4 w-4 mx-auto mb-1 text-red-500" />
+                    : <Wifi className="h-4 w-4 mx-auto mb-1 text-green-500" />}
+                  <div className={`font-semibold text-xs ${health?.redis === false ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                    {health ? (health.redis ? `${health.redisLatencyMs}ms` : '断开') : '检测中'}
+                  </div>
+                  <div className="text-muted-foreground text-xs mt-0.5">Redis缓存</div>
                 </div>
               </div>
               <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">

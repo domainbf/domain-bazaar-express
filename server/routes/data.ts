@@ -145,7 +145,7 @@ app.get('/domain-listings', async (c) => {
 
   const r = await db.execute({ sql, args });
   const rows = r.rows.map(rowToObj);
-  await cacheSet(cacheKey, rows, 60);
+  await cacheSet(cacheKey, rows, 90);  // 90s — domain listings change infrequently
   return c.json(rows);
 });
 
@@ -164,7 +164,7 @@ app.get('/domain-listings/:id', async (c) => {
   const r = await db.execute({ sql: 'SELECT * FROM domain_listings WHERE id = ?', args: [id] });
   if (!r.rows[0]) return c.json({ error: '未找到' }, 404);
   const row = rowToObj(r.rows[0]);
-  await cacheSet(cacheKey, row, 120);
+  await cacheSet(cacheKey, row, 180);  // 3 min
   return c.json(row);
 });
 
@@ -397,16 +397,20 @@ app.post('/transactions', requireAuth, async (c) => {
   return c.json(inserted, 201);
 });
 
-// ---- Site Settings (public read, heavily cached) ----
+// ---- Site Settings (public read, heavily cached 10 min + 5 min stale) ----
 app.get('/site-settings', async (c) => {
-  const cached = await cacheGet<Record<string, unknown>>('site_settings');
-  if (cached) return c.json(cached);
-  const r = await db.execute({ sql: 'SELECT key, value FROM site_settings', args: [] });
-  const data: Record<string, unknown> = {};
-  for (const row of r.rows) {
-    data[row.key as string] = parseJson(row.value);
-  }
-  await cacheSet('site_settings', data, 300);
+  const { cacheGetOrSet } = await import('../redis.js');
+  const data = await cacheGetOrSet<Record<string, unknown>>(
+    'site_settings',
+    async () => {
+      const r = await db.execute({ sql: 'SELECT key, value FROM site_settings', args: [] });
+      const out: Record<string, unknown> = {};
+      for (const row of r.rows) out[row.key as string] = parseJson(row.value);
+      return out;
+    },
+    600,  // fresh for 10 min
+    300,  // serve stale for extra 5 min while refreshing
+  );
   return c.json(data);
 });
 
@@ -828,6 +832,13 @@ app.get('/admin/stats', requireAuth, async (c) => {
   const { is_admin } = getAuth(c);
   if (!is_admin) return c.json({ error: '无权限' }, 403);
 
+  // Serve from cache (120s TTL + 60s stale) to avoid hammering Turso on every refresh
+  const forceRefresh = c.req.query('refresh') === '1';
+  if (!forceRefresh) {
+    const cached = await cacheGet<Record<string, unknown>>('admin_stats');
+    if (cached) return c.json(cached);
+  }
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const todayIso = today.toISOString();
@@ -851,7 +862,7 @@ app.get('/admin/stats', requireAuth, async (c) => {
     }, [] as Record<string, unknown>[]),
   ]);
 
-  return c.json({
+  const result = {
     totalUsers: Number(usersRes.rows[0]?.total) || 0,
     totalDomains: Number(domainsRes.rows[0]?.total) || 0,
     activeListings: Number(domainsRes.rows[0]?.active) || 0,
@@ -865,7 +876,10 @@ app.get('/admin/stats', requireAuth, async (c) => {
     newUsersToday: Number(newUsersRes.rows[0]?.total) || 0,
     newDomainsToday: Number(newDomainsRes.rows[0]?.total) || 0,
     recentOffers,
-  });
+    cachedAt: new Date().toISOString(),
+  };
+  await cacheSet('admin_stats', result, 120);  // cache 2 min
+  return c.json(result);
 });
 
 // ---- Admin: Change Password ----

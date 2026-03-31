@@ -540,7 +540,8 @@ export const UserManagement = () => {
       {/* 用户列表 */}
       <Card>
         <CardContent className="p-0">
-          <Table>
+          <div className="overflow-x-auto">
+          <Table className="min-w-[700px]">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12">
@@ -698,6 +699,7 @@ export const UserManagement = () => {
               ))}
             </TableBody>
           </Table>
+          </div>
           
           {/* 分页 */}
           {totalPages > 1 && (

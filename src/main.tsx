@@ -11,13 +11,29 @@ import { AuthProvider } from './contexts/AuthContext.tsx'
 import { LoadingProvider } from './contexts/LoadingContext.tsx'
 import './i18n'
 
+// Only retry on network errors, not on 4xx/5xx API errors
+function shouldRetry(failureCount: number, error: unknown): boolean {
+  if (failureCount >= 2) return false;
+  if (error instanceof Error) {
+    // Don't retry on auth / not-found errors
+    const msg = error.message.toLowerCase();
+    if (msg.includes('401') || msg.includes('403') || msg.includes('404')) return false;
+  }
+  return true;
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
+      retry: shouldRetry,
+      retryDelay: (attempt) => Math.min(500 * 2 ** attempt, 5000), // 500ms, 1000ms, max 5s
       refetchOnWindowFocus: false,
-      staleTime: 15 * 60 * 1000,
-      gcTime: 45 * 60 * 1000,
+      refetchOnReconnect: true,   // revalidate on network restore
+      staleTime: 10 * 60 * 1000, // 10 min default stale
+      gcTime: 30 * 60 * 1000,    // 30 min garbage-collect
+    },
+    mutations: {
+      retry: false,
     },
   },
 });

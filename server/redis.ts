@@ -3,37 +3,43 @@ import Redis from 'ioredis';
 const REDIS_URL = process.env.REDIS_URL;
 if (!REDIS_URL) throw new Error('REDIS_URL is required');
 
-// Fast-fail retry for serverless: give up after 2 retries (~4s total max)
-const serverlessRetry = (times: number) => {
-  if (times > 2) return null;
-  return times * 300;
+// Retry strategy: exponential backoff, give up after 5 attempts (~30s).
+// Short enough to not hang serverless; long enough to survive brief network blips.
+const retryStrategy = (times: number) => {
+  if (times > 5) return null;            // stop retrying — let caller handle error
+  return Math.min(times * 300, 3000);    // 300ms, 600ms, 900ms … 3000ms
 };
 
 // Publisher / general-purpose client — auto-connects on module load
 export const redis = new Redis(REDIS_URL, {
   maxRetriesPerRequest: 2,
-  enableReadyCheck: false,  // skip INFO check — faster ready state
-  connectTimeout: 3000,     // 3s per connection attempt; 3 total = ~9s max
-  retryStrategy: serverlessRetry,
+  enableReadyCheck: false,   // skip INFO check — faster ready state
+  connectTimeout: 4000,
+  retryStrategy,
+  keepAlive: 30_000,         // TCP keepalive every 30s; detects silent drops fast
+  lazyConnect: false,
 });
 
 // Dedicated subscriber client (blocked on subscribe, cannot run commands)
 export const redisSub = new Redis(REDIS_URL, {
   maxRetriesPerRequest: 2,
-  lazyConnect: true,
-  connectTimeout: 3000,
-  retryStrategy: serverlessRetry,
+  lazyConnect: true,         // connect explicitly via connectRedis()
+  connectTimeout: 4000,
+  retryStrategy,
+  keepAlive: 30_000,
 });
 
 redis.on('error', (err) => console.error('[redis] error:', err.message));
-redisSub.on('error', (err) => console.error('[redis-sub] error:', err.message));
+redis.on('reconnecting', () => console.log('[redis] reconnecting…'));
 redis.on('ready', () => console.log('[redis] connected'));
+
+redisSub.on('error', (err) => console.error('[redis-sub] error:', err.message));
+redisSub.on('reconnecting', () => console.log('[redis-sub] reconnecting…'));
 redisSub.on('ready', () => console.log('[redis-sub] connected'));
 
 export const PUBSUB_CHANNEL = 'nic:realtime';
 
-// ── Wrap any redis call with a hard timeout (ms) ───────────────────────────
-
+// ── Hard timeout wrapper ────────────────────────────────────────────────────
 export function withRedisTimeout<T>(promise: Promise<T>, ms = 5000): Promise<T> {
   return Promise.race([
     promise,
@@ -44,7 +50,6 @@ export function withRedisTimeout<T>(promise: Promise<T>, ms = 5000): Promise<T> 
 }
 
 // ── Session helpers ────────────────────────────────────────────────────────
-
 export const SESSION_TTL = 30 * 24 * 60 * 60; // 30 days in seconds
 
 export async function saveSession(sessionId: string, data: {
@@ -83,7 +88,6 @@ export async function getUserSessionIds(userId: string): Promise<string[]> {
 }
 
 // ── Rate limiting ──────────────────────────────────────────────────────────
-
 export async function checkRateLimit(
   key: string,
   maxRequests: number,
@@ -98,28 +102,82 @@ export async function checkRateLimit(
 }
 
 // ── Cache helpers ──────────────────────────────────────────────────────────
-
 export async function cacheGet<T>(key: string): Promise<T | null> {
-  const raw = await withRedisTimeout(redis.get(`cache:${key}`));
-  return raw ? JSON.parse(raw) as T : null;
+  try {
+    const raw = await withRedisTimeout(redis.get(`cache:${key}`));
+    return raw ? JSON.parse(raw) as T : null;
+  } catch {
+    return null; // degrade gracefully when Redis is unavailable
+  }
 }
 
 export async function cacheSet(key: string, value: unknown, ttlSecs = 60) {
-  await withRedisTimeout(redis.setex(`cache:${key}`, ttlSecs, JSON.stringify(value)));
+  try {
+    await withRedisTimeout(redis.setex(`cache:${key}`, ttlSecs, JSON.stringify(value)));
+  } catch { /* degrade gracefully */ }
 }
 
 export async function cacheDel(key: string) {
-  await withRedisTimeout(redis.del(`cache:${key}`));
+  try {
+    await withRedisTimeout(redis.del(`cache:${key}`));
+  } catch { /* degrade gracefully */ }
+}
+
+/**
+ * Stale-while-revalidate: returns stale cache immediately while running
+ * `fetcher` in the background to refresh. Background errors are swallowed.
+ * @param key      Cache key (without "cache:" prefix)
+ * @param ttlSecs  Fresh TTL; stale data is returned until this expires + staleSecs
+ * @param staleSecs Extra seconds a stale value may still be served (default 60)
+ * @param fetcher  Async function that returns fresh data
+ */
+export async function cacheGetOrSet<T>(
+  key: string,
+  fetcher: () => Promise<T>,
+  ttlSecs = 60,
+  staleSecs = 60,
+): Promise<T> {
+  const fullKey = `cache:${key}`;
+  const staleKey = `cache:stale:${key}`;
+
+  // Try fresh cache first
+  try {
+    const raw = await withRedisTimeout(redis.get(fullKey));
+    if (raw) return JSON.parse(raw) as T;
+  } catch { /* fall through */ }
+
+  // Try stale cache; revalidate in background
+  try {
+    const stale = await withRedisTimeout(redis.get(staleKey));
+    if (stale) {
+      // Revalidate asynchronously
+      fetcher()
+        .then(async (fresh) => {
+          await withRedisTimeout(redis.setex(fullKey, ttlSecs, JSON.stringify(fresh)));
+          await withRedisTimeout(redis.setex(staleKey, ttlSecs + staleSecs, JSON.stringify(fresh)));
+        })
+        .catch(() => {});
+      return JSON.parse(stale) as T;
+    }
+  } catch { /* fall through */ }
+
+  // Cold path — fetch fresh and populate both keys
+  const data = await fetcher();
+  try {
+    await withRedisTimeout(redis.setex(fullKey, ttlSecs, JSON.stringify(data)));
+    await withRedisTimeout(redis.setex(staleKey, ttlSecs + staleSecs, JSON.stringify(data)));
+  } catch { /* degrade gracefully */ }
+  return data;
 }
 
 // ── Publish event (used by eventBus) ──────────────────────────────────────
-
 export async function publishEvent(event: Record<string, unknown>) {
-  await withRedisTimeout(redis.publish(PUBSUB_CHANNEL, JSON.stringify(event)));
+  try {
+    await withRedisTimeout(redis.publish(PUBSUB_CHANNEL, JSON.stringify(event)));
+  } catch { /* degrade gracefully */ }
 }
 
 // ── Connect both clients ───────────────────────────────────────────────────
-
 export async function connectRedis() {
   // redis auto-connects on module load; only explicitly connect redisSub here
   await redisSub.connect();

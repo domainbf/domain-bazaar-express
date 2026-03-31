@@ -116,9 +116,10 @@ const Index = () => {
                   {t('homePage.featuredDomains')}
                 </h2>
 
-                {/* Filters */}
-                <div className="overflow-x-auto pb-4 mb-8">
-                  <div className="flex gap-2 md:gap-3 md:flex-wrap md:justify-center min-w-max px-4">
+                {/* Filters — scrollable on mobile with right-fade hint */}
+                <div className="relative mb-8">
+                  <div className="overflow-x-auto pb-3 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' as any }}>
+                    <div className="flex gap-2 md:gap-3 md:flex-wrap md:justify-center min-w-max px-4 md:min-w-0">
                     {[
                       { key: 'all', label: t('common.all') },
                       { key: 'premium', label: t('domains.categories.premium') },
@@ -135,7 +136,10 @@ const Index = () => {
                         {f.label}
                       </Button>
                     ))}
+                    </div>
                   </div>
+                  {/* Right-edge fade hint for mobile */}
+                  <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent md:hidden" />
                 </div>
 
                 <div className="max-w-md mx-auto mb-10">

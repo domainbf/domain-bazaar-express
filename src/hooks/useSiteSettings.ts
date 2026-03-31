@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { realtimeClient } from '@/lib/realtime';
+import { apiGet } from '@/lib/apiClient';
 
 export interface SiteConfig {
   site_name: string;
@@ -14,6 +14,7 @@ export interface SiteConfig {
   social_twitter: string;
   social_wechat: string;
   social_weibo: string;
+  social_facebook: string;
   contact_phone: string;
   contact_email: string;
   contact_address: string;
@@ -49,9 +50,12 @@ export interface SiteConfig {
   footer_text: string;
   custom_head_script: string;
   custom_body_script: string;
+  primary_color: string;
+  currency: string;
+  commission_rate: string;
 }
 
-const defaultConfig: SiteConfig = {
+export const defaultConfig: SiteConfig = {
   site_name: '域见•你',
   site_subtitle: '专业中文域名交易平台',
   site_domain: '',
@@ -63,6 +67,7 @@ const defaultConfig: SiteConfig = {
   social_twitter: '',
   social_wechat: '',
   social_weibo: '',
+  social_facebook: '',
   contact_phone: '',
   contact_email: '',
   contact_address: '',
@@ -86,7 +91,7 @@ const defaultConfig: SiteConfig = {
   stats_title: '平台数据',
   stat_users: '50,000+',
   stat_countries: '100+',
-  stat_volume: '$100M+',
+  stat_volume: '¥100M+',
   stat_support: '24/7',
   cta_title: '准备好开始了吗？',
   cta_description: '加入我们的域名交易平台，发现无限可能',
@@ -98,38 +103,37 @@ const defaultConfig: SiteConfig = {
   footer_text: '域见•你 域名交易平台。保留所有权利。',
   custom_head_script: '',
   custom_body_script: '',
+  primary_color: '',
+  currency: 'CNY',
+  commission_rate: '5',
 };
 
-const ALL_KEYS = Object.keys(defaultConfig);
-
 /* ── Module-level singletons ──────────────────────────────────────
-   One fetch, one realtime channel — shared across all consumers.
+   One fetch deduped across all hook consumers. Realtime pushes
+   instant updates when site_settings changes in Turso.
 ────────────────────────────────────────────────────────────────── */
 let cachedConfig: SiteConfig | null = null;
 let fetchPromise: Promise<SiteConfig> | null = null;
 let listeners: Array<(c: SiteConfig) => void> = [];
 let realtimeChannelId: string | null = null;
 
+function mergeConfig(raw: Record<string, unknown>): SiteConfig {
+  const config = { ...defaultConfig };
+  for (const [key, value] of Object.entries(raw)) {
+    if (key in config && value !== null && value !== undefined && value !== '') {
+      (config as any)[key] = String(value);
+    }
+  }
+  return config;
+}
+
 export const fetchSiteConfig = async (): Promise<SiteConfig> => {
-  // If a fetch is already in flight, reuse it
   if (fetchPromise) return fetchPromise;
 
   fetchPromise = (async () => {
     try {
-      const { data, error } = await supabase
-        .from('site_settings')
-        .select('key, value')
-        .in('key', ALL_KEYS);
-
-      if (error) throw error;
-
-      const config = { ...defaultConfig };
-      data?.forEach(item => {
-        if (item.key in config && item.value) {
-          (config as any)[item.key] = item.value;
-        }
-      });
-
+      const raw = await apiGet('/data/site-settings');
+      const config = mergeConfig(raw as Record<string, unknown>);
       cachedConfig = config;
       listeners.forEach(l => l(config));
       return config;
@@ -148,7 +152,17 @@ const ensureRealtimeChannel = () => {
   if (realtimeChannelId) return;
   realtimeChannelId = 'site-settings-singleton';
   realtimeClient.subscribe(realtimeChannelId, ['site_settings'], (event) => {
-    if (event.type === 'db-change') fetchSiteConfig();
+    if (event.type === 'db-change') {
+      // Merge the fresh settings from the event payload if available
+      const fresh = event.data?.new;
+      if (fresh && typeof fresh === 'object') {
+        const config = mergeConfig(fresh as Record<string, unknown>);
+        cachedConfig = config;
+        listeners.forEach(l => l(config));
+      } else {
+        fetchSiteConfig();
+      }
+    }
   });
 };
 
@@ -159,21 +173,17 @@ export const useSiteSettings = () => {
   useEffect(() => {
     let mounted = true;
 
-    // Start realtime channel singleton (idempotent)
     ensureRealtimeChannel();
 
-    // Register as a listener for future updates
     const listener = (c: SiteConfig) => {
       if (mounted) { setConfig(c); setIsLoading(false); }
     };
     listeners.push(listener);
 
-    // If we already have cached data, use it immediately
     if (cachedConfig) {
       setConfig(cachedConfig);
       setIsLoading(false);
     } else {
-      // Trigger fetch — deduped at module level
       fetchSiteConfig().then(c => {
         if (mounted) { setConfig(c); setIsLoading(false); }
       });
