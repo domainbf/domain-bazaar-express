@@ -294,6 +294,7 @@ export const ProfileSettings = () => {
                 </Label>
                 <Input
                   type="email"
+                  autoComplete="email"
                   value={formData.contact_email}
                   onChange={(e) => handleInputChange('contact_email', e.target.value)}
                   placeholder="your@example.com"
@@ -306,6 +307,8 @@ export const ProfileSettings = () => {
                   联系电话
                 </Label>
                 <Input
+                  type="tel"
+                  autoComplete="tel"
                   value={formData.contact_phone}
                   onChange={(e) => handleInputChange('contact_phone', e.target.value)}
                   placeholder="请输入电话号码"

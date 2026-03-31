@@ -87,7 +87,7 @@ export const VerificationResult = ({ success, message, onDismiss }: Verification
             </div>
             <ul className="space-y-2 ml-6">
               {reasons.map((reason, idx) => (
-                <li key={idx} className="text-sm text-gray-700 list-disc">{reason}</li>
+                <li key={idx} className="text-sm text-muted-foreground list-disc">{reason}</li>
               ))}
             </ul>
           </div>
@@ -101,7 +101,7 @@ export const VerificationResult = ({ success, message, onDismiss }: Verification
             </div>
             <ul className="space-y-2 ml-6">
               {suggestions.map((suggestion, idx) => (
-                <li key={idx} className="text-sm text-gray-700 list-disc">{suggestion}</li>
+                <li key={idx} className="text-sm text-muted-foreground list-disc">{suggestion}</li>
               ))}
             </ul>
           </div>

@@ -98,6 +98,7 @@ export const ResetPasswordForm = () => {
           value={email}
           onChange={(e) => { setEmail(e.target.value); setErrorMessage(''); }}
           required
+          autoComplete="email"
           className="h-11 bg-background border-input focus:border-primary focus:ring-2 focus:ring-ring/20 transition-all duration-200"
           placeholder="your@email.com"
           disabled={isLoading}

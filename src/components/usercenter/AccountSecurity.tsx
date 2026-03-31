@@ -198,6 +198,7 @@ export const AccountSecurity = () => {
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   placeholder="输入当前密码"
+                  autoComplete="current-password"
                   className="pr-10"
                 />
                 <button
@@ -219,6 +220,7 @@ export const AccountSecurity = () => {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="输入新密码"
+                  autoComplete="new-password"
                   className="pr-10"
                 />
                 <button
@@ -271,6 +273,7 @@ export const AccountSecurity = () => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="再次输入新密码"
+                  autoComplete="new-password"
                   className="pr-10"
                 />
                 <button
@@ -366,6 +369,7 @@ export const AccountSecurity = () => {
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
                   placeholder="输入新的邮箱地址"
+                  autoComplete="email"
                 />
               </div>
               <div className="space-y-2">
@@ -377,6 +381,7 @@ export const AccountSecurity = () => {
                     value={emailPassword}
                     onChange={(e) => setEmailPassword(e.target.value)}
                     placeholder="输入当前密码"
+                    autoComplete="current-password"
                     className="pr-10"
                   />
                   <button

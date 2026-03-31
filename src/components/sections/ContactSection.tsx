@@ -72,7 +72,8 @@ export const ContactSection = () => {
                   您的姓名
                 </label>
                 <Input 
-                  type="text" 
+                  type="text"
+                  autoComplete="name"
                   placeholder="请输入您的姓名"
                   className="w-full"
                 />
@@ -83,7 +84,8 @@ export const ContactSection = () => {
                   联系邮箱
                 </label>
                 <Input 
-                  type="email" 
+                  type="email"
+                  autoComplete="email"
                   placeholder="请输入您的邮箱"
                   className="w-full"
                 />

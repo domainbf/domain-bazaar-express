@@ -233,6 +233,7 @@ export function FeedbackButton() {
                         id="fb-email"
                         type="email"
                         placeholder="your@email.com"
+                        autoComplete="email"
                         value={email}
                         onChange={e => setEmail(e.target.value)}
                       />

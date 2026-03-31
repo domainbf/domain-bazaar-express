@@ -236,6 +236,8 @@ export const ContactPage: React.FC = () => {
                         姓名 <span className="text-red-500">*</span>
                       </label>
                       <Input
+                        type="text"
+                        autoComplete="name"
                         value={formData.name}
                         onChange={(e) => handleInputChange('name', e.target.value)}
                         placeholder="请输入您的姓名"
@@ -248,6 +250,7 @@ export const ContactPage: React.FC = () => {
                       </label>
                       <Input
                         type="email"
+                        autoComplete="email"
                         value={formData.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
                         placeholder="your@email.com"

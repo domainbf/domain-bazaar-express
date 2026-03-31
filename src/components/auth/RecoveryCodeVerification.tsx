@@ -80,6 +80,7 @@ export const RecoveryCodeVerification = ({
             onChange={(e) => setRecoveryCode(e.target.value.toUpperCase())}
             onKeyPress={handleKeyPress}
             placeholder="XXXX-XXXX-XXXX"
+            autoComplete="one-time-code"
             className="font-mono text-center text-lg tracking-wider"
             autoFocus
           />

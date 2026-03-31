@@ -93,7 +93,7 @@ const paymentMethods: PaymentMethodOption[] = [
   {
     id: 'bank_transfer',
     name: '银行转账',
-    icon: <CreditCard className="w-8 h-8 text-gray-600" />,
+    icon: <CreditCard className="w-8 h-8 text-muted-foreground" />,
     description: '支持银联卡、国际信用卡',
     fee: '1%',
     minAmount: 100,

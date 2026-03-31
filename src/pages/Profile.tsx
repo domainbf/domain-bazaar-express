@@ -114,6 +114,7 @@ export const Profile = () => {
                     <Input
                       name="contact_email"
                       type="email"
+                      autoComplete="email"
                       value={formData.contact_email}
                       onChange={handleChange}
                     />
@@ -125,6 +126,8 @@ export const Profile = () => {
                     </label>
                     <Input
                       name="contact_phone"
+                      type="tel"
+                      autoComplete="tel"
                       value={formData.contact_phone}
                       onChange={handleChange}
                     />
