@@ -1,7 +1,6 @@
-import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiGet } from '@/lib/apiClient';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { TrendingUp, BarChart3, PieChart as PieIcon } from 'lucide-react';
@@ -23,11 +22,15 @@ const chartConfig = {
 };
 
 const COLORS = ['hsl(221, 83%, 53%)', 'hsl(142, 71%, 45%)', 'hsl(280, 65%, 60%)', 'hsl(25, 95%, 53%)', 'hsl(350, 80%, 55%)'];
+const CAT_LABELS: Record<string, string> = {
+  standard: '标准', premium: '精品', business: '商务',
+  numeric: '数字', short: '短域名', brandable: '品牌', keyword: '关键词'
+};
 
 export const DashboardTrendChart = () => {
   const [trendData, setTrendData] = useState<TrendData[]>([]);
   const [categoryData, setCategoryData] = useState<{ name: string; value: number }[]>([]);
-  const [chartType, setChartType] = useState<'area' | 'bar' | 'pie'>('area');
+  const [chartType, setChartType] = useState<'area' | 'bar'>('area');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -37,47 +40,13 @@ export const DashboardTrendChart = () => {
   const fetchTrendData = async () => {
     setIsLoading(true);
     try {
-      // Generate trend data from last 7 days of real data
-      const days = 7;
-      const trends: TrendData[] = [];
-
-      for (let i = days - 1; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        const dayStart = new Date(date);
-        dayStart.setHours(0, 0, 0, 0);
-        const dayEnd = new Date(date);
-        dayEnd.setHours(23, 59, 59, 999);
-
-        const [usersRes, domainsRes, offersRes] = await Promise.allSettled([
-          supabase.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', dayStart.toISOString()).lte('created_at', dayEnd.toISOString()),
-          supabase.from('domain_listings').select('id', { count: 'exact', head: true }).gte('created_at', dayStart.toISOString()).lte('created_at', dayEnd.toISOString()),
-          supabase.from('domain_offers').select('id', { count: 'exact', head: true }).gte('created_at', dayStart.toISOString()).lte('created_at', dayEnd.toISOString()),
-        ]);
-
-        trends.push({
-          date: `${date.getMonth() + 1}/${date.getDate()}`,
-          users: usersRes.status === 'fulfilled' ? (usersRes.value.count || 0) : 0,
-          domains: domainsRes.status === 'fulfilled' ? (domainsRes.value.count || 0) : 0,
-          offers: offersRes.status === 'fulfilled' ? (offersRes.value.count || 0) : 0,
-          views: Math.floor(Math.random() * 50 + 10), // analytics doesn't have timestamps, approximate
-        });
-      }
-      setTrendData(trends);
-
-      // Fetch domain category distribution
-      const { data: domains } = await supabase.from('domain_listings').select('category');
-      if (domains) {
-        const catMap: Record<string, number> = {};
-        domains.forEach(d => {
-          const cat = d.category || 'standard';
-          catMap[cat] = (catMap[cat] || 0) + 1;
-        });
-        const catLabels: Record<string, string> = {
-          standard: '标准', premium: '精品', business: '商务',
-          numeric: '数字', short: '短域名', brandable: '品牌', keyword: '关键词'
-        };
-        setCategoryData(Object.entries(catMap).map(([k, v]) => ({ name: catLabels[k] || k, value: v })));
+      const data = await apiGet<{ trends: TrendData[]; categories: { name: string; value: number }[] }>('/data/admin/trend-stats');
+      if (data?.trends) setTrendData(data.trends);
+      if (data?.categories) {
+        setCategoryData(data.categories.map((c: any) => ({
+          name: CAT_LABELS[c.name] || c.name,
+          value: c.value,
+        })));
       }
     } catch (error) {
       console.error('Error fetching trend data:', error);
@@ -98,7 +67,6 @@ export const DashboardTrendChart = () => {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* 趋势图 */}
       <Card className="lg:col-span-2">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
@@ -141,7 +109,6 @@ export const DashboardTrendChart = () => {
         </CardContent>
       </Card>
 
-      {/* 分类饼图 */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">

@@ -1,12 +1,10 @@
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { useState, useEffect } from 'react';
-import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/apiClient';
-import { supabase } from '@/integrations/supabase/client';
+import { apiGet, apiPatch, apiDelete } from '@/lib/apiClient';
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -14,7 +12,7 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, RefreshCw, Download, MoreHorizontal, Check, X, Clock, MessageSquare, DollarSign, TrendingUp } from 'lucide-react';
+import { Search, RefreshCw, Download, MoreHorizontal, Check, X, Clock, MessageSquare } from 'lucide-react';
 
 interface Offer {
   id: string;
@@ -28,8 +26,8 @@ interface Offer {
   buyer_id: string | null;
   seller_id: string | null;
   domain_name?: string;
-  buyer_name?: string;
-  seller_name?: string;
+  buyer_email?: string;
+  seller_email?: string;
 }
 
 const statusLabels: Record<string, string> = {
@@ -37,9 +35,9 @@ const statusLabels: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
-  pending: 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 dark:bg-yellow-900/30 dark:text-yellow-400',
-  accepted: 'bg-green-500/15 text-green-600 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400',
-  rejected: 'bg-red-500/15 text-red-600 dark:text-red-400 dark:bg-red-900/30 dark:text-red-400',
+  pending: 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400',
+  accepted: 'bg-green-500/15 text-green-600 dark:text-green-400',
+  rejected: 'bg-red-500/15 text-red-600 dark:text-red-400',
   expired: 'bg-muted text-muted-foreground',
   cancelled: 'bg-muted text-muted-foreground',
 };
@@ -63,40 +61,8 @@ export const OffersManagement = () => {
   const loadOffers = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('domain_offers')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Map domain names and user names
-      const domainIds = [...new Set((data || []).map(o => o.domain_id).filter(Boolean))];
-      const userIds = [...new Set((data || []).flatMap(o => [o.buyer_id, o.seller_id]).filter(Boolean))];
-
-      const [domainsRes, profilesRes] = await Promise.allSettled([
-        domainIds.length > 0 ? supabase.from('domain_listings').select('id, name').in('id', domainIds) : Promise.resolve({ data: [] }),
-        userIds.length > 0 ? supabase.from('profiles').select('id, username, full_name').in('id', userIds as string[]) : Promise.resolve({ data: [] }),
-      ]);
-
-      const domainsMap: Record<string, string> = {};
-      const profilesMap: Record<string, string> = {};
-
-      if (domainsRes.status === 'fulfilled' && domainsRes.value.data) {
-        domainsRes.value.data.forEach((d: any) => { domainsMap[d.id] = d.name; });
-      }
-      if (profilesRes.status === 'fulfilled' && profilesRes.value.data) {
-        profilesRes.value.data.forEach((p: any) => { profilesMap[p.id] = p.username || p.full_name || '未知'; });
-      }
-
-      const enriched: Offer[] = (data || []).map(o => ({
-        ...o,
-        domain_name: o.domain_id ? domainsMap[o.domain_id] || '未知域名' : '未知域名',
-        buyer_name: o.buyer_id ? profilesMap[o.buyer_id] || '匿名' : '匿名',
-        seller_name: o.seller_id ? profilesMap[o.seller_id] || '未知' : '未知',
-      }));
-
-      setOffers(enriched);
+      const data = await apiGet<Offer[]>('/data/admin/offers');
+      setOffers(Array.isArray(data) ? data : []);
     } catch (error: any) {
       console.error('Error loading offers:', error);
       toast.error('加载报价失败');
@@ -107,11 +73,7 @@ export const OffersManagement = () => {
 
   const updateOfferStatus = async (offerId: string, status: string) => {
     try {
-      const { error } = await supabase
-        .from('domain_offers')
-        .update({ status, updated_at: new Date().toISOString() })
-        .eq('id', offerId);
-      if (error) throw error;
+      await apiPatch(`/data/domain-offers/${offerId}`, { status });
       setOffers(offers.map(o => o.id === offerId ? { ...o, status } : o));
       toast.success(`报价状态已更新为: ${statusLabels[status] || status}`);
     } catch (error: any) {
@@ -122,8 +84,7 @@ export const OffersManagement = () => {
   const deleteOffer = async (offerId: string) => {
     if (!confirm('确定删除此报价记录？')) return;
     try {
-      const { error } = await supabase.from('domain_offers').delete().eq('id', offerId);
-      if (error) throw error;
+      await apiDelete(`/data/domain-offers/${offerId}`);
       setOffers(offers.filter(o => o.id !== offerId));
       toast.success('报价已删除');
     } catch (error: any) {
@@ -133,9 +94,9 @@ export const OffersManagement = () => {
 
   const exportOffers = () => {
     const csv = [
-      '域名,报价金额,买家,卖家,联系邮箱,状态,留言,时间',
+      '域名,报价金额,买家邮箱,卖家邮箱,联系邮箱,状态,留言,时间',
       ...filteredOffers.map(o =>
-        [o.domain_name, o.amount, o.buyer_name, o.seller_name, o.contact_email || '', statusLabels[o.status || ''] || o.status, (o.message || '').replace(/,/g, '，'), new Date(o.created_at || '').toLocaleString()].join(',')
+        [o.domain_name, o.amount, o.buyer_email || '', o.seller_email || '', o.contact_email || '', statusLabels[o.status || ''] || o.status, (o.message || '').replace(/,/g, '，'), new Date(o.created_at || '').toLocaleString()].join(',')
       )
     ].join('\n');
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -149,7 +110,7 @@ export const OffersManagement = () => {
   const filteredOffers = offers.filter(o => {
     const matchSearch = !searchQuery ||
       (o.domain_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (o.buyer_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (o.buyer_email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (o.contact_email || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchStatus = statusFilter === 'all' || o.status === statusFilter;
     return matchSearch && matchStatus;
@@ -166,7 +127,6 @@ export const OffersManagement = () => {
 
   return (
     <div className="space-y-6">
-      {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold">{stats.total}</p><p className="text-xs text-muted-foreground">总报价数</p></CardContent></Card>
         <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-yellow-600">{stats.pending}</p><p className="text-xs text-muted-foreground">待处理</p></CardContent></Card>
@@ -174,7 +134,6 @@ export const OffersManagement = () => {
         <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-primary">¥{stats.totalAmount.toLocaleString()}</p><p className="text-xs text-muted-foreground">总报价金额</p></CardContent></Card>
       </div>
 
-      {/* Toolbar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-xl font-semibold flex items-center gap-2">
           <MessageSquare className="h-5 w-5" />报价管理
@@ -187,11 +146,10 @@ export const OffersManagement = () => {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="flex gap-4 items-center">
         <div className="flex-1 flex gap-2 items-center">
           <Search className="h-4 w-4 text-muted-foreground" />
-          <Input placeholder="搜索域名、买家、邮箱..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+          <Input placeholder="搜索域名、买家邮箱..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-36"><SelectValue placeholder="状态" /></SelectTrigger>
@@ -205,15 +163,14 @@ export const OffersManagement = () => {
         </Select>
       </div>
 
-      {/* Table */}
       <div className="overflow-x-auto rounded-lg border">
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-muted/50">
               <th className="text-left p-4 font-medium">域名</th>
               <th className="text-left p-4 font-medium">报价金额</th>
-              <th className="text-left p-4 font-medium">买家</th>
-              <th className="text-left p-4 font-medium">卖家</th>
+              <th className="text-left p-4 font-medium">买家邮箱</th>
+              <th className="text-left p-4 font-medium">卖家邮箱</th>
               <th className="text-left p-4 font-medium">联系邮箱</th>
               <th className="text-left p-4 font-medium">状态</th>
               <th className="text-left p-4 font-medium">留言</th>
@@ -226,10 +183,10 @@ export const OffersManagement = () => {
               <tr><td colSpan={9} className="text-center py-12 text-muted-foreground">暂无报价记录</td></tr>
             ) : filteredOffers.map(offer => (
               <tr key={offer.id} className="border-b hover:bg-muted/30">
-                <td className="p-4 font-medium">{offer.domain_name}</td>
+                <td className="p-4 font-medium">{offer.domain_name || '—'}</td>
                 <td className="p-4 font-bold text-primary">¥{offer.amount?.toLocaleString()}</td>
-                <td className="p-4 text-sm">{offer.buyer_name}</td>
-                <td className="p-4 text-sm">{offer.seller_name}</td>
+                <td className="p-4 text-sm">{offer.buyer_email || '匿名'}</td>
+                <td className="p-4 text-sm">{offer.seller_email || '—'}</td>
                 <td className="p-4 text-sm text-muted-foreground">{offer.contact_email || '-'}</td>
                 <td className="p-4">
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[offer.status || ''] || 'bg-muted text-muted-foreground'}`}>

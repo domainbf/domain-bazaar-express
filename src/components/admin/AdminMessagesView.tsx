@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react';
-import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/apiClient';
-import { supabase } from '@/integrations/supabase/client';
+import { apiGet, apiDelete } from '@/lib/apiClient';
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCw, Search, MessageSquare, Globe, ArrowRight, Eye, Trash2 } from 'lucide-react';
+import { RefreshCw, Search, MessageSquare, Globe, ArrowRight, Trash2 } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -20,9 +19,9 @@ interface Message {
   content: string;
   is_read: boolean | null;
   created_at: string | null;
-  sender_name?: string;
-  receiver_name?: string;
   domain_name?: string;
+  sender_email?: string;
+  receiver_email?: string;
 }
 
 interface ConversationGroup {
@@ -54,51 +53,13 @@ export const AdminMessagesView = () => {
   const loadMessages = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(500);
-
-      if (error) throw error;
-
-      const msgs = data || [];
-
-      const userIds = [...new Set([
-        ...msgs.map(m => m.sender_id).filter(Boolean),
-        ...msgs.map(m => m.receiver_id).filter(Boolean),
-      ])] as string[];
-
-      const domainIds = [...new Set(msgs.map(m => m.domain_id).filter(Boolean))] as string[];
-
-      const [profilesRes, domainsRes] = await Promise.allSettled([
-        userIds.length > 0
-          ? supabase.from('profiles').select('id, full_name, username').in('id', userIds)
-          : Promise.resolve({ data: [], error: null }),
-        domainIds.length > 0
-          ? supabase.from('domain_listings').select('id, name').in('id', domainIds)
-          : Promise.resolve({ data: [], error: null }),
-      ]);
-
-      const profileMap: Record<string, string> = {};
-      if (profilesRes.status === 'fulfilled' && profilesRes.value.data) {
-        profilesRes.value.data.forEach((p: any) => {
-          profileMap[p.id] = p.full_name || p.username || p.id.slice(0, 8);
-        });
-      }
-
-      const domainMap: Record<string, string> = {};
-      if (domainsRes.status === 'fulfilled' && domainsRes.value.data) {
-        domainsRes.value.data.forEach((d: any) => {
-          domainMap[d.id] = d.name;
-        });
-      }
+      const data = await apiGet<Message[]>('/data/admin/messages');
+      const msgs = Array.isArray(data) ? data : [];
 
       const enriched: Message[] = msgs.map(m => ({
         ...m,
-        sender_name: m.sender_id ? (profileMap[m.sender_id] || '未知用户') : '系统',
-        receiver_name: m.receiver_id ? (profileMap[m.receiver_id] || '未知用户') : '系统',
-        domain_name: m.domain_id ? (domainMap[m.domain_id] || m.domain_id.slice(0, 8)) : '',
+        sender_email: m.sender_email || (m.sender_id ? m.sender_id.slice(0, 8) + '...' : '系统'),
+        receiver_email: m.receiver_email || (m.receiver_id ? m.receiver_id.slice(0, 8) + '...' : '系统'),
       }));
 
       setMessages(enriched);
@@ -111,8 +72,8 @@ export const AdminMessagesView = () => {
             key,
             sender_id: m.sender_id,
             receiver_id: m.receiver_id,
-            sender_name: m.sender_name || '',
-            receiver_name: m.receiver_name || '',
+            sender_name: m.sender_email || '未知',
+            receiver_name: m.receiver_email || '未知',
             domain_name: m.domain_name || '',
             domain_id: m.domain_id,
             messages: [],
@@ -129,18 +90,10 @@ export const AdminMessagesView = () => {
         const sorted = [...c.messages].sort(
           (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
         );
-        return {
-          ...c,
-          messages: sorted,
-          last_message: sorted[0]?.content || '',
-          last_time: sorted[0]?.created_at || '',
-        };
+        return { ...c, messages: sorted, last_message: sorted[0]?.content || '', last_time: sorted[0]?.created_at || '' };
       });
 
-      convList.sort(
-        (a, b) => new Date(b.last_time || 0).getTime() - new Date(a.last_time || 0).getTime()
-      );
-
+      convList.sort((a, b) => new Date(b.last_time || 0).getTime() - new Date(a.last_time || 0).getTime());
       setConversations(convList);
     } catch (error: any) {
       toast.error('加载消息失败: ' + error.message);
@@ -152,8 +105,7 @@ export const AdminMessagesView = () => {
   const handleDeleteMessage = async (msgId: string) => {
     if (!confirm('确定要删除这条消息吗？')) return;
     try {
-      const { error } = await supabase.from('messages').delete().eq('id', msgId);
-      if (error) throw error;
+      await apiDelete(`/data/admin/messages/${msgId}`);
       toast.success('消息已删除');
       loadMessages();
     } catch (error: any) {
@@ -246,7 +198,6 @@ export const AdminMessagesView = () => {
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   className="pl-8 h-8 text-sm"
-                  data-testid="input-msg-search"
                 />
               </div>
               <Select value={filter} onValueChange={setFilter}>
@@ -341,12 +292,12 @@ export const AdminMessagesView = () => {
                       <div className="flex items-start gap-2 group">
                         <Avatar className="h-6 w-6 shrink-0 mt-0.5">
                           <AvatarFallback className="text-xs">
-                            {msg.sender_name?.[0]?.toUpperCase() || '?'}
+                            {(msg.sender_email || '?')[0].toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-medium">{msg.sender_name}</span>
+                            <span className="text-xs font-medium">{msg.sender_email || '未知'}</span>
                             <span className="text-xs text-muted-foreground">
                               {msg.created_at ? new Date(msg.created_at).toLocaleString('zh-CN') : ''}
                             </span>

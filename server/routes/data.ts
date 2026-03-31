@@ -1005,6 +1005,135 @@ app.get('/admin/stats', requireAuth, async (c) => {
   return c.json(result);
 });
 
+// ---- Admin: All Offers ----
+app.get('/admin/offers', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const r = await db.execute(`
+    SELECT do.*, dl.name as domain_name,
+      bu.email as buyer_email, su.email as seller_email
+    FROM domain_offers do
+    LEFT JOIN domain_listings dl ON do.domain_id = dl.id
+    LEFT JOIN app_auth_users bu ON do.buyer_id = bu.id
+    LEFT JOIN app_auth_users su ON do.seller_id = su.id
+    ORDER BY do.created_at DESC
+  `);
+  return c.json(r.rows.map(rowToObj));
+});
+
+app.delete('/domain-offers/:id', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const id = c.req.param('id');
+  await db.execute({ sql: 'DELETE FROM domain_offers WHERE id = ?', args: [id] });
+  return c.json({ success: true });
+});
+
+// ---- Admin: All Transactions ----
+app.get('/admin/transactions', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const r = await db.execute(`
+    SELECT t.*, dl.name as domain_name,
+      bu.email as buyer_email, su.email as seller_email
+    FROM transactions t
+    LEFT JOIN domain_listings dl ON t.domain_id = dl.id
+    LEFT JOIN app_auth_users bu ON t.buyer_id = bu.id
+    LEFT JOIN app_auth_users su ON t.seller_id = su.id
+    ORDER BY t.created_at DESC
+    LIMIT 200
+  `);
+  return c.json(r.rows.map(rowToObj));
+});
+
+app.patch('/admin/transactions/:id', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const txId = c.req.param('id');
+  const body = await c.req.json();
+  const { status, notes, domain_id } = body;
+  const updates: string[] = [];
+  const args: unknown[] = [];
+  if (status !== undefined) { updates.push('status = ?'); args.push(status); }
+  if (notes !== undefined) { updates.push('notes = ?'); args.push(notes); }
+  if (status === 'completed') { updates.push('completed_at = ?'); args.push(now()); }
+  updates.push('updated_at = ?');
+  args.push(now());
+  args.push(txId);
+  await db.execute({ sql: `UPDATE transactions SET ${updates.join(', ')} WHERE id = ?`, args });
+  if (domain_id) {
+    if (status === 'completed') {
+      await db.execute({ sql: "UPDATE domain_listings SET status = 'sold', updated_at = ? WHERE id = ?", args: [now(), domain_id] });
+    } else if (status === 'cancelled' || status === 'refunded') {
+      await db.execute({ sql: "UPDATE domain_listings SET status = 'active', updated_at = ? WHERE id = ?", args: [now(), domain_id] });
+    }
+  }
+  const r = await db.execute({ sql: 'SELECT * FROM transactions WHERE id = ?', args: [txId] });
+  return c.json(rowToObj(r.rows[0]));
+});
+
+// ---- Admin: All Messages ----
+app.get('/admin/messages', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const r = await db.execute(`
+    SELECT m.*, dl.name as domain_name,
+      su.email as sender_email, ru.email as receiver_email
+    FROM messages m
+    LEFT JOIN domain_listings dl ON m.domain_id = dl.id
+    LEFT JOIN app_auth_users su ON m.sender_id = su.id
+    LEFT JOIN app_auth_users ru ON m.receiver_id = ru.id
+    ORDER BY m.created_at DESC
+    LIMIT 500
+  `);
+  return c.json(r.rows.map(rowToObj));
+});
+
+app.delete('/admin/messages/:id', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const id = c.req.param('id');
+  await db.execute({ sql: 'DELETE FROM messages WHERE id = ?', args: [id] });
+  return c.json({ success: true });
+});
+
+// ---- Admin: Trend Stats ----
+app.get('/admin/trend-stats', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const cached = await cacheGet<Record<string, unknown>>('admin_trend_stats');
+  if (cached) return c.json(cached);
+  const days = 7;
+  const trends: Record<string, unknown>[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dayStart = new Date(d); dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(d); dayEnd.setHours(23, 59, 59, 999);
+    const ds = dayStart.toISOString(); const de = dayEnd.toISOString();
+    const [usersR, domainsR, offersR] = await Promise.all([
+      db.execute({ sql: 'SELECT COUNT(*) as cnt FROM app_auth_users WHERE created_at >= ? AND created_at <= ?', args: [ds, de] }),
+      db.execute({ sql: 'SELECT COUNT(*) as cnt FROM domain_listings WHERE created_at >= ? AND created_at <= ?', args: [ds, de] }),
+      db.execute({ sql: 'SELECT COUNT(*) as cnt FROM domain_offers WHERE created_at >= ? AND created_at <= ?', args: [ds, de] }),
+    ]);
+    trends.push({
+      date: `${d.getMonth() + 1}/${d.getDate()}`,
+      users: Number(usersR.rows[0]?.cnt) || 0,
+      domains: Number(domainsR.rows[0]?.cnt) || 0,
+      offers: Number(offersR.rows[0]?.cnt) || 0,
+      views: 0,
+    });
+  }
+  const catR = await db.execute('SELECT category, COUNT(*) as cnt FROM domain_listings GROUP BY category');
+  const categories = catR.rows.map(row => {
+    const o = rowToObj(row);
+    return { name: String(o.category || 'standard'), value: Number(o.cnt) || 0 };
+  });
+  const result = { trends, categories };
+  await cacheSet('admin_trend_stats', result, 300);
+  return c.json(result);
+});
+
 // ---- Admin: Change Password ----
 app.post('/admin/change-password', requireAuth, async (c) => {
   const { is_admin, sub } = getAuth(c);

@@ -67,43 +67,13 @@ export const AdminTransactionManagement = () => {
   const loadTransactions = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('transactions')
-        .select(`
-          id, amount, status, commission_amount, commission_rate, seller_amount,
-          payment_method, created_at, completed_at, buyer_id, seller_id,
-          domain_id, offer_id, notes,
-          domain_listings:domain_id ( name )
-        `)
-        .order('created_at', { ascending: false })
-        .limit(200);
-
-      if (error) throw error;
-
-      const txs = data || [];
-      const buyerIds = [...new Set(txs.map((t: any) => t.buyer_id).filter(Boolean))];
-      const sellerIds = [...new Set(txs.map((t: any) => t.seller_id).filter(Boolean))];
-      const allIds = [...new Set([...buyerIds, ...sellerIds])];
-
-      let profiles: any[] = [];
-      if (allIds.length > 0) {
-        const { data: p } = await supabase
-          .from('profiles')
-          .select('id, contact_email, full_name')
-          .in('id', allIds);
-        profiles = p || [];
-      }
-
-      const profileMap = Object.fromEntries(profiles.map((p: any) => [p.id, p]));
-
-      const mapped: AdminTransaction[] = txs.map((t: any) => ({
+      const data = await apiGet<AdminTransaction[]>('/data/admin/transactions');
+      setTransactions(Array.isArray(data) ? data.map(t => ({
         ...t,
-        domain_name: t.domain_listings?.name ?? '—',
-        buyer_email: profileMap[t.buyer_id]?.contact_email ?? profileMap[t.buyer_id]?.full_name ?? '—',
-        seller_email: profileMap[t.seller_id]?.contact_email ?? profileMap[t.seller_id]?.full_name ?? '—',
-      }));
-
-      setTransactions(mapped);
+        domain_name: t.domain_name || '—',
+        buyer_email: t.buyer_email || '—',
+        seller_email: t.seller_email || '—',
+      })) : []);
     } catch (err: any) {
       toast.error('加载交易记录失败');
     } finally {
@@ -116,25 +86,11 @@ export const AdminTransactionManagement = () => {
   const handleStatusUpdate = async (txId: string, newStatus: string) => {
     setIsActing(true);
     try {
-      const updates: any = { status: newStatus };
-      if (newStatus === 'completed') updates.completed_at = new Date().toISOString();
-      if (actionNote) updates.notes = actionNote;
-
-      const { error } = await supabase.from('transactions').update(updates).eq('id', txId);
-      if (error) throw error;
-
-      // Sync domain listing status when transaction reaches a terminal state
-      if (selectedTx?.domain_id) {
-        if (newStatus === 'completed') {
-          await supabase.from('domain_listings')
-            .update({ status: 'sold', updated_at: new Date().toISOString() })
-            .eq('id', selectedTx.domain_id);
-        } else if (newStatus === 'cancelled' || newStatus === 'refunded') {
-          await supabase.from('domain_listings')
-            .update({ status: 'active', updated_at: new Date().toISOString() })
-            .eq('id', selectedTx.domain_id);
-        }
-      }
+      await apiPatch(`/data/admin/transactions/${txId}`, {
+        status: newStatus,
+        notes: actionNote || undefined,
+        domain_id: selectedTx?.domain_id || undefined,
+      });
 
       // Send email notifications based on the new status
       if (selectedTx) {
