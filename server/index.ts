@@ -1,4 +1,5 @@
 import { serve } from '@hono/node-server';
+import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
@@ -35,6 +36,15 @@ app.route('/api/auth', authRoutes);
 app.route('/api/realtime', realtimeRoutes);
 app.route('/api/data', dataRoutes);
 app.route('/api/upload', uploadRoutes);
+
+// ── Static file serving (production only) ──────────────────────────────────
+const isProd = process.env.NODE_ENV === 'production';
+if (isProd) {
+  // Serve built assets from dist/
+  app.use('/*', serveStatic({ root: './dist' }));
+  // SPA fallback — all non-API, non-asset routes serve index.html
+  app.get('*', serveStatic({ path: './dist/index.html' }));
+}
 
 // ── Health check (used by keep-alive + admin dashboard) ────────────────────
 app.get('/api/health', async (c) => {
@@ -75,7 +85,7 @@ app.get('/api/health', async (c) => {
   });
 });
 
-const PORT = parseInt(process.env.API_PORT || '3001');
+const PORT = parseInt(process.env.PORT || process.env.API_PORT || (isProd ? '5000' : '3001'));
 
 // ── Keep-alive: prevents Turso / Redis / Supabase from sleeping ────────────
 // All three are pinged every 5 hours — just enough to keep the projects
