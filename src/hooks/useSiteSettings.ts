@@ -53,6 +53,11 @@ export interface SiteConfig {
   primary_color: string;
   currency: string;
   commission_rate: string;
+  // Site control flags
+  site_closed: string;
+  registration_closed: string;
+  maintenance_title: string;
+  maintenance_message: string;
 }
 
 export const defaultConfig: SiteConfig = {
@@ -106,6 +111,10 @@ export const defaultConfig: SiteConfig = {
   primary_color: '',
   currency: 'CNY',
   commission_rate: '5',
+  site_closed: 'false',
+  registration_closed: 'false',
+  maintenance_title: '系统维护中',
+  maintenance_message: '我们正在对平台进行升级维护，即将回来，感谢您的耐心等待。',
 };
 
 /* ── Module-level singletons ──────────────────────────────────────

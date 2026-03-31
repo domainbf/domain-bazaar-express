@@ -2,13 +2,14 @@
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle, ShieldCheck } from 'lucide-react';
+import { Loader2, Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle, ShieldCheck, UserX } from 'lucide-react';
 import { useAuth } from "@/contexts/AuthContext";
 import { setPersistent } from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 interface AuthFormProps {
   mode: 'signin' | 'signup';
@@ -36,6 +37,8 @@ export const AuthForm = ({
     return localStorage.getItem('auth_remember_me') === 'true';
   });
   const { signIn, signUp, isAuthenticating } = useAuth();
+  const { config } = useSiteSettings();
+  const registrationClosed = config.registration_closed === 'true';
 
   const handleGoogleLogin = () => {
     toast.info('Google 第三方登录功能即将上线，请使用邮箱登录');
@@ -188,6 +191,36 @@ export const AuthForm = ({
     e.stopPropagation();
     onChangeMode(newMode);
   };
+
+  // If registration is closed and user is trying to sign up, show notice
+  if (mode === 'signup' && registrationClosed) {
+    return (
+      <div className="space-y-5">
+        <Card className="border-l-4 border-l-amber-500 bg-amber-500/5">
+          <CardContent className="p-5">
+            <div className="flex items-start gap-3">
+              <UserX className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
+              <div className="space-y-1">
+                <h4 className="text-sm font-semibold text-foreground">注册暂时关闭</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  平台当前暂停新用户注册，如有账户请直接登录，或稍后再来。
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <div className="text-center pt-2">
+          <button
+            type="button"
+            onClick={(e) => { e.preventDefault(); onChangeMode('signin'); }}
+            className="text-sm text-primary font-semibold hover:underline transition-colors"
+          >
+            返回登录
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -452,14 +485,21 @@ export const AuthForm = ({
         <div className="text-center pt-4 border-t border-border">
           {mode === 'signin' ? (
             <p className="text-sm text-foreground/60">
-              还没有账户？{' '}
-              <button 
-                type="button"
-                onClick={(e) => handleModeChange(e, 'signup')}
-                className="text-primary font-semibold hover:underline transition-colors cursor-pointer"
-              >
-                立即注册
-              </button>
+              {!registrationClosed && (
+                <>
+                  还没有账户？{' '}
+                  <button 
+                    type="button"
+                    onClick={(e) => handleModeChange(e, 'signup')}
+                    className="text-primary font-semibold hover:underline transition-colors cursor-pointer"
+                  >
+                    立即注册
+                  </button>
+                </>
+              )}
+              {registrationClosed && (
+                <span className="text-muted-foreground/60 text-xs">注册当前暂未开放</span>
+              )}
             </p>
           ) : (
             <p className="text-sm text-foreground/60">

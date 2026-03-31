@@ -1,6 +1,8 @@
 
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { useEffect, useRef, useState, Suspense, lazy, memo } from 'react';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { useAuth } from '@/contexts/AuthContext';
 
 import { ErrorBoundary } from 'react-error-boundary';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -43,6 +45,7 @@ const HelpPage = lazy(() => import('./pages/HelpPage'));
 const TermsPage = lazy(() => import('./pages/TermsPage'));
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
 const DisclaimerPage = lazy(() => import('./pages/DisclaimerPage'));
+const MaintenancePage = lazy(() => import('./pages/MaintenancePage'));
 
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
   const reported = useRef(false);
@@ -152,6 +155,33 @@ const RouteLoadingFallback = memo(() => (
 ));
 RouteLoadingFallback.displayName = 'RouteLoadingFallback';
 
+// Redirect all non-admin users to /maintenance when site_closed is true.
+// Reads from the already-cached useSiteSettings singleton — no extra network calls.
+const SiteGuard = memo(({ children }: { children: React.ReactNode }) => {
+  const { config, isLoading } = useSiteSettings();
+  const { isAdmin, isLoading: authLoading } = useAuth();
+  const location = useLocation();
+
+  // Wait until both settings and auth state are resolved
+  if (isLoading || authLoading) return null;
+
+  const isClosed = config.site_closed === 'true';
+  const isAdminPath = location.pathname.startsWith('/admin');
+  const isMaintenancePath = location.pathname === '/maintenance';
+
+  if (isClosed && !isAdmin && !isAdminPath && !isMaintenancePath) {
+    return <Navigate to="/maintenance" replace />;
+  }
+
+  // If site is open again and user is on /maintenance, redirect home
+  if (!isClosed && isMaintenancePath) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+});
+SiteGuard.displayName = 'SiteGuard';
+
 // Routes component — NO key on wrapper: avoids full subtree remounts on every navigation
 // Each page's own mount animation handles the visual transition
 const AnimatedRoutes = memo(() => {
@@ -166,7 +196,9 @@ const AnimatedRoutes = memo(() => {
     <>
       <TopProgressBar />
       <div key={location.pathname} className="animate-in">
+      <SiteGuard>
       <Routes location={location}>
+        <Route path="/maintenance" element={<MaintenancePage />} />
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/auth/*" element={<AuthPage />} />
@@ -205,6 +237,7 @@ const AnimatedRoutes = memo(() => {
         <Route path="/disclaimer" element={<DisclaimerPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </SiteGuard>
       </div>
     </>
   );

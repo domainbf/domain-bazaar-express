@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Settings, Globe, Mail, Shield, Plus, Trash2, Save, Database, Palette, Key, Eye, EyeOff, Send, CheckCircle, XCircle, Loader2, AlertCircle, Phone, Puzzle, TestTube2, Zap, Info } from 'lucide-react';
+import { Settings, Globe, Mail, Shield, Plus, Trash2, Save, Database, Palette, Key, Eye, EyeOff, Send, CheckCircle, XCircle, Loader2, AlertCircle, Phone, Puzzle, TestTube2, Zap, Info, Power, UserX, Wrench } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -108,6 +108,13 @@ export const SiteSettings = () => {
   const [isSavingMs, setIsSavingMs] = useState(false);
   const [msTestResult, setMsTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [isTestingMs, setIsTestingMs] = useState(false);
+
+  // Site control state
+  const [siteClosed, setSiteClosed] = useState(false);
+  const [registrationClosed, setRegistrationClosed] = useState(false);
+  const [maintenanceTitle, setMaintenanceTitle] = useState('系统维护中');
+  const [maintenanceMessage, setMaintenanceMessage] = useState('我们正在对平台进行升级维护，即将回来，感谢您的耐心等待。');
+  const [isSavingControl, setIsSavingControl] = useState(false);
 
   // Contact info state
   const [contactInfo, setContactInfo] = useState({
@@ -231,7 +238,28 @@ export const SiteSettings = () => {
         social_wechat: data['social_wechat'] || '',
         social_weibo: data['social_weibo'] || '',
       });
+      setSiteClosed(data['site_closed'] === 'true');
+      setRegistrationClosed(data['registration_closed'] === 'true');
+      setMaintenanceTitle(data['maintenance_title'] || '系统维护中');
+      setMaintenanceMessage(data['maintenance_message'] || '我们正在对平台进行升级维护，即将回来，感谢您的耐心等待。');
     } catch (e) { console.error('loadAllConfigs error', e); }
+  };
+
+  const saveSiteControl = async () => {
+    setIsSavingControl(true);
+    try {
+      await apiPatch('/data/site-settings', {
+        site_closed: String(siteClosed),
+        registration_closed: String(registrationClosed),
+        maintenance_title: maintenanceTitle,
+        maintenance_message: maintenanceMessage,
+      });
+      toast.success('站点控制已保存');
+    } catch (e: any) {
+      toast.error('保存失败：' + (e.message || '未知错误'));
+    } finally {
+      setIsSavingControl(false);
+    }
   };
 
   const loadWhoisConfig = async () => {
@@ -632,6 +660,10 @@ export const SiteSettings = () => {
             <TabsTrigger value="api" className="text-xs sm:text-sm py-2 px-2 sm:px-3">
               <Puzzle className="h-3.5 w-3.5 mr-1 sm:mr-2 shrink-0" />
               API集成
+            </TabsTrigger>
+            <TabsTrigger value="control" className="text-xs sm:text-sm py-2 px-2 sm:px-3">
+              <Power className="h-3.5 w-3.5 mr-1 sm:mr-2 shrink-0" />
+              站点控制
             </TabsTrigger>
           </TabsList>
         </div>
@@ -1639,6 +1671,108 @@ export const SiteSettings = () => {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* ── 站点控制 ── */}
+        <TabsContent value="control" className="space-y-6">
+          {siteClosed && (
+            <Alert className="border-red-500/40 bg-red-500/10">
+              <Power className="h-4 w-4 text-red-500" />
+              <AlertDescription className="text-red-700 dark:text-red-400 font-medium">
+                网站目前处于<strong>关闭状态</strong>，非管理员用户将看到维护页面。
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* 开关区域 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Power className="h-4 w-4" />
+                访问控制
+              </CardTitle>
+              <CardDescription>控制网站的公开访问权限，修改后立即生效</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* 关闭网站 */}
+              <div className={`flex items-start justify-between gap-4 p-4 rounded-xl border transition-colors ${siteClosed ? 'border-red-400/50 bg-red-500/5' : 'border-border bg-muted/20'}`}>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Wrench className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <p className="text-sm font-semibold text-foreground">关闭网站（维护模式）</p>
+                    {siteClosed && <Badge variant="destructive" className="text-xs">已开启</Badge>}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    开启后，所有非管理员用户访问任何页面时都会跳转到维护页面。管理员可正常访问后台。
+                  </p>
+                </div>
+                <Switch
+                  checked={siteClosed}
+                  onCheckedChange={setSiteClosed}
+                  className="mt-0.5 shrink-0"
+                />
+              </div>
+
+              {/* 关闭注册 */}
+              <div className={`flex items-start justify-between gap-4 p-4 rounded-xl border transition-colors ${registrationClosed ? 'border-amber-400/50 bg-amber-500/5' : 'border-border bg-muted/20'}`}>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <UserX className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <p className="text-sm font-semibold text-foreground">关闭注册</p>
+                    {registrationClosed && <Badge variant="outline" className="text-xs border-amber-400 text-amber-600">已开启</Badge>}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    开启后，注册入口将隐藏，新用户无法创建账户。已有账户不受影响，仍可正常登录。
+                  </p>
+                </div>
+                <Switch
+                  checked={registrationClosed}
+                  onCheckedChange={setRegistrationClosed}
+                  className="mt-0.5 shrink-0"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 维护页面内容 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Wrench className="h-4 w-4" />
+                维护页面内容
+              </CardTitle>
+              <CardDescription>自定义用户看到的维护页面文案（开启关闭网站后生效）</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="maintenance-title">页面标题</Label>
+                <Input
+                  id="maintenance-title"
+                  value={maintenanceTitle}
+                  onChange={e => setMaintenanceTitle(e.target.value)}
+                  placeholder="系统维护中"
+                  maxLength={40}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="maintenance-msg">说明文字</Label>
+                <Textarea
+                  id="maintenance-msg"
+                  value={maintenanceMessage}
+                  onChange={e => setMaintenanceMessage(e.target.value)}
+                  placeholder="我们正在对平台进行升级维护，即将回来，感谢您的耐心等待。"
+                  rows={3}
+                  maxLength={200}
+                />
+                <p className="text-xs text-muted-foreground text-right">{maintenanceMessage.length}/200</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Button onClick={saveSiteControl} disabled={isSavingControl} className="gap-2">
+            {isSavingControl ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            保存控制设置
+          </Button>
         </TabsContent>
       </Tabs>
     </div>
