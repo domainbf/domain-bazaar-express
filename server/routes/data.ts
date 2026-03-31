@@ -1155,7 +1155,7 @@ app.post('/admin/upload-logo', requireAuth, async (c) => {
     return c.json({ error: '不支持的 Content-Type' }, 400);
   }
 
-  const settingKey = mode === 'dark' ? 'logo_dark_url' : 'logo_url';
+  const settingKey = mode === 'dark' ? 'logo_dark_url' : mode === 'favicon' ? 'favicon_url' : 'logo_url';
   await db.execute({
     sql: `INSERT INTO site_settings (id, key, value, section, type, updated_at)
           VALUES (lower(hex(randomblob(16))), ?, ?, 'general', 'text', CURRENT_TIMESTAMP)

@@ -155,7 +155,27 @@ const RouteLoadingFallback = memo(() => (
 ));
 RouteLoadingFallback.displayName = 'RouteLoadingFallback';
 
-// Redirect all non-admin users to /maintenance when site_closed is true.
+// Dynamically updates <link rel="icon"> when favicon_url changes in site settings
+const DynamicFavicon = memo(() => {
+  const { config } = useSiteSettings();
+  useEffect(() => {
+    const url = config.favicon_url;
+    if (!url) return;
+    let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.href = url;
+    // Also update apple-touch-icon if present
+    const apple = document.querySelector<HTMLLinkElement>('link[rel="apple-touch-icon"]');
+    if (apple) apple.href = url;
+  }, [config.favicon_url]);
+  return null;
+});
+DynamicFavicon.displayName = 'DynamicFavicon';
+
 // Reads from the already-cached useSiteSettings singleton — no extra network calls.
 const SiteGuard = memo(({ children }: { children: React.ReactNode }) => {
   const { config, isLoading } = useSiteSettings();
@@ -272,6 +292,7 @@ function App() {
 
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => window.location.reload()}>
+      <DynamicFavicon />
       <CustomScripts />
       <PWAInstallBanner />
       <Suspense fallback={<RouteLoadingFallback />}>

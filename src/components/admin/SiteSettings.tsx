@@ -140,15 +140,17 @@ export const SiteSettings = () => {
     site_subtitle: '',
     logo_url: '',
     logo_dark_url: '',
+    favicon_url: '',
     footer_text: '',
     icp_number: '',
     social_github: '',
     social_twitter: '',
     social_wechat: '',
     social_weibo: '',
+    social_facebook: '',
   });
   const [isSavingBrand, setIsSavingBrand] = useState(false);
-  const [isUploadingLogo, setIsUploadingLogo] = useState<'light' | 'dark' | null>(null);
+  const [isUploadingLogo, setIsUploadingLogo] = useState<'light' | 'dark' | 'favicon' | null>(null);
 
   const handleChangeOwnPassword = async () => {
     if (!newPassword || newPassword.length < 8) {
@@ -236,12 +238,14 @@ export const SiteSettings = () => {
         site_subtitle: data['site_subtitle'] || '',
         logo_url: data['logo_url'] || '',
         logo_dark_url: data['logo_dark_url'] || '',
+        favicon_url: data['favicon_url'] || '',
         footer_text: data['footer_text'] || '',
         icp_number: data['icp_number'] || '',
         social_github: data['social_github'] || '',
         social_twitter: data['social_twitter'] || '',
         social_wechat: data['social_wechat'] || '',
         social_weibo: data['social_weibo'] || '',
+        social_facebook: data['social_facebook'] || '',
       });
       setSiteClosed(data['site_closed'] === 'true');
       setRegistrationClosed(data['registration_closed'] === 'true');
@@ -453,13 +457,14 @@ export const SiteSettings = () => {
       reader.readAsDataURL(file);
     });
 
-  const uploadLogo = async (file: File, mode: 'light' | 'dark') => {
+  const uploadLogo = async (file: File, mode: 'light' | 'dark' | 'favicon') => {
     setIsUploadingLogo(mode);
     try {
-      if (file.size > 5 * 1024 * 1024) throw new Error('Logo 文件不能超过 5MB');
-      const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'image/gif'];
-      if (!ALLOWED.includes(file.type)) throw new Error('仅支持 JPG/PNG/WebP/SVG 格式');
-      const dataUrl = await compressImageToDataUrl(file);
+      if (file.size > 5 * 1024 * 1024) throw new Error('图片文件不能超过 5MB');
+      const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'image/gif', 'image/x-icon', 'image/vnd.microsoft.icon'];
+      if (!ALLOWED.includes(file.type)) throw new Error('仅支持 JPG/PNG/WebP/SVG/ICO 格式');
+      const maxW = mode === 'favicon' ? 256 : 600;
+      const dataUrl = await compressImageToDataUrl(file, maxW);
       const res = await apiFetch('/data/admin/upload-logo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -467,9 +472,10 @@ export const SiteSettings = () => {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || '上传失败');
-      const key = mode === 'dark' ? 'logo_dark_url' : 'logo_url';
+      const key = mode === 'dark' ? 'logo_dark_url' : mode === 'favicon' ? 'favicon_url' : 'logo_url';
       setBrandInfo(prev => ({ ...prev, [key]: json.url }));
-      toast.success(`${mode === 'dark' ? '深色' : '浅色'} Logo 上传成功`);
+      const label = mode === 'dark' ? '深色 Logo' : mode === 'favicon' ? 'Favicon 图标' : '浅色 Logo';
+      toast.success(`${label}上传成功`);
     } catch (e: any) {
       toast.error('上传失败：' + (e.message || '未知错误'));
     } finally {
@@ -755,13 +761,17 @@ export const SiteSettings = () => {
             <CardContent className="space-y-4">
               {(() => {
                 const MANAGED_KEYS = new Set([
-                  'logo_url', 'logo_dark_url', 'site_name', 'site_subtitle', 'footer_text', 'icp_number',
+                  'logo_url', 'logo_dark_url', 'favicon_url', 'site_name', 'site_subtitle', 'footer_text', 'icp_number',
+                  'social_github', 'social_twitter', 'social_wechat', 'social_weibo', 'social_facebook',
                   'primary_color', 'secondary_color',
                   'modelscope_api_key', 'modelscope_model', 'modelscope_auto_generate',
-                  'pwa_install_banner', 'feedback_button_visible', 'maintenance_mode',
+                  'pwa_install_banner', 'feedback_button_visible', 'maintenance_mode', 'maintenance_title', 'maintenance_message',
+                  'site_closed', 'registration_closed',
                   'whois_api_key', 'whois_provider',
                   'resend_api_key', 'smtp_host', 'smtp_port', 'smtp_username', 'smtp_password', 'smtp_from_email', 'smtp_from_name',
                   'site_domain', 'contact_email', 'contact_phone', 'contact_wechat', 'contact_address',
+                  'emergency_phone', 'hours_online', 'hours_phone', 'hours_weekday',
+                  'meta_title', 'meta_description', 'meta_keywords', 'og_title', 'og_description', 'og_image',
                 ]);
                 const customSettings = getSettingsBySection('general').filter(s => !MANAGED_KEYS.has(s.key));
                 return customSettings.length === 0 ? (
@@ -1523,6 +1533,71 @@ export const SiteSettings = () => {
             </CardContent>
           </Card>
 
+          {/* Favicon / Icon */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5 text-primary" />
+                网站图标（Favicon / Icon）
+              </CardTitle>
+              <CardDescription>
+                浏览器标签页和书签中显示的小图标。建议尺寸 32×32 或 64×64 像素，支持 PNG / ICO / SVG。
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                <div className="space-y-3">
+                  <Label className="font-semibold">当前图标预览</Label>
+                  <div className="border rounded-lg p-4 bg-muted/30 flex items-center gap-4 min-h-[80px]">
+                    {brandInfo.favicon_url ? (
+                      <>
+                        <img src={brandInfo.favicon_url} alt="Favicon" className="w-8 h-8 object-contain flex-shrink-0" />
+                        <img src={brandInfo.favicon_url} alt="Favicon 16px" className="w-4 h-4 object-contain flex-shrink-0 opacity-70" />
+                        <span className="text-xs text-muted-foreground">32px · 16px 预览</span>
+                      </>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">未设置 Favicon，将使用默认图标</p>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <Label className="font-semibold">上传图标</Label>
+                  <input
+                    type="file"
+                    accept="image/png,image/x-icon,image/vnd.microsoft.icon,image/svg+xml,image/webp,image/jpeg"
+                    className="hidden"
+                    id="favicon-upload"
+                    onChange={e => {
+                      const f = e.target.files?.[0];
+                      if (f) uploadLogo(f, 'favicon');
+                      e.target.value = '';
+                    }}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    disabled={isUploadingLogo === 'favicon'}
+                    onClick={() => document.getElementById('favicon-upload')?.click()}
+                  >
+                    {isUploadingLogo === 'favicon' ? (
+                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" />上传中...</>
+                    ) : (
+                      '选择图标文件上传'
+                    )}
+                  </Button>
+                  <Label className="text-xs text-muted-foreground">或填写图标 URL</Label>
+                  <Input
+                    value={brandInfo.favicon_url}
+                    onChange={e => setBrandInfo(p => ({ ...p, favicon_url: e.target.value }))}
+                    placeholder="https://... 或 /favicon.ico"
+                  />
+                  <p className="text-xs text-muted-foreground">保存品牌设置后，刷新页面即可看到新图标。</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* 社交媒体链接 */}
           <Card>
             <CardHeader>
@@ -1548,6 +1623,14 @@ export const SiteSettings = () => {
                     value={brandInfo.social_twitter}
                     onChange={e => setBrandInfo(p => ({ ...p, social_twitter: e.target.value }))}
                     placeholder="https://twitter.com/yourhandle"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-semibold">Facebook</Label>
+                  <Input
+                    value={brandInfo.social_facebook}
+                    onChange={e => setBrandInfo(p => ({ ...p, social_facebook: e.target.value }))}
+                    placeholder="https://facebook.com/yourpage"
                   />
                 </div>
                 <div className="space-y-2">
