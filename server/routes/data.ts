@@ -1100,46 +1100,181 @@ app.delete('/admin/site-settings/:key', requireAuth, async (c) => {
   return c.json({ success: true });
 });
 
-// ---- Admin: upload logo (light or dark) → Vercel Blob → save to site_settings ----
+// ---- Admin: upload logo → data URL stored in site_settings ----
 app.post('/admin/upload-logo', requireAuth, async (c) => {
   const { is_admin } = getAuth(c);
   if (!is_admin) return c.json({ error: '无权限' }, 403);
 
-  const { put } = await import('@vercel/blob');
-  const token = process.env.BLOB_READ_WRITE_TOKEN;
-  if (!token) return c.json({ error: '文件上传服务未配置（BLOB_READ_WRITE_TOKEN）' }, 503);
-
   const contentType = c.req.header('content-type') || '';
-  if (!contentType.includes('multipart/form-data')) {
-    return c.json({ error: '请使用 multipart/form-data 上传' }, 400);
+
+  let dataUrl: string;
+  let mode: string = 'light';
+
+  if (contentType.includes('application/json')) {
+    // JSON mode: { dataUrl: 'data:image/...', mode: 'light'|'dark' }
+    const body = await c.req.json().catch(() => null);
+    if (!body) return c.json({ error: '解析请求失败' }, 400);
+    dataUrl = body.dataUrl || '';
+    mode = body.mode || 'light';
+    if (!dataUrl.startsWith('data:image/')) return c.json({ error: '无效的图片数据' }, 400);
+    if (dataUrl.length > 5 * 1024 * 1024) return c.json({ error: '图片数据过大，请压缩后重试' }, 400);
+  } else if (contentType.includes('multipart/form-data')) {
+    // FormData mode with Vercel Blob (optional)
+    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    const form = await c.req.formData().catch(() => null);
+    if (!form) return c.json({ error: '解析表单失败' }, 400);
+    const file = form.get('file') as File | null;
+    mode = (form.get('mode') as string) || 'light';
+    if (!file) return c.json({ error: '未找到文件字段' }, 400);
+    const ALLOWED = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    if (!ALLOWED.includes(file.type)) return c.json({ error: '仅支持 JPG/PNG/GIF/WebP/SVG' }, 400);
+    if (file.size > 2 * 1024 * 1024) return c.json({ error: 'Logo 不能超过 2MB' }, 400);
+    if (token) {
+      try {
+        const { put } = await import('@vercel/blob');
+        const ext = file.name.split('.').pop() || 'png';
+        const blob = await put(`logos/${mode}-${Date.now()}.${ext}`, file, { access: 'public', token, addRandomSuffix: false });
+        const settingKey = mode === 'dark' ? 'logo_dark_url' : 'logo_url';
+        await db.execute({
+          sql: `INSERT INTO site_settings (id, key, value, section, type, updated_at)
+                VALUES (lower(hex(randomblob(16))), ?, ?, 'general', 'text', CURRENT_TIMESTAMP)
+                ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
+          args: [settingKey, blob.url],
+        });
+        await cacheDel('site_settings');
+        return c.json({ url: blob.url, key: settingKey });
+      } catch (e: any) {
+        return c.json({ error: '云存储上传失败：' + (e?.message || '未知错误') }, 500);
+      }
+    }
+    // No Blob token - convert FormData file to data URL
+    const buf = await file.arrayBuffer();
+    const b64 = Buffer.from(buf).toString('base64');
+    dataUrl = `data:${file.type};base64,${b64}`;
+  } else {
+    return c.json({ error: '不支持的 Content-Type' }, 400);
   }
-
-  const form = await c.req.formData().catch(() => null);
-  if (!form) return c.json({ error: '解析表单失败' }, 400);
-
-  const file = form.get('file') as File | null;
-  const mode = (form.get('mode') as string) || 'light'; // 'light' | 'dark'
-
-  if (!file) return c.json({ error: '未找到文件字段' }, 400);
-  const ALLOWED = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
-  if (!ALLOWED.includes(file.type)) return c.json({ error: '仅支持 JPG/PNG/GIF/WebP/SVG' }, 400);
-  if (file.size > 2 * 1024 * 1024) return c.json({ error: 'Logo 不能超过 2MB' }, 400);
-
-  const ext = file.name.split('.').pop() || 'png';
-  const pathname = `logos/${mode}-${Date.now()}.${ext}`;
-
-  const blob = await put(pathname, file, { access: 'public', token, addRandomSuffix: false });
 
   const settingKey = mode === 'dark' ? 'logo_dark_url' : 'logo_url';
   await db.execute({
     sql: `INSERT INTO site_settings (id, key, value, section, type, updated_at)
           VALUES (lower(hex(randomblob(16))), ?, ?, 'general', 'text', CURRENT_TIMESTAMP)
           ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
-    args: [settingKey, blob.url],
+    args: [settingKey, dataUrl],
   });
   await cacheDel('site_settings');
+  return c.json({ url: dataUrl, key: settingKey });
+});
 
-  return c.json({ url: blob.url, key: settingKey });
+// ---- Admin: auction management (via service admin client) ----
+app.get('/admin/auctions', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const { supabaseAdmin } = await import('../supabase.js');
+  const { data, error } = await supabaseAdmin
+    .from('domain_auctions')
+    .select('id, domain_id, starting_price, current_price, reserve_price, buy_now_price, bid_count, status, start_time, end_time, created_at, winner_id, domain_listings(name)')
+    .order('created_at', { ascending: false });
+  if (error) return c.json({ error: error.message }, 500);
+  const mapped = (data || []).map((a: any) => ({
+    ...a,
+    start_price: a.starting_price,
+    domain_name: a.domain_listings?.name ?? '—',
+  }));
+  return c.json(mapped);
+});
+
+app.patch('/admin/auctions/:id', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const id = c.req.param('id');
+  const body = await c.req.json();
+  const { supabaseAdmin } = await import('../supabase.js');
+  const { error } = await supabaseAdmin.from('domain_auctions').update(body).eq('id', id);
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json({ ok: true });
+});
+
+app.get('/admin/auctions/:id/bids', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const id = c.req.param('id');
+  const { supabaseAdmin } = await import('../supabase.js');
+  const { data: bids, error } = await supabaseAdmin
+    .from('auction_bids')
+    .select('id, auction_id, bidder_id, amount, created_at')
+    .eq('auction_id', id)
+    .order('amount', { ascending: false });
+  if (error) return c.json({ error: error.message }, 500);
+  const bidderIds = [...new Set((bids || []).map((b: any) => b.bidder_id).filter(Boolean))];
+  let profileMap: Record<string, any> = {};
+  if (bidderIds.length > 0) {
+    const { data: profiles } = await supabaseAdmin.from('profiles').select('id, contact_email, full_name').in('id', bidderIds);
+    for (const p of profiles || []) profileMap[p.id] = p;
+  }
+  const result = (bids || []).map((b: any) => ({
+    ...b,
+    bidder_email: profileMap[b.bidder_id]?.contact_email || profileMap[b.bidder_id]?.full_name || '—',
+  }));
+  return c.json(result);
+});
+
+// ---- Admin: review management ----
+app.get('/admin/reviews', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const { supabaseAdmin } = await import('../supabase.js');
+  const { data, error } = await supabaseAdmin
+    .from('user_reviews')
+    .select('*, reviewer:reviewer_id(full_name, contact_email)')
+    .order('created_at', { ascending: false });
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json(data || []);
+});
+
+app.patch('/admin/reviews/:id', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const id = c.req.param('id');
+  const body = await c.req.json();
+  const { supabaseAdmin } = await import('../supabase.js');
+  const { error } = await supabaseAdmin.from('user_reviews').update(body).eq('id', id);
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json({ ok: true });
+});
+
+app.delete('/admin/reviews/:id', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const id = c.req.param('id');
+  const { supabaseAdmin } = await import('../supabase.js');
+  const { error } = await supabaseAdmin.from('user_reviews').delete().eq('id', id);
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json({ ok: true });
+});
+
+// ---- Admin: seed default SEO settings ----
+app.post('/admin/seed-seo', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const defaults = [
+    { key: 'meta_title', value: 'NIC.RW - 专业中文域名交易平台', description: '页面标题', section: 'seo' },
+    { key: 'meta_description', value: '域见·你 | NIC.RW 是专业的中文域名交易平台，提供域名买卖、竞拍、估值等全方位服务', description: '页面描述', section: 'seo' },
+    { key: 'keywords', value: '域名交易,域名买卖,域名估值,域名竞拍,中文域名,NIC.RW', description: '关键词', section: 'seo' },
+    { key: 'og_title', value: 'NIC.RW 域名交易平台', description: 'Open Graph 标题', section: 'seo' },
+    { key: 'og_description', value: '专业域名交易服务平台，助力您的数字资产增值', description: 'Open Graph 描述', section: 'seo' },
+    { key: 'canonical_url', value: 'https://nic.rw', description: '规范 URL', section: 'seo' },
+  ];
+  for (const d of defaults) {
+    await db.execute({
+      sql: `INSERT INTO site_settings (id, key, value, description, section, type, updated_at)
+            VALUES (lower(hex(randomblob(16))), ?, ?, ?, ?, 'text', CURRENT_TIMESTAMP)
+            ON CONFLICT(key) DO NOTHING`,
+      args: [d.key, d.value, d.description, d.section],
+    });
+  }
+  await cacheDel('site_settings');
+  return c.json({ ok: true, seeded: defaults.length });
 });
 
 // ---- Admin: publish realtime event ----

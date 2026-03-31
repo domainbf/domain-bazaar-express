@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/apiClient';
-import { supabase } from '@/integrations/supabase/client';
+import { apiGet, apiPatch, apiDelete } from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -36,29 +35,12 @@ export const AdminReviewManagement = () => {
   const loadReviews = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('user_reviews')
-        .select('id, reviewer_id, reviewed_user_id, transaction_id, rating, comment, is_visible, created_at')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const ids = [...new Set([
-        ...(data || []).map((r: any) => r.reviewer_id),
-        ...(data || []).map((r: any) => r.reviewed_user_id),
-      ].filter(Boolean))];
-
-      let profiles: any[] = [];
-      if (ids.length > 0) {
-        const { data: p } = await supabase.from('profiles').select('id, contact_email, full_name').in('id', ids);
-        profiles = p || [];
-      }
-      const pm = Object.fromEntries(profiles.map((p: any) => [p.id, p.contact_email ?? p.full_name ?? '未知']));
-
-      const mapped: Review[] = (data || []).map((r: any) => ({
+      const data = await apiGet<any[]>('/data/admin/reviews');
+      const rows = Array.isArray(data) ? data : [];
+      const mapped: Review[] = rows.map((r: any) => ({
         ...r,
-        reviewer_name: pm[r.reviewer_id] ?? '—',
-        reviewed_name: pm[r.reviewed_user_id] ?? '—',
+        reviewer_name: r.reviewer?.contact_email ?? r.reviewer?.full_name ?? '—',
+        reviewed_name: r.reviewed_user_id ?? '—',
       }));
       setReviews(mapped);
     } catch {
@@ -72,8 +54,7 @@ export const AdminReviewManagement = () => {
 
   const toggleVisibility = async (id: string, visible: boolean) => {
     try {
-      const { error } = await supabase.from('user_reviews').update({ is_visible: visible }).eq('id', id);
-      if (error) throw error;
+      await apiPatch(`/data/admin/reviews/${id}`, { is_visible: visible });
       toast.success(visible ? '评价已恢复显示' : '评价已隐藏');
       loadReviews();
       setShowDetail(false);
@@ -85,8 +66,7 @@ export const AdminReviewManagement = () => {
   const deleteReview = async (id: string) => {
     if (!window.confirm('确认删除该评价？此操作不可撤销。')) return;
     try {
-      const { error } = await supabase.from('user_reviews').delete().eq('id', id);
-      if (error) throw error;
+      await apiDelete(`/data/admin/reviews/${id}`);
       toast.success('评价已删除');
       loadReviews();
       setShowDetail(false);

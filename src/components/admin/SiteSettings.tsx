@@ -103,7 +103,7 @@ export const SiteSettings = () => {
   // ModelScope AI config state
   const [msApiKey, setMsApiKey] = useState('');
   const [showMsKey, setShowMsKey] = useState(false);
-  const [msModel, setMsModel] = useState('iic/Z-Image-Turbo');
+  const [msModel, setMsModel] = useState('black-forest-labs/FLUX.1-schnell');
   const [msAutoGenerate, setMsAutoGenerate] = useState(false);
   const [isSavingMs, setIsSavingMs] = useState(false);
   const [msTestResult, setMsTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
@@ -205,7 +205,7 @@ export const SiteSettings = () => {
       if (!data || typeof data !== 'object') return;
       setWhoisApiKey(data['whois_api_key'] || '');
       setMsApiKey(data['modelscope_api_key'] || '');
-      setMsModel(data['modelscope_model'] || 'iic/Z-Image-Turbo');
+      setMsModel(data['modelscope_model'] || 'black-forest-labs/FLUX.1-schnell');
       setMsAutoGenerate(data['modelscope_auto_generate'] === 'true');
       const loadedHost = data['smtp_host'] || '';
       setSmtp({
@@ -430,19 +430,45 @@ export const SiteSettings = () => {
     }
   };
 
+  const compressImageToDataUrl = (file: File, maxW = 600, quality = 0.85): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = e => {
+        const img = new Image();
+        img.onerror = reject;
+        img.onload = () => {
+          const scale = Math.min(1, maxW / img.width);
+          const w = Math.round(img.width * scale);
+          const h = Math.round(img.height * scale);
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d')!;
+          ctx.drawImage(img, 0, 0, w, h);
+          const isPng = file.type === 'image/png' || file.type === 'image/svg+xml';
+          resolve(canvas.toDataURL(isPng ? 'image/png' : 'image/jpeg', isPng ? undefined : quality));
+        };
+        img.src = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+
   const uploadLogo = async (file: File, mode: 'light' | 'dark') => {
     setIsUploadingLogo(mode);
     try {
-      const form = new FormData();
-      form.append('file', file);
-      form.append('mode', mode);
-      const res = await apiFetch('/data/admin/upload-logo', { method: 'POST', body: form });
+      if (file.size > 5 * 1024 * 1024) throw new Error('Logo 文件不能超过 5MB');
+      const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'image/gif'];
+      if (!ALLOWED.includes(file.type)) throw new Error('仅支持 JPG/PNG/WebP/SVG 格式');
+      const dataUrl = await compressImageToDataUrl(file);
+      const res = await apiFetch('/data/admin/upload-logo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dataUrl, mode }),
+      });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || '上传失败');
-      setBrandInfo(prev => ({
-        ...prev,
-        [mode === 'dark' ? 'logo_dark_url' : 'logo_url']: json.url,
-      }));
+      const key = mode === 'dark' ? 'logo_dark_url' : 'logo_url';
+      setBrandInfo(prev => ({ ...prev, [key]: json.url }));
       toast.success(`${mode === 'dark' ? '深色' : '浅色'} Logo 上传成功`);
     } catch (e: any) {
       toast.error('上传失败：' + (e.message || '未知错误'));
@@ -723,28 +749,41 @@ export const SiteSettings = () => {
         <TabsContent value="general" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>基本信息</CardTitle>
-              <CardDescription>配置网站的基本信息</CardDescription>
+              <CardTitle>自定义设置</CardTitle>
+              <CardDescription>通过"添加设置"手动创建的自定义键值配置（品牌、邮件、SEO、API 等专属设置请前往对应标签页管理）</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {getSettingsBySection('general').length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Database className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>尚未设置任何常规设置</p>
-                  <Button variant="outline" size="sm" className="mt-2" onClick={() => setIsAddDialogOpen(true)}>
-                    添加设置
-                  </Button>
-                </div>
-              ) : (
-                getSettingsBySection('general').map(setting => (
-                  <SettingItem 
-                    key={setting.id}
-                    setting={setting}
-                    onChange={(value) => handleSettingChange(setting.id, value)}
-                    onDelete={() => deleteSetting(setting.id)}
-                  />
-                ))
-              )}
+              {(() => {
+                const MANAGED_KEYS = new Set([
+                  'logo_url', 'logo_dark_url', 'site_name', 'site_subtitle', 'footer_text', 'icp_number',
+                  'primary_color', 'secondary_color',
+                  'modelscope_api_key', 'modelscope_model', 'modelscope_auto_generate',
+                  'pwa_install_banner', 'feedback_button_visible', 'maintenance_mode',
+                  'whois_api_key', 'whois_provider',
+                  'resend_api_key', 'smtp_host', 'smtp_port', 'smtp_username', 'smtp_password', 'smtp_from_email', 'smtp_from_name',
+                  'site_domain', 'contact_email', 'contact_phone', 'contact_wechat', 'contact_address',
+                ]);
+                const customSettings = getSettingsBySection('general').filter(s => !MANAGED_KEYS.has(s.key));
+                return customSettings.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Database className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="font-medium">暂无自定义设置</p>
+                    <p className="text-xs mt-1">点击右上角"添加设置"按钮可手动添加自定义键值配置</p>
+                    <Button variant="outline" size="sm" className="mt-3" onClick={() => setIsAddDialogOpen(true)}>
+                      添加设置
+                    </Button>
+                  </div>
+                ) : (
+                  customSettings.map(setting => (
+                    <SettingItem 
+                      key={setting.id}
+                      setting={setting}
+                      onChange={(value) => handleSettingChange(setting.id, value)}
+                      onDelete={() => deleteSetting(setting.id)}
+                    />
+                  ))
+                );
+              })()}
             </CardContent>
           </Card>
         </TabsContent>
@@ -1119,15 +1158,33 @@ export const SiteSettings = () => {
         <TabsContent value="seo" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>SEO优化设置</CardTitle>
-              <CardDescription>配置网站搜索引擎优化相关设置</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5 text-primary" />
+                SEO优化设置
+              </CardTitle>
+              <CardDescription>配置网站标题、描述、关键词等搜索引擎优化参数</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {getSettingsBySection('seo').length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Globe className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>尚未设置SEO配置</p>
-                  <p className="text-xs mt-1">建议添加: meta_title, meta_description, keywords 等设置</p>
+                <div className="text-center py-10 text-muted-foreground">
+                  <Globe className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                  <p className="font-medium">尚未设置 SEO 配置</p>
+                  <p className="text-xs mt-1 mb-4">初始化后将自动填充 meta_title、meta_description、keywords 等基础 SEO 设置</p>
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        await apiPost('/data/admin/seed-seo', {});
+                        toast.success('SEO 默认设置初始化成功，请刷新页面');
+                        await loadSettings();
+                      } catch (e: any) {
+                        toast.error('初始化失败：' + (e.message || '未知'));
+                      }
+                    }}
+                  >
+                    <Puzzle className="h-4 w-4 mr-1.5" />
+                    一键初始化默认 SEO 配置
+                  </Button>
                 </div>
               ) : (
                 getSettingsBySection('seo').map(setting => (
@@ -1644,7 +1701,7 @@ export const SiteSettings = () => {
               <Alert>
                 <Info className="h-4 w-4" />
                 <AlertDescription>
-                  推荐模型：<strong>Z-Image-Turbo</strong>（速度快）、<strong>Flux.1</strong>（质量高）。
+                  推荐模型：<strong>Flux.1 Schnell</strong>（速度快）、<strong>Flux.1 Dev</strong>（质量高）。
                   生成的 Logo 会自动适配黑白主题，存储后显示在首页滚动域名卡片中。
                   <br />
                   <span className="text-xs text-muted-foreground mt-1 block">
@@ -1683,10 +1740,10 @@ export const SiteSettings = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="iic/Z-Image-Turbo">Z-Image-Turbo（速度最快，推荐）</SelectItem>
-                    <SelectItem value="stabilityai/stable-diffusion-xl-base-1.0">Stable Diffusion XL（高质量）</SelectItem>
-                    <SelectItem value="black-forest-labs/FLUX.1-schnell">Flux.1 Schnell（快速高质量）</SelectItem>
+                    <SelectItem value="black-forest-labs/FLUX.1-schnell">Flux.1 Schnell（速度最快，推荐）</SelectItem>
+                    <SelectItem value="stabilityai/stable-diffusion-xl-base-1.0">Stable Diffusion XL（均衡）</SelectItem>
                     <SelectItem value="black-forest-labs/FLUX.1-dev">Flux.1 Dev（最高质量）</SelectItem>
+                    <SelectItem value="stabilityai/stable-diffusion-3-5-large">Stable Diffusion 3.5 Large（旗舰）</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">所有模型均使用黑白风格提示词，生成结果与网站风格一致</p>

@@ -224,15 +224,15 @@ async function getModelScopeConfig(): Promise<ModelScopeConfig | null> {
   if (!apiKey) return null;
   return {
     apiKey,
-    model: settings?.modelscope_model || 'iic/Z-Image-Turbo',
+    model: settings?.modelscope_model || 'black-forest-labs/FLUX.1-schnell',
   };
 }
 
 const MODEL_ENDPOINTS: Record<string, string> = {
-  'iic/Z-Image-Turbo':                          'https://api-inference.modelscope.cn/v1/images/generations',
-  'stabilityai/stable-diffusion-xl-base-1.0':   'https://api-inference.modelscope.cn/v1/images/generations',
   'black-forest-labs/FLUX.1-schnell':            'https://api-inference.modelscope.cn/v1/images/generations',
-  'black-forest-labs/FLUX.1-dev':                'https://api-inference.modelscope.cn/v1/images/generations',
+  'black-forest-labs/FLUX.1-dev':               'https://api-inference.modelscope.cn/v1/images/generations',
+  'stabilityai/stable-diffusion-xl-base-1.0':   'https://api-inference.modelscope.cn/v1/images/generations',
+  'stabilityai/stable-diffusion-3-5-large':     'https://api-inference.modelscope.cn/v1/images/generations',
 };
 
 // ─── 生成单个域名 Logo ────────────────────────────────────────────────────
@@ -244,7 +244,7 @@ export async function generateDomainLogo(
   category?: string
 ): Promise<string> {
   const prompt = buildLogoPrompt(domainName, type, category);
-  const endpoint = MODEL_ENDPOINTS[config.model] || MODEL_ENDPOINTS['iic/Z-Image-Turbo'];
+  const endpoint = MODEL_ENDPOINTS[config.model] || MODEL_ENDPOINTS['black-forest-labs/FLUX.1-schnell'];
 
   const res = await fetch(endpoint, {
     method: 'POST',

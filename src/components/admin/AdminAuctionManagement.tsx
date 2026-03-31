@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/apiClient';
-import { supabase } from '@/integrations/supabase/client';
+import { apiGet, apiPatch } from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -59,27 +58,8 @@ export const AdminAuctionManagement = () => {
   const loadAuctions = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('domain_auctions')
-        .select(`id, domain_id, start_price, current_price, reserve_price, buy_now_price, bid_count, status, start_time, end_time, created_at, winner_id, domain_listings:domain_id(name)`)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const winnerIds = [...new Set((data || []).map((a: any) => a.winner_id).filter(Boolean))];
-      let profiles: any[] = [];
-      if (winnerIds.length > 0) {
-        const { data: p } = await supabase.from('profiles').select('id, contact_email, full_name').in('id', winnerIds);
-        profiles = p || [];
-      }
-      const profileMap = Object.fromEntries(profiles.map((p: any) => [p.id, p]));
-
-      const mapped: Auction[] = (data || []).map((a: any) => ({
-        ...a,
-        domain_name: a.domain_listings?.name ?? '—',
-        winner_email: a.winner_id ? (profileMap[a.winner_id]?.contact_email ?? profileMap[a.winner_id]?.full_name ?? '—') : '—',
-      }));
-      setAuctions(mapped);
+      const data = await apiGet<Auction[]>('/data/admin/auctions');
+      setAuctions(Array.isArray(data) ? data : []);
     } catch (err: any) {
       toast.error('加载拍卖记录失败');
     } finally {
@@ -89,27 +69,8 @@ export const AdminAuctionManagement = () => {
 
   const loadBids = async (auctionId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('auction_bids')
-        .select('id, auction_id, bidder_id, amount, created_at')
-        .eq('auction_id', auctionId)
-        .order('amount', { ascending: false });
-
-      if (error) throw error;
-
-      const bidderIds = [...new Set((data || []).map((b: any) => b.bidder_id).filter(Boolean))];
-      let profiles: any[] = [];
-      if (bidderIds.length > 0) {
-        const { data: p } = await supabase.from('profiles').select('id, contact_email, full_name').in('id', bidderIds);
-        profiles = p || [];
-      }
-      const profileMap = Object.fromEntries(profiles.map((p: any) => [p.id, p]));
-
-      const mapped: AuctionBid[] = (data || []).map((b: any) => ({
-        ...b,
-        bidder_email: profileMap[b.bidder_id]?.contact_email ?? profileMap[b.bidder_id]?.full_name ?? '匿名',
-      }));
-      setBids(mapped);
+      const data = await apiGet<AuctionBid[]>(`/data/admin/auctions/${auctionId}/bids`);
+      setBids(Array.isArray(data) ? data : []);
     } catch (err: any) {
       toast.error('加载出价记录失败');
     }
@@ -126,11 +87,7 @@ export const AdminAuctionManagement = () => {
   const handleEndAuction = async (auctionId: string) => {
     setIsActing(true);
     try {
-      const { error } = await supabase
-        .from('domain_auctions')
-        .update({ status: 'ended', end_time: new Date().toISOString() })
-        .eq('id', auctionId);
-      if (error) throw error;
+      await apiPatch(`/data/admin/auctions/${auctionId}`, { status: 'ended', end_time: new Date().toISOString() });
       toast.success('拍卖已提前结束');
       loadAuctions();
       setShowBids(false);
@@ -144,11 +101,7 @@ export const AdminAuctionManagement = () => {
   const handleCancelAuction = async (auctionId: string) => {
     setIsActing(true);
     try {
-      const { error } = await supabase
-        .from('domain_auctions')
-        .update({ status: 'cancelled' })
-        .eq('id', auctionId);
-      if (error) throw error;
+      await apiPatch(`/data/admin/auctions/${auctionId}`, { status: 'cancelled' });
       toast.success('拍卖已取消');
       loadAuctions();
       setShowBids(false);

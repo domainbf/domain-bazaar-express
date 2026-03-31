@@ -150,7 +150,7 @@ export const Footer = () => {
                 className="h-7 w-auto"
                 onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
               />
-              <span className="text-lg font-bold">{config?.site_name ?? 'NIC.BN'}</span>
+              <span className="text-lg font-bold">{config?.site_name ?? 'NIC.RW'}</span>
             </div>
             {config?.site_subtitle && (
               <p className="text-xs text-primary/70 mb-2">{config.site_subtitle}</p>
@@ -195,7 +195,7 @@ export const Footer = () => {
       <div className="max-w-6xl mx-auto px-4 py-4 pb-20 md:pb-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
           <div className="flex flex-col sm:flex-row items-center gap-3">
-            <p>© {year} {config?.footer_text ?? `${config?.site_name ?? 'NIC.BN'} 版权所有`}</p>
+            <p>© {year} {config?.footer_text ?? `${config?.site_name ?? 'NIC.RW'} 版权所有`}</p>
             {config?.icp_number && (
               <a
                 href="https://beian.miit.gov.cn/"
