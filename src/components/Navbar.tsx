@@ -19,6 +19,8 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { useQueryClient } from '@tanstack/react-query';
 import { prefetchDomainListings } from '@/hooks/useDomainListings';
 import { useTheme } from 'next-themes';
+import logoLightImg from '@/assets/logo-light.png';
+import logoDarkImg from '@/assets/logo-dark.png';
 
 interface NavbarProps {
   unreadCount?: number;
@@ -35,8 +37,8 @@ export const Navbar = ({ unreadCount = 0, unreadMessages: unreadMessagesProp = 0
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
   const logoSrc = isDark
-    ? (siteConfig.logo_dark_url || '/logo-dark.png')
-    : (siteConfig.logo_url || '/logo-light.png');
+    ? (siteConfig.logo_dark_url || logoDarkImg)
+    : (siteConfig.logo_url || logoLightImg);
   const actualUnreadCount = unreadCount;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);

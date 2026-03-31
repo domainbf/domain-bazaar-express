@@ -9,6 +9,8 @@ import {
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { Separator } from '@/components/ui/separator';
 import { useTheme } from 'next-themes';
+import logoLightImg from '@/assets/logo-light.png';
+import logoDarkImg from '@/assets/logo-dark.png';
 
 export const Footer = () => {
   const { config } = useSiteSettings();
@@ -143,7 +145,7 @@ export const Footer = () => {
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-3">
               <img
-                src={isDark ? (config?.logo_dark_url || '/logo-dark.png') : (config?.logo_url || '/logo-light.png')}
+                src={isDark ? (config?.logo_dark_url || logoDarkImg) : (config?.logo_url || logoLightImg)}
                 alt={config?.site_name ?? 'NIC.RW'}
                 className="h-7 w-auto"
                 onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
