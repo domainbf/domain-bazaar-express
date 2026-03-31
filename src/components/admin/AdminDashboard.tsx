@@ -57,7 +57,7 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
   const [recentOffers, setRecentOffers] = useState<any[]>([]);
   const [topDomains, setTopDomains] = useState<any[]>([]);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
-  const [health, setHealth] = useState<{ ok: boolean; redis: boolean; db: boolean; redisLatencyMs: number; dbLatencyMs: number; uptime: number } | null>(null);
+  const [health, setHealth] = useState<{ ok: boolean; redis: boolean; db: boolean; supabase: boolean; redisLatencyMs: number; dbLatencyMs: number; supabaseLatencyMs: number; uptime: number } | null>(null);
 
   const stats = propStats || localStats;
   const isLoading = propIsLoading !== undefined ? propIsLoading : localIsLoading;
@@ -500,6 +500,16 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
                     {health ? (health.redis ? `${health.redisLatencyMs}ms` : '断开') : '检测中'}
                   </div>
                   <div className="text-muted-foreground text-xs mt-0.5">Redis缓存</div>
+                </div>
+                {/* Supabase */}
+                <div className="bg-card/60 rounded-lg p-2">
+                  {health?.supabase === false
+                    ? <WifiOff className="h-4 w-4 mx-auto mb-1 text-red-500" />
+                    : <Wifi className="h-4 w-4 mx-auto mb-1 text-green-500" />}
+                  <div className={`font-semibold text-xs ${health?.supabase === false ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                    {health ? (health.supabase ? `${health.supabaseLatencyMs}ms` : '断开') : '检测中'}
+                  </div>
+                  <div className="text-muted-foreground text-xs mt-0.5">Supabase</div>
                 </div>
               </div>
               <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">

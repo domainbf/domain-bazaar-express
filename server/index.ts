@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { compress } from 'hono/compress';
+import { createClient } from '@supabase/supabase-js';
 import { initDb, db } from './db.js';
 import { connectRedis, redis } from './redis.js';
 import { setupRedisBridge } from './eventBus.js';
@@ -10,6 +11,11 @@ import authRoutes from './routes/auth.js';
 import realtimeRoutes from './routes/realtime.js';
 import dataRoutes from './routes/data.js';
 import uploadRoutes from './routes/upload.js';
+
+// Server-side Supabase client (anon key, read-only ping only)
+const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://trqxaizkwuizuhlfmdup.supabase.co';
+const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRycXhhaXprd3VpenVobGZtZHVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2ODk1NzcsImV4cCI6MjA1MDI2NTU3N30.uv3FElLBTsCNr3Vg4PooW7h1o2ZlivAFGawFH-Zqxns';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const app = new Hono();
 
@@ -32,10 +38,8 @@ app.route('/api/upload', uploadRoutes);
 
 // ── Health check (used by keep-alive + admin dashboard) ────────────────────
 app.get('/api/health', async (c) => {
-  let redisOk = false;
-  let dbOk = false;
-  let redisLatency = -1;
-  let dbLatency = -1;
+  let redisOk = false, dbOk = false, supabaseOk = false;
+  let redisLatency = -1, dbLatency = -1, supabaseLatency = -1;
 
   const t0 = Date.now();
   try {
@@ -51,6 +55,13 @@ app.get('/api/health', async (c) => {
     dbLatency = Date.now() - t1;
   } catch { /* offline */ }
 
+  const t2 = Date.now();
+  try {
+    const { error } = await supabase.from('site_settings').select('key').limit(1);
+    supabaseOk = !error;
+    supabaseLatency = Date.now() - t2;
+  } catch { /* offline */ }
+
   return c.json({
     ok: redisOk && dbOk,
     ts: new Date().toISOString(),
@@ -58,39 +69,52 @@ app.get('/api/health', async (c) => {
     redisLatencyMs: redisLatency,
     db: dbOk,
     dbLatencyMs: dbLatency,
+    supabase: supabaseOk,
+    supabaseLatencyMs: supabaseLatency,
     uptime: Math.floor(process.uptime()),
   });
 });
 
 const PORT = parseInt(process.env.API_PORT || '3001');
 
-// ── Keep-alive: prevents Turso + Redis from sleeping ──────────────────────
-// Turso free-tier idles after ~5 min; Redis Upstash idles after 30 days.
-// We ping both on a schedule so cold-starts never affect real requests.
-let keepAliveTimer: ReturnType<typeof setInterval> | null = null;
+// ── Keep-alive: prevents Turso / Redis / Supabase from sleeping ────────────
+// All three are pinged every 5 hours — just enough to keep the projects
+// active on their respective free tiers without wasting quota.
+const KEEPALIVE_INTERVAL = 5 * 60 * 60 * 1000; // 5 hours
+let keepAliveStarted = false;
 
 function startKeepAlive() {
-  if (keepAliveTimer) return;
+  if (keepAliveStarted) return;
+  keepAliveStarted = true;
 
-  // Ping Turso every 4 minutes
-  keepAliveTimer = setInterval(async () => {
+  // Turso ping
+  setInterval(async () => {
     try {
       await db.execute('SELECT 1');
     } catch (e) {
       console.warn('[keepalive] Turso ping failed:', (e as Error).message);
     }
-  }, 4 * 60 * 1000);
+  }, KEEPALIVE_INTERVAL);
 
-  // Ping Redis every 3 minutes (separate timer for fine-grained control)
+  // Redis ping
   setInterval(async () => {
     try {
       await redis.ping();
     } catch (e) {
       console.warn('[keepalive] Redis ping failed:', (e as Error).message);
     }
-  }, 3 * 60 * 1000);
+  }, KEEPALIVE_INTERVAL);
 
-  console.log('[keepalive] Turso+Redis keep-alive started (4min / 3min)');
+  // Supabase ping — lightweight SELECT from a public table
+  setInterval(async () => {
+    try {
+      await supabase.from('site_settings').select('key').limit(1);
+    } catch (e) {
+      console.warn('[keepalive] Supabase ping failed:', (e as Error).message);
+    }
+  }, KEEPALIVE_INTERVAL);
+
+  console.log('[keepalive] Turso + Redis + Supabase keep-alive started (every 5h)');
 }
 
 // ── Startup ────────────────────────────────────────────────────────────────
