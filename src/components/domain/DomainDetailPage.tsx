@@ -4,7 +4,7 @@ import { DomainSeoHead } from "@/components/domain/DomainSeoHead";
 import { useDomainDetail } from "@/components/domain/useDomainDetail";
 import { useDomainAnalytics } from "@/hooks/useDomainAnalytics";
 import NotFound from "@/pages/NotFound";
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Dialog,
@@ -32,12 +32,12 @@ import {
 import { DomainOwnerInfo } from "./DomainOwnerInfo";
 import { DomainWhoisInfo } from "./DomainWhoisInfo";
 import { OfferHistory } from "./OfferHistory";
-import { DomainValuationReport } from "./DomainValuationReport";
-import { PriceHistoryChart } from "./PriceHistoryChart";
-import { DomainAnalytics } from "./DomainAnalytics";
+const DomainValuationReport = lazy(() => import("./DomainValuationReport").then(m => ({ default: m.DomainValuationReport })));
+const PriceHistoryChart = lazy(() => import("./PriceHistoryChart").then(m => ({ default: m.PriceHistoryChart })));
+const DomainAnalytics = lazy(() => import("./DomainAnalytics").then(m => ({ default: m.DomainAnalytics })));
+const DomainValuationTool = lazy(() => import("./DomainValuationTool").then(m => ({ default: m.DomainValuationTool })));
 import { SimilarDomainsGrid } from "./SimilarDomainsGrid";
 import { DomainShareButtons } from "./DomainShareButtons";
-import { DomainValuationTool } from "./DomainValuationTool";
 import { CurrencyConverter } from "./CurrencyConverter";
 import { DomainAuction } from "@/components/auction/DomainAuction";
 import { CreateAuctionDialog } from "@/components/auction/CreateAuctionDialog";
@@ -407,7 +407,9 @@ export const DomainDetailPage = () => {
                 </span>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6">
-                <DomainValuationReport domainName={domain.name} currentPrice={domain.price} />
+                <Suspense fallback={<div className="h-32 animate-pulse bg-muted rounded-lg" />}>
+                  <DomainValuationReport domainName={domain.name} currentPrice={domain.price} />
+                </Suspense>
               </AccordionContent>
             </AccordionItem>
 
@@ -420,7 +422,9 @@ export const DomainDetailPage = () => {
                 </span>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6">
-                <PriceHistoryChart data={priceHistory} />
+                <Suspense fallback={<div className="h-48 animate-pulse bg-muted rounded-lg" />}>
+                  <PriceHistoryChart data={priceHistory} />
+                </Suspense>
               </AccordionContent>
             </AccordionItem>
 
@@ -433,14 +437,16 @@ export const DomainDetailPage = () => {
                 </span>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6">
-                <DomainAnalytics
-                  domainId={domain.id}
-                  createdAt={domain.created_at}
-                  analytics={analytics}
-                  trends={trends}
-                  isFavorited={isFavorited}
-                  toggleFavorite={toggleFavorite}
-                />
+                <Suspense fallback={<div className="h-48 animate-pulse bg-muted rounded-lg" />}>
+                  <DomainAnalytics
+                    domainId={domain.id}
+                    createdAt={domain.created_at}
+                    analytics={analytics}
+                    trends={trends}
+                    isFavorited={isFavorited}
+                    toggleFavorite={toggleFavorite}
+                  />
+                </Suspense>
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -483,7 +489,9 @@ export const DomainDetailPage = () => {
           transition={{ delay: 0.3 }}
           className="mb-8"
         >
-          <DomainValuationTool />
+          <Suspense fallback={<div className="h-64 animate-pulse bg-muted rounded-lg" />}>
+            <DomainValuationTool />
+          </Suspense>
         </motion.section>
       </main>
 

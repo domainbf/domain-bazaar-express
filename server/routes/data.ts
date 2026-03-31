@@ -39,11 +39,15 @@ async function queryTable(table: string, where?: string, args?: unknown[]) {
   return r.rows.map(rowToObj);
 }
 
-async function invalidateDomainListCache(id?: string) {
+async function invalidateDomainListCache(id?: string, name?: string) {
   const redis = (await import('../redis.js')).redis;
   const keys = await redis.keys('domain_listings:*');
   for (const k of keys) await redis.del(k);
-  if (id) await cacheDel(`domain_listing:${id}`);
+  if (id) {
+    await cacheDel(`domain_listing:${id}`);
+    await cacheDel(`domain_detail:${id.toLowerCase()}`);
+  }
+  if (name) await cacheDel(`domain_detail:${name.toLowerCase()}`);
 }
 
 // ---------- Shared email utility ----------
@@ -113,20 +117,30 @@ app.get('/domain-listings', async (c) => {
   const offset = parseInt(c.req.query('offset') || '0');
   const search = c.req.query('search') || '';
   const category = c.req.query('category') || '';
+  const withAnalytics = c.req.query('analytics') === '1';
 
-  const cacheKey = `domain_listings:${status}:${search}:${category}:${limit}:${offset}`;
+  const cacheKey = `domain_listings:${status}:${search}:${category}:${limit}:${offset}:${withAnalytics ? 'a' : ''}`;
   const cached = await cacheGet<unknown[]>(cacheKey);
   if (cached) return c.json(cached);
 
   const conditions: string[] = [];
   const args: unknown[] = [];
 
-  if (status) { conditions.push('status = ?'); args.push(status); }
-  if (search) { conditions.push("(name LIKE ? OR description LIKE ?)"); args.push(`%${search}%`, `%${search}%`); }
-  if (category) { conditions.push('category = ?'); args.push(category); }
+  if (status) { conditions.push('dl.status = ?'); args.push(status); }
+  if (search) { conditions.push("(dl.name LIKE ? OR dl.description LIKE ?)"); args.push(`%${search}%`, `%${search}%`); }
+  if (category) { conditions.push('dl.category = ?'); args.push(category); }
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
-  const sql = `SELECT * FROM domain_listings ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`;
+
+  let sql: string;
+  if (withAnalytics) {
+    sql = `SELECT dl.*, COALESCE(da.views,0) as views, COALESCE(da.favorites,0) as favorites, COALESCE(da.offers,0) as offers
+           FROM domain_listings dl
+           LEFT JOIN domain_analytics da ON dl.id = da.domain_id
+           ${where} ORDER BY dl.created_at DESC LIMIT ? OFFSET ?`;
+  } else {
+    sql = `SELECT * FROM domain_listings dl ${where} ORDER BY dl.created_at DESC LIMIT ? OFFSET ?`;
+  }
   args.push(limit, offset);
 
   const r = await db.execute({ sql, args });
@@ -156,6 +170,10 @@ app.get('/domain-listings/:id', async (c) => {
 
 app.get('/domain-listings/:id/detail', async (c) => {
   const idParam = c.req.param('id');
+  const cacheKey = `domain_detail:${idParam.toLowerCase()}`;
+  const cached = await cacheGet<unknown>(cacheKey);
+  if (cached) return c.json(cached);
+
   const isUUID = /^[0-9a-f-]{36}$/i.test(idParam);
   const r = isUUID
     ? await db.execute({ sql: 'SELECT * FROM domain_listings WHERE id = ?', args: [idParam] })
@@ -166,7 +184,7 @@ app.get('/domain-listings/:id/detail', async (c) => {
   const [analyticsRes, priceHistRes, similarRes, ownerRes] = await Promise.all([
     db.execute({ sql: 'SELECT views, favorites, offers FROM domain_analytics WHERE domain_id = ? LIMIT 1', args: [domain.id] }),
     db.execute({ sql: 'SELECT * FROM domain_price_history WHERE domain_id = ? ORDER BY created_at ASC LIMIT 50', args: [domain.id] }),
-    db.execute({ sql: "SELECT * FROM domain_listings WHERE status = 'available' AND id != ? LIMIT 6", args: [domain.id] }),
+    db.execute({ sql: "SELECT id,name,price,category,is_verified,highlight FROM domain_listings WHERE status = 'available' AND id != ? LIMIT 6", args: [domain.id] }),
     domain.owner_id
       ? db.execute({ sql: 'SELECT id, username, full_name, avatar_url, bio, seller_rating, seller_verified FROM profiles WHERE id = ? LIMIT 1', args: [domain.owner_id] })
       : Promise.resolve({ rows: [] }),
@@ -177,7 +195,9 @@ app.get('/domain-listings/:id/detail', async (c) => {
   const similarDomains = similarRes.rows.map(rowToObj);
   const owner = ownerRes.rows[0] ? rowToObj(ownerRes.rows[0]) : null;
 
-  return c.json({ domain: { ...domain, ...analytics, owner }, priceHistory, similarDomains });
+  const result = { domain: { ...domain, ...analytics, owner }, priceHistory, similarDomains };
+  await cacheSet(cacheKey, result, 90);
+  return c.json(result);
 });
 
 app.post('/domain-listings', requireAuth, async (c) => {

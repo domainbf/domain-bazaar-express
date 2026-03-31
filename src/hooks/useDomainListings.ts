@@ -1,55 +1,27 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { apiGet } from '@/lib/apiClient';
 import { Domain } from '@/types/domain';
 
-/* ── Fetcher ──────────────────────────────────────────────────── */
-// 1. Fetch listings first (fast — indexed, filtered, limited to 200)
-// 2. Fetch analytics filtered to only those domain IDs (no full-table scan)
+/* ── Fetcher — uses API server (Redis-cached for 60s) ─────────── */
 const fetchAvailableDomains = async (): Promise<Domain[]> => {
-  const listingsRes = await supabase
-    .from('domain_listings')
-    .select('id,name,price,category,description,status,highlight,is_verified,created_at,owner_id,verification_status')
-    .eq('status', 'available')
-    .order('created_at', { ascending: false })
-    .limit(200);
-
-  if (listingsRes.error) throw new Error(listingsRes.error.message);
-  const listings = listingsRes.data ?? [];
-  if (!listings.length) return [];
-
-  // Only fetch analytics for domains we actually have — avoids full-table scan
-  const domainIds = listings.map(d => d.id);
-  const analyticsRes = await supabase
-    .from('domain_analytics')
-    .select('domain_id,views,favorites,offers')
-    .in('domain_id', domainIds);
-
-  const analyticsMap = new Map<string, { views: number; favorites: number; offers: number }>();
-  (analyticsRes.data ?? []).forEach((a) => {
-    if (a.domain_id) {
-      analyticsMap.set(a.domain_id, {
-        views:     typeof a.views     === 'number' ? a.views     : Number(a.views)     || 0,
-        favorites: typeof a.favorites === 'number' ? a.favorites : Number(a.favorites) || 0,
-        offers:    typeof a.offers    === 'number' ? a.offers    : Number(a.offers)    || 0,
-      });
-    }
-  });
-
-  return listings.map((d): Domain => ({
-    id: d.id,
-    name: d.name ?? '',
+  const rows = await apiGet<Record<string, unknown>[]>(
+    '/data/domain-listings?status=available&limit=200&analytics=1'
+  );
+  return (rows ?? []).map((d): Domain => ({
+    id: String(d.id ?? ''),
+    name: String(d.name ?? ''),
     price: Number(d.price) || 0,
-    category: d.category ?? 'standard',
-    description: d.description ?? '',
-    status: d.status ?? 'available',
+    category: String(d.category ?? 'standard'),
+    description: String(d.description ?? ''),
+    status: String(d.status ?? 'available'),
     highlight: Boolean(d.highlight),
-    owner_id: d.owner_id ?? '',
-    created_at: d.created_at ?? new Date().toISOString(),
+    owner_id: String(d.owner_id ?? ''),
+    created_at: String(d.created_at ?? new Date().toISOString()),
     is_verified: Boolean(d.is_verified),
-    verification_status: d.verification_status ?? 'pending',
-    views:     analyticsMap.get(d.id)?.views     ?? 0,
-    favorites: analyticsMap.get(d.id)?.favorites ?? 0,
-    offers:    analyticsMap.get(d.id)?.offers    ?? 0,
+    verification_status: String(d.verification_status ?? 'pending'),
+    views:     Number(d.views)     || 0,
+    favorites: Number(d.favorites) || 0,
+    offers:    Number(d.offers)    || 0,
   }));
 };
 
@@ -61,10 +33,10 @@ export const useDomainListings = () => {
   return useQuery({
     queryKey: DOMAIN_LISTINGS_KEY,
     queryFn: fetchAvailableDomains,
-    staleTime: 3 * 60 * 1000,
-    gcTime:    15 * 60 * 1000,
+    staleTime: 2 * 60 * 1000,
+    gcTime:    20 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchOnMount: true,
+    refetchOnMount: false,
     retry: 2,
   });
 };
@@ -74,6 +46,6 @@ export const prefetchDomainListings = (queryClient: ReturnType<typeof useQueryCl
   queryClient.prefetchQuery({
     queryKey: DOMAIN_LISTINGS_KEY,
     queryFn: fetchAvailableDomains,
-    staleTime: 3 * 60 * 1000,
+    staleTime: 2 * 60 * 1000,
   });
 };

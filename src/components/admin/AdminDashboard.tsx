@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import {
   AlertTriangle, CheckCircle, Clock, BarChart3, RefreshCw,
   Eye, Heart, MessageSquare, ArrowUpRight, ArrowDownRight, Calendar
 } from 'lucide-react';
-import { DashboardTrendChart } from './DashboardTrendChart';
+const DashboardTrendChart = lazy(() => import('./DashboardTrendChart').then(m => ({ default: m.DashboardTrendChart })));
 import { EnhancedActivityLog } from './EnhancedActivityLog';
 
 interface AdminStats {
@@ -291,7 +291,9 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
       </div>
 
       {/* 数据趋势图表 */}
-      <DashboardTrendChart />
+      <Suspense fallback={<div className="h-80 animate-pulse bg-muted/50 rounded-xl border" />}>
+        <DashboardTrendChart />
+      </Suspense>
 
       {/* 快速操作和数据面板 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
