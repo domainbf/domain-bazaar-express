@@ -30,7 +30,7 @@ const SECTION_LABELS: Record<string, string> = {
   transactions: '交易记录',
   messages: '站内消息',
   notifications: '消息通知',
-  profile: '个人中心',
+  profile: '个人资料',
   'profile-settings': '个人资料',
   'profile-security': '账户安全',
   support: '联系支持',
@@ -116,7 +116,8 @@ export const UserCenter = () => {
     {
       title: '账户',
       items: [
-        { value: 'profile', label: '个人资料', icon: User },
+        { value: 'profile-settings', label: '个人资料', icon: User },
+        { value: 'profile-security', label: '账户安全', icon: Shield },
         { value: 'support', label: '联系支持', icon: HeadphonesIcon },
       ],
     },
@@ -247,6 +248,19 @@ export const UserCenter = () => {
               <ComponentErrorBoundary fallbackMessage="">
                 <UserCenterStatsGrid profile={profile} user={user} compact mobileRow />
               </ComponentErrorBoundary>
+
+              {/* Quick profile link */}
+              {user?.id && (
+                <div className="px-4 pb-4">
+                  <button
+                    onClick={() => navigate(`/profile/${user.id}`)}
+                    className="w-full text-xs text-background/50 dark:text-foreground/50 hover:text-background/80 dark:hover:text-foreground/80 flex items-center justify-center gap-1 py-1 transition-colors"
+                  >
+                    <Globe className="w-3 h-3" />
+                    查看公开主页
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Navigation groups */}
@@ -336,6 +350,10 @@ export const UserCenter = () => {
                   <ComponentErrorBoundary fallbackMessage="页面内容加载失败，请刷新重试">
                     {activeTab === 'support' ? (
                       <SupportTicketsSafe />
+                    ) : activeTab === 'profile-settings' || activeTab === 'profile' ? (
+                      <ProfileSettings />
+                    ) : activeTab === 'profile-security' ? (
+                      <AccountSecurity />
                     ) : (
                       <UserCenterTabsContent />
                     )}

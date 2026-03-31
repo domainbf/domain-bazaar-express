@@ -261,12 +261,36 @@ app.get('/my-domains', requireAuth, async (c) => {
 // ---- User Profile by ID ----
 app.get('/profiles/:id', async (c) => {
   const id = c.req.param('id');
-  const r = await db.execute({
-    sql: 'SELECT id, username, full_name, avatar_url, bio, company_name, seller_rating, seller_verified, is_seller FROM profiles WHERE id = ? LIMIT 1',
-    args: [id]
-  });
-  if (!r.rows[0]) return c.json({ error: '未找到' }, 404);
-  return c.json(rowToObj(r.rows[0]));
+  const [profileRes, domainsRes, statsRes] = await Promise.all([
+    db.execute({
+      sql: 'SELECT id, username, full_name, avatar_url, bio, company_name, seller_rating, seller_verified, is_seller, created_at FROM profiles WHERE id = ? LIMIT 1',
+      args: [id]
+    }),
+    db.execute({
+      sql: "SELECT id, name, price, currency, category, status, views, description, logo_url FROM domain_listings WHERE owner_id = ? AND status != 'sold' ORDER BY created_at DESC LIMIT 20",
+      args: [id]
+    }),
+    db.execute({
+      sql: `SELECT
+              COUNT(DISTINCT dl.id) as total_listings,
+              COALESCE(SUM(dl.views), 0) as total_views,
+              COUNT(DISTINCT CASE WHEN tx.status = 'completed' THEN tx.id END) as completed_deals
+            FROM domain_listings dl
+            LEFT JOIN transactions tx ON tx.seller_id = ? AND tx.status = 'completed'
+            WHERE dl.owner_id = ?`,
+      args: [id, id]
+    }),
+  ]);
+  if (!profileRes.rows[0]) return c.json({ error: '未找到' }, 404);
+  const profile = rowToObj(profileRes.rows[0]);
+  const domains = domainsRes.rows.map(rowToObj);
+  const statsRow = statsRes.rows[0] as any;
+  const stats = {
+    totalListings: Number(statsRow?.total_listings) || 0,
+    totalViews: Number(statsRow?.total_views) || 0,
+    completedDeals: Number(statsRow?.completed_deals) || 0,
+  };
+  return c.json({ ...profile, domains, stats });
 });
 
 // ---- Notifications ----

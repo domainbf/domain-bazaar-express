@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from "@/integrations/supabase/client";
+import { apiGet, apiPatch } from '@/lib/apiClient';
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -55,16 +55,11 @@ export const QuickSettingsPanel = () => {
   const loadSettings = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('site_settings')
-        .select('key, value');
-
-      if (error) throw error;
-
-      if (data && data.length > 0) {
+      const data = await apiGet<Record<string, string>>('/data/site-settings');
+      if (data && typeof data === 'object') {
         setSettings(prev => prev.map(setting => {
-          const dbSetting = data.find(s => s.key === setting.key);
-          return dbSetting ? { ...setting, value: dbSetting.value || setting.value } : setting;
+          const val = data[setting.key];
+          return val != null ? { ...setting, value: String(val) } : setting;
         }));
       }
     } catch (error) {
@@ -84,17 +79,11 @@ export const QuickSettingsPanel = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      const updates: Record<string, string> = {};
       for (const setting of settings) {
-        await supabase
-          .from('site_settings')
-          .upsert({
-            key: setting.key,
-            value: setting.value,
-            description: setting.description,
-            section: setting.category,
-            type: setting.type
-          }, { onConflict: 'key' });
+        updates[setting.key] = setting.value;
       }
+      await apiPatch('/data/site-settings', updates);
       toast.success('设置已保存');
       setHasChanges(false);
     } catch (error: any) {

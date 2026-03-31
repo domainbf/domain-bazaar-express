@@ -10,7 +10,6 @@ import {
   AlertTriangle, CheckCircle, Clock, BarChart3, RefreshCw,
   Eye, Heart, MessageSquare, ArrowUpRight, ArrowDownRight, Calendar
 } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
 import { DashboardTrendChart } from './DashboardTrendChart';
 import { EnhancedActivityLog } from './EnhancedActivityLog';
 
@@ -449,34 +448,41 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
 
         {/* 系统健康状态 */}
         <Card className="border-green-500/30 bg-green-500/10">
-          <CardHeader>
+          <CardHeader className="pb-3">
             <CardTitle className="text-green-600 dark:text-green-400 flex items-center gap-2">
               <CheckCircle className="h-5 w-5" />
               系统状态
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>系统可用率</span>
-                  <span className="font-medium">99.9%</span>
+            <div className="space-y-3">
+              <div className="grid grid-cols-3 gap-3 text-sm text-center">
+                <div className="bg-card/60 rounded-lg p-2">
+                  <div className="text-green-600 dark:text-green-400 font-semibold">运行中</div>
+                  <div className="text-muted-foreground text-xs mt-0.5">API服务</div>
                 </div>
-                <Progress value={99.9} className="h-2" />
+                <div className="bg-card/60 rounded-lg p-2">
+                  <div className="text-green-600 dark:text-green-400 font-semibold">已连接</div>
+                  <div className="text-muted-foreground text-xs mt-0.5">数据库</div>
+                </div>
+                <div className="bg-card/60 rounded-lg p-2">
+                  <div className="text-green-600 dark:text-green-400 font-semibold">缓存正常</div>
+                  <div className="text-muted-foreground text-xs mt-0.5">Redis</div>
+                </div>
               </div>
-              <div className="grid grid-cols-3 gap-4 text-sm text-center">
-                <div>
-                  <div className="text-green-600 font-semibold">&lt;100ms</div>
-                  <div className="text-muted-foreground text-xs">响应时间</div>
-                </div>
-                <div>
-                  <div className="text-green-600 font-semibold">正常</div>
-                  <div className="text-muted-foreground text-xs">数据库</div>
-                </div>
-                <div>
-                  <div className="text-green-600 font-semibold">稳定</div>
-                  <div className="text-muted-foreground text-xs">服务状态</div>
-                </div>
+              <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
+                <span>上次数据同步</span>
+                <span className="font-medium text-foreground">
+                  {lastUpdate.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>注册用户</span>
+                <span className="font-medium text-foreground">{stats.totalUsers} 人</span>
+              </div>
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>挂牌域名</span>
+                <span className="font-medium text-foreground">{stats.activeListings} 个</span>
               </div>
             </div>
           </CardContent>

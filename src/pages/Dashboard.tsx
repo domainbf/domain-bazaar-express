@@ -49,7 +49,7 @@ export const Dashboard = () => {
       setStats({
         totalListings: (domains || []).length,
         pendingOffers: (received || []).filter((o: any) => o.status === 'pending').length,
-        totalViews: 0,
+        totalViews: (domains || []).reduce((sum: number, d: any) => sum + (d.views || 0), 0),
         completedDeals: (transactions || []).length,
       });
     } catch (error: any) {
