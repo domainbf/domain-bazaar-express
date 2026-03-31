@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { db } from '../db.js';
 import { requireAuth, getAuth } from '../middleware/auth.js';
 import { bus } from '../eventBus.js';
-import { cacheGet, cacheSet, cacheDel } from '../redis.js';
+import { cacheGet, cacheSet, cacheDel, checkRateLimit, redis } from '../redis.js';
 import {
   sellerNewOfferEmail,
   buyerOfferConfirmEmail,
@@ -40,9 +40,14 @@ async function queryTable(table: string, where?: string, args?: unknown[]) {
 }
 
 async function invalidateDomainListCache(id?: string, name?: string) {
-  const redis = (await import('../redis.js')).redis;
-  const keys = await redis.keys('domain_listings:*');
-  for (const k of keys) await redis.del(k);
+  // Use SCAN instead of KEYS to avoid blocking the Redis server on large keyspaces
+  let cursor = '0';
+  do {
+    const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', 'domain_listings:*', 'COUNT', 100);
+    cursor = nextCursor;
+    if (keys.length > 0) await redis.del(...keys);
+  } while (cursor !== '0');
+
   if (id) {
     await cacheDel(`domain_listing:${id}`);
     await cacheDel(`domain_detail:${id.toLowerCase()}`);
@@ -57,7 +62,7 @@ async function sendEmail(to: string | string[], subject: string, html: string): 
   for (const row of r.rows) settings[row.key as string] = row.value as string;
   const apiKey = settings.resend_api_key || settings.smtp_password || '';
   if (!apiKey) return;
-  const fromEmail = settings.smtp_from_email || 'noreply@nic.rw';
+  const fromEmail = settings.smtp_from_email || 'noreply@nic.bn';
   const fromName = settings.smtp_from_name || '域见·你';
   const recipients = Array.isArray(to) ? to : [to];
   await fetch('https://api.resend.com/emails', {
@@ -860,7 +865,7 @@ app.post('/contact-email', async (c) => {
   const { name, email, subject, message } = body;
   if (!email || !message) return c.json({ error: '缺少必要字段' }, 400);
   const settingsRes = await db.execute({ sql: "SELECT value FROM site_settings WHERE key = 'contact_email' LIMIT 1", args: [] });
-  const contactEmail = (settingsRes.rows[0]?.value as string) || 'domain@nic.rw';
+  const contactEmail = (settingsRes.rows[0]?.value as string) || 'support@nic.bn';
   const html = `<h2>新联系消息</h2>
     <p><strong>发件人：</strong>${name || '匿名'} &lt;${email}&gt;</p>
     <p><strong>主题：</strong>${subject || '无'}</p>
@@ -1003,7 +1008,7 @@ app.post('/admin/send-test-email', requireAuth, async (c) => {
   if (!to) return c.json({ error: '缺少收件人' }, 400);
   // Use provided SMTP config or read from DB
   let apiKey = smtp?.password || smtp?.apiKey || '';
-  let fromEmail = smtp?.from_email || 'noreply@nic.rw';
+  let fromEmail = smtp?.from_email || 'noreply@nic.bn';
   let fromName = smtp?.from_name || '域见·你';
   if (!apiKey) {
     const r = await db.execute("SELECT key, value FROM site_settings WHERE key IN ('resend_api_key','smtp_password','smtp_from_email','smtp_from_name')");
@@ -1118,9 +1123,22 @@ app.post('/admin/publish-event', requireAuth, async (c) => {
 // ---- Crash report (frontend auto-reports uncaught errors) ----
 app.post('/crash-report', async (c) => {
   try {
+    // Rate limit: 5 crash reports per IP per 5 minutes
+    const ip = c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const rl = await checkRateLimit(`crash:${ip}`, 5, 300);
+    if (!rl.allowed) return c.json({ ok: true }); // silently drop excess
+
     const body = await c.req.json();
-    const { url, errorMessage, errorStack, userId, userEmail, browser, timestamp, crashId } = body;
+    const {
+      url, message: bodyMessage, stack, errorMessage, errorStack,
+      userId, userEmail, browser, timestamp, crashId
+    } = body;
+    const msgText = (errorMessage || bodyMessage || '未知错误').substring(0, 500);
+    const stackText = (errorStack || stack || '').substring(0, 3000);
     const brand = await getBrandConfig();
+
+    const safeUrl = (url || '未知').substring(0, 200);
+    const safeBrowser = (browser || '未知').substring(0, 300);
 
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
 <style>
@@ -1140,33 +1158,33 @@ app.post('/crash-report', async (c) => {
 
   <div class="section">
     <div class="label">出错页面</div>
-    <div class="value">${url || '未知'}</div>
+    <div class="value">${safeUrl}</div>
   </div>
 
   <div class="section">
     <div class="label">错误信息</div>
-    <div class="value"><span class="badge">ERROR</span> ${errorMessage || '未知错误'}</div>
+    <div class="value"><span class="badge">ERROR</span> ${msgText}</div>
   </div>
 
   ${userId ? `<div class="section">
     <div class="label">用户信息</div>
-    <div class="value">ID: ${userId}${userEmail ? ' &nbsp;·&nbsp; ' + userEmail : ''}</div>
+    <div class="value">ID: ${userId}${userEmail ? ' &nbsp;·&nbsp; ' + String(userEmail).substring(0, 100) : ''}</div>
   </div>` : '<div class="section"><div class="label">用户信息</div><div class="value">未登录用户</div></div>'}
 
   <div class="section">
     <div class="label">浏览器 / 设备</div>
-    <div class="value">${browser || navigator?.userAgent || '未知'}</div>
+    <div class="value">${safeBrowser}</div>
   </div>
 
-  ${errorStack ? `<div class="section">
+  ${stackText ? `<div class="section">
     <div class="label">错误堆栈</div>
-    <pre class="stack">${errorStack.substring(0, 3000)}</pre>
+    <pre class="stack">${stackText}</pre>
   </div>` : ''}
 </div></body></html>`;
 
     await sendEmail(
       brand.supportEmail,
-      `[崩溃报告] ${errorMessage?.substring(0, 60) || '未知错误'} — ${brand.siteName}`,
+      `[崩溃报告] ${msgText.substring(0, 60)} — ${brand.siteName}`,
       html
     );
     return c.json({ ok: true });
@@ -1212,8 +1230,18 @@ app.post('/feedback/upload', async (c) => {
 // ---- User feedback / bug report ----
 app.post('/feedback', async (c) => {
   try {
+    // Rate limit: 5 feedback submissions per IP per 10 minutes
+    const ip = c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const rl = await checkRateLimit(`feedback:${ip}`, 5, 600);
+    if (!rl.allowed) return c.json({ error: '提交过于频繁，请稍后再试' }, 429);
+
     const body = await c.req.json();
     const { type, subject, message, url, userId, userEmail, browser, timestamp, screenshots } = body;
+
+    // Input length limits
+    if (!message || typeof message !== 'string') return c.json({ error: '请填写反馈内容' }, 400);
+    if (message.length > 5000) return c.json({ error: '反馈内容不能超过 5000 字' }, 400);
+    if (subject && subject.length > 200) return c.json({ error: '主题不能超过 200 字' }, 400);
     const brand = await getBrandConfig();
     const { v4: uuidv4 } = await import('uuid');
 

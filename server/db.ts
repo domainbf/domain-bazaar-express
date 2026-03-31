@@ -135,17 +135,5 @@ export async function initDb() {
       updated_at TEXT NOT NULL
     );
 
-    CREATE TABLE IF NOT EXISTS user_profiles (
-      id TEXT PRIMARY KEY,
-      user_id TEXT UNIQUE NOT NULL,
-      display_name TEXT,
-      avatar_url TEXT,
-      bio TEXT,
-      phone TEXT,
-      wechat TEXT,
-      alipay TEXT,
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL
-    );
   `);
 }

@@ -82,11 +82,16 @@ async function issueTokenPair(userId: string, email: string, isAdmin: boolean, u
   return { accessToken, refreshToken, sessionId };
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
 // POST /api/auth/register
 app.post('/register', async (c) => {
   const { email, password, full_name } = await c.req.json();
   if (!email || !password) return c.json({ error: '邮箱和密码不能为空' }, 400);
+  if (!EMAIL_RE.test(email)) return c.json({ error: '邮箱格式不正确' }, 400);
   if (password.length < 6) return c.json({ error: '密码至少 6 位' }, 400);
+  if (password.length > 128) return c.json({ error: '密码不能超过 128 位' }, 400);
+  if (email.length > 254) return c.json({ error: '邮箱地址过长' }, 400);
 
   // Rate limit: 5 registrations per IP per hour
   const ip = c.req.header('x-forwarded-for') || 'unknown';
@@ -302,16 +307,19 @@ app.post('/change-password', requireAuth, async (c) => {
 
 // ── Email sender via Resend API ─────────────────────────────────────────────
 async function sendEmail(to: string, subject: string, html: string): Promise<void> {
-  // Read SMTP/Resend credentials from DB
-  const smtpRow = await db.execute('SELECT host, username, password, from_email, from_name FROM smtp_settings WHERE enabled = 1 LIMIT 1');
-  const smtp = smtpRow.rows[0] as Record<string, unknown> | undefined;
+  // Read SMTP/Resend credentials from site_settings (consistent with data.ts)
+  const r = await db.execute(
+    "SELECT key, value FROM site_settings WHERE key IN ('resend_api_key','smtp_from_email','smtp_from_name','smtp_password')"
+  );
+  const settings: Record<string, string> = {};
+  for (const row of r.rows) settings[row.key as string] = row.value as string;
 
-  const apiKey = (smtp?.password as string) || '';
-  const fromEmail = (smtp?.from_email as string) || 'noreply@nic.rw';
-  const fromName = (smtp?.from_name as string) || '域见·你';
+  const apiKey = settings.resend_api_key || settings.smtp_password || '';
+  const fromEmail = settings.smtp_from_email || 'noreply@nic.bn';
+  const fromName = settings.smtp_from_name || '域见·你';
 
   if (!apiKey) {
-    console.warn('[EMAIL] No SMTP/Resend API key found — email not sent');
+    console.warn('[EMAIL] No Resend API key found — email not sent');
     return;
   }
 
@@ -329,6 +337,16 @@ async function sendEmail(to: string, subject: string, html: string): Promise<voi
     console.error('[EMAIL] Resend API error:', res.status, err);
   } else {
     console.log(`[EMAIL] Sent to ${to} — subject: ${subject}`);
+  }
+}
+
+async function getSiteBaseUrl(): Promise<string> {
+  try {
+    const r = await db.execute("SELECT value FROM site_settings WHERE key = 'site_domain' LIMIT 1");
+    const domain = r.rows[0]?.value as string | undefined;
+    return (domain || 'https://nic.bn').replace(/\/$/, '');
+  } catch {
+    return 'https://nic.bn';
   }
 }
 
@@ -350,8 +368,8 @@ app.post('/request-reset', async (c) => {
       args: [token, expires, now(), authUser.id]
     });
 
-    // Send password reset email
-    const baseUrl = 'https://nic.rw';
+    // Send password reset email — read site_domain from site_settings
+    const baseUrl = await getSiteBaseUrl();
     const resetUrl = `${baseUrl}/reset-password?token=${token}`;
     const html = `
 <!DOCTYPE html>
@@ -361,7 +379,7 @@ app.post('/request-reset', async (c) => {
   <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
     <div style="background:#111;padding:28px 32px;text-align:center;">
       <h1 style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:1px;">域见·你</h1>
-      <p style="margin:4px 0 0;color:#aaa;font-size:13px;">NIC.RW / NIC.BN 域名交易平台</p>
+      <p style="margin:4px 0 0;color:#aaa;font-size:13px;">NIC.BN 域名交易平台</p>
     </div>
     <div style="padding:36px 32px;">
       <h2 style="margin:0 0 16px;color:#111;font-size:20px;">重置您的密码</h2>

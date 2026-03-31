@@ -99,7 +99,8 @@
 
 ## 数据库初始化 (server/db.ts)
 `initDb()` 通过 `CREATE TABLE IF NOT EXISTS` 确保以下表存在：
-`app_auth_users`, `app_sessions`, `user_feedback`, `site_settings`, `domain_listings`, `domain_analytics`, `domain_offers`, `transactions`, `payment_transactions`, `disputes`, `user_profiles`
+`app_auth_users`, `app_sessions`, `user_feedback`, `site_settings`, `domain_listings`, `domain_analytics`, `domain_offers`, `transactions`, `payment_transactions`, `disputes`
+（`user_profiles` 已移除，为孤立表，所有用户数据统一存于 `profiles`）
 
 ## 连接优化 (server/index.ts + server/redis.ts)
 - **Keep-alive**: Turso 每4分钟 / Redis 每3分钟发送 ping 防止冷启动
@@ -131,6 +132,16 @@
 - **SiteSettings.tsx**: 删除 Supabase 调用 (loadSmtpConfig/loadContactConfig/loadBrandConfig/loadWhoisConfig/loadModelScopeConfig)，统一改为 `apiGet('/data/site-settings')`
 - **移动端 tabs**: 从 `flex-wrap` 改为横向滚动 `overflow-x-auto`
 - **AdminDashboard 系统状态面板**: 从静态硬编码改为实时 `/api/health` 数据，显示 DB/Redis 延迟和进程运行时长
+
+## 安全加固记录 (2026-03)
+- **邮箱格式验证**: `/register` 端点新增 RFC 格式校验 + 254字符长度限制 + 密码128字符上限
+- **速率限制**: `/crash-report` 5次/5分钟/IP（静默丢弃），`/feedback` 5次/10分钟/IP（返回429）
+- **Redis SCAN**: `invalidateDomainListCache` 从 `redis.keys()` O(N) 阻塞调用改为 SCAN 分页
+- **密码重置邮件**: `baseUrl` 从硬编码 `https://nic.rw` 改为读取 `site_settings.site_domain`
+- **服务端 navigator 移除**: crash-report HTML 模板中的 `navigator?.userAgent` 已删除（服务端无 navigator）
+- **邮件发件源统一**: `auth.ts` 改为读取 `site_settings`（而非旧 `smtp_settings` 表），与 `data.ts` 保持一致
+- **硬编码域名清理**: 所有 fallback 邮箱从 `noreply@nic.rw` / `domain@nic.rw` 统一改为 `noreply@nic.bn` / `support@nic.bn`
+- **反馈内容长度限制**: message ≤ 5000字，subject ≤ 200字
 
 ## 已知限制
 - 支持工单系统使用 Supabase (设计如此)
