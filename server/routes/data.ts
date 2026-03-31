@@ -439,6 +439,31 @@ app.get('/home', async (c) => {
   return c.json(data);
 });
 
+// ---- Active Auctions (Supabase-only table, Redis 5 min) ----
+app.get('/auctions', async (c) => {
+  const { cacheGetOrSet } = await import('../redis.js');
+  const data = await cacheGetOrSet(
+    'active_auctions',
+    async () => {
+      const { supabaseAdmin } = await import('../supabase.js');
+      const { data: rows, error } = await supabaseAdmin
+        .from('domain_auctions')
+        .select('id, starting_price, current_price, domain:domain_listings(id, name, price)')
+        .eq('status', 'active')
+        .limit(20);
+      if (error) return [];
+      return (rows ?? []).filter((a: any) => a.domain).map((a: any) => ({
+        id: (a.domain as any)?.id ?? a.id,
+        name: (a.domain as any)?.name ?? '域名',
+        price: Number(a.current_price) || Number(a.starting_price) || 0,
+      }));
+    },
+    300,
+    300,
+  );
+  return c.json(data);
+});
+
 // ---- Site Settings (public read, heavily cached 10 min + 5 min stale) ----
 app.get('/site-settings', async (c) => {
   const { cacheGetOrSet } = await import('../redis.js');

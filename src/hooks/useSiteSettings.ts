@@ -76,7 +76,7 @@ export const defaultConfig: SiteConfig = {
   hours_phone: '9:00 - 18:00',
   hours_weekday: '周一至周五（节假日除外）',
   support_hours: '7x24小时在线服务',
-  hero_title: '找到您理想的域名',
+  hero_title: '寻找完美的域名',
   hero_subtitle: '探索、发现并获取适合您的下一个大创意的理想域名',
   hero_search_placeholder: '搜索您想要的域名...',
   hero_cta_primary: '浏览域名市场',

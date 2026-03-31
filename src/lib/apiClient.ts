@@ -12,17 +12,51 @@ let refreshPromise: Promise<boolean> | null = null;
 
 const TOKEN_KEY = 'nic_access_token';
 const REFRESH_KEY = 'nic_refresh_token';
+const PERSIST_KEY = 'nic_remember_me';
+
+// Controls which storage is used when saving tokens.
+// true  = localStorage  (survives browser close — "remember me")
+// false = sessionStorage (cleared when tab/browser closes)
+let persistent = localStorage.getItem(PERSIST_KEY) === 'true';
+
+export function setPersistent(value: boolean) {
+  persistent = value;
+  if (value) {
+    localStorage.setItem(PERSIST_KEY, 'true');
+  } else {
+    localStorage.removeItem(PERSIST_KEY);
+  }
+}
 
 export function loadTokens() {
-  accessToken = localStorage.getItem(TOKEN_KEY);
-  refreshToken = localStorage.getItem(REFRESH_KEY);
+  // Prefer sessionStorage (current session) then localStorage (remembered)
+  accessToken =
+    sessionStorage.getItem(TOKEN_KEY) ||
+    localStorage.getItem(TOKEN_KEY);
+  refreshToken =
+    sessionStorage.getItem(REFRESH_KEY) ||
+    localStorage.getItem(REFRESH_KEY);
+
+  // Sync persistent flag from storage
+  persistent = localStorage.getItem(PERSIST_KEY) === 'true';
 }
 
 export function saveTokens(at: string, rt: string) {
   accessToken = at;
   refreshToken = rt;
-  localStorage.setItem(TOKEN_KEY, at);
-  localStorage.setItem(REFRESH_KEY, rt);
+  if (persistent) {
+    localStorage.setItem(TOKEN_KEY, at);
+    localStorage.setItem(REFRESH_KEY, rt);
+    // Remove from sessionStorage to avoid duplicates
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(REFRESH_KEY);
+  } else {
+    sessionStorage.setItem(TOKEN_KEY, at);
+    sessionStorage.setItem(REFRESH_KEY, rt);
+    // Clear any previously persisted tokens
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_KEY);
+  }
 }
 
 export function clearTokens() {
@@ -30,13 +64,19 @@ export function clearTokens() {
   refreshToken = null;
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(REFRESH_KEY);
+  localStorage.removeItem(PERSIST_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(REFRESH_KEY);
+  persistent = false;
 }
 
 export function getAccessToken() { return accessToken; }
 export function getRefreshToken() { return refreshToken; }
 
 async function doRefresh(): Promise<boolean> {
-  const rt = refreshToken || localStorage.getItem(REFRESH_KEY);
+  const rt = refreshToken ||
+    sessionStorage.getItem(REFRESH_KEY) ||
+    localStorage.getItem(REFRESH_KEY);
   if (!rt) return false;
   try {
     const res = await fetch(`${BASE}/auth/refresh`, {
@@ -66,7 +106,6 @@ async function tryRefresh(): Promise<boolean> {
 export async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
   loadTokens();
   const headers = new Headers(init.headers || {});
-  // Don't force JSON Content-Type for FormData — let the browser set multipart boundary
   if (!(init.body instanceof FormData)) {
     headers.set('Content-Type', 'application/json');
   }

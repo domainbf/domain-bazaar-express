@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle, ShieldCheck } from 'lucide-react';
 import { useAuth } from "@/contexts/AuthContext";
+import { setPersistent } from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
@@ -144,7 +145,7 @@ export const AuthForm = ({
           toast.success('注册成功！请查看您的邮箱以完成验证。');
         }
       } else {
-        // Save remember me preference
+        // Persist email for convenience if remember me is on
         if (rememberMe) {
           localStorage.setItem('auth_remember_me', 'true');
           localStorage.setItem('auth_remembered_email', email);
@@ -152,7 +153,8 @@ export const AuthForm = ({
           localStorage.removeItem('auth_remember_me');
           localStorage.removeItem('auth_remembered_email');
         }
-        
+        // Control token storage: localStorage (remember me) vs sessionStorage (session only)
+        setPersistent(rememberMe);
         const success = await signIn(email, password);
         if (success) {
           if (onSuccess) onSuccess();

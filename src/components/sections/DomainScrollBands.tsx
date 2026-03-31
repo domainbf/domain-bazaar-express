@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { apiGet } from '@/lib/apiClient';
 import { Gavel, Flame, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useHomeData } from '@/hooks/useHomeData';
@@ -104,14 +104,7 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
 
   const { data: auctionRaw } = useQuery({
     queryKey: ['home', 'auctions'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('domain_auctions')
-        .select('id, starting_price, current_price, domain:domain_listings(id, name, price)')
-        .eq('status', 'active')
-        .limit(20);
-      return data ?? [];
-    },
+    queryFn: () => apiGet<Array<{ id: string; name: string; price: number }>>('/data/auctions'),
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnMount: false,
@@ -120,18 +113,13 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
 
   const logoMap = homeData?.logoMap ?? {};
 
-  const auctionDomains: DomainChip[] = (auctionRaw ?? [])
-    .filter((a: any) => a.domain)
-    .map((a: any) => {
-      const id = (a.domain as any)?.id ?? a.id;
-      return {
-        id,
-        name: (a.domain as any)?.name ?? '域名',
-        price: Number(a.current_price) || Number(a.starting_price) || 0,
-        logoUrl: logoMap[id],
-        bandType: 'auction' as BandType,
-      };
-    });
+  const auctionDomains: DomainChip[] = (auctionRaw ?? []).map(a => ({
+    id: a.id,
+    name: a.name,
+    price: a.price,
+    logoUrl: logoMap[a.id],
+    bandType: 'auction' as BandType,
+  }));
 
   const rawHot = homeData?.hotDomains ?? [];
   const hotDomains: DomainChip[] = rawHot.slice(0, 20).map(d => ({ ...d, bandType: 'hot' as BandType }));
