@@ -140,11 +140,6 @@ export function CurrencyConverter({ priceAmount, priceCurrency }: CurrencyConver
         </div>
       </div>
 
-      {lastUpdated && !error && (
-        <p className="text-[11px] text-muted-foreground mt-1">
-          汇率来源：Frankfurter · 更新于 {lastUpdated} · 仅供参考
-        </p>
-      )}
     </div>
   );
 }
