@@ -155,4 +155,25 @@ async function main() {
   setTimeout(startKeepAlive, 10_000);
 }
 
+// ── Dev mode: proxy non-API requests → Vite dev server (port 5000) ─────────
+// This lets the Replit preview (which hits port 3001) render the frontend.
+if (!isProd) {
+  app.all('*', async (c) => {
+    const url = new URL(c.req.url);
+    const target = `http://localhost:5000${url.pathname}${url.search}`;
+    try {
+      const res = await fetch(target, {
+        method: c.req.method,
+        headers: c.req.raw.headers,
+        body: ['GET', 'HEAD'].includes(c.req.method) ? undefined : c.req.raw.body,
+        // @ts-ignore — Node 18 fetch needs duplex for streaming bodies
+        duplex: 'half',
+      });
+      return new Response(res.body, { status: res.status, headers: res.headers });
+    } catch {
+      return c.html('<p style="font-family:sans-serif;padding:2rem">Vite dev server starting on port 5000, please wait a moment and refresh…</p>', 502);
+    }
+  });
+}
+
 main();
