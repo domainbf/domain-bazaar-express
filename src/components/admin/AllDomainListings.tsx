@@ -33,6 +33,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -51,6 +61,7 @@ export const AllDomainListings = () => {
   const [logoGenerating, setLogoGenerating] = useState<Set<string>>(new Set());
   const [isAddSoldOpen, setIsAddSoldOpen] = useState(false);
   const [newSoldDomain, setNewSoldDomain] = useState({ name: '', price: '', description: '' });
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; domainId: string; domainName: string } | null>(null);
 
   useEffect(() => {
     loadDomains();
@@ -237,9 +248,14 @@ export const AllDomainListings = () => {
     }
   };
 
-  const deleteDomain = async (domainId: string) => {
-    if (!confirm('确定要删除这个域名吗？此操作不可撤销。')) return;
-    
+  const confirmDeleteDomain = (domain: DomainListing) => {
+    setDeleteDialog({ open: true, domainId: domain.id, domainName: domain.name });
+  };
+
+  const deleteDomain = async () => {
+    if (!deleteDialog) return;
+    const { domainId } = deleteDialog;
+    setDeleteDialog(null);
     try {
       const { error } = await supabase
         .from('domain_listings')
@@ -615,7 +631,7 @@ export const AllDomainListings = () => {
                         }
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-red-600" onClick={() => deleteDomain(domain.id)}>
+                      <DropdownMenuItem className="text-red-600" onClick={() => confirmDeleteDomain(domain)}>
                         <Trash2 className="h-4 w-4 mr-2" />
                         删除
                       </DropdownMenuItem>
@@ -765,6 +781,26 @@ export const AllDomainListings = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deleteDialog?.open} onOpenChange={(open) => !open && setDeleteDialog(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认删除域名</AlertDialogTitle>
+            <AlertDialogDescription>
+              即将删除域名 <span className="font-semibold text-foreground">{deleteDialog?.domainName}</span>，此操作不可撤销，相关报价和记录也将一并删除。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={deleteDomain}
+            >
+              确认删除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

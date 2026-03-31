@@ -15,7 +15,7 @@ import {
   DialogTitle,
   DialogFooter
 } from "@/components/ui/dialog";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPatch } from '@/lib/apiClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
 import { PackageCheck, PackageX, Package, Loader2 } from 'lucide-react';
@@ -57,14 +57,7 @@ export const DomainStatusManager = ({ domain, onStatusChange }: DomainStatusMana
 
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('domain_listings')
-        .update({ status: newStatus })
-        .eq('id', domain.id)
-        .eq('owner_id', user.id); // 确保只能修改自己的域名
-
-      if (error) throw error;
-
+      await apiPatch(`/data/domain-listings/${domain.id}`, { status: newStatus });
       toast.success(`域名状态已更新为「${statusOptions.find(o => o.value === newStatus)?.label}」`);
       setIsOpen(false);
       onStatusChange();

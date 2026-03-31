@@ -783,17 +783,38 @@ app.post('/disputes', requireAuth, async (c) => {
 app.get('/admin/stats', requireAuth, async (c) => {
   const { is_admin } = getAuth(c);
   if (!is_admin) return c.json({ error: '无权限' }, 403);
-  const [domainsRes, usersRes, offersRes, txRes] = await Promise.all([
-    db.execute("SELECT COUNT(*) as total, SUM(CASE WHEN status='available' THEN 1 ELSE 0 END) as available FROM domain_listings"),
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayIso = today.toISOString();
+
+  const [domainsRes, usersRes, offersRes, txRes, viewsRes, newUsersRes, newDomainsRes, recentOffersRes] = await Promise.all([
+    db.execute("SELECT COUNT(*) as total, SUM(CASE WHEN status='available' THEN 1 ELSE 0 END) as active, SUM(CASE WHEN is_verified=1 OR is_verified='true' THEN 1 ELSE 0 END) as verified FROM domain_listings"),
     db.execute('SELECT COUNT(*) as total FROM app_auth_users'),
     db.execute("SELECT COUNT(*) as total, SUM(CASE WHEN status='pending' THEN 1 ELSE 0 END) as pending FROM domain_offers"),
-    db.execute("SELECT COUNT(*) as total, COALESCE(SUM(amount),0) as revenue FROM transactions"),
+    db.execute("SELECT COUNT(*) as total, COALESCE(SUM(CASE WHEN status='completed' THEN amount ELSE 0 END),0) as revenue, SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END) as completed FROM transactions"),
+    db.execute('SELECT COALESCE(SUM(views),0) as total FROM domain_listings'),
+    db.execute({ sql: 'SELECT COUNT(*) as total FROM app_auth_users WHERE created_at >= ?', args: [todayIso] }),
+    db.execute({ sql: "SELECT COUNT(*) as total FROM domain_listings WHERE created_at >= ?", args: [todayIso] }),
+    db.execute("SELECT do.id, do.amount, do.status, do.created_at, dl.name as domain_name FROM domain_offers do LEFT JOIN domain_listings dl ON dl.id = do.domain_id ORDER BY do.created_at DESC LIMIT 5"),
   ]);
+
+  const recentOffers = recentOffersRes.rows.map(rowToObj);
+
   return c.json({
-    domains: { total: domainsRes.rows[0]?.total || 0, available: domainsRes.rows[0]?.available || 0 },
-    users: { total: usersRes.rows[0]?.total || 0 },
-    offers: { total: offersRes.rows[0]?.total || 0, pending: offersRes.rows[0]?.pending || 0 },
-    transactions: { total: txRes.rows[0]?.total || 0, revenue: txRes.rows[0]?.revenue || 0 },
+    totalUsers: Number(usersRes.rows[0]?.total) || 0,
+    totalDomains: Number(domainsRes.rows[0]?.total) || 0,
+    activeListings: Number(domainsRes.rows[0]?.active) || 0,
+    verifiedDomains: Number(domainsRes.rows[0]?.verified) || 0,
+    totalOffers: Number(offersRes.rows[0]?.total) || 0,
+    pendingOffers: Number(offersRes.rows[0]?.pending) || 0,
+    completedTransactions: Number(txRes.rows[0]?.completed) || 0,
+    totalRevenue: Number(txRes.rows[0]?.revenue) || 0,
+    totalViews: Number(viewsRes.rows[0]?.total) || 0,
+    pendingVerifications: 0,
+    newUsersToday: Number(newUsersRes.rows[0]?.total) || 0,
+    newDomainsToday: Number(newDomainsRes.rows[0]?.total) || 0,
+    recentOffers,
   });
 });
 

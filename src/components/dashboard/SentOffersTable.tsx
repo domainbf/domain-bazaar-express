@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Mail, Clock, CheckCircle2, XCircle, Package, AlertCircle, ExternalLink, Trash2, Loader2, Eye, ArrowRight, ArrowLeftRight, Check, X } from "lucide-react";
 import { useState } from "react";
-import { apiPatch } from "@/lib/apiClient";
+import { apiPatch, apiPost } from "@/lib/apiClient";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
@@ -68,6 +68,29 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
       if (action === 'accept') {
         const counterAmt = parsed.counterAmount ?? offer.amount;
         await apiPatch(`/data/domain-offers/${offer.id}`, { status: 'accepted', amount: counterAmt });
+
+        // Create transaction record when buyer accepts seller's counter-offer
+        if (offer.domain_id && offer.seller_id && user?.id) {
+          try {
+            const txResult = await apiPost('/data/transactions', {
+              buyer_id: user.id,
+              seller_id: offer.seller_id,
+              domain_id: offer.domain_id,
+              offer_id: offer.id,
+              amount: counterAmt,
+            });
+            if (txResult?.id) {
+              toast.success('已接受卖家还价，交易已创建');
+              setCounterResponseDialog(null);
+              if (onRefresh) await onRefresh();
+              navigate('/user-center?tab=transactions');
+              return;
+            }
+          } catch (txErr) {
+            console.error('Transaction creation error:', txErr);
+          }
+        }
+
         toast.success('已接受卖家还价');
       } else {
         await apiPatch(`/data/domain-offers/${offer.id}`, { status: 'rejected' });
