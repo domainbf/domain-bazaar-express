@@ -153,10 +153,10 @@ export const DomainValuationReport: React.FC<DomainValuationReportProps> = ({
       <div className="text-center p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border">
         <h3 className="text-base font-medium text-muted-foreground mb-2">估算市场价值</h3>
         <div className="text-3xl sm:text-4xl font-black text-foreground mb-2">
-          ${result.estimatedValue.toLocaleString('en-US')}
+          ¥{result.estimatedValue.toLocaleString('zh-CN')}
         </div>
         <p className="text-sm text-muted-foreground mb-3">
-          价值区间: ${result.valueRange.min.toLocaleString()} - ${result.valueRange.max.toLocaleString()}
+          价值区间: ¥{result.valueRange.min.toLocaleString()} - ¥{result.valueRange.max.toLocaleString()}
         </p>
         <div className="flex items-center justify-center gap-2">
           <span className="text-sm text-muted-foreground">置信度:</span>

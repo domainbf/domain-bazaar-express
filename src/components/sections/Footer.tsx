@@ -186,7 +186,7 @@ export const Footer = () => {
       <Separator />
 
       {/* 底部版权 */}
-      <div className="max-w-6xl mx-auto px-4 py-4">
+      <div className="max-w-6xl mx-auto px-4 py-4 pb-20 md:pb-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
           <div className="flex flex-col sm:flex-row items-center gap-3">
             <p>© {year} {config?.footer_text ?? `${config?.site_name ?? 'NIC.BN'} 版权所有`}</p>

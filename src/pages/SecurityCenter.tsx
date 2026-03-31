@@ -20,7 +20,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 const SecurityCenter: React.FC = () => {
   const { config } = useSiteSettings();
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Navbar />
       
       <div className="max-w-5xl mx-auto px-4 py-12">

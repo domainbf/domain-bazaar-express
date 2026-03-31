@@ -173,19 +173,19 @@ export const DomainValuationTool: React.FC<DomainValuationToolProps> = ({
                 <div className="text-center p-4 bg-green-500/10 rounded-lg">
                   <div className="text-sm text-muted-foreground mb-1">最低估值</div>
                   <div className="text-2xl font-bold text-green-600">
-                    ${evaluation.valueRange.min.toLocaleString()}
+                    ¥{evaluation.valueRange.min.toLocaleString()}
                   </div>
                 </div>
                 <div className="text-center p-4 bg-blue-500/10 rounded-lg">
                   <div className="text-sm text-muted-foreground mb-1">建议价格</div>
                   <div className="text-2xl font-bold text-blue-600">
-                    ${evaluation.estimatedValue.toLocaleString()}
+                    ¥{evaluation.estimatedValue.toLocaleString()}
                   </div>
                 </div>
                 <div className="text-center p-4 bg-purple-500/10 rounded-lg">
                   <div className="text-sm text-muted-foreground mb-1">最高估值</div>
                   <div className="text-2xl font-bold text-purple-600">
-                    ${evaluation.valueRange.max.toLocaleString()}
+                    ¥{evaluation.valueRange.max.toLocaleString()}
                   </div>
                 </div>
               </div>

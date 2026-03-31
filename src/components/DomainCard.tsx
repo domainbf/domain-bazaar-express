@@ -158,7 +158,7 @@ export const DomainCard = ({
 
         {price !== undefined && (
           <span className="text-sm text-muted-foreground mt-2.5 font-medium tabular-nums">
-            售价 {typeof price === 'number' ? `$${price.toLocaleString()}` : price}
+            售价 {typeof price === 'number' ? `¥${price.toLocaleString()}` : price}
           </span>
         )}
 

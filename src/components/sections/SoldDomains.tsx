@@ -61,7 +61,7 @@ export const SoldDomains = () => {
                 </div>
                 <p className="text-xs text-muted-foreground mb-1">成交价格</p>
                 <p className="text-base font-bold text-emerald-600 dark:text-emerald-400">
-                  ${domain.price.toLocaleString()}
+                  ¥{domain.price.toLocaleString()}
                 </p>
               </motion.div>
             ))}

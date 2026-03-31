@@ -18,9 +18,7 @@ export const DomainSeoHead: React.FC<Props> = ({ domain, analytics }) => {
 
   const title = `${domain.name} - ${domain.category === 'premium' ? '精品' : '优质'}域名出售 | 域见•你`;
   
-  const priceText = domain.currency === 'CNY' 
-    ? `¥${domain.price.toLocaleString()}` 
-    : `$${domain.price.toLocaleString()}`;
+  const priceText = `¥${domain.price.toLocaleString()}`;
   
   const description = domain.description 
     ? `${domain.name} 域名出售，价格${priceText}。${domain.description.slice(0, 100)}`

@@ -116,7 +116,7 @@ const DomainRow = ({ domain, index }: { domain: Domain; index: number }) => {
           {/* Row 2: Price + badges */}
           <div className="flex items-center justify-between gap-2 mb-2">
             <span className="text-xl font-bold text-foreground tabular-nums">
-              {domain.price > 0 ? `$${domain.price.toLocaleString()}` : '$0'}
+              {domain.price > 0 ? `¥${domain.price.toLocaleString()}` : '¥0'}
             </span>
             <div className="flex items-center gap-1.5 shrink-0">
               {domain.highlight && (

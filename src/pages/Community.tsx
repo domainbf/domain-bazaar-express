@@ -47,7 +47,7 @@ const Community: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Navbar />
       
       <div className="max-w-6xl mx-auto px-4 py-12">

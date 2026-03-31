@@ -38,7 +38,7 @@ export const DomainEvaluation = ({ initialDomain }: DomainEvaluationProps) => {
   };
   
   const formatPrice = (price: number) =>
-    price.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+    `¥${price.toLocaleString('zh-CN', { maximumFractionDigits: 0 })}`;
   
   return (
     <div className="space-y-6">

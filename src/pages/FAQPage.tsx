@@ -137,7 +137,7 @@ export const FAQPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-muted/50">
+    <div className="min-h-screen bg-muted/50 pb-20 md:pb-0">
       <Navbar />
       
       <div className="max-w-4xl mx-auto px-4 py-12">
