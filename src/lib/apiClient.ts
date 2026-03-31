@@ -14,7 +14,6 @@ const TOKEN_KEY = 'nic_access_token';
 const REFRESH_KEY = 'nic_refresh_token';
 const PERSIST_KEY = 'nic_remember_me';
 
-// Controls which storage is used when saving tokens.
 // true  = localStorage  (survives browser close — "remember me")
 // false = sessionStorage (cleared when tab/browser closes)
 let persistent = localStorage.getItem(PERSIST_KEY) === 'true';
@@ -29,15 +28,30 @@ export function setPersistent(value: boolean) {
 }
 
 export function loadTokens() {
-  // Prefer sessionStorage (current session) then localStorage (remembered)
-  accessToken =
-    sessionStorage.getItem(TOKEN_KEY) ||
-    localStorage.getItem(TOKEN_KEY);
-  refreshToken =
-    sessionStorage.getItem(REFRESH_KEY) ||
-    localStorage.getItem(REFRESH_KEY);
+  const sessionAt = sessionStorage.getItem(TOKEN_KEY);
+  const localAt = localStorage.getItem(TOKEN_KEY);
 
-  // Sync persistent flag from storage
+  if (sessionAt) {
+    // Active session tokens take priority
+    accessToken = sessionAt;
+    refreshToken = sessionStorage.getItem(REFRESH_KEY);
+  } else if (localAt) {
+    // Tokens found in localStorage
+    accessToken = localAt;
+    refreshToken = localStorage.getItem(REFRESH_KEY);
+    // Backward compat: tokens in localStorage without PERSIST_KEY means they were
+    // saved before "remember me" was implemented — treat as persistent so
+    // saveTokens() keeps them in localStorage instead of migrating to sessionStorage.
+    if (localStorage.getItem(PERSIST_KEY) !== 'true') {
+      persistent = true;
+      localStorage.setItem(PERSIST_KEY, 'true');
+    }
+  } else {
+    accessToken = null;
+    refreshToken = null;
+  }
+
+  // Re-read persistent flag (may have been set above)
   persistent = localStorage.getItem(PERSIST_KEY) === 'true';
 }
 
@@ -47,13 +61,11 @@ export function saveTokens(at: string, rt: string) {
   if (persistent) {
     localStorage.setItem(TOKEN_KEY, at);
     localStorage.setItem(REFRESH_KEY, rt);
-    // Remove from sessionStorage to avoid duplicates
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(REFRESH_KEY);
   } else {
     sessionStorage.setItem(TOKEN_KEY, at);
     sessionStorage.setItem(REFRESH_KEY, rt);
-    // Clear any previously persisted tokens
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_KEY);
   }

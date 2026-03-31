@@ -492,21 +492,30 @@ app.get('/wallet', requireAuth, async (c) => {
 app.patch('/site-settings', requireAuth, async (c) => {
   const { is_admin } = getAuth(c);
   if (!is_admin) return c.json({ error: '无权限' }, 403);
-  const body = await c.req.json();
-  // Support both flat key-value and nested { updates: {...} } format
-  const entries = body.updates ? Object.entries(body.updates) : Object.entries(body);
-  let updatedCount = 0;
+  let body: Record<string, unknown> = {};
+  try { body = await c.req.json(); } catch { body = {}; }
+  // Support flat key-value, { updates: {...} }, and nested formats
+  let kvMap: Record<string, unknown> = {};
+  if (body && typeof body === 'object' && !Array.isArray(body)) {
+    const b = body as Record<string, unknown>;
+    if (b.updates && typeof b.updates === 'object' && !Array.isArray(b.updates)) {
+      kvMap = b.updates as Record<string, unknown>;
+    } else {
+      const { updates: _u, ...rest } = b;
+      kvMap = rest;
+    }
+  }
+  const entries = Object.entries(kvMap).filter(([k]) => k && typeof k === 'string');
   for (const [k, v] of entries) {
-    const val = typeof v === 'object' ? JSON.stringify(v) : String(v ?? '');
+    const val = v === null || v === undefined ? '' : (typeof v === 'object' ? JSON.stringify(v) : String(v));
     const existing = await db.execute({ sql: 'SELECT id FROM site_settings WHERE key = ?', args: [k] });
     if (existing.rows.length > 0) {
       await db.execute({ sql: 'UPDATE site_settings SET value = ?, updated_at = ? WHERE key = ?', args: [val, now(), k] });
     } else {
       await db.execute({ sql: 'INSERT INTO site_settings (id, key, value, section, type, updated_at) VALUES (lower(hex(randomblob(16))),?,?,?,?,?)', args: [k, val, 'general', 'text', now()] });
     }
-    updatedCount++;
   }
-  if (updatedCount === 0) return c.json({ error: '无可更新字段' }, 400);
+  if (entries.length === 0) return c.json({ error: '无可更新字段' }, 400);
   await cacheDel('site_settings');
   const r = await db.execute({ sql: 'SELECT key, value FROM site_settings', args: [] });
   const fresh: Record<string, unknown> = {};
