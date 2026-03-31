@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Settings, Globe, Mail, Shield, Plus, Trash2, Save, Database, Palette, Key, Eye, EyeOff, Send, CheckCircle, XCircle, Loader2, AlertCircle, Phone, Puzzle, TestTube2, Zap, Info, Power, UserX, Wrench, Sparkles, Smartphone } from 'lucide-react';
+import { Settings, Globe, Mail, Shield, Plus, Trash2, Save, Database, Palette, Key, Eye, EyeOff, Send, CheckCircle, XCircle, Loader2, AlertCircle, Phone, Puzzle, TestTube2, Zap, Info, Power, UserX, Wrench, Sparkles, Smartphone, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -116,6 +116,7 @@ export const SiteSettings = () => {
   const [siteClosed, setSiteClosed] = useState(false);
   const [registrationClosed, setRegistrationClosed] = useState(false);
   const [pwaInstallBanner, setPwaInstallBanner] = useState(true);
+  const [feedbackButtonVisible, setFeedbackButtonVisible] = useState(true);
   const [maintenanceTitle, setMaintenanceTitle] = useState('系统维护中');
   const [maintenanceMessage, setMaintenanceMessage] = useState('我们正在对平台进行升级维护，即将回来，感谢您的耐心等待。');
   const [isSavingControl, setIsSavingControl] = useState(false);
@@ -245,6 +246,7 @@ export const SiteSettings = () => {
       setSiteClosed(data['site_closed'] === 'true');
       setRegistrationClosed(data['registration_closed'] === 'true');
       setPwaInstallBanner(data['pwa_install_banner'] !== 'false');
+      setFeedbackButtonVisible(data['feedback_button_visible'] !== 'false');
       setMaintenanceTitle(data['maintenance_title'] || '系统维护中');
       setMaintenanceMessage(data['maintenance_message'] || '我们正在对平台进行升级维护，即将回来，感谢您的耐心等待。');
     } catch (e) { console.error('loadAllConfigs error', e); }
@@ -257,6 +259,7 @@ export const SiteSettings = () => {
         site_closed: String(siteClosed),
         registration_closed: String(registrationClosed),
         pwa_install_banner: String(pwaInstallBanner),
+        feedback_button_visible: String(feedbackButtonVisible),
         maintenance_title: maintenanceTitle,
         maintenance_message: maintenanceMessage,
       });
@@ -1817,6 +1820,28 @@ export const SiteSettings = () => {
                 <Switch
                   checked={pwaInstallBanner}
                   onCheckedChange={setPwaInstallBanner}
+                  className="mt-0.5 shrink-0"
+                />
+              </div>
+
+              {/* 反馈按钮 */}
+              <div className={`flex items-start justify-between gap-4 p-4 rounded-xl border transition-colors ${feedbackButtonVisible ? 'border-green-400/50 bg-green-500/5' : 'border-border bg-muted/20'}`}>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <p className="text-sm font-semibold text-foreground">悬浮反馈按钮</p>
+                    {feedbackButtonVisible
+                      ? <Badge variant="outline" className="text-xs border-green-400 text-green-600">已显示</Badge>
+                      : <Badge variant="outline" className="text-xs border-muted-foreground text-muted-foreground">已隐藏</Badge>
+                    }
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    页面右下角的"反馈"悬浮按钮。关闭后所有页面的反馈入口将被隐藏，已登录用户也无法看到。
+                  </p>
+                </div>
+                <Switch
+                  checked={feedbackButtonVisible}
+                  onCheckedChange={setFeedbackButtonVisible}
                   className="mt-0.5 shrink-0"
                 />
               </div>

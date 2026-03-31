@@ -13,6 +13,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { apiPost } from '@/lib/apiClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 type FeedbackType = 'bug' | 'suggestion' | 'complaint' | 'other';
 
@@ -37,6 +38,7 @@ interface UploadedFile {
 export function FeedbackButton() {
   const { user } = useAuth();
   const isMobile = useIsMobile();
+  const { config } = useSiteSettings();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [open, setOpen] = useState(false);
@@ -47,6 +49,8 @@ export function FeedbackButton() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [files, setFiles] = useState<UploadedFile[]>([]);
+
+  if (config.feedback_button_visible === 'false') return null;
 
   const handleOpen = () => {
     setEmail(user?.email || '');

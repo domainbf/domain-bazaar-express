@@ -57,6 +57,7 @@ export interface SiteConfig {
   site_closed: string;
   registration_closed: string;
   pwa_install_banner: string;
+  feedback_button_visible: string;
   maintenance_title: string;
   maintenance_message: string;
 }
@@ -115,6 +116,7 @@ export const defaultConfig: SiteConfig = {
   site_closed: 'false',
   registration_closed: 'false',
   pwa_install_banner: 'true',
+  feedback_button_visible: 'true',
   maintenance_title: '系统维护中',
   maintenance_message: '我们正在对平台进行升级维护，即将回来，感谢您的耐心等待。',
 };

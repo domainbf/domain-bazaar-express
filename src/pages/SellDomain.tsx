@@ -79,22 +79,22 @@ export const SellDomainPage = () => {
       <Navbar />
 
       {/* Hero */}
-      <section className="bg-gradient-to-br from-foreground to-foreground/90 text-background dark:from-card dark:via-muted/80 dark:to-card dark:text-foreground py-20 md:py-28">
+      <section className="bg-gradient-to-br from-foreground to-foreground/90 text-background dark:from-card dark:via-muted/80 dark:to-card dark:text-foreground py-24 md:py-32">
         <div className="max-w-5xl mx-auto px-6 text-center">
-          <Badge className="mb-4 bg-background/10 dark:bg-muted text-background dark:text-foreground border-background/20 dark:border-border text-sm px-3 py-1">
+          <Badge className="mb-6 bg-background/10 dark:bg-muted text-background dark:text-foreground border-background/20 dark:border-border text-sm px-4 py-1.5">
             🔥 平台手续费全国最低
           </Badge>
-          <h1 className="text-4xl md:text-5xl font-bold mb-5 leading-tight">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 md:mb-7 leading-snug md:leading-tight">
             出售您的域名<br />安全、快速、高价成交
           </h1>
-          <p className="text-lg md:text-xl opacity-80 mb-8 max-w-2xl mx-auto">
+          <p className="text-base md:text-xl opacity-80 mb-10 max-w-2xl mx-auto leading-relaxed px-2 md:px-0">
             加入数千名卖家，通过专业域名交易平台触达全国优质买家，享受第三方托管保障，平台低至 5% 手续费。
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
               onClick={handleCTA}
-              className="bg-background text-foreground hover:bg-background/90 font-bold px-8 text-base"
+              className="bg-background text-foreground hover:bg-background/90 font-bold px-8 text-base h-12"
               data-testid="button-sell-cta-hero"
             >
               立即上架域名
@@ -104,19 +104,19 @@ export const SellDomainPage = () => {
               size="lg"
               variant="outline"
               asChild
-              className="border-background/40 dark:border-border text-background dark:text-foreground hover:bg-background/10 dark:hover:bg-muted px-8 text-base"
+              className="border-background/40 dark:border-border text-background dark:text-foreground hover:bg-background/10 dark:hover:bg-muted px-8 text-base h-12"
             >
               <Link to="/marketplace">查看成交案例</Link>
             </Button>
           </div>
           {/* Mini stats */}
-          <div className="grid grid-cols-3 gap-6 mt-12 max-w-lg mx-auto">
+          <div className="grid grid-cols-3 gap-6 mt-14 md:mt-16 max-w-lg mx-auto">
             {[
               { v: '5%', label: '最低手续费' },
               { v: '24h', label: '快速审核上架' },
               { v: '100%', label: '资金安全保障' },
             ].map(s => (
-              <div key={s.label}>
+              <div key={s.label} className="space-y-1.5">
                 <p className="text-3xl font-bold">{s.v}</p>
                 <p className="text-sm opacity-70">{s.label}</p>
               </div>
