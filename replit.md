@@ -10,7 +10,7 @@
 - **缓存/会话**: Redis (Upstash)
 - **文件存储**: Vercel Blob
 - **辅助**: Supabase (支持工单、部分管理员复杂查询)
-- **邮件**: Resend API
+- **邮件**: nodemailer（真实 SMTP）+ Resend API 备选，统一通过 `server/mailer.ts`
 
 ## 测试账号
 - **管理员**: 9208522@qq.com / admin888
@@ -132,6 +132,15 @@
 - **SiteSettings.tsx**: 删除 Supabase 调用 (loadSmtpConfig/loadContactConfig/loadBrandConfig/loadWhoisConfig/loadModelScopeConfig)，统一改为 `apiGet('/data/site-settings')`
 - **移动端 tabs**: 从 `flex-wrap` 改为横向滚动 `overflow-x-auto`
 - **AdminDashboard 系统状态面板**: 从静态硬编码改为实时 `/api/health` 数据，显示 DB/Redis 延迟和进程运行时长
+
+## 邮件发送架构 (server/mailer.ts)
+统一邮件模块，两路由（data.ts / auth.ts）共享同一逻辑：
+- **优先级 1 — 真实 SMTP**：`smtp_host` + `smtp_username` + `smtp_password` 均配置时，通过 nodemailer 发送，支持 QQ邮箱、163、Gmail、Outlook、Resend SMTP 等任意服务商
+  - port 465 → TLS 加密；port 587/25 → STARTTLS
+- **优先级 2 — Resend API**：SMTP 未配置但设置了 `resend_api_key`（或仅有 `smtp_password`）时，直接调 Resend HTTP API
+- **未配置**：打印警告，不抛出异常，不影响其他业务
+- `testMailConfig()` 函数：支持携带 override 参数测试未保存的配置；返回 `{ ok, provider, error? }`
+- 后台"发送测试邮件"现在会展示实际使用的服务商名称
 
 ## 安全加固记录 (2026-03)
 - **邮箱格式验证**: `/register` 端点新增 RFC 格式校验 + 254字符长度限制 + 密码128字符上限

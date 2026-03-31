@@ -3,6 +3,7 @@ import { db } from '../db.js';
 import { requireAuth, getAuth } from '../middleware/auth.js';
 import { bus } from '../eventBus.js';
 import { cacheGet, cacheSet, cacheDel, checkRateLimit, redis } from '../redis.js';
+import { sendMail, testMailConfig } from '../mailer.js';
 import {
   sellerNewOfferEmail,
   buyerOfferConfirmEmail,
@@ -55,21 +56,13 @@ async function invalidateDomainListCache(id?: string, name?: string) {
   if (name) await cacheDel(`domain_detail:${name.toLowerCase()}`);
 }
 
-// ---------- Shared email utility ----------
+// ---------- Shared email utility (delegates to server/mailer.ts) ----------
 async function sendEmail(to: string | string[], subject: string, html: string): Promise<void> {
-  const r = await db.execute("SELECT key, value FROM site_settings WHERE key IN ('resend_api_key','smtp_from_email','smtp_from_name','smtp_password')");
-  const settings: Record<string, string> = {};
-  for (const row of r.rows) settings[row.key as string] = row.value as string;
-  const apiKey = settings.resend_api_key || settings.smtp_password || '';
-  if (!apiKey) return;
-  const fromEmail = settings.smtp_from_email || 'noreply@nic.rw';
-  const fromName = settings.smtp_from_name || '域见·你';
-  const recipients = Array.isArray(to) ? to : [to];
-  await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: `${fromName} <${fromEmail}>`, to: recipients, subject, html }),
-  }).catch(() => {});
+  try {
+    await sendMail(to, subject, html);
+  } catch (e) {
+    console.error('[sendEmail] Failed:', e instanceof Error ? e.message : e);
+  }
 }
 
 // ---------- Brand config helper ----------
@@ -1006,31 +999,20 @@ app.post('/admin/send-test-email', requireAuth, async (c) => {
   const body = await c.req.json();
   const { to, smtp } = body;
   if (!to) return c.json({ error: '缺少收件人' }, 400);
-  // Use provided SMTP config or read from DB
-  let apiKey = smtp?.password || smtp?.apiKey || '';
-  let fromEmail = smtp?.from_email || 'noreply@nic.rw';
-  let fromName = smtp?.from_name || '域见·你';
-  if (!apiKey) {
-    const r = await db.execute("SELECT key, value FROM site_settings WHERE key IN ('resend_api_key','smtp_password','smtp_from_email','smtp_from_name')");
-    const s: Record<string, string> = {};
-    for (const row of r.rows) s[row.key as string] = row.value as string;
-    apiKey = s.resend_api_key || s.smtp_password || '';
-    fromEmail = s.smtp_from_email || fromEmail;
-    fromName = s.smtp_from_name || fromName;
-  }
-  if (!apiKey) return c.json({ error: 'SMTP/Resend API Key 未配置' }, 400);
-  try {
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: `${fromName} <${fromEmail}>`, to: [to], subject: '测试邮件 - 域见·你', html: '<h1>测试邮件</h1><p>这是一封来自域见·你的测试邮件，如果您收到此邮件，说明邮件功能配置正确。</p>' }),
-    });
-    const result = await res.json();
-    if (res.ok) return c.json({ success: true, result });
-    return c.json({ success: false, error: result }, 400);
-  } catch (e) {
-    return c.json({ success: false, error: String(e) }, 500);
-  }
+
+  // Map frontend smtp object → mailer override keys
+  const override = smtp ? {
+    smtp_host:       smtp.host,
+    smtp_port:       smtp.port,
+    smtp_username:   smtp.username,
+    smtp_password:   smtp.password,
+    smtp_from_email: smtp.from_email,
+    smtp_from_name:  smtp.from_name,
+  } : undefined;
+
+  const result = await testMailConfig(to, override);
+  if (result.ok) return c.json({ success: true, provider: result.provider });
+  return c.json({ success: false, error: result.error, provider: result.provider }, 400);
 });
 
 // ---- Admin: Site Settings CRUD ----

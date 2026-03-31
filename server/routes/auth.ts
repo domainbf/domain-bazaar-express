@@ -10,6 +10,7 @@ import {
   deleteAllUserSessions, getUserSessionIds,
   checkRateLimit, cacheGet, cacheSet, cacheDel
 } from '../redis.js';
+import { sendMail } from '../mailer.js';
 
 const app = new Hono();
 
@@ -305,38 +306,12 @@ app.post('/change-password', requireAuth, async (c) => {
   return c.json({ success: true });
 });
 
-// ── Email sender via Resend API ─────────────────────────────────────────────
+// ── Email sender (delegates to server/mailer.ts — SMTP or Resend) ─────────
 async function sendEmail(to: string, subject: string, html: string): Promise<void> {
-  // Read SMTP/Resend credentials from site_settings (consistent with data.ts)
-  const r = await db.execute(
-    "SELECT key, value FROM site_settings WHERE key IN ('resend_api_key','smtp_from_email','smtp_from_name','smtp_password')"
-  );
-  const settings: Record<string, string> = {};
-  for (const row of r.rows) settings[row.key as string] = row.value as string;
-
-  const apiKey = settings.resend_api_key || settings.smtp_password || '';
-  const fromEmail = settings.smtp_from_email || 'noreply@nic.rw';
-  const fromName = settings.smtp_from_name || '域见·你';
-
-  if (!apiKey) {
-    console.warn('[EMAIL] No Resend API key found — email not sent');
-    return;
-  }
-
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ from: `${fromName} <${fromEmail}>`, to: [to], subject, html }),
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    console.error('[EMAIL] Resend API error:', res.status, err);
-  } else {
-    console.log(`[EMAIL] Sent to ${to} — subject: ${subject}`);
+  try {
+    await sendMail(to, subject, html);
+  } catch (e) {
+    console.error('[auth/sendEmail] Failed:', e instanceof Error ? e.message : e);
   }
 }
 

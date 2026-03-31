@@ -478,9 +478,10 @@ export const SiteSettings = () => {
     setEmailTestResult(null);
     try {
       const data = await apiPost('/data/admin/send-test-email', { to: testEmailAddr, smtp });
-      if (data?.success === false) throw new Error(data?.error || '发送失败');
-      setEmailTestResult({ ok: true, msg: `测试邮件已发送至 ${testEmailAddr}，请检查收件箱` });
-      toast.success(`测试邮件已发送至 ${testEmailAddr}`);
+      if (data?.success === false) throw new Error(data?.error ? `[${data.provider || '未知'}] ${data.error}` : '发送失败');
+      const providerStr = data?.provider ? `（通过 ${data.provider}）` : '';
+      setEmailTestResult({ ok: true, msg: `测试邮件已发送至 ${testEmailAddr}${providerStr}，请检查收件箱` });
+      toast.success(`发送成功${providerStr}`);
     } catch (e: any) {
       const msg = e.message || '未知错误';
       setEmailTestResult({ ok: false, msg });
