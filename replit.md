@@ -18,6 +18,7 @@
 - **买家**: buyer@test.com / buyer888
 
 ## 最近变更记录
+- **DomainValuationTool 全面升级**：完整重写 `DomainValuationTool.tsx`；新增 SVG 评分环（动画）、三步加载动画、6 个快速示例域名、localStorage 历史记录（最近 5 条）、域名特征标签（纯字母/吉祥数字/热词等）、六维评分+动态生成分析文本、专业建议列表、平台实盘参考（Hono API）、一键复制报告；Supabase edge function → 本地算法智能降级；`ValuationPage.tsx` 同步更新（Hero+功能格+FAQ）
 - `POST /api/data/domain-views/:id` 新增浏览量记录接口（修复域名详情页控制台报错）
 - 货币换算组件：去掉"汇率来源：Frankfurter"展示文字
 - FAQ 页面：从 12 条扩展至 35 条，新增分类筛选（平台介绍/交易流程/域名验证/域名竞拍/费用/账户/纠纷）
