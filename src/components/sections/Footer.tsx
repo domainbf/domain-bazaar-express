@@ -8,9 +8,12 @@ import {
 } from 'lucide-react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { Separator } from '@/components/ui/separator';
+import { useTheme } from 'next-themes';
 
 export const Footer = () => {
   const { config } = useSiteSettings();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
   const year = new Date().getFullYear();
 
   const links = {
@@ -139,11 +142,12 @@ export const Footer = () => {
           {/* 品牌介绍 — 移至最右列 */}
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-3">
-              {config?.logo_url ? (
-                <img src={config.logo_url} alt={config.site_name ?? 'NIC.BN'} className="h-7 w-auto" />
-              ) : (
-                <Globe className="h-6 w-6 text-primary" />
-              )}
+              <img
+                src={isDark ? (config?.logo_dark_url || '/logo-dark.png') : (config?.logo_url || '/logo-light.png')}
+                alt={config?.site_name ?? 'NIC.RW'}
+                className="h-7 w-auto"
+                onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+              />
               <span className="text-lg font-bold">{config?.site_name ?? 'NIC.BN'}</span>
             </div>
             {config?.site_subtitle && (

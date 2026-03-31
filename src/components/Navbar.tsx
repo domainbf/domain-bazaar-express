@@ -34,7 +34,9 @@ export const Navbar = ({ unreadCount = 0, unreadMessages: unreadMessagesProp = 0
   const { config: siteConfig } = useSiteSettings();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
-  const logoSrc = (isDark && siteConfig.logo_dark_url) ? siteConfig.logo_dark_url : (siteConfig.logo_url || '/lovable-uploads/nic.png');
+  const logoSrc = isDark
+    ? (siteConfig.logo_dark_url || '/logo-dark.png')
+    : (siteConfig.logo_url || '/logo-light.png');
   const actualUnreadCount = unreadCount;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
