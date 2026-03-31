@@ -25,6 +25,7 @@ import { AdminLegalPagesManager } from '@/components/admin/AdminLegalPagesManage
 import { AdminMessagesView } from '@/components/admin/AdminMessagesView';
 import { AdminTickets } from '@/components/admin/AdminTickets';
 import { AdminNotificationSender } from '@/components/admin/AdminNotificationSender';
+import { AdminFeedback } from '@/components/admin/AdminFeedback';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -37,7 +38,7 @@ import {
   DollarSign, FileText, Shield, AlertTriangle, Percent,
   Users, Star, Home, BookOpen, Search, Sliders, CreditCard,
   Settings, Activity, Menu, ChevronRight, LogOut, RefreshCw,
-  MessageSquare, Package, Scale, Bell, Mail, Headphones
+  MessageSquare, Package, Scale, Bell, Mail, Headphones, Inbox
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -65,6 +66,7 @@ export const AdminPanel = () => {
   const [pendingDisputes, setPendingDisputes] = useState(0);
   const [pendingOffers, setPendingOffers] = useState(0);
   const [pendingTickets, setPendingTickets] = useState(0);
+  const [newFeedback, setNewFeedback] = useState(0);
 
   // ProtectedRoute (adminOnly) already verified auth + admin status.
   // No need for a second is_admin RPC — just load badges immediately.
@@ -79,11 +81,15 @@ export const AdminPanel = () => {
 
   const loadBadges = async () => {
     try {
-      const stats = await apiGet('/data/admin/stats');
+      const [stats, fb] = await Promise.all([
+        apiGet('/data/admin/stats'),
+        apiGet('/data/admin/feedback/count').catch(() => ({ count: 0 })),
+      ]);
       setPendingVerifications(stats?.pendingVerifications ?? 0);
       setPendingDisputes(stats?.openDisputes ?? 0);
       setPendingOffers(stats?.pendingOffers ?? 0);
       setPendingTickets(stats?.openTickets ?? 0);
+      setNewFeedback(fb?.count ?? 0);
     } catch {}
   };
 
@@ -137,6 +143,7 @@ export const AdminPanel = () => {
         { id: 'tickets', label: '支持工单', icon: Headphones, badge: pendingTickets },
         { id: 'messages', label: '用户消息', icon: MessageSquare },
         { id: 'notifications', label: '系统通知', icon: Bell },
+        { id: 'feedback', label: '用户反馈', icon: Inbox, badge: newFeedback },
       ]
     },
     {
@@ -243,6 +250,7 @@ export const AdminPanel = () => {
       case 'tickets': return <AdminTickets />;
       case 'messages': return <AdminMessagesView />;
       case 'notifications': return <AdminNotificationSender />;
+      case 'feedback': return <AdminFeedback onBadgeRefresh={loadBadges} />;
       case 'payment': return <PaymentGatewaySettings />;
       case 'quick-settings': return <QuickSettingsPanel />;
       case 'settings': return <SiteSettings />;

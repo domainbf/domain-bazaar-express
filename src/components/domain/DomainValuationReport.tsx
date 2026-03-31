@@ -18,7 +18,6 @@ import {
   Info
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { apiGet, apiPost, apiPatch } from '@/lib/apiClient';
 
 interface DomainValuationReportProps {
   domainName: string;

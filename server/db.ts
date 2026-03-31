@@ -33,5 +33,20 @@ export async function initDb() {
       user_agent TEXT,
       created_at TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS user_feedback (
+      id TEXT PRIMARY KEY,
+      type TEXT NOT NULL DEFAULT 'other',
+      subject TEXT,
+      message TEXT NOT NULL,
+      url TEXT,
+      user_id TEXT,
+      user_email TEXT,
+      browser TEXT,
+      screenshots TEXT,
+      status TEXT NOT NULL DEFAULT 'new',
+      admin_note TEXT,
+      created_at TEXT NOT NULL
+    );
   `);
 }

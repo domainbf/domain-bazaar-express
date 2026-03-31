@@ -1077,12 +1077,47 @@ app.post('/crash-report', async (c) => {
   }
 });
 
+// ---- Feedback screenshot upload (no auth required) ----
+app.post('/feedback/upload', async (c) => {
+  try {
+    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    if (!token) return c.json({ error: '图片上传服务未配置' }, 503);
+
+    const contentType = c.req.header('content-type') || '';
+    if (!contentType.includes('multipart/form-data')) {
+      return c.json({ error: '请使用 multipart/form-data 上传' }, 400);
+    }
+    const form = await c.req.formData().catch(() => null);
+    if (!form) return c.json({ error: '解析表单失败' }, 400);
+
+    const file = form.get('file') as File | null;
+    if (!file) return c.json({ error: '未找到文件字段' }, 400);
+
+    const ALLOWED = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!ALLOWED.includes(file.type)) {
+      return c.json({ error: '仅支持 JPG/PNG/GIF/WebP 图片' }, 400);
+    }
+    const MAX = 5 * 1024 * 1024;
+    if (file.size > MAX) return c.json({ error: '截图不能超过 5MB' }, 400);
+
+    const { put } = await import('@vercel/blob');
+    const { v4: uuidv4 } = await import('uuid');
+    const ext = file.name.split('.').pop() || 'jpg';
+    const pathname = `feedback/${uuidv4()}.${ext}`;
+    const blob = await put(pathname, file, { access: 'public', token, addRandomSuffix: false });
+    return c.json({ url: blob.url });
+  } catch (e: any) {
+    return c.json({ error: e?.message || '上传失败' }, 500);
+  }
+});
+
 // ---- User feedback / bug report ----
 app.post('/feedback', async (c) => {
   try {
     const body = await c.req.json();
-    const { type, subject, message, url, userId, userEmail, browser, timestamp } = body;
+    const { type, subject, message, url, userId, userEmail, browser, timestamp, screenshots } = body;
     const brand = await getBrandConfig();
+    const { v4: uuidv4 } = await import('uuid');
 
     const typeLabels: Record<string, string> = {
       bug: '🐛 Bug 反馈',
@@ -1091,11 +1126,40 @@ app.post('/feedback', async (c) => {
       other: '💬 其他反馈',
     };
     const typeLabel = typeLabels[type] || '反馈';
+    const screenshotUrls: string[] = Array.isArray(screenshots) ? screenshots.filter(Boolean) : [];
+
+    // Persist to Turso DB
+    const feedbackId = uuidv4();
+    await db.execute({
+      sql: `INSERT INTO user_feedback (id, type, subject, message, url, user_id, user_email, browser, screenshots, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', ?)`,
+      args: [
+        feedbackId,
+        type || 'other',
+        subject || null,
+        message || '',
+        url || null,
+        userId || null,
+        userEmail || null,
+        browser || null,
+        screenshotUrls.length > 0 ? JSON.stringify(screenshotUrls) : null,
+        new Date(timestamp || Date.now()).toISOString(),
+      ],
+    });
+
+    const screenshotsHtml = screenshotUrls.length > 0
+      ? `<div class="section">
+          <div class="label">附件截图（${screenshotUrls.length} 张）</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+            ${screenshotUrls.map(u => `<a href="${u}" target="_blank"><img src="${u}" style="max-width:200px;max-height:160px;border-radius:6px;border:1px solid #e5e7eb;object-fit:cover" /></a>`).join('')}
+          </div>
+        </div>`
+      : '';
 
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
 <style>
   body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;margin:0;padding:24px}
-  .card{background:#fff;border-radius:8px;padding:24px;max-width:680px;margin:0 auto;border:1px solid #e5e7eb}
+  .card{background:#fff;border-radius:8px;padding:24px;max-width:700px;margin:0 auto;border:1px solid #e5e7eb}
   h1{font-size:20px;color:#111;margin:0 0 4px}
   .meta{font-size:13px;color:#6b7280;margin-bottom:20px}
   .section{margin-bottom:16px}
@@ -1111,47 +1175,103 @@ app.post('/feedback', async (c) => {
 <div class="card">
   <h1>用户反馈 — ${brand.siteName}</h1>
   <div class="meta">${new Date(timestamp || Date.now()).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}</div>
-
   <div class="section">
     <div class="label">反馈类型</div>
     <div class="value"><span class="badge badge-${type || 'other'}">${typeLabel}</span></div>
   </div>
-
   <div class="section">
     <div class="label">主题</div>
     <div class="value">${subject || '（无主题）'}</div>
   </div>
-
-  ${userEmail ? `<div class="section">
-    <div class="label">用户信息</div>
-    <div class="value">${userEmail}${userId ? ' (ID: ' + userId + ')' : ''}</div>
-  </div>` : ''}
-
+  ${userEmail ? `<div class="section"><div class="label">用户信息</div><div class="value">${userEmail}${userId ? ' (ID: ' + userId + ')' : ''}</div></div>` : ''}
   <div class="section">
     <div class="label">来源页面</div>
     <div class="value">${url || '未知'}</div>
   </div>
-
   <div class="section">
     <div class="label">详细描述</div>
     <div class="message-box">${(message || '（无描述）').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
   </div>
-
+  ${screenshotsHtml}
   <div class="section">
     <div class="label">浏览器 / 设备</div>
     <div class="value">${browser || '未知'}</div>
   </div>
+  <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:12px;color:#9ca3af">
+    反馈 ID: ${feedbackId}
+  </div>
 </div></body></html>`;
 
-    await sendEmail(
+    sendEmail(
       brand.supportEmail,
       `[用户反馈] ${typeLabel} — ${subject || '无主题'} — ${brand.siteName}`,
       html
-    );
-    return c.json({ ok: true });
+    ).catch(() => {});
+
+    return c.json({ ok: true, id: feedbackId });
   } catch (e) {
     return c.json({ ok: false, error: 'Failed to send feedback' }, 500);
   }
+});
+
+// ---- Admin: list feedback ----
+app.get('/admin/feedback', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+
+  const status = c.req.query('status') || '';
+  const type = c.req.query('type') || '';
+  const limit = Math.min(Number(c.req.query('limit') || 50), 100);
+  const offset = Number(c.req.query('offset') || 0);
+
+  let sql = 'SELECT * FROM user_feedback';
+  const args: unknown[] = [];
+  const conditions: string[] = [];
+  if (status) { conditions.push('status = ?'); args.push(status); }
+  if (type) { conditions.push('type = ?'); args.push(type); }
+  if (conditions.length) sql += ' WHERE ' + conditions.join(' AND ');
+  sql += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+  args.push(limit, offset);
+
+  const [rows, countRow] = await Promise.all([
+    db.execute({ sql, args }),
+    db.execute({
+      sql: `SELECT COUNT(*) as cnt FROM user_feedback${conditions.length ? ' WHERE ' + conditions.join(' AND ') : ''}`,
+      args: args.slice(0, -2),
+    }),
+  ]);
+
+  const items = rows.rows.map(r => ({
+    ...r,
+    screenshots: r.screenshots ? JSON.parse(r.screenshots as string) : [],
+  }));
+
+  return c.json({ items, total: Number(countRow.rows[0]?.cnt ?? 0) });
+});
+
+// ---- Admin: update feedback status / note ----
+app.patch('/admin/feedback/:id', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+
+  const id = c.req.param('id');
+  const body = await c.req.json();
+  const updates: string[] = [];
+  const args: unknown[] = [];
+  if ('status' in body) { updates.push('status = ?'); args.push(body.status); }
+  if ('admin_note' in body) { updates.push('admin_note = ?'); args.push(body.admin_note); }
+  if (!updates.length) return c.json({ error: '无更新字段' }, 400);
+  args.push(id);
+  await db.execute({ sql: `UPDATE user_feedback SET ${updates.join(', ')} WHERE id = ?`, args });
+  return c.json({ ok: true });
+});
+
+// ---- Admin: unread feedback count ----
+app.get('/admin/feedback/count', requireAuth, async (c) => {
+  const { is_admin } = getAuth(c);
+  if (!is_admin) return c.json({ error: '无权限' }, 403);
+  const row = await db.execute("SELECT COUNT(*) as cnt FROM user_feedback WHERE status = 'new'");
+  return c.json({ count: Number(row.rows[0]?.cnt ?? 0) });
 });
 
 export default app;

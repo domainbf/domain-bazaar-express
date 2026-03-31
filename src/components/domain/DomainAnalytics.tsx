@@ -70,7 +70,7 @@ export const DomainAnalytics = ({
         <CardContent>
           <div className="h-[180px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trends} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+              <LineChart data={trends} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis
                   dataKey="date"

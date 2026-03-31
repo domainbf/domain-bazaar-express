@@ -1,5 +1,4 @@
 import { supabase } from '@/integrations/supabase/client';
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,6 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { apiGet, apiPost, apiPatch } from '@/lib/apiClient';
 
 interface EnhancedEvaluation {
   domain: string;
