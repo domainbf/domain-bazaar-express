@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Settings, Globe, Mail, Shield, Plus, Trash2, Save, Database, Palette, Key, Eye, EyeOff, Send, CheckCircle, XCircle, Loader2, AlertCircle, Phone, Puzzle, TestTube2, Zap, Info, Power, UserX, Wrench, Sparkles } from 'lucide-react';
+import { Settings, Globe, Mail, Shield, Plus, Trash2, Save, Database, Palette, Key, Eye, EyeOff, Send, CheckCircle, XCircle, Loader2, AlertCircle, Phone, Puzzle, TestTube2, Zap, Info, Power, UserX, Wrench, Sparkles, Smartphone } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -115,6 +115,7 @@ export const SiteSettings = () => {
   // Site control state
   const [siteClosed, setSiteClosed] = useState(false);
   const [registrationClosed, setRegistrationClosed] = useState(false);
+  const [pwaInstallBanner, setPwaInstallBanner] = useState(true);
   const [maintenanceTitle, setMaintenanceTitle] = useState('系统维护中');
   const [maintenanceMessage, setMaintenanceMessage] = useState('我们正在对平台进行升级维护，即将回来，感谢您的耐心等待。');
   const [isSavingControl, setIsSavingControl] = useState(false);
@@ -243,6 +244,7 @@ export const SiteSettings = () => {
       });
       setSiteClosed(data['site_closed'] === 'true');
       setRegistrationClosed(data['registration_closed'] === 'true');
+      setPwaInstallBanner(data['pwa_install_banner'] !== 'false');
       setMaintenanceTitle(data['maintenance_title'] || '系统维护中');
       setMaintenanceMessage(data['maintenance_message'] || '我们正在对平台进行升级维护，即将回来，感谢您的耐心等待。');
     } catch (e) { console.error('loadAllConfigs error', e); }
@@ -254,6 +256,7 @@ export const SiteSettings = () => {
       await apiPatch('/data/site-settings', {
         site_closed: String(siteClosed),
         registration_closed: String(registrationClosed),
+        pwa_install_banner: String(pwaInstallBanner),
         maintenance_title: maintenanceTitle,
         maintenance_message: maintenanceMessage,
       });
@@ -1795,6 +1798,25 @@ export const SiteSettings = () => {
                 <Switch
                   checked={registrationClosed}
                   onCheckedChange={setRegistrationClosed}
+                  className="mt-0.5 shrink-0"
+                />
+              </div>
+
+              {/* App 安装引导横幅 */}
+              <div className={`flex items-start justify-between gap-4 p-4 rounded-xl border transition-colors ${pwaInstallBanner ? 'border-blue-400/50 bg-blue-500/5' : 'border-border bg-muted/20'}`}>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Smartphone className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <p className="text-sm font-semibold text-foreground">App 安装引导横幅</p>
+                    {pwaInstallBanner && <Badge variant="outline" className="text-xs border-blue-400 text-blue-600">已开启</Badge>}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    向移动端访客展示"添加到主屏幕"引导弹窗，5 秒后自动关闭。关闭此开关后新访客将不再看到提示。
+                  </p>
+                </div>
+                <Switch
+                  checked={pwaInstallBanner}
+                  onCheckedChange={setPwaInstallBanner}
                   className="mt-0.5 shrink-0"
                 />
               </div>

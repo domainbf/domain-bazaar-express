@@ -56,6 +56,7 @@ export interface SiteConfig {
   // Site control flags
   site_closed: string;
   registration_closed: string;
+  pwa_install_banner: string;
   maintenance_title: string;
   maintenance_message: string;
 }
@@ -113,6 +114,7 @@ export const defaultConfig: SiteConfig = {
   commission_rate: '5',
   site_closed: 'false',
   registration_closed: 'false',
+  pwa_install_banner: 'true',
   maintenance_title: '系统维护中',
   maintenance_message: '我们正在对平台进行升级维护，即将回来，感谢您的耐心等待。',
 };
