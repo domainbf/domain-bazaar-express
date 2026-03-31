@@ -97,6 +97,16 @@
 - API 函数 `maxDuration: 60s`，`memory: 1024MB`
 - API 路由添加了 `no-store` 缓存头避免 CDN 缓存
 
+## 数据库初始化 (server/db.ts)
+`initDb()` 通过 `CREATE TABLE IF NOT EXISTS` 确保以下表存在：
+`app_auth_users`, `app_sessions`, `user_feedback`, `site_settings`, `domain_listings`, `domain_analytics`, `domain_offers`, `transactions`, `payment_transactions`, `disputes`, `user_profiles`
+
+## 管理后台修复记录
+- **admin stats**: 视图数从 `domain_listings.views` 改为 `domain_analytics.views`；各查询用 `safe()` 包裹防单表故障崩溃
+- **site_settings PATCH**: 改为 SELECT-then-UPDATE/INSERT 模式（原 ON CONFLICT 在无 UNIQUE 约束时报错）
+- **SiteSettings.tsx**: 删除 Supabase 调用 (loadSmtpConfig/loadContactConfig/loadBrandConfig/loadWhoisConfig/loadModelScopeConfig)，统一改为 `apiGet('/data/site-settings')`
+- **移动端 tabs**: 从 `flex-wrap` 改为横向滚动 `overflow-x-auto`
+
 ## 已知限制
 - 支持工单系统使用 Supabase (设计如此)
 - 管理面板部分查询使用 Supabase (AllDomainListings 等)

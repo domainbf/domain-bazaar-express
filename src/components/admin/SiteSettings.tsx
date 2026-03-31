@@ -1,4 +1,3 @@
-import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
 import { apiGet, apiPost, apiPatch, apiDelete, apiFetch } from '@/lib/apiClient';
 import { toast } from "sonner";
@@ -185,22 +184,61 @@ export const SiteSettings = () => {
 
   useEffect(() => {
     loadSettings();
-    loadSmtpConfig();
-    loadContactConfig();
-    loadBrandConfig();
-    loadWhoisConfig();
-    loadModelScopeConfig();
+    loadAllConfigs();
   }, []);
+
+  const loadAllConfigs = async () => {
+    try {
+      const data = await apiGet<Record<string, string>>('/data/site-settings');
+      if (!data || typeof data !== 'object') return;
+      setWhoisApiKey(data['whois_api_key'] || '');
+      setMsApiKey(data['modelscope_api_key'] || '');
+      setMsModel(data['modelscope_model'] || 'iic/Z-Image-Turbo');
+      setMsAutoGenerate(data['modelscope_auto_generate'] === 'true');
+      const loadedHost = data['smtp_host'] || '';
+      setSmtp({
+        host: loadedHost,
+        port: data['smtp_port'] || '465',
+        username: data['smtp_username'] || '',
+        password: data['smtp_password'] || '',
+        from_email: data['smtp_from_email'] || '',
+        from_name: data['smtp_from_name'] || '域见•你',
+      });
+      if (loadedHost && data['smtp_username']) {
+        setSmtpSaved(true);
+        const matched = SMTP_PRESETS.find(p => p.host === loadedHost);
+        if (matched) setSelectedPreset(matched.label);
+      }
+      setContactInfo({
+        site_domain: data['site_domain'] || '',
+        contact_email: data['contact_email'] || '',
+        contact_phone: data['contact_phone'] || '',
+        contact_address: data['contact_address'] || '',
+        emergency_phone: data['emergency_phone'] || '',
+        hours_online: data['hours_online'] || '9:00 - 18:00',
+        hours_phone: data['hours_phone'] || '9:00 - 18:00',
+        hours_weekday: data['hours_weekday'] || '周一至周五（节假日除外）',
+      });
+      setBrandInfo({
+        site_name: data['site_name'] || '',
+        site_subtitle: data['site_subtitle'] || '',
+        logo_url: data['logo_url'] || '',
+        logo_dark_url: data['logo_dark_url'] || '',
+        footer_text: data['footer_text'] || '',
+        icp_number: data['icp_number'] || '',
+        social_github: data['social_github'] || '',
+        social_twitter: data['social_twitter'] || '',
+        social_wechat: data['social_wechat'] || '',
+        social_weibo: data['social_weibo'] || '',
+      });
+    } catch (e) { console.error('loadAllConfigs error', e); }
+  };
 
   const loadWhoisConfig = async () => {
     try {
-      const { data } = await supabase
-        .from('site_settings')
-        .select('key, value')
-        .in('key', ['whois_api_key']);
-      if (data && data.length > 0) {
-        const map = Object.fromEntries(data.map((r: any) => [r.key, r.value]));
-        setWhoisApiKey(map['whois_api_key'] || '');
+      const data = await apiGet<Record<string, string>>('/data/site-settings');
+      if (data && typeof data === 'object') {
+        setWhoisApiKey(data['whois_api_key'] || '');
       }
     } catch (e) { console.error('loadWhoisConfig error', e); }
   };
@@ -239,20 +277,6 @@ export const SiteSettings = () => {
     }
   };
 
-  const loadModelScopeConfig = async () => {
-    try {
-      const { data } = await supabase
-        .from('site_settings')
-        .select('key, value')
-        .in('key', ['modelscope_api_key', 'modelscope_model', 'modelscope_auto_generate']);
-      if (data?.length) {
-        const m = Object.fromEntries(data.map((r: any) => [r.key, r.value]));
-        setMsApiKey(m['modelscope_api_key'] || '');
-        setMsModel(m['modelscope_model'] || 'iic/Z-Image-Turbo');
-        setMsAutoGenerate(m['modelscope_auto_generate'] === 'true');
-      }
-    } catch (e) { console.error('loadModelScopeConfig error', e); }
-  };
 
   const saveModelScopeConfig = async () => {
     setIsSavingMs(true);
@@ -285,53 +309,6 @@ export const SiteSettings = () => {
     }
   };
 
-  const loadSmtpConfig = async () => {
-    try {
-      const { data } = await supabase
-        .from('site_settings')
-        .select('key, value')
-        .in('key', ['smtp_host', 'smtp_port', 'smtp_username', 'smtp_password', 'smtp_from_email', 'smtp_from_name']);
-      if (data && data.length > 0) {
-        const map = Object.fromEntries(data.map((r: any) => [r.key, r.value]));
-        const loadedHost = map['smtp_host'] || '';
-        setSmtp({
-          host: loadedHost,
-          port: map['smtp_port'] || '465',
-          username: map['smtp_username'] || '',
-          password: map['smtp_password'] || '',
-          from_email: map['smtp_from_email'] || '',
-          from_name: map['smtp_from_name'] || '域见•你',
-        });
-        if (loadedHost && map['smtp_username']) {
-          setSmtpSaved(true);
-          const matched = SMTP_PRESETS.find(p => p.host === loadedHost);
-          if (matched) setSelectedPreset(matched.label);
-        }
-      }
-    } catch (e) { console.error('loadSmtpConfig error', e); }
-  };
-
-  const loadContactConfig = async () => {
-    try {
-      const { data } = await supabase
-        .from('site_settings')
-        .select('key, value')
-        .in('key', ['site_domain', 'contact_email', 'contact_phone', 'contact_address', 'emergency_phone', 'hours_online', 'hours_phone', 'hours_weekday']);
-      if (data && data.length > 0) {
-        const map = Object.fromEntries(data.map((r: any) => [r.key, r.value]));
-        setContactInfo({
-          site_domain: map['site_domain'] || '',
-          contact_email: map['contact_email'] || '',
-          contact_phone: map['contact_phone'] || '',
-          contact_address: map['contact_address'] || '',
-          emergency_phone: map['emergency_phone'] || '',
-          hours_online: map['hours_online'] || '9:00 - 18:00',
-          hours_phone: map['hours_phone'] || '9:00 - 18:00',
-          hours_weekday: map['hours_weekday'] || '周一至周五（节假日除外）',
-        });
-      }
-    } catch (e) { console.error('loadContactConfig error', e); }
-  };
 
   const saveContactConfig = async () => {
     setIsSavingContact(true);
@@ -357,30 +334,6 @@ export const SiteSettings = () => {
     }
   };
 
-  const loadBrandConfig = async () => {
-    try {
-      const { data } = await supabase
-        .from('site_settings')
-        .select('key, value')
-        .in('key', ['site_name', 'site_subtitle', 'logo_url', 'logo_dark_url', 'footer_text', 'icp_number',
-                    'social_github', 'social_twitter', 'social_wechat', 'social_weibo']);
-      if (data && data.length > 0) {
-        const m = Object.fromEntries(data.map((r: any) => [r.key, r.value]));
-        setBrandInfo({
-          site_name: m['site_name'] || '',
-          site_subtitle: m['site_subtitle'] || '',
-          logo_url: m['logo_url'] || '',
-          logo_dark_url: m['logo_dark_url'] || '',
-          footer_text: m['footer_text'] || '',
-          icp_number: m['icp_number'] || '',
-          social_github: m['social_github'] || '',
-          social_twitter: m['social_twitter'] || '',
-          social_wechat: m['social_wechat'] || '',
-          social_weibo: m['social_weibo'] || '',
-        });
-      }
-    } catch (e) { console.error('loadBrandConfig error', e); }
-  };
 
   const saveBrandConfig = async () => {
     setIsSavingBrand(true);
@@ -484,6 +437,10 @@ export const SiteSettings = () => {
   };
 
   const saveSettings = async () => {
+    if (settings.length === 0) {
+      toast.info('暂无设置可保存');
+      return;
+    }
     setIsSaving(true);
     try {
       const updates: Record<string, string> = {};
@@ -642,40 +599,42 @@ export const SiteSettings = () => {
       </div>
 
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="mb-6 flex-wrap">
-          <TabsTrigger value="general">
-            <Settings className="h-4 w-4 mr-2" />
-            常规设置
-          </TabsTrigger>
-          <TabsTrigger value="contact">
-            <Phone className="h-4 w-4 mr-2" />
-            联系方式
-          </TabsTrigger>
-          <TabsTrigger value="email">
-            <Mail className="h-4 w-4 mr-2" />
-            邮件设置
-          </TabsTrigger>
-          <TabsTrigger value="seo">
-            <Globe className="h-4 w-4 mr-2" />
-            SEO设置
-          </TabsTrigger>
-          <TabsTrigger value="security">
-            <Shield className="h-4 w-4 mr-2" />
-            安全设置
-          </TabsTrigger>
-          <TabsTrigger value="appearance">
-            <Palette className="h-4 w-4 mr-2" />
-            外观设置
-          </TabsTrigger>
-          <TabsTrigger value="brand">
-            <Palette className="h-4 w-4 mr-2" />
-            品牌与外观
-          </TabsTrigger>
-          <TabsTrigger value="api">
-            <Puzzle className="h-4 w-4 mr-2" />
-            API 集成
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-1 px-1 mb-6">
+          <TabsList className="inline-flex min-w-max gap-0 h-auto flex-wrap sm:flex-nowrap">
+            <TabsTrigger value="general" className="text-xs sm:text-sm py-2 px-2 sm:px-3">
+              <Settings className="h-3.5 w-3.5 mr-1 sm:mr-2 shrink-0" />
+              常规设置
+            </TabsTrigger>
+            <TabsTrigger value="contact" className="text-xs sm:text-sm py-2 px-2 sm:px-3">
+              <Phone className="h-3.5 w-3.5 mr-1 sm:mr-2 shrink-0" />
+              联系方式
+            </TabsTrigger>
+            <TabsTrigger value="email" className="text-xs sm:text-sm py-2 px-2 sm:px-3">
+              <Mail className="h-3.5 w-3.5 mr-1 sm:mr-2 shrink-0" />
+              邮件设置
+            </TabsTrigger>
+            <TabsTrigger value="seo" className="text-xs sm:text-sm py-2 px-2 sm:px-3">
+              <Globe className="h-3.5 w-3.5 mr-1 sm:mr-2 shrink-0" />
+              SEO设置
+            </TabsTrigger>
+            <TabsTrigger value="security" className="text-xs sm:text-sm py-2 px-2 sm:px-3">
+              <Shield className="h-3.5 w-3.5 mr-1 sm:mr-2 shrink-0" />
+              安全设置
+            </TabsTrigger>
+            <TabsTrigger value="appearance" className="text-xs sm:text-sm py-2 px-2 sm:px-3">
+              <Palette className="h-3.5 w-3.5 mr-1 sm:mr-2 shrink-0" />
+              外观
+            </TabsTrigger>
+            <TabsTrigger value="brand" className="text-xs sm:text-sm py-2 px-2 sm:px-3">
+              <Palette className="h-3.5 w-3.5 mr-1 sm:mr-2 shrink-0" />
+              品牌
+            </TabsTrigger>
+            <TabsTrigger value="api" className="text-xs sm:text-sm py-2 px-2 sm:px-3">
+              <Puzzle className="h-3.5 w-3.5 mr-1 sm:mr-2 shrink-0" />
+              API集成
+            </TabsTrigger>
+          </TabsList>
+        </div>
         
         <TabsContent value="general" className="space-y-6">
           <Card>

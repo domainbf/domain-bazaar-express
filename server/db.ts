@@ -48,5 +48,104 @@ export async function initDb() {
       admin_note TEXT,
       created_at TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS site_settings (
+      id TEXT PRIMARY KEY,
+      key TEXT UNIQUE NOT NULL,
+      value TEXT NOT NULL DEFAULT '',
+      description TEXT,
+      section TEXT NOT NULL DEFAULT 'general',
+      type TEXT NOT NULL DEFAULT 'text',
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS domain_listings (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      price REAL,
+      currency TEXT DEFAULT 'CNY',
+      category TEXT,
+      status TEXT DEFAULT 'available',
+      owner_id TEXT,
+      description TEXT,
+      views INTEGER DEFAULT 0,
+      logo_url TEXT,
+      is_verified INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS domain_analytics (
+      id TEXT PRIMARY KEY,
+      domain_id TEXT UNIQUE NOT NULL,
+      views INTEGER DEFAULT 0,
+      favorites INTEGER DEFAULT 0,
+      offers INTEGER DEFAULT 0,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS domain_offers (
+      id TEXT PRIMARY KEY,
+      domain_id TEXT NOT NULL,
+      buyer_id TEXT NOT NULL,
+      seller_id TEXT NOT NULL,
+      amount REAL NOT NULL,
+      status TEXT DEFAULT 'pending',
+      message TEXT,
+      contact_email TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS transactions (
+      id TEXT PRIMARY KEY,
+      domain_id TEXT NOT NULL,
+      buyer_id TEXT NOT NULL,
+      seller_id TEXT NOT NULL,
+      amount REAL NOT NULL,
+      status TEXT DEFAULT 'pending',
+      offer_id TEXT,
+      payment_method TEXT,
+      notes TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS payment_transactions (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      amount REAL NOT NULL,
+      currency TEXT DEFAULT 'CNY',
+      status TEXT DEFAULT 'pending',
+      type TEXT,
+      description TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS disputes (
+      id TEXT PRIMARY KEY,
+      offer_id TEXT,
+      transaction_id TEXT,
+      reporter_id TEXT NOT NULL,
+      reason TEXT NOT NULL,
+      status TEXT DEFAULT 'open',
+      resolution TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS user_profiles (
+      id TEXT PRIMARY KEY,
+      user_id TEXT UNIQUE NOT NULL,
+      display_name TEXT,
+      avatar_url TEXT,
+      bio TEXT,
+      phone TEXT,
+      wechat TEXT,
+      alipay TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
   `);
 }

@@ -427,11 +427,11 @@ app.patch('/site-settings', requireAuth, async (c) => {
   let updatedCount = 0;
   for (const [k, v] of entries) {
     const val = typeof v === 'object' ? JSON.stringify(v) : String(v ?? '');
-    const existing = await db.execute({ sql: 'SELECT key FROM site_settings WHERE key = ?', args: [k] });
-    if (existing.rows[0]) {
+    const existing = await db.execute({ sql: 'SELECT id FROM site_settings WHERE key = ?', args: [k] });
+    if (existing.rows.length > 0) {
       await db.execute({ sql: 'UPDATE site_settings SET value = ?, updated_at = ? WHERE key = ?', args: [val, now(), k] });
     } else {
-      await db.execute({ sql: 'INSERT INTO site_settings (key, value, updated_at) VALUES (?,?,?)', args: [k, val, now()] });
+      await db.execute({ sql: 'INSERT INTO site_settings (id, key, value, section, type, updated_at) VALUES (lower(hex(randomblob(16))),?,?,?,?,?)', args: [k, val, 'general', 'text', now()] });
     }
     updatedCount++;
   }
@@ -832,18 +832,24 @@ app.get('/admin/stats', requireAuth, async (c) => {
   today.setHours(0, 0, 0, 0);
   const todayIso = today.toISOString();
 
-  const [domainsRes, usersRes, offersRes, txRes, viewsRes, newUsersRes, newDomainsRes, recentOffersRes] = await Promise.all([
-    db.execute("SELECT COUNT(*) as total, SUM(CASE WHEN status='available' THEN 1 ELSE 0 END) as active, SUM(CASE WHEN is_verified=1 OR is_verified='true' THEN 1 ELSE 0 END) as verified FROM domain_listings"),
-    db.execute('SELECT COUNT(*) as total FROM app_auth_users'),
-    db.execute("SELECT COUNT(*) as total, SUM(CASE WHEN status='pending' THEN 1 ELSE 0 END) as pending FROM domain_offers"),
-    db.execute("SELECT COUNT(*) as total, COALESCE(SUM(CASE WHEN status='completed' THEN amount ELSE 0 END),0) as revenue, SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END) as completed FROM transactions"),
-    db.execute('SELECT COALESCE(SUM(views),0) as total FROM domain_listings'),
-    db.execute({ sql: 'SELECT COUNT(*) as total FROM app_auth_users WHERE created_at >= ?', args: [todayIso] }),
-    db.execute({ sql: "SELECT COUNT(*) as total FROM domain_listings WHERE created_at >= ?", args: [todayIso] }),
-    db.execute("SELECT do.id, do.amount, do.status, do.created_at, dl.name as domain_name FROM domain_offers do LEFT JOIN domain_listings dl ON dl.id = do.domain_id ORDER BY do.created_at DESC LIMIT 5"),
-  ]);
+  const safe = async <T>(fn: () => Promise<T>, fallback: T): Promise<T> => {
+    try { return await fn(); } catch { return fallback; }
+  };
+  const emptyRows = { rows: [{}] };
 
-  const recentOffers = recentOffersRes.rows.map(rowToObj);
+  const [domainsRes, usersRes, offersRes, txRes, viewsRes, newUsersRes, newDomainsRes, recentOffers] = await Promise.all([
+    safe(() => db.execute("SELECT COUNT(*) as total, SUM(CASE WHEN status='available' THEN 1 ELSE 0 END) as active, SUM(CASE WHEN is_verified=1 OR is_verified='true' THEN 1 ELSE 0 END) as verified FROM domain_listings"), emptyRows),
+    safe(() => db.execute('SELECT COUNT(*) as total FROM app_auth_users'), emptyRows),
+    safe(() => db.execute("SELECT COUNT(*) as total, SUM(CASE WHEN status='pending' THEN 1 ELSE 0 END) as pending FROM domain_offers"), emptyRows),
+    safe(() => db.execute("SELECT COUNT(*) as total, COALESCE(SUM(CASE WHEN status='completed' THEN amount ELSE 0 END),0) as revenue, SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END) as completed FROM transactions"), emptyRows),
+    safe(() => db.execute('SELECT COALESCE((SELECT SUM(views) FROM domain_analytics),0) as total'), emptyRows),
+    safe(() => db.execute({ sql: 'SELECT COUNT(*) as total FROM app_auth_users WHERE created_at >= ?', args: [todayIso] }), emptyRows),
+    safe(() => db.execute({ sql: "SELECT COUNT(*) as total FROM domain_listings WHERE created_at >= ?", args: [todayIso] }), emptyRows),
+    safe(async () => {
+      const r = await db.execute("SELECT do.id, do.amount, do.status, do.created_at, dl.name as domain_name FROM domain_offers do LEFT JOIN domain_listings dl ON dl.id = do.domain_id ORDER BY do.created_at DESC LIMIT 5");
+      return r.rows.map(rowToObj);
+    }, [] as Record<string, unknown>[]),
+  ]);
 
   return c.json({
     totalUsers: Number(usersRes.rows[0]?.total) || 0,
@@ -936,25 +942,27 @@ app.post('/admin/send-test-email', requireAuth, async (c) => {
 app.get('/admin/site-settings', requireAuth, async (c) => {
   const { is_admin } = getAuth(c);
   if (!is_admin) return c.json({ error: '无权限' }, 403);
-  const r = await db.execute({ sql: 'SELECT key, value, updated_at FROM site_settings ORDER BY key ASC', args: [] });
+  const r = await db.execute({ sql: 'SELECT id, key, value, description, section, type, updated_at FROM site_settings ORDER BY section ASC, key ASC', args: [] });
   return c.json(r.rows.map(rowToObj));
 });
 
 app.post('/admin/site-settings', requireAuth, async (c) => {
   const { is_admin } = getAuth(c);
   if (!is_admin) return c.json({ error: '无权限' }, 403);
-  const { key, value } = await c.req.json();
+  const body = await c.req.json();
+  const { key, value, section: sec = 'general', type: typ = 'text', description: desc = '' } = body;
   if (!key) return c.json({ error: '缺少 key' }, 400);
   const val = typeof value === 'object' ? JSON.stringify(value) : String(value ?? '');
   const t = now();
-  const existing = await db.execute({ sql: 'SELECT key FROM site_settings WHERE key = ?', args: [key] });
-  if (existing.rows[0]) {
-    await db.execute({ sql: 'UPDATE site_settings SET value = ?, updated_at = ? WHERE key = ?', args: [val, t, key] });
+  const existingRow = await db.execute({ sql: 'SELECT id FROM site_settings WHERE key = ?', args: [key] });
+  if (existingRow.rows.length > 0) {
+    await db.execute({ sql: 'UPDATE site_settings SET value = ?, description = ?, section = ?, type = ?, updated_at = ? WHERE key = ?', args: [val, desc, sec, typ, t, key] });
   } else {
-    await db.execute({ sql: 'INSERT INTO site_settings (key, value, updated_at) VALUES (?,?,?)', args: [key, val, t] });
+    await db.execute({ sql: 'INSERT INTO site_settings (id, key, value, description, section, type, updated_at) VALUES (lower(hex(randomblob(16))),?,?,?,?,?,?)', args: [key, val, desc, sec, typ, t] });
   }
   await cacheDel('site_settings');
-  return c.json({ key, value: val });
+  const r2 = await db.execute({ sql: 'SELECT id, key, value, description, section, type, updated_at FROM site_settings WHERE key = ?', args: [key] });
+  return c.json(r2.rows[0] ? rowToObj(r2.rows[0] as Record<string, unknown>) : { key, value: val });
 });
 
 app.delete('/admin/site-settings/:key', requireAuth, async (c) => {
