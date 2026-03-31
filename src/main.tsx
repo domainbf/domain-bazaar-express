@@ -52,7 +52,7 @@ window.addEventListener('error', handleGlobalError);
 window.addEventListener('unhandledrejection', handleUnhandledRejection);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+  <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey="nic-theme">
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
