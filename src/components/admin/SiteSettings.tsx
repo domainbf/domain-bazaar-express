@@ -309,7 +309,7 @@ export const SiteSettings = () => {
     setIsTestingWhois(true);
     setWhoisTestResult(null);
     try {
-      const data = await apiPost('/data/admin/whois-test', { domain: whoisTestDomain.trim() });
+      const data = await apiPost<any>('/data/admin/whois-test', { domain: whoisTestDomain.trim() });
       if (!data?.success) {
         setWhoisTestResult({ ok: false, msg: data?.error || '查询失败' });
       } else {
