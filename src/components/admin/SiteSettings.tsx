@@ -537,7 +537,7 @@ export const SiteSettings = () => {
   const loadSettings = async () => {
     setIsLoading(true);
     try {
-      const data = await apiGet('/data/admin/site-settings');
+      const data = await apiGet<any>('/data/admin/site-settings');
       setSettings(Array.isArray(data) ? data : []);
     } catch (error: any) {
       console.error('加载网站设置时出错:', error);
