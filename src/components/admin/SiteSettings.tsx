@@ -520,7 +520,7 @@ export const SiteSettings = () => {
     setIsSendingTest(true);
     setEmailTestResult(null);
     try {
-      const data = await apiPost('/data/admin/send-test-email', { to: testEmailAddr, smtp });
+      const data = await apiPost<any>('/data/admin/send-test-email', { to: testEmailAddr, smtp });
       if (data?.success === false) throw new Error(data?.error ? `[${data.provider || '未知'}] ${data.error}` : '发送失败');
       const providerStr = data?.provider ? `（通过 ${data.provider}）` : '';
       setEmailTestResult({ ok: true, msg: `测试邮件已发送至 ${testEmailAddr}${providerStr}，请检查收件箱` });
