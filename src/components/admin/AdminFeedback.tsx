@@ -266,7 +266,7 @@ export function AdminFeedback({ onBadgeRefresh }: { onBadgeRefresh?: () => void 
       const params = new URLSearchParams({ limit: String(LIMIT), offset: String(off) });
       if (filterStatus) params.set('status', filterStatus);
       if (filterType) params.set('type', filterType);
-      const data = await apiGet(`/data/admin/feedback?${params}`);
+      const data = await apiGet<any>(`/data/admin/feedback?${params}`);
       if (reset) {
         setItems(data.items || []);
         setOffset(0);
