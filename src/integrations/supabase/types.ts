@@ -42,6 +42,7 @@ export type Database = {
         Row: {
           amount: number
           auction_id: string | null
+          auto_bid_max: number | null
           bidder_id: string | null
           created_at: string | null
           id: string
@@ -50,6 +51,7 @@ export type Database = {
         Insert: {
           amount: number
           auction_id?: string | null
+          auto_bid_max?: number | null
           bidder_id?: string | null
           created_at?: string | null
           id?: string
@@ -58,6 +60,7 @@ export type Database = {
         Update: {
           amount?: number
           auction_id?: string | null
+          auto_bid_max?: number | null
           bidder_id?: string | null
           created_at?: string | null
           id?: string
@@ -69,6 +72,72 @@ export type Database = {
             columns: ["auction_id"]
             isOneToOne: false
             referencedRelation: "domain_auctions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      disputes: {
+        Row: {
+          admin_notes: string | null
+          created_at: string | null
+          description: string | null
+          domain_id: string | null
+          evidence_urls: string[] | null
+          id: string
+          initiator_id: string | null
+          reason: string
+          resolved_at: string | null
+          resolved_by: string | null
+          respondent_id: string | null
+          status: string | null
+          transaction_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string | null
+          description?: string | null
+          domain_id?: string | null
+          evidence_urls?: string[] | null
+          id?: string
+          initiator_id?: string | null
+          reason: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          respondent_id?: string | null
+          status?: string | null
+          transaction_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string | null
+          description?: string | null
+          domain_id?: string | null
+          evidence_urls?: string[] | null
+          id?: string
+          initiator_id?: string | null
+          reason?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          respondent_id?: string | null
+          status?: string | null
+          transaction_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disputes_domain_id_fkey"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "domain_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
             referencedColumns: ["id"]
           },
         ]
@@ -401,6 +470,7 @@ export type Database = {
           message: string | null
           seller_id: string | null
           status: string | null
+          transaction_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -413,6 +483,7 @@ export type Database = {
           message?: string | null
           seller_id?: string | null
           status?: string | null
+          transaction_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -425,6 +496,7 @@ export type Database = {
           message?: string | null
           seller_id?: string | null
           status?: string | null
+          transaction_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -433,6 +505,13 @@ export type Database = {
             columns: ["domain_id"]
             isOneToOne: false
             referencedRelation: "domain_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "domain_offers_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
             referencedColumns: ["id"]
           },
         ]
@@ -760,92 +839,66 @@ export type Database = {
         }
         Relationships: []
       }
-      disputes: {
-        Row: {
-          id: string
-          transaction_id: string | null
-          domain_id: string | null
-          initiator_id: string | null
-          respondent_id: string | null
-          reason: string
-          description: string | null
-          evidence_urls: string[] | null
-          status: string | null
-          admin_notes: string | null
-          resolved_by: string | null
-          resolved_at: string | null
-          created_at: string
-          updated_at: string | null
-        }
-        Insert: {
-          id?: string
-          transaction_id?: string | null
-          domain_id?: string | null
-          initiator_id?: string | null
-          respondent_id?: string | null
-          reason: string
-          description?: string | null
-          evidence_urls?: string[] | null
-          status?: string | null
-          admin_notes?: string | null
-          resolved_by?: string | null
-          resolved_at?: string | null
-          created_at?: string
-          updated_at?: string | null
-        }
-        Update: {
-          id?: string
-          transaction_id?: string | null
-          domain_id?: string | null
-          initiator_id?: string | null
-          respondent_id?: string | null
-          reason?: string
-          description?: string | null
-          evidence_urls?: string[] | null
-          status?: string | null
-          admin_notes?: string | null
-          resolved_by?: string | null
-          resolved_at?: string | null
-          created_at?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       escrow_services: {
         Row: {
+          amount: number | null
+          buyer_approved_at: string | null
+          buyer_id: string | null
           created_at: string | null
+          domain_id: string | null
+          domain_transferred_at: string | null
           escrow_fee: number | null
           escrow_provider: string | null
           funded_at: string | null
           id: string
           released_at: string | null
+          seller_id: string | null
           status: string | null
           transaction_id: string | null
           updated_at: string | null
         }
         Insert: {
+          amount?: number | null
+          buyer_approved_at?: string | null
+          buyer_id?: string | null
           created_at?: string | null
+          domain_id?: string | null
+          domain_transferred_at?: string | null
           escrow_fee?: number | null
           escrow_provider?: string | null
           funded_at?: string | null
           id?: string
           released_at?: string | null
+          seller_id?: string | null
           status?: string | null
           transaction_id?: string | null
           updated_at?: string | null
         }
         Update: {
+          amount?: number | null
+          buyer_approved_at?: string | null
+          buyer_id?: string | null
           created_at?: string | null
+          domain_id?: string | null
+          domain_transferred_at?: string | null
           escrow_fee?: number | null
           escrow_provider?: string | null
           funded_at?: string | null
           id?: string
           released_at?: string | null
+          seller_id?: string | null
           status?: string | null
           transaction_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "escrow_services_domain_id_fkey"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "domain_listings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "escrow_services_transaction_id_fkey"
             columns: ["transaction_id"]
@@ -881,39 +934,61 @@ export type Database = {
       }
       messages: {
         Row: {
-          id: string
-          sender_id: string | null
-          receiver_id: string | null
-          domain_id: string | null
-          offer_id: string | null
-          transaction_id: string | null
           content: string
-          is_read: boolean | null
           created_at: string | null
+          domain_id: string | null
+          id: string
+          is_read: boolean | null
+          offer_id: string | null
+          receiver_id: string | null
+          sender_id: string | null
+          transaction_id: string | null
         }
         Insert: {
-          id?: string
-          sender_id?: string | null
-          receiver_id?: string | null
-          domain_id?: string | null
-          offer_id?: string | null
-          transaction_id?: string | null
           content: string
-          is_read?: boolean | null
           created_at?: string | null
+          domain_id?: string | null
+          id?: string
+          is_read?: boolean | null
+          offer_id?: string | null
+          receiver_id?: string | null
+          sender_id?: string | null
+          transaction_id?: string | null
         }
         Update: {
-          id?: string
-          sender_id?: string | null
-          receiver_id?: string | null
-          domain_id?: string | null
-          offer_id?: string | null
-          transaction_id?: string | null
           content?: string
-          is_read?: boolean | null
           created_at?: string | null
+          domain_id?: string | null
+          id?: string
+          is_read?: boolean | null
+          offer_id?: string | null
+          receiver_id?: string | null
+          sender_id?: string | null
+          transaction_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "messages_domain_id_fkey"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "domain_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "domain_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
@@ -1325,11 +1400,94 @@ export type Database = {
         }
         Relationships: []
       }
+      support_tickets: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          id: string
+          priority: string
+          status: string
+          subject: string
+          ticket_number: number
+          updated_at: string
+          user_email: string
+          user_id: string | null
+          user_name: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description: string
+          id?: string
+          priority?: string
+          status?: string
+          subject: string
+          ticket_number?: never
+          updated_at?: string
+          user_email: string
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          priority?: string
+          status?: string
+          subject?: string
+          ticket_number?: never
+          updated_at?: string
+          user_email?: string
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Relationships: []
+      }
+      ticket_replies: {
+        Row: {
+          author_name: string
+          content: string
+          created_at: string
+          id: string
+          is_admin_reply: boolean
+          ticket_id: string
+          user_id: string | null
+        }
+        Insert: {
+          author_name: string
+          content: string
+          created_at?: string
+          id?: string
+          is_admin_reply?: boolean
+          ticket_id: string
+          user_id?: string | null
+        }
+        Update: {
+          author_name?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_admin_reply?: boolean
+          ticket_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_replies_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           amount: number
-          buyer_id: string | null
           buyer_confirmed_at: string | null
+          buyer_id: string | null
           commission_amount: number | null
           commission_rate: number | null
           completed_at: string | null
@@ -1350,8 +1508,8 @@ export type Database = {
         }
         Insert: {
           amount: number
-          buyer_id?: string | null
           buyer_confirmed_at?: string | null
+          buyer_id?: string | null
           commission_amount?: number | null
           commission_rate?: number | null
           completed_at?: string | null
@@ -1361,7 +1519,7 @@ export type Database = {
           notes?: string | null
           offer_id?: string | null
           payment_id?: string | null
-          payment_method?: string
+          payment_method: string
           seller_amount?: number | null
           seller_confirmed_at?: string | null
           seller_id?: string | null
@@ -1372,8 +1530,8 @@ export type Database = {
         }
         Update: {
           amount?: number
-          buyer_id?: string | null
           buyer_confirmed_at?: string | null
+          buyer_id?: string | null
           commission_amount?: number | null
           commission_rate?: number | null
           completed_at?: string | null
@@ -1398,6 +1556,13 @@ export type Database = {
             columns: ["domain_id"]
             isOneToOne: false
             referencedRelation: "domains"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "domain_offers"
             referencedColumns: ["id"]
           },
         ]
