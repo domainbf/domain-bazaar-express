@@ -41,7 +41,7 @@ export const UserProfilePage = () => {
       setError(null);
 
       try {
-        const result = await apiGet(`/data/profiles/${profileId}`);
+        const result = await apiGet<any>(`/data/profiles/${profileId}`);
         if (!result || !result.profile) { setError('找不到该用户资料'); setIsLoading(false); return; }
         const profileData = result.profile;
         setProfile(profileData);

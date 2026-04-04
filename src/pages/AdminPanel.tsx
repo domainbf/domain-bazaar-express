@@ -82,8 +82,8 @@ export const AdminPanel = () => {
   const loadBadges = async () => {
     try {
       const [stats, fb] = await Promise.all([
-        apiGet('/data/admin/stats'),
-        apiGet('/data/admin/feedback/count').catch(() => ({ count: 0 })),
+        apiGet<any>('/data/admin/stats'),
+        apiGet<any>('/data/admin/feedback/count').catch(() => ({ count: 0 })),
       ]);
       setPendingVerifications(stats?.pendingVerifications ?? 0);
       setPendingDisputes(stats?.openDisputes ?? 0);

@@ -581,7 +581,7 @@ export const SiteSettings = () => {
     }
 
     try {
-      const data = await apiPost('/data/admin/site-settings', newSetting);
+      const data = await apiPost<any>('/data/admin/site-settings', newSetting);
       setSettings([...settings, data]);
       setNewSetting({ key: '', value: '', description: '', section: 'general', type: 'text' });
       setIsAddDialogOpen(false);
