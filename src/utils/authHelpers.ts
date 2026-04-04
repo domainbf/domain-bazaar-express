@@ -5,7 +5,7 @@ import { apiGet } from '@/lib/apiClient';
 
 export const fetchUserProfile = async (userId: string) => {
   try {
-    const data = await apiGet(`/data/profiles/${userId}`);
+    const data = await apiGet<any>(`/data/profiles/${userId}`);
     return data?.profile ?? null;
   } catch (error) {
     console.error('Error fetching user profile:', error);

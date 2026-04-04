@@ -309,7 +309,7 @@ export const SiteSettings = () => {
     setIsTestingWhois(true);
     setWhoisTestResult(null);
     try {
-      const data = await apiPost('/data/admin/whois-test', { domain: whoisTestDomain.trim() });
+      const data = await apiPost<any>('/data/admin/whois-test', { domain: whoisTestDomain.trim() });
       if (!data?.success) {
         setWhoisTestResult({ ok: false, msg: data?.error || '查询失败' });
       } else {
@@ -520,7 +520,7 @@ export const SiteSettings = () => {
     setIsSendingTest(true);
     setEmailTestResult(null);
     try {
-      const data = await apiPost('/data/admin/send-test-email', { to: testEmailAddr, smtp });
+      const data = await apiPost<any>('/data/admin/send-test-email', { to: testEmailAddr, smtp });
       if (data?.success === false) throw new Error(data?.error ? `[${data.provider || '未知'}] ${data.error}` : '发送失败');
       const providerStr = data?.provider ? `（通过 ${data.provider}）` : '';
       setEmailTestResult({ ok: true, msg: `测试邮件已发送至 ${testEmailAddr}${providerStr}，请检查收件箱` });
@@ -537,7 +537,7 @@ export const SiteSettings = () => {
   const loadSettings = async () => {
     setIsLoading(true);
     try {
-      const data = await apiGet('/data/admin/site-settings');
+      const data = await apiGet<any>('/data/admin/site-settings');
       setSettings(Array.isArray(data) ? data : []);
     } catch (error: any) {
       console.error('加载网站设置时出错:', error);
@@ -581,7 +581,7 @@ export const SiteSettings = () => {
     }
 
     try {
-      const data = await apiPost('/data/admin/site-settings', newSetting);
+      const data = await apiPost<any>('/data/admin/site-settings', newSetting);
       setSettings([...settings, data]);
       setNewSetting({ key: '', value: '', description: '', section: 'general', type: 'text' });
       setIsAddDialogOpen(false);

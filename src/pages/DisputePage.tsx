@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { apiPost } from '@/lib/apiClient';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/sections/Footer';
 import { Button } from '@/components/ui/button';

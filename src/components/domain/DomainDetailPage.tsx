@@ -425,7 +425,7 @@ export const DomainDetailPage = () => {
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6">
                 <Suspense fallback={<div className="h-48 animate-pulse bg-muted rounded-lg" />}>
-                  <PriceHistoryChart data={priceHistory} />
+                  <PriceHistoryChart data={priceHistory as any} />
                 </Suspense>
               </AccordionContent>
             </AccordionItem>

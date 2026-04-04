@@ -81,7 +81,7 @@ export const MessageCenter = ({ otherUserId, transactionId, domainId, offerId }:
 
   const loadOtherUser = async () => {
     try {
-      const data = await apiGet(`/data/profiles/${otherUserId}`);
+      const data = await apiGet<any>(`/data/profiles/${otherUserId}`);
       if (data?.profile) setOtherUser({ full_name: data.profile.full_name, username: data.profile.username });
     } catch { /* ignore */ }
   };

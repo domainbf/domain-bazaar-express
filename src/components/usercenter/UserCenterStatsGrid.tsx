@@ -1,7 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
 import { Card, CardContent } from "@/components/ui/card";
-import { User } from "@supabase/supabase-js";
+import { AppUser } from "@/contexts/AuthContext";
 import { UserProfile } from "@/types/userProfile";
 import {
   Globe, DollarSign, Eye, Heart, MessageSquare, ShoppingCart, Award, CheckCircle, CalendarDays
@@ -12,7 +12,7 @@ import { useUserStats } from "@/hooks/useUserStats";
 
 interface UserCenterStatsGridProps {
   profile: UserProfile | null;
-  user: User;
+  user: AppUser;
   compact?: boolean;
   mobileRow?: boolean;
 }

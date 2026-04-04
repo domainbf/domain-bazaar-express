@@ -67,7 +67,7 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
     setLocalIsLoading(true);
     try {
       const url = forceRefresh ? '/data/admin/stats?refresh=1' : '/data/admin/stats';
-      const data = await apiGet(url);
+      const data = await apiGet<any>(url);
       setLocalStats({
         totalUsers: data.totalUsers || 0,
         totalDomains: data.totalDomains || 0,

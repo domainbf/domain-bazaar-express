@@ -167,7 +167,7 @@ const ensureRealtimeChannel = () => {
   realtimeClient.subscribe(realtimeChannelId, ['site_settings'], (event) => {
     if (event.type === 'db-change') {
       // Merge the fresh settings from the event payload if available
-      const fresh = event.data?.new;
+      const fresh = (event as any).data?.new;
       if (fresh && typeof fresh === 'object') {
         const config = mergeConfig(fresh as Record<string, unknown>);
         cachedConfig = config;

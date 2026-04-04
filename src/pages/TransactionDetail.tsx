@@ -139,7 +139,7 @@ export default function TransactionDetail() {
   const loadTransaction = async () => {
     setIsLoading(true);
     try {
-      const data = await apiGet(`/data/transactions/${id}`);
+      const data = await apiGet<any>(`/data/transactions/${id}`);
       if (!data?.transaction) throw new Error('Not found');
       setTransaction(data.transaction as TransactionData);
       if (data.domain) setDomain(data.domain as DomainInfo);

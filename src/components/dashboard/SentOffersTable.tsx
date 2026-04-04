@@ -72,7 +72,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
         // Create transaction record when buyer accepts seller's counter-offer
         if (offer.domain_id && offer.seller_id && user?.id) {
           try {
-            const txResult = await apiPost('/data/transactions', {
+            const txResult = await apiPost<any>('/data/transactions', {
               buyer_id: user.id,
               seller_id: offer.seller_id,
               domain_id: offer.domain_id,

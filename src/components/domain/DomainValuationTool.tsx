@@ -376,7 +376,7 @@ export const DomainValuationTool: React.FC<DomainValuationToolProps> = ({ domain
       try {
         const { data, error } = await supabase.functions.invoke('domain-enhanced-evaluation', { body: { domain: d } });
         if (error || !data) throw new Error('edge function unavailable');
-        evalResult = { ...data, overallScore: data.overallScore ?? Math.round(Object.values(data.dimensions || {}).reduce((s: number, v: any) => s + (v.score || 0), 0) / 6), detectedFeatures: data.detectedFeatures ?? localEvaluate(d).detectedFeatures };
+        evalResult = { ...data, overallScore: data.overallScore ?? Math.round((Object.values(data.dimensions || {}) as any[]).reduce((s: number, v: any) => s + (Number(v.score) || 0), 0) / 6), detectedFeatures: data.detectedFeatures ?? localEvaluate(d).detectedFeatures };
       } catch {
         await new Promise(r => setTimeout(r, 900));
         evalResult = localEvaluate(d);
