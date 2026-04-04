@@ -74,7 +74,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
       let newTransactionId: string | null = null;
       if (action === 'accepted' && offerData.buyer_id) {
         try {
-          const txResult = await apiPost('/data/transactions', {
+          const txResult = await apiPost<any>('/data/transactions', {
             buyer_id: offerData.buyer_id,
             seller_id: user?.id,
             domain_id: offerData.domain_id,

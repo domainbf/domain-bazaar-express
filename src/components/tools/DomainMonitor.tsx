@@ -13,7 +13,7 @@ import { useAppCache } from '@/hooks/useAppCache';
 
 import { motion, AnimatePresence } from 'framer-motion';
 
-type MonitoredDomain = Tables<'domain_monitoring'>;
+type MonitoredDomain = any;
 
 export const DomainMonitor = () => {
   const { user } = useAuth();

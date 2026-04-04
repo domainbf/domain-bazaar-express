@@ -56,7 +56,7 @@ export const useNotifications = () => {
     (event) => {
       if (!user || event.type !== 'db-change') return;
       if (event.eventType !== 'INSERT') return;
-      const row = event.new as Notification | undefined;
+      const row = event.new as unknown as Notification | undefined;
       if (!row || row.user_id !== user.id) return;
       handlerRef.current?.(row);
     },

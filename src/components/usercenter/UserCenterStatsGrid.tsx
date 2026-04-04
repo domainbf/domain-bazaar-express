@@ -12,7 +12,7 @@ import { useUserStats } from "@/hooks/useUserStats";
 
 interface UserCenterStatsGridProps {
   profile: UserProfile | null;
-  user: User;
+  user: AppUser;
   compact?: boolean;
   mobileRow?: boolean;
 }
