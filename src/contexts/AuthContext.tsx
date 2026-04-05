@@ -2,11 +2,8 @@ import { createContext, useState, useContext, useEffect, ReactNode, useCallback,
 import { useNavigate } from 'react-router-dom';
 import { UserProfile } from '@/types/userProfile';
 import { toast } from 'sonner';
-import { apiPost, apiGet, apiPatch, saveTokens, clearTokens, loadTokens, getAccessToken, getRefreshToken } from '@/lib/apiClient';
-import { realtimeClient } from '@/lib/realtime';
+import { supabase } from '@/integrations/supabase/client';
 
-// Minimal User & Session types that match Supabase's interface
-// so existing components require zero changes
 export interface AppUser {
   id: string;
   email: string;
@@ -40,13 +37,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: AppUser;
-  profile: UserProfile | null;
-}
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
 
@@ -58,83 +48,108 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
   const mountedRef = useRef(true);
 
-  const applyAuthResponse = useCallback((res: AuthResponse) => {
-    saveTokens(res.accessToken, res.refreshToken);
-    const appUser: AppUser = { ...res.user, user_metadata: {}, app_metadata: {} };
-    const appSession: AppSession = {
-      access_token: res.accessToken,
-      refresh_token: res.refreshToken,
-      user: appUser,
-    };
-    setUser(appUser);
-    setSession(appSession);
-    setProfile(res.profile);
-    setIsAdmin(res.user.is_admin || false);
-    realtimeClient.resume();
+  const fetchProfile = useCallback(async (userId: string): Promise<UserProfile | null> => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      if (error) return null;
+      return data as UserProfile;
+    } catch {
+      return null;
+    }
   }, []);
 
-  const clearAuth = useCallback(() => {
-    clearTokens();
-    setUser(null);
-    setSession(null);
-    setProfile(null);
-    setIsAdmin(false);
-    realtimeClient.stop();
+  const checkIsAdmin = useCallback(async (userId: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_roles')
+        .select('id')
+        .eq('user_id', userId)
+        .limit(1);
+      if (error) return false;
+      return (data?.length ?? 0) > 0;
+    } catch {
+      return false;
+    }
   }, []);
 
-  // Restore session from stored tokens on mount
-  useEffect(() => {
-    mountedRef.current = true;
-    loadTokens();
-    const at = getAccessToken();
-    if (!at) {
-      setIsLoading(false);
+  const applySession = useCallback(async (supaSession: any) => {
+    if (!supaSession?.user) {
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      setIsAdmin(false);
       return;
     }
+    const u = supaSession.user;
+    const adminStatus = await checkIsAdmin(u.id);
+    const appUser: AppUser = {
+      id: u.id,
+      email: u.email ?? '',
+      is_admin: adminStatus,
+      user_metadata: u.user_metadata ?? {},
+      app_metadata: u.app_metadata ?? {},
+    };
+    const appSession: AppSession = {
+      access_token: supaSession.access_token,
+      refresh_token: supaSession.refresh_token,
+      user: appUser,
+    };
+    const prof = await fetchProfile(u.id);
+    if (!mountedRef.current) return;
+    setUser(appUser);
+    setSession(appSession);
+    setProfile(prof);
+    setIsAdmin(adminStatus);
+  }, [checkIsAdmin, fetchProfile]);
 
-    (async () => {
-      try {
-        const data = await apiGet<{ user: AppUser; profile: UserProfile }>('/auth/me');
+  // Listen to auth state changes
+  useEffect(() => {
+    mountedRef.current = true;
+
+    // Set up listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, supaSession) => {
         if (!mountedRef.current) return;
-        const rt = getRefreshToken() || '';
-        applyAuthResponse({
-          accessToken: at,
-          refreshToken: rt,
-          user: data.user,
-          profile: data.profile,
-        });
-      } catch {
-        clearAuth();
-      } finally {
+        await applySession(supaSession);
         if (mountedRef.current) setIsLoading(false);
       }
-    })();
+    );
 
-    return () => { mountedRef.current = false; };
-  }, []);
+    // Then get initial session
+    supabase.auth.getSession().then(async ({ data: { session: supaSession } }) => {
+      if (!mountedRef.current) return;
+      await applySession(supaSession);
+      if (mountedRef.current) setIsLoading(false);
+    });
+
+    return () => {
+      mountedRef.current = false;
+      subscription.unsubscribe();
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const refreshProfile = useCallback(async () => {
     if (!user) return;
-    try {
-      const data = await apiGet<{ user: AppUser; profile: UserProfile }>('/auth/me');
-      setProfile(data.profile);
-    } catch {
-      console.error('Failed to refresh profile');
-    }
-  }, [user]);
+    const prof = await fetchProfile(user.id);
+    if (prof) setProfile(prof);
+  }, [user, fetchProfile]);
 
   const checkAdminStatus = useCallback(async (): Promise<boolean> => {
     if (!user) return false;
-    const adminStatus = user.is_admin || false;
-    setIsAdmin(adminStatus);
-    return adminStatus;
-  }, [user]);
+    const status = await checkIsAdmin(user.id);
+    setIsAdmin(status);
+    return status;
+  }, [user, checkIsAdmin]);
 
   const signIn = useCallback(async (email: string, password: string): Promise<boolean> => {
     try {
       setIsAuthenticating(true);
-      const res = await apiPost<AuthResponse>('/auth/login', { email, password });
-      applyAuthResponse(res);
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw new Error(error.message);
       toast.success('登录成功');
       return true;
     } catch (error: unknown) {
@@ -143,7 +158,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsAuthenticating(false);
     }
-  }, [applyAuthResponse]);
+  }, []);
 
   const signUp = useCallback(async (
     email: string,
@@ -152,12 +167,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   ): Promise<boolean> => {
     try {
       setIsAuthenticating(true);
-      const res = await apiPost<AuthResponse>('/auth/register', {
+      const { error } = await supabase.auth.signUp({
         email,
         password,
-        full_name: metadata?.full_name as string | undefined,
+        options: {
+          data: metadata ? { full_name: metadata.full_name } : undefined,
+          emailRedirectTo: window.location.origin,
+        },
       });
-      applyAuthResponse(res);
+      if (error) throw new Error(error.message);
       toast.success('注册成功，欢迎加入！');
       return true;
     } catch (error: unknown) {
@@ -165,38 +183,47 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsAuthenticating(false);
     }
-  }, [applyAuthResponse]);
+  }, []);
 
   const logOut = useCallback(async () => {
     try {
-      const rt = getRefreshToken();
-      await apiPost('/auth/logout', { refreshToken: rt }).catch(() => {});
+      await supabase.auth.signOut();
     } finally {
-      clearAuth();
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      setIsAdmin(false);
       toast.success('已退出登录');
       navigate('/', { replace: true });
     }
-  }, [clearAuth, navigate]);
+  }, [navigate]);
 
   const signOut = logOut;
 
   const updateProfile = useCallback(async (data: Partial<UserProfile>): Promise<boolean> => {
     if (!user) return false;
     try {
-      const res = await apiPatch<{ profile: UserProfile }>('/auth/profile', data);
-      setProfile(res.profile);
+      const { error } = await supabase
+        .from('profiles')
+        .update(data as any)
+        .eq('id', user.id);
+      if (error) throw error;
+      await refreshProfile();
       toast.success('个人资料更新成功');
       return true;
     } catch (error: unknown) {
       toast.error((error as Error).message || '更新个人资料失败');
       return false;
     }
-  }, [user]);
+  }, [user, refreshProfile]);
 
   const resetPassword = useCallback(async (email: string): Promise<boolean> => {
     try {
       setIsAuthenticating(true);
-      await apiPost('/auth/request-reset', { email });
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
       toast.success('如果该邮箱已注册，您将收到重置密码邮件');
       return true;
     } catch (error: unknown) {
