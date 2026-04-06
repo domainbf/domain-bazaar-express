@@ -3,14 +3,37 @@ import { ResetPasswordConfirmForm } from '@/components/auth/ResetPasswordConfirm
 import { useLocation, Link } from 'react-router-dom';
 import { ShieldCheck, Globe, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export const ResetPassword = () => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const resetToken = searchParams.get('token');
+  
+  // Check for Supabase recovery flow via URL hash or auth event
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  
+  useEffect(() => {
+    // Check URL hash for recovery tokens (Supabase default flow)
+    const hash = window.location.hash;
+    if (hash && (hash.includes('type=recovery') || hash.includes('access_token'))) {
+      setIsRecoveryMode(true);
+    }
+    
+    // Listen for PASSWORD_RECOVERY event
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsRecoveryMode(true);
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, []);
 
-  const title = resetToken ? '设置新密码' : '找回密码';
-  const subtitle = resetToken
+  const showConfirmForm = resetToken || isRecoveryMode;
+  const title = showConfirmForm ? '设置新密码' : '找回密码';
+  const subtitle = showConfirmForm
     ? '请设置一个安全的新密码，设置后原密码立即失效'
     : '输入您的注册邮箱，我们将发送密码重置链接';
 
@@ -55,7 +78,7 @@ export const ResetPassword = () => {
               </div>
               <div className="relative z-10">
                 <div className="w-16 h-16 bg-primary-foreground/10 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
-                  {resetToken
+                  {showConfirmForm
                     ? <ShieldCheck className="w-8 h-8" />
                     : <Globe className="w-8 h-8" />
                   }
@@ -66,8 +89,8 @@ export const ResetPassword = () => {
             </div>
 
             <div className="px-6 sm:px-8 py-8">
-              {resetToken ? (
-                <ResetPasswordConfirmForm token={resetToken} />
+              {showConfirmForm ? (
+                <ResetPasswordConfirmForm token={resetToken || 'recovery'} />
               ) : (
                 <ResetPasswordForm />
               )}

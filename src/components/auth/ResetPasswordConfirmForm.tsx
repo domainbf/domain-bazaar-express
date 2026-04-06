@@ -1,16 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Loader2, EyeIcon, EyeOffIcon, CheckCircle, AlertCircle, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { apiPost } from '@/lib/apiClient';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ResetPasswordConfirmFormProps {
   token: string;
 }
 
-export const ResetPasswordConfirmForm = ({ token }: ResetPasswordConfirmFormProps) => {
+export const ResetPasswordConfirmForm = ({ token: _token }: ResetPasswordConfirmFormProps) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -18,7 +18,25 @@ export const ResetPasswordConfirmForm = ({ token }: ResetPasswordConfirmFormProp
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [sessionReady, setSessionReady] = useState(false);
   const navigate = useNavigate();
+
+  // Supabase processes the recovery token from the URL hash automatically
+  // and fires a PASSWORD_RECOVERY event. We just need to wait for the session.
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setSessionReady(true);
+      }
+    });
+
+    // Also check if there's already a session (user clicked recovery link)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setSessionReady(true);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const checkPasswordStrength = (pwd: string) => ({
     hasLower: /[a-z]/.test(pwd),
@@ -49,12 +67,8 @@ export const ResetPasswordConfirmForm = ({ token }: ResetPasswordConfirmFormProp
     setErrorMessage('');
 
     try {
-      await Promise.race([
-        apiPost('/auth/reset-password', { token, newPassword: password }),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('请求超时，请检查网络后重试')), 20000)
-        ),
-      ]);
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
 
       setIsSuccess(true);
       toast.success('密码已成功重置！');

@@ -5,7 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Mail, ArrowLeft, Loader2, AlertCircle, CheckCircle, Send } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { apiPost } from '@/lib/apiClient';
+import { supabase } from '@/integrations/supabase/client';
 
 export const ResetPasswordForm = () => {
   const [email, setEmail] = useState('');
@@ -23,7 +23,10 @@ export const ResetPasswordForm = () => {
     setErrorMessage('');
 
     try {
-      await apiPost('/auth/request-reset', { email });
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
       setIsSubmitted(true);
       toast.success('密码重置链接已发送到您的邮箱');
     } catch (error: any) {
