@@ -384,8 +384,13 @@ export const SiteSettings = () => {
     setBatchProgress('');
     try {
       const { batchGenerateLogos } = await import('@/hooks/useModelScopeAI');
-      const auctionData = await apiGet<Array<{ id: string; name: string }>>('/data/auctions');
-      const domains = (auctionData ?? []).map(d => ({ id: String(d.id), name: d.name, type: 'auction' as const }));
+      const { data: auctionRows } = await supabase
+        .from('domain_auctions')
+        .select('id, domain_id, domain_listings(id, name)')
+        .eq('status', 'active');
+      const domains = (auctionRows ?? [])
+        .filter((a: any) => a.domain_listings)
+        .map((a: any) => ({ id: String(a.domain_listings.id), name: a.domain_listings.name }));
       if (domains.length === 0) { setBatchProgress('没有找到拍卖域名'); return; }
       const result = await batchGenerateLogos(domains, (msg, total, done) => {
         setBatchProgress(`[${done}/${total}] ${msg}`);
