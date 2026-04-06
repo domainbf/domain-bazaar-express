@@ -358,8 +358,13 @@ export const SiteSettings = () => {
     setBatchProgress('');
     try {
       const { batchGenerateLogos } = await import('@/hooks/useModelScopeAI');
-      const homeData = await apiGet<{ hotDomains: Array<{ id: string; name: string }> }>('/data/home');
-      const domains = (homeData?.hotDomains ?? []).map(d => ({ id: String(d.id), name: d.name }));
+      const { data: hotDomains } = await supabase
+        .from('domain_listings')
+        .select('id, name')
+        .eq('status', 'available')
+        .order('created_at', { ascending: false })
+        .limit(40);
+      const domains = (hotDomains ?? []).map((d: any) => ({ id: String(d.id), name: d.name }));
       if (domains.length === 0) { setBatchProgress('没有找到推荐域名'); return; }
       const result = await batchGenerateLogos(domains, (msg, total, done) => {
         setBatchProgress(`[${done}/${total}] ${msg}`);
