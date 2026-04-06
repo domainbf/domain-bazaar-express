@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { realtimeClient } from '@/lib/realtime';
-import { apiGet } from '@/lib/apiClient';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface SiteConfig {
   site_name: string;
@@ -53,7 +52,6 @@ export interface SiteConfig {
   primary_color: string;
   currency: string;
   commission_rate: string;
-  // Site control flags
   site_closed: string;
   registration_closed: string;
   pwa_install_banner: string;
@@ -121,14 +119,9 @@ export const defaultConfig: SiteConfig = {
   maintenance_message: '我们正在对平台进行升级维护，即将回来，感谢您的耐心等待。',
 };
 
-/* ── Module-level singletons ──────────────────────────────────────
-   One fetch deduped across all hook consumers. Realtime pushes
-   instant updates when site_settings changes in Turso.
-────────────────────────────────────────────────────────────────── */
 let cachedConfig: SiteConfig | null = null;
 let fetchPromise: Promise<SiteConfig> | null = null;
 let listeners: Array<(c: SiteConfig) => void> = [];
-let realtimeChannelId: string | null = null;
 
 function mergeConfig(raw: Record<string, unknown>): SiteConfig {
   const config = { ...defaultConfig };
@@ -145,8 +138,21 @@ export const fetchSiteConfig = async (): Promise<SiteConfig> => {
 
   fetchPromise = (async () => {
     try {
-      const raw = await apiGet('/data/site-settings');
-      const config = mergeConfig(raw as Record<string, unknown>);
+      // Fetch directly from Supabase site_settings table
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('key, value');
+      
+      if (error) throw error;
+      
+      const raw: Record<string, unknown> = {};
+      if (data) {
+        for (const row of data) {
+          raw[row.key] = row.value;
+        }
+      }
+      
+      const config = mergeConfig(raw);
       cachedConfig = config;
       listeners.forEach(l => l(config));
       return config;
@@ -160,33 +166,12 @@ export const fetchSiteConfig = async (): Promise<SiteConfig> => {
   return fetchPromise;
 };
 
-/* Set up ONE realtime channel for the entire app lifetime */
-const ensureRealtimeChannel = () => {
-  if (realtimeChannelId) return;
-  realtimeChannelId = 'site-settings-singleton';
-  realtimeClient.subscribe(realtimeChannelId, ['site_settings'], (event) => {
-    if (event.type === 'db-change') {
-      // Merge the fresh settings from the event payload if available
-      const fresh = (event as any).data?.new;
-      if (fresh && typeof fresh === 'object') {
-        const config = mergeConfig(fresh as Record<string, unknown>);
-        cachedConfig = config;
-        listeners.forEach(l => l(config));
-      } else {
-        fetchSiteConfig();
-      }
-    }
-  });
-};
-
 export const useSiteSettings = () => {
   const [config, setConfig] = useState<SiteConfig>(cachedConfig ?? defaultConfig);
   const [isLoading, setIsLoading] = useState(!cachedConfig);
 
   useEffect(() => {
     let mounted = true;
-
-    ensureRealtimeChannel();
 
     const listener = (c: SiteConfig) => {
       if (mounted) { setConfig(c); setIsLoading(false); }
@@ -202,9 +187,21 @@ export const useSiteSettings = () => {
       });
     }
 
+    // Subscribe to realtime changes on site_settings
+    const channel = supabase
+      .channel('site-settings-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, () => {
+        // Refetch all settings on any change
+        cachedConfig = null;
+        fetchPromise = null;
+        fetchSiteConfig();
+      })
+      .subscribe();
+
     return () => {
       mounted = false;
       listeners = listeners.filter(l => l !== listener);
+      supabase.removeChannel(channel);
     };
   }, []);
 

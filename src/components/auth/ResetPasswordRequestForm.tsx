@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Mail, AlertCircle, CheckCircle, ArrowLeft, Send } from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { apiPost } from '@/lib/apiClient';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ResetPasswordRequestFormProps {
   onCancel: () => void;
@@ -27,7 +27,10 @@ export const ResetPasswordRequestForm = ({ onCancel, onSuccess }: ResetPasswordR
     setErrorMessage('');
 
     try {
-      await apiPost('/auth/request-reset', { email });
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
       setIsSent(true);
       toast.success('密码重置邮件已发送');
       if (onSuccess) onSuccess();
