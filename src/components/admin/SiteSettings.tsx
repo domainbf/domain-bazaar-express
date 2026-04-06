@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { apiGet, apiPost, apiPatch, apiDelete, apiFetch } from '@/lib/apiClient';
-import { MS_MODELS } from '@/hooks/useModelScopeAI';
+// Logo generation now uses Lovable AI via edge function (no ModelScope config needed)
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
