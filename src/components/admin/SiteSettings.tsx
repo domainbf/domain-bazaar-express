@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { apiGet, apiPost, apiPatch, apiDelete, apiFetch } from '@/lib/apiClient';
+import { supabase } from '@/integrations/supabase/client';
 // Logo generation now uses Lovable AI via edge function (no ModelScope config needed)
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
