@@ -228,8 +228,7 @@ export const AllDomainListings = () => {
       setDomains(prev => [inserted as DomainListing, ...prev]);
       setNewSoldDomain({ name: '', price: '', description: '' });
       setIsAddSoldOpen(false);
-      const siteSettings2 = await apiGet<Record<string, string>>('/data/site-settings');
-      if (siteSettings2?.modelscope_auto_generate === 'true' && inserted) {
+      if (inserted) {
         setLogoGenerating(prev => new Set(prev).add(inserted.id));
         generateAndSaveDomainLogo(inserted.id, inserted.name, (msg) => toast.info(msg), 'sold')
           .finally(() => setLogoGenerating(prev => { const s = new Set(prev); s.delete(inserted.id); return s; }));
