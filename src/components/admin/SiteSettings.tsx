@@ -339,15 +339,14 @@ export const SiteSettings = () => {
   };
 
   const testModelScopeApi = async () => {
-    if (!msApiKey.trim()) { toast.error('请先填写 API Key'); return; }
     setIsTestingMs(true);
     setMsTestResult(null);
     try {
-      const { generateDomainLogo } = await import('@/hooks/useModelScopeAI');
-      const url = await generateDomainLogo('TEST.BN', { apiKey: msApiKey, model: msModel });
-      setMsTestResult({ ok: true, msg: `生成成功！图片URL：${url.slice(0, 60)}...` });
+      const { generateAndSaveDomainLogo } = await import('@/hooks/useModelScopeAI');
+      const url = await generateAndSaveDomainLogo('test-logo', 'TEST.BN');
+      setMsTestResult({ ok: !!url, msg: url ? `生成成功！` : '生成失败' });
     } catch (e: any) {
-      setMsTestResult({ ok: false, msg: e.message || '测试失败，请检查API Key和模型' });
+      setMsTestResult({ ok: false, msg: e.message || '测试失败' });
     } finally {
       setIsTestingMs(false);
     }
