@@ -18,7 +18,7 @@ import { MoreHorizontal, Star, Check, CheckCircle, RefreshCw, Search, Download, 
 import { useTranslation } from 'react-i18next';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { generateAndSaveDomainLogo } from '@/hooks/useModelScopeAI';
-import { apiGet } from '@/lib/apiClient';
+
 import {
   Select,
   SelectContent,
@@ -186,12 +186,10 @@ export const AllDomainListings = () => {
       toast.success(`状态已更新为: ${getStatusLabel(status)}`);
 
       if (status === 'sold') {
-        const siteSettings = await apiGet<Record<string, string>>('/data/site-settings');
-        if (siteSettings?.modelscope_auto_generate === 'true') {
-          setLogoGenerating(prev => new Set(prev).add(domain.id));
-          generateAndSaveDomainLogo(domain.id, domain.name, (msg) => toast.info(msg), 'sold', domain.category ?? undefined)
-            .finally(() => setLogoGenerating(prev => { const s = new Set(prev); s.delete(domain.id); return s; }));
-        }
+        // Auto-generate logo for sold domains
+        setLogoGenerating(prev => new Set(prev).add(domain.id));
+        generateAndSaveDomainLogo(domain.id, domain.name, (msg) => toast.info(msg), 'sold', domain.category ?? undefined)
+          .finally(() => setLogoGenerating(prev => { const s = new Set(prev); s.delete(domain.id); return s; }));
       }
     } catch (error: any) {
       console.error('Error updating status:', error);
@@ -230,8 +228,7 @@ export const AllDomainListings = () => {
       setDomains(prev => [inserted as DomainListing, ...prev]);
       setNewSoldDomain({ name: '', price: '', description: '' });
       setIsAddSoldOpen(false);
-      const siteSettings2 = await apiGet<Record<string, string>>('/data/site-settings');
-      if (siteSettings2?.modelscope_auto_generate === 'true' && inserted) {
+      if (inserted) {
         setLogoGenerating(prev => new Set(prev).add(inserted.id));
         generateAndSaveDomainLogo(inserted.id, inserted.name, (msg) => toast.info(msg), 'sold')
           .finally(() => setLogoGenerating(prev => { const s = new Set(prev); s.delete(inserted.id); return s; }));

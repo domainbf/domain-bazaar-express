@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { apiGet, apiPost, apiPatch, apiDelete, apiFetch } from '@/lib/apiClient';
-import { MS_MODELS } from '@/hooks/useModelScopeAI';
+import { supabase } from '@/integrations/supabase/client';
+// Logo generation now uses Lovable AI via edge function (no ModelScope config needed)
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -204,15 +205,13 @@ export const SiteSettings = () => {
 
   const loadAllConfigs = async () => {
     try {
-      const data = await apiGet<Record<string, string>>('/data/site-settings');
-      if (!data || typeof data !== 'object') return;
+      const { data: settingsRows } = await supabase.from('site_settings').select('key, value');
+      const data: Record<string, string> = {};
+      for (const r of (settingsRows ?? [])) { if (r.key && r.value) data[r.key] = r.value; }
+      if (!Object.keys(data).length) return;
       setWhoisApiKey(data['whois_api_key'] || '');
-      setMsApiKey(data['modelscope_api_key'] || '');
-      const savedModel = data['modelscope_model'] || 'black-forest-labs/FLUX.1-schnell';
-      const validModel = MS_MODELS.find(m => m.id === savedModel)
-        ? savedModel
-        : 'black-forest-labs/FLUX.1-schnell';
-      setMsModel(validModel);
+      setMsApiKey('');
+      setMsModel('lovable-ai');
       setMsAutoGenerate(data['modelscope_auto_generate'] === 'true');
       const loadedHost = data['smtp_host'] || '';
       setSmtp({
@@ -341,15 +340,14 @@ export const SiteSettings = () => {
   };
 
   const testModelScopeApi = async () => {
-    if (!msApiKey.trim()) { toast.error('请先填写 API Key'); return; }
     setIsTestingMs(true);
     setMsTestResult(null);
     try {
-      const { generateDomainLogo } = await import('@/hooks/useModelScopeAI');
-      const url = await generateDomainLogo('TEST.BN', { apiKey: msApiKey, model: msModel });
-      setMsTestResult({ ok: true, msg: `生成成功！图片URL：${url.slice(0, 60)}...` });
+      const { generateAndSaveDomainLogo } = await import('@/hooks/useModelScopeAI');
+      const url = await generateAndSaveDomainLogo('test-logo', 'TEST.BN');
+      setMsTestResult({ ok: !!url, msg: url ? `生成成功！` : '生成失败' });
     } catch (e: any) {
-      setMsTestResult({ ok: false, msg: e.message || '测试失败，请检查API Key和模型' });
+      setMsTestResult({ ok: false, msg: e.message || '测试失败' });
     } finally {
       setIsTestingMs(false);
     }
@@ -360,8 +358,13 @@ export const SiteSettings = () => {
     setBatchProgress('');
     try {
       const { batchGenerateLogos } = await import('@/hooks/useModelScopeAI');
-      const homeData = await apiGet<{ hotDomains: Array<{ id: string; name: string }> }>('/data/home');
-      const domains = (homeData?.hotDomains ?? []).map(d => ({ id: String(d.id), name: d.name }));
+      const { data: hotDomains } = await supabase
+        .from('domain_listings')
+        .select('id, name')
+        .eq('status', 'available')
+        .order('created_at', { ascending: false })
+        .limit(40);
+      const domains = (hotDomains ?? []).map((d: any) => ({ id: String(d.id), name: d.name }));
       if (domains.length === 0) { setBatchProgress('没有找到推荐域名'); return; }
       const result = await batchGenerateLogos(domains, (msg, total, done) => {
         setBatchProgress(`[${done}/${total}] ${msg}`);
@@ -381,8 +384,13 @@ export const SiteSettings = () => {
     setBatchProgress('');
     try {
       const { batchGenerateLogos } = await import('@/hooks/useModelScopeAI');
-      const auctionData = await apiGet<Array<{ id: string; name: string }>>('/data/auctions');
-      const domains = (auctionData ?? []).map(d => ({ id: String(d.id), name: d.name, type: 'auction' as const }));
+      const { data: auctionRows } = await supabase
+        .from('domain_auctions')
+        .select('id, domain_id, domain_listings(id, name)')
+        .eq('status', 'active');
+      const domains = (auctionRows ?? [])
+        .filter((a: any) => a.domain_listings)
+        .map((a: any) => ({ id: String(a.domain_listings.id), name: a.domain_listings.name }));
       if (domains.length === 0) { setBatchProgress('没有找到拍卖域名'); return; }
       const result = await batchGenerateLogos(domains, (msg, total, done) => {
         setBatchProgress(`[${done}/${total}] ${msg}`);
@@ -1823,31 +1831,7 @@ export const SiteSettings = () => {
 
               <div className="space-y-2">
                 <Label className="font-semibold">AI 模型</Label>
-                <Select value={msModel} onValueChange={setMsModel}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MS_MODELS.map(m => (
-                      <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="space-y-1 pt-1">
-                  {(() => {
-                    const selected = MS_MODELS.find(m => m.id === msModel);
-                    return selected?.asyncRequired ? (
-                      <Alert className="border-blue-500/30 bg-blue-500/5 py-2">
-                        <Info className="h-3.5 w-3.5 text-blue-600" />
-                        <AlertDescription className="text-xs text-blue-700 dark:text-blue-400">
-                          此模型使用<strong>异步模式</strong>调用（平台要求），生成时间约 15–60 秒，系统会自动轮询等待结果，无需手动操作。
-                        </AlertDescription>
-                      </Alert>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">此模型为同步调用，通常 5–15 秒内返回结果。所有模型均使用黑白风格提示词。</p>
-                    );
-                  })()}
-                </div>
+                <p className="text-sm text-muted-foreground">当前使用 Lovable AI（Gemini 图像模型）自动生成域名 Logo，无需额外配置 API Key。</p>
               </div>
 
               <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/20">
