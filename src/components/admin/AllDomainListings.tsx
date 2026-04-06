@@ -18,7 +18,7 @@ import { MoreHorizontal, Star, Check, CheckCircle, RefreshCw, Search, Download, 
 import { useTranslation } from 'react-i18next';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { generateAndSaveDomainLogo } from '@/hooks/useModelScopeAI';
-import { apiGet } from '@/lib/apiClient';
+
 import {
   Select,
   SelectContent,
