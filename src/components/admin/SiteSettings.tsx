@@ -1821,31 +1821,7 @@ export const SiteSettings = () => {
 
               <div className="space-y-2">
                 <Label className="font-semibold">AI 模型</Label>
-                <Select value={msModel} onValueChange={setMsModel}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MS_MODELS.map(m => (
-                      <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="space-y-1 pt-1">
-                  {(() => {
-                    const selected = MS_MODELS.find(m => m.id === msModel);
-                    return selected?.asyncRequired ? (
-                      <Alert className="border-blue-500/30 bg-blue-500/5 py-2">
-                        <Info className="h-3.5 w-3.5 text-blue-600" />
-                        <AlertDescription className="text-xs text-blue-700 dark:text-blue-400">
-                          此模型使用<strong>异步模式</strong>调用（平台要求），生成时间约 15–60 秒，系统会自动轮询等待结果，无需手动操作。
-                        </AlertDescription>
-                      </Alert>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">此模型为同步调用，通常 5–15 秒内返回结果。所有模型均使用黑白风格提示词。</p>
-                    );
-                  })()}
-                </div>
+                <p className="text-sm text-muted-foreground">当前使用 Lovable AI（Gemini 图像模型）自动生成域名 Logo，无需额外配置 API Key。</p>
               </div>
 
               <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/20">
