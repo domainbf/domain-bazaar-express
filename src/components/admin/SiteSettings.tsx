@@ -204,15 +204,13 @@ export const SiteSettings = () => {
 
   const loadAllConfigs = async () => {
     try {
-      const data = await apiGet<Record<string, string>>('/data/site-settings');
-      if (!data || typeof data !== 'object') return;
+      const { data: settingsRows } = await supabase.from('site_settings').select('key, value');
+      const data: Record<string, string> = {};
+      for (const r of (settingsRows ?? [])) { if (r.key && r.value) data[r.key] = r.value; }
+      if (!Object.keys(data).length) return;
       setWhoisApiKey(data['whois_api_key'] || '');
-      setMsApiKey(data['modelscope_api_key'] || '');
-      const savedModel = data['modelscope_model'] || 'black-forest-labs/FLUX.1-schnell';
-      const validModel = MS_MODELS.find(m => m.id === savedModel)
-        ? savedModel
-        : 'black-forest-labs/FLUX.1-schnell';
-      setMsModel(validModel);
+      setMsApiKey('');
+      setMsModel('lovable-ai');
       setMsAutoGenerate(data['modelscope_auto_generate'] === 'true');
       const loadedHost = data['smtp_host'] || '';
       setSmtp({
