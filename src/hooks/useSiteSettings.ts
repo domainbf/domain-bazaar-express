@@ -188,15 +188,14 @@ export const useSiteSettings = () => {
     }
 
     // Subscribe to realtime changes on site_settings
-    const channel = supabase
-      .channel('site-settings-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, () => {
-        // Refetch all settings on any change
-        cachedConfig = null;
-        fetchPromise = null;
-        fetchSiteConfig();
-      })
-      .subscribe();
+    const channelName = `site-settings-${Date.now()}`;
+    const channel = supabase.channel(channelName);
+    channel.on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, () => {
+      cachedConfig = null;
+      fetchPromise = null;
+      fetchSiteConfig();
+    });
+    channel.subscribe();
 
     return () => {
       mounted = false;
