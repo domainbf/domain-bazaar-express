@@ -122,6 +122,41 @@ export const defaultConfig: SiteConfig = {
 let cachedConfig: SiteConfig | null = null;
 let fetchPromise: Promise<SiteConfig> | null = null;
 let listeners: Array<(c: SiteConfig) => void> = [];
+let siteSettingsChannel: ReturnType<typeof supabase.channel> | null = null;
+let siteSettingsSubscriberCount = 0;
+let siteSettingsChannelNonce = 0;
+
+function notifyListeners(config: SiteConfig) {
+  listeners.forEach((listener) => listener(config));
+}
+
+function resetSiteConfigCache() {
+  cachedConfig = null;
+  fetchPromise = null;
+}
+
+function ensureSiteSettingsSubscription() {
+  if (siteSettingsChannel) return;
+
+  siteSettingsChannelNonce += 1;
+  const channel = supabase.channel(`site-settings-${siteSettingsChannelNonce}`);
+  channel.on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, () => {
+    resetSiteConfigCache();
+    void fetchSiteConfig();
+  });
+  channel.subscribe();
+
+  siteSettingsChannel = channel;
+}
+
+function releaseSiteSettingsSubscription() {
+  siteSettingsSubscriberCount = Math.max(0, siteSettingsSubscriberCount - 1);
+
+  if (siteSettingsSubscriberCount === 0 && siteSettingsChannel) {
+    void supabase.removeChannel(siteSettingsChannel);
+    siteSettingsChannel = null;
+  }
+}
 
 function mergeConfig(raw: Record<string, unknown>): SiteConfig {
   const config = { ...defaultConfig };
@@ -154,7 +189,7 @@ export const fetchSiteConfig = async (): Promise<SiteConfig> => {
       
       const config = mergeConfig(raw);
       cachedConfig = config;
-      listeners.forEach(l => l(config));
+      notifyListeners(config);
       return config;
     } catch {
       return cachedConfig ?? defaultConfig;
@@ -182,25 +217,18 @@ export const useSiteSettings = () => {
       setConfig(cachedConfig);
       setIsLoading(false);
     } else {
-      fetchSiteConfig().then(c => {
+      void fetchSiteConfig().then(c => {
         if (mounted) { setConfig(c); setIsLoading(false); }
       });
     }
 
-    // Subscribe to realtime changes on site_settings
-    const channelName = `site-settings-${Date.now()}`;
-    const channel = supabase.channel(channelName);
-    channel.on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, () => {
-      cachedConfig = null;
-      fetchPromise = null;
-      fetchSiteConfig();
-    });
-    channel.subscribe();
+    siteSettingsSubscriberCount += 1;
+    ensureSiteSettingsSubscription();
 
     return () => {
       mounted = false;
       listeners = listeners.filter(l => l !== listener);
-      supabase.removeChannel(channel);
+      releaseSiteSettingsSubscription();
     };
   }, []);
 
