@@ -219,6 +219,8 @@ const AnimatedRoutes = memo(() => {
       <SiteGuard>
       <Routes location={location}>
         <Route path="/maintenance" element={<MaintenancePage />} />
+        <Route path="/index" element={<Navigate to="/" replace />} />
+        <Route path="/index.html" element={<Navigate to="/" replace />} />
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/auth/*" element={<AuthPage />} />

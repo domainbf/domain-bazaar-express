@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { getDomainDetailPath } from '@/lib/domainRouting';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -218,7 +219,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
                         <Button size="sm" className="w-full gap-1.5"><ArrowRight className="h-4 w-4" />进入交易详情</Button>
                       </Link>
                     ) : (
-                      <Link to={`/domain/${offer.domain_name}`} className="flex-1">
+                      <Link to={getDomainDetailPath(offer.domain_name)} className="flex-1">
                         <Button variant="outline" size="sm" className="w-full"><Eye className="h-4 w-4 mr-1" />查看域名</Button>
                       </Link>
                     )}
@@ -258,7 +259,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
                 return (
                   <tr key={offer.id} className={`hover:bg-muted/30 transition-colors ${offer.status === 'countered' ? 'bg-blue-500/10/50 dark:bg-blue-950/10' : ''}`}>
                     <td className="p-4">
-                      <Link to={`/domain/${offer.domain_name}`} className="font-semibold text-primary hover:underline">{offer.domain_name}</Link>
+                      <Link to={getDomainDetailPath(offer.domain_name)} className="font-semibold text-primary hover:underline">{offer.domain_name}</Link>
                     </td>
                     <td className="p-4">
                       <div className="flex flex-col gap-0.5">
@@ -312,7 +313,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
                             <Button size="sm" className="gap-1.5"><ArrowRight className="h-4 w-4" />进入交易</Button>
                           </Link>
                         ) : (
-                          <Link to={`/domain/${offer.domain_name}`}>
+                          <Link to={getDomainDetailPath(offer.domain_name)}>
                             <Button variant="outline" size="sm"><Eye className="h-4 w-4 mr-1" />查看</Button>
                           </Link>
                         )}

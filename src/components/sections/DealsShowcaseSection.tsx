@@ -2,6 +2,7 @@ import { CheckCircle, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useHomeData } from '@/hooks/useHomeData';
+import { getDomainDetailPath } from '@/lib/domainRouting';
 
 interface SoldDomain {
   id: string;
@@ -71,7 +72,7 @@ function SoldCard({ item, onClick }: { item: SoldDomain; onClick: () => void }) 
 function MarqueeTrack({ items, direction, onClick }: {
   items: SoldDomain[];
   direction: 'ltr' | 'rtl';
-  onClick: (id: string) => void;
+  onClick: (domainName: string) => void;
 }) {
   if (!items.length) return null;
   const doubled = [...items, ...items];
@@ -84,7 +85,7 @@ function MarqueeTrack({ items, direction, onClick }: {
         onMouseLeave={e => (e.currentTarget.style.animationPlayState = 'running')}
       >
         {doubled.map((item, i) => (
-          <SoldCard key={`${item.id}-${i}`} item={item} onClick={() => onClick(item.id)} />
+          <SoldCard key={`${item.id}-${i}`} item={item} onClick={() => onClick(item.name)} />
         ))}
       </div>
     </div>
@@ -131,9 +132,9 @@ export function DealsShowcaseSection() {
       </div>
 
       <div className="space-y-3">
-        <MarqueeTrack items={row1} direction="ltr" onClick={(id) => navigate(`/domain/${id}`)} />
+        <MarqueeTrack items={row1} direction="ltr" onClick={(domainName) => navigate(getDomainDetailPath(domainName))} />
         {row2.length > 0 && (
-          <MarqueeTrack items={row2} direction="rtl" onClick={(id) => navigate(`/domain/${id}`)} />
+          <MarqueeTrack items={row2} direction="rtl" onClick={(domainName) => navigate(getDomainDetailPath(domainName))} />
         )}
       </div>
     </section>

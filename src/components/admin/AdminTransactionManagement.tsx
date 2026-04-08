@@ -15,6 +15,7 @@ import { RefreshCw, Search, Eye, CheckCircle, XCircle, AlertTriangle, DollarSign
 import { Link } from 'react-router-dom';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { buildEmail, infoTable, amountBlock } from '@/lib/emailTemplate';
+import { getDomainDetailPath } from '@/lib/domainRouting';
 
 interface AdminTransaction {
   id: string;
@@ -485,7 +486,7 @@ export const AdminTransactionManagement = () => {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Globe className="h-4 w-4 text-muted-foreground shrink-0" />
-                          <Link to={`/domain/${tx.domain_name}`} className="font-medium hover:underline text-sm">{tx.domain_name}</Link>
+                          <Link to={getDomainDetailPath(tx.domain_name)} className="font-medium hover:underline text-sm">{tx.domain_name}</Link>
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground max-w-32 truncate">{tx.buyer_email}</TableCell>

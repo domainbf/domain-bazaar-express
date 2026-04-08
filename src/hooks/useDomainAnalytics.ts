@@ -1,6 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect, useCallback } from 'react';
-import { apiGet, apiPost } from '@/lib/apiClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { DomainAnalytics } from '@/types/domain';
 
@@ -53,11 +52,11 @@ export const useDomainAnalytics = (domainId: string, initialData?: InitialData) 
     const sessionKey = `domain_viewed_${domainId}`;
     if (sessionStorage.getItem(sessionKey)) return;
     try {
-      await apiPost(`/data/domain-views/${domainId}`, {});
-      {
-        sessionStorage.setItem(sessionKey, 'true');
-        setAnalytics(prev => prev ? { ...prev, views: (prev.views || 0) + 1 } : null);
-      }
+      const { error } = await supabase.rpc('increment_domain_views', { p_domain_id: domainId });
+      if (error) throw error;
+
+      sessionStorage.setItem(sessionKey, 'true');
+      setAnalytics(prev => prev ? { ...prev, views: (prev.views || 0) + 1 } : null);
     } catch (err) {
       console.error('Error recording view:', err);
     }
@@ -67,14 +66,23 @@ export const useDomainAnalytics = (domainId: string, initialData?: InitialData) 
     if (!user) return;
     try {
       if (isFavorited) {
-        await fetch(`/api/data/favorites/${domainId}`, {
-          method: 'DELETE',
-          headers: { Authorization: `Bearer ${(user as any).token || ''}` },
-        }).catch(console.error);
+        const { error } = await supabase
+          .from('user_favorites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('domain_id', domainId);
+
+        if (error) throw error;
+
         setIsFavorited(false);
         setAnalytics(prev => prev ? { ...prev, favorites: Math.max(0, (prev.favorites || 0) - 1) } : null);
       } else {
-        await apiPost('/data/favorites', { domain_id: domainId }).catch(console.error);
+        const { error } = await supabase
+          .from('user_favorites')
+          .insert({ user_id: user.id, domain_id: domainId });
+
+        if (error) throw error;
+
         setIsFavorited(true);
         setAnalytics(prev => prev ? { ...prev, favorites: (prev.favorites || 0) + 1 } : null);
       }
@@ -84,10 +92,22 @@ export const useDomainAnalytics = (domainId: string, initialData?: InitialData) 
   }, [domainId, isFavorited, user]);
 
   const checkFavoriteStatus = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setIsFavorited(false);
+      return;
+    }
+
     try {
-      const favorites = await apiGet<{ domain_id: string }[]>('/data/favorites');
-      setIsFavorited((favorites || []).some(f => f.domain_id === domainId));
+      const { data, error } = await supabase
+        .from('user_favorites')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('domain_id', domainId)
+        .limit(1);
+
+      if (error) throw error;
+
+      setIsFavorited(Boolean(data?.length));
     } catch (err) {
       console.error('Error checking favorite status:', err);
     }

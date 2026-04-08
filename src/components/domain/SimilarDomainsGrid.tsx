@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Eye, Heart, TrendingUp, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { getDomainDetailPath } from '@/lib/domainRouting';
 
 interface SimilarDomainsGridProps {
   domains: Domain[];
@@ -68,7 +69,7 @@ export const SimilarDomainsGrid: React.FC<SimilarDomainsGridProps> = ({
           >
             <div 
               className="p-4 border rounded-xl bg-card hover:shadow-md transition-all duration-300 cursor-pointer hover:border-primary/30"
-              onClick={() => navigate(`/domain/${domain.name}`)}
+              onClick={() => navigate(getDomainDetailPath(domain.name))}
             >
               <div className="space-y-3">
                 {/* 相似度和验证标签 */}

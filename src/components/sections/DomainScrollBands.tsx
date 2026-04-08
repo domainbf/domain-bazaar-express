@@ -1,6 +1,7 @@
 import { Gavel, Flame, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useHomeData } from '@/hooks/useHomeData';
+import { getDomainDetailPath } from '@/lib/domainRouting';
 
 export type BandType = 'auction' | 'hot' | 'sold';
 
@@ -75,7 +76,7 @@ function LogoCard({ item, onClick, index }: { item: DomainChip; onClick: () => v
 function MarqueeRow({ items, direction, onChipClick }: {
   items: DomainChip[];
   direction: 'ltr' | 'rtl';
-  onChipClick: (id: string) => void;
+  onChipClick: (domainName: string) => void;
 }) {
   if (!items.length) return null;
   const doubled = [...items, ...items];
@@ -88,7 +89,7 @@ function MarqueeRow({ items, direction, onChipClick }: {
         onMouseLeave={(e) => (e.currentTarget.style.animationPlayState = 'running')}
       >
         {doubled.map((item, i) => (
-          <LogoCard key={`${item.id}-${i}`} item={item} onClick={() => onChipClick(item.id)} index={i} />
+          <LogoCard key={`${item.id}-${i}`} item={item} onClick={() => onChipClick(item.name)} index={i} />
         ))}
       </div>
     </div>
@@ -119,7 +120,7 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
 
   const pad = (arr: DomainChip[]) => (arr.length >= 4 ? arr : [...arr, ...arr]);
 
-  const handleChipClick = (id: string) => navigate(`/domain/${id}`);
+  const handleChipClick = (domainName: string) => navigate(getDomainDetailPath(domainName));
 
   if (!auctionDomains.length && !hotDomains.length) return null;
 

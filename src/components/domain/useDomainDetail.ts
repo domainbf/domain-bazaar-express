@@ -1,7 +1,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
-import { apiGet } from "@/lib/apiClient";
+import { supabase } from "@/integrations/supabase/client";
+import { isUuidLike, safeDecodeDomainIdentifier } from "@/lib/domainRouting";
 import { Domain } from "@/types/domain";
 
 interface DomainDetailResponse {
@@ -29,39 +30,104 @@ interface DomainDetailResponse {
   similarDomains: Domain[];
 }
 
+const toDomain = (
+  domain: Partial<DomainDetailResponse['domain']> | null | undefined,
+  analytics?: { views?: number | null; favorites?: number | null; offers?: number | null } | null,
+  owner?: DomainDetailResponse['domain']['owner'] | null,
+): Domain => ({
+  id: String(domain?.id ?? ''),
+  name: String(domain?.name ?? ''),
+  price: Number(domain?.price) || 0,
+  category: String(domain?.category ?? 'standard'),
+  description: String(domain?.description ?? ''),
+  status: String(domain?.status ?? 'available'),
+  highlight: Boolean(domain?.highlight),
+  owner_id: String(domain?.owner_id ?? ''),
+  created_at: String(domain?.created_at ?? new Date().toISOString()),
+  is_verified: Boolean(domain?.is_verified),
+  verification_status: String(domain?.verification_status ?? 'pending'),
+  currency: String(domain?.currency ?? 'CNY'),
+  views: Number(analytics?.views ?? domain?.views) || 0,
+  favorites: Number(analytics?.favorites ?? domain?.favorites) || 0,
+  offers: Number(analytics?.offers ?? domain?.offers) || 0,
+  owner: owner ?? domain?.owner ?? undefined,
+});
+
 const fetchDomainDetails = async (identifier: string | undefined) => {
-  if (!identifier) return null;
+  const normalized = safeDecodeDomainIdentifier(identifier);
+  if (!normalized) return null;
 
-  const normalized = decodeURIComponent(identifier).trim();
-  const data = await apiGet<DomainDetailResponse>(`/data/domain-listings/${encodeURIComponent(normalized)}/detail`);
+  const domainQuery = isUuidLike(normalized)
+    ? supabase
+        .from('domain_listings')
+        .select('*')
+        .eq('id', normalized)
+        .maybeSingle()
+    : supabase
+        .from('domain_listings')
+        .select('*')
+        .ilike('name', normalized)
+        .limit(1)
+        .maybeSingle();
 
-  const d = data.domain;
-  const processedDomain: Domain = {
-    id: d.id,
-    name: d.name || '',
-    price: Number(d.price) || 0,
-    category: d.category || 'standard',
-    description: d.description || '',
-    status: d.status || 'available',
-    highlight: Boolean(d.highlight),
-    owner_id: d.owner_id || '',
-    created_at: d.created_at || new Date().toISOString(),
-    is_verified: Boolean(d.is_verified),
-    verification_status: d.verification_status || 'pending',
-    currency: d.currency || 'CNY',
-    views: Number(d.views) || 0,
-    favorites: Number(d.favorites) || 0,
-    offers: Number(d.offers) || 0,
-    owner: d.owner ?? undefined,
-  };
+  const { data: domainRow, error: domainError } = await domainQuery;
+
+  if (domainError) {
+    throw new Error(domainError.message);
+  }
+
+  if (!domainRow) {
+    return null;
+  }
+
+  const [analyticsResult, priceHistoryResult, similarDomainsResult, ownerResult] = await Promise.allSettled([
+    supabase
+      .from('domain_analytics')
+      .select('views, favorites, offers')
+      .eq('domain_id', domainRow.id)
+      .maybeSingle(),
+    supabase
+      .from('domain_price_history')
+      .select('id, domain_id, price, previous_price, created_at')
+      .eq('domain_id', domainRow.id)
+      .order('created_at', { ascending: true })
+      .limit(50),
+    supabase
+      .from('domain_listings')
+      .select('id, name, price, category, description, status, highlight, owner_id, created_at, is_verified, verification_status, currency')
+      .eq('status', 'available')
+      .neq('id', domainRow.id)
+      .order('created_at', { ascending: false })
+      .limit(6),
+    domainRow.owner_id
+      ? supabase
+          .from('profiles')
+          .select('id, username, full_name, avatar_url, bio, seller_rating, seller_verified')
+          .eq('id', domainRow.owner_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+  ]);
+
+  const analytics = analyticsResult.status === 'fulfilled' && !analyticsResult.value.error
+    ? analyticsResult.value.data
+    : null;
+
+  const priceHistory = priceHistoryResult.status === 'fulfilled' && !priceHistoryResult.value.error
+    ? priceHistoryResult.value.data ?? []
+    : [];
+
+  const similarDomains = similarDomainsResult.status === 'fulfilled' && !similarDomainsResult.value.error
+    ? (similarDomainsResult.value.data ?? []).map((domain) => toDomain(domain))
+    : [];
+
+  const owner = ownerResult.status === 'fulfilled' && !ownerResult.value.error
+    ? ownerResult.value.data ?? null
+    : null;
 
   return {
-    domain: processedDomain,
-    priceHistory: data.priceHistory || [],
-    similarDomains: (data.similarDomains || []).map((s: any) => ({
-      ...s,
-      price: Number(s.price) || 0,
-    })),
+    domain: toDomain(domainRow, analytics, owner),
+    priceHistory,
+    similarDomains,
   };
 };
 

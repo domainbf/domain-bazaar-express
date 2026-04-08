@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
+import { getDomainDetailPath } from '@/lib/domainRouting';
 
 interface DomainCardProps {
   domain: string;
@@ -143,7 +144,7 @@ export const DomainCard = ({
 
       {/* Domain name — visual anchor */}
       <div className="flex flex-col items-center pt-8 pb-2">
-        <Link to={`/domain/${domain}`} className="w-full text-center">
+        <Link to={getDomainDetailPath(domain)} className="w-full text-center">
           <h3 className="text-4xl sm:text-5xl font-black text-foreground uppercase tracking-tight
             hover:text-primary transition-colors duration-150 leading-none">
             {domain}
@@ -177,7 +178,7 @@ export const DomainCard = ({
           </span>
         ) : (
           <>
-            <Link to={`/domain/${domain}`} className="flex-1" data-testid={`link-domain-detail-${domainId}`}>
+            <Link to={getDomainDetailPath(domain)} className="flex-1" data-testid={`link-domain-detail-${domainId}`}>
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.94 }} className="w-full">
                 <Button
                   className="w-full text-xs transition-colors bg-foreground text-background hover:bg-foreground/90 border-0"
