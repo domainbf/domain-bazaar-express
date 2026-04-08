@@ -18,6 +18,7 @@ import { UserReviews } from '@/components/reviews/ReviewSystem';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { getDomainDetailPath } from '@/lib/domainRouting';
 
 interface SellerStats {
   totalListings: number;
@@ -239,7 +240,7 @@ export const UserProfilePage = () => {
                 {filteredDomains.map(domain => (
                   <Link
                     key={domain.id}
-                    to={`/domain/${domain.id}`}
+                      to={getDomainDetailPath(domain)}
                     data-testid={`seller-domain-${domain.id}`}
                     className="group block rounded-xl border border-border bg-card hover:border-primary/50 hover:shadow-md transition-all p-4"
                   >

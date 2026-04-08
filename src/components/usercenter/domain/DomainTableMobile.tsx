@@ -7,6 +7,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, ExternalLink, DollarSign, Tag, Shield, Star, Calendar } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { getDomainDetailPath } from '@/lib/domainRouting';
 
 const categoryMap: Record<string, string> = {
   premium: '精品',
@@ -135,7 +136,7 @@ export const DomainTableMobile = ({ domains, onDomainUpdate }: DomainTableMobile
                   验证
                 </Button>
               )}
-              <Link to={`/domain/${domain.name}`} target="_blank" className="flex-1">
+              <Link to={getDomainDetailPath(domain)} target="_blank" className="flex-1">
                 <Button variant="outline" size="sm" className="w-full">
                   <ExternalLink className="w-4 h-4 mr-1" />
                   查看

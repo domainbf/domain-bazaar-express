@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiGet } from '@/lib/apiClient';
+import { Link } from 'react-router-dom';
+import { getDomainDetailPath } from '@/lib/domainRouting';
 
 /* ─────────────────────────── TYPES ─────────────────────────── */
 interface EnhancedEvaluation {
@@ -633,9 +635,9 @@ export const DomainValuationTool: React.FC<DomainValuationToolProps> = ({ domain
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
                   {platDomains.slice(0, 6).map(d => (
-                    <a
+                    <Link
                       key={d.id}
-                      href={`/domain/${d.name}`}
+                      to={getDomainDetailPath(d.name)}
                       className="flex items-center justify-between p-3 rounded-lg border hover:border-primary hover:bg-primary/5 transition-colors group"
                     >
                       <div className="flex items-center gap-2 min-w-0">
@@ -644,7 +646,7 @@ export const DomainValuationTool: React.FC<DomainValuationToolProps> = ({ domain
                         {d.is_verified && <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">已验证</Badge>}
                       </div>
                       <span className="text-sm font-bold text-foreground ml-2 shrink-0">¥{Number(d.price).toLocaleString()}</span>
-                    </a>
+                    </Link>
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1">

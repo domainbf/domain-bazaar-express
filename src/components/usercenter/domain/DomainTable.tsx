@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { getDomainDetailPath } from '@/lib/domainRouting';
 
 interface Domain {
   id: string;
@@ -170,7 +171,7 @@ export const DomainTable = ({ domains, onDomainUpdate, currentUserId }: DomainTa
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Link to={`/domain/${domain.name}`} target="_blank">
+                        <Link to={getDomainDetailPath(domain)} target="_blank">
                           <Button variant="ghost" size="sm">
                             <ExternalLink className="w-4 h-4" />
                           </Button>

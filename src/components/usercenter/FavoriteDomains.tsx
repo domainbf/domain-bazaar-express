@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { Heart, ExternalLink, Trash2, RefreshCw, ShoppingCart } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getDomainDetailPath } from '@/lib/domainRouting';
 
 interface FavoriteDomain {
   id: string;
@@ -237,7 +238,7 @@ export const FavoriteDomains = () => {
                         ¥{favorite.domain.price.toLocaleString()}
                       </p>
                     </div>
-                    <Link to={`/domain/${favorite.domain.name}`}>
+                    <Link to={getDomainDetailPath(favorite.domain)}>
                       <Button size="sm">
                         <ExternalLink className="h-4 w-4 mr-1" />
                         查看详情
