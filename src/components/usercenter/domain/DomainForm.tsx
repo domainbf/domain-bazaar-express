@@ -158,11 +158,6 @@ export const DomainForm = ({
           description: '更改已即时生效'
         });
       }
-        
-        toast.success('域名信息已更新', {
-          description: '更改已即时生效'
-        });
-      }
       
       setSaveSuccess(true);
       setTimeout(() => { onSuccess(); }, 400);
