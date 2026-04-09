@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
-import { apiGet } from '@/lib/apiClient';
+import { supabase } from '@/integrations/supabase/client';
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { PendingVerifications } from '@/components/admin/PendingVerifications';
 import { AllDomainListings } from '@/components/admin/AllDomainListings';
@@ -81,15 +81,17 @@ export const AdminPanel = () => {
 
   const loadBadges = async () => {
     try {
-      const [stats, fb] = await Promise.all([
-        apiGet<any>('/data/admin/stats'),
-        apiGet<any>('/data/admin/feedback/count').catch(() => ({ count: 0 })),
+      const [verRes, disputeRes, offerRes, ticketRes] = await Promise.all([
+        supabase.from('domain_verifications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('disputes').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+        supabase.from('domain_offers').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('support_tickets').select('id', { count: 'exact', head: true }).eq('status', 'open'),
       ]);
-      setPendingVerifications(stats?.pendingVerifications ?? 0);
-      setPendingDisputes(stats?.openDisputes ?? 0);
-      setPendingOffers(stats?.pendingOffers ?? 0);
-      setPendingTickets(stats?.openTickets ?? 0);
-      setNewFeedback(fb?.count ?? 0);
+      setPendingVerifications(verRes.count ?? 0);
+      setPendingDisputes(disputeRes.count ?? 0);
+      setPendingOffers(offerRes.count ?? 0);
+      setPendingTickets(ticketRes.count ?? 0);
+      setNewFeedback(0);
     } catch {}
   };
 
