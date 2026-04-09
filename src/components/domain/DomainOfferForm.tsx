@@ -111,15 +111,32 @@ export const DomainOfferForm = ({
       };
 
       try {
-        const res = await fetch('/api/data/domain-offers', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
-          body: JSON.stringify(requestBody),
-        });
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error((errData as any).error || '报价提交失败，请稍后重试');
-        }
+        // Insert offer directly into Supabase
+        const { error: insertError } = await supabase
+          .from('domain_offers')
+          .insert({
+            domain_id: domainInfo.domainId,
+            seller_id: domainInfo.sellerId,
+            buyer_id: session?.user?.id || null,
+            amount: parseFloat(offer),
+            contact_email: email,
+            message: message || '',
+            status: 'pending',
+          });
+
+        if (insertError) throw new Error(insertError.message);
+
+        // Send email notification via edge function (best-effort)
+        supabase.functions.invoke('send-offer', {
+          body: {
+            domain: domain,
+            domainId: domainInfo.domainId,
+            offer: offer,
+            email: email,
+            message: message,
+            buyerId: session?.user?.id || null,
+          },
+        }).catch(err => console.warn('Offer email notification failed:', err));
 
         toast.success('您的报价已成功提交！买家和卖家都将收到邮件通知。');
         

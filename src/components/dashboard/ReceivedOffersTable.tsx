@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { apiPost, apiPatch } from "@/lib/apiClient";
+import { supabase } from "@/integrations/supabase/client";
 import { DomainOffer } from "@/types/domain";
 import { Check, X, Mail, AlertCircle, Clock, Package, CheckCircle2, XCircle, Loader2, ArrowRight, MessageSquare, DollarSign, ArrowLeftRight } from 'lucide-react';
 import { useState, useEffect } from "react";
@@ -68,20 +68,23 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
       const offerData = offers.find(o => o.id === offerId) as any;
       if (!offerData) { toast.error('报价不存在'); return; }
 
-      await apiPatch(`/data/domain-offers/${offerId}`, { status: action });
+      const { error: pErr } = await supabase.from('domain_offers').update({ status: action }).eq('id', offerId);
+      if (pErr) throw new Error(pErr.message);
 
       // Create transaction record when seller accepts
       let newTransactionId: string | null = null;
       if (action === 'accepted' && offerData.buyer_id) {
         try {
-          const txResult = await apiPost<any>('/data/transactions', {
-            buyer_id: offerData.buyer_id,
-            seller_id: user?.id,
-            domain_id: offerData.domain_id,
-            offer_id: offerId,
-            amount: offerData.amount,
-          });
-          if (txResult?.id) newTransactionId = txResult.id;
+          const { data: txData, error: txError } = await supabase.from('transactions').insert({
+              buyer_id: offerData.buyer_id,
+              seller_id: user?.id,
+              domain_id: offerData.domain_id,
+              offer_id: offerId,
+              amount: offerData.amount,
+              payment_method: 'pending',
+              status: 'pending',
+            }).select('id').single();
+            if (!txError && txData?.id) newTransactionId = txData.id;
         } catch (txErr) {
           console.error('Transaction creation error:', txErr);
         }
@@ -125,7 +128,8 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
         counter_note: counterNote.trim(),
       });
 
-      await apiPatch(`/data/domain-offers/${offer.id}`, { status: 'countered', message: encodedMessage });
+      const { error: cErr } = await supabase.from('domain_offers').update({ status: 'countered', message: encodedMessage }).eq('id', offer.id);
+      if (cErr) throw new Error(cErr.message);
 
       toast.success('还价已发送，买家将收到站内通知及邮件提醒');
       setCounterDialog(null);

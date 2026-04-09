@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { apiPost, apiPatch, apiGet } from '@/lib/apiClient';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, CheckCircle, AlertCircle, Globe, DollarSign, Tag, FileText, Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -126,25 +126,33 @@ export const DomainForm = ({
       
       if (mode === 'add') {
         // Check if domain already exists
-        try {
-          const existing = await apiGet<{ id: string } | null>(`/data/domain-listings/by-name/${encodeURIComponent(domainData.name)}`);
-          if (existing) {
-            toast.error('该域名已被添加，请检查后重试');
-            setIsLoading(false);
-            return;
-          }
-        } catch {
-          // 404 means not found = ok to add
+        const { data: existing } = await supabase
+          .from('domain_listings')
+          .select('id')
+          .ilike('name', domainData.name)
+          .limit(1)
+          .maybeSingle();
+        if (existing) {
+          toast.error('该域名已被添加，请检查后重试');
+          setIsLoading(false);
+          return;
         }
         
-        await apiPost('/data/domain-listings', domainData);
+        const { error: insertErr } = await supabase
+          .from('domain_listings')
+          .insert({ ...domainData, owner_id: user.id });
+        if (insertErr) throw new Error(insertErr.message);
         
         toast.success('域名已成功上架', {
           description: `${domainData.name} 已添加到您的域名列表`
         });
       } else if (mode === 'edit' && domain?.id) {
         const { name, ...updateData } = domainData;
-        await apiPatch(`/data/domain-listings/${domain.id}`, updateData);
+        const { error: updateErr } = await supabase
+          .from('domain_listings')
+          .update(updateData)
+          .eq('id', domain.id);
+        if (updateErr) throw new Error(updateErr.message);
         
         toast.success('域名信息已更新', {
           description: '更改已即时生效'
