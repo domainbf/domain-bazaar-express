@@ -1,7 +1,7 @@
 
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { useState, useEffect } from 'react';
-import { apiGet } from '@/lib/apiClient';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
@@ -60,14 +60,21 @@ export const TransactionHistory = () => {
     else setIsLoading(true);
     
     try {
-      const [received, sent] = await Promise.all([
-        apiGet<DomainOffer[]>('/data/domain-offers?role=seller'),
-        apiGet<DomainOffer[]>('/data/domain-offers?role=buyer'),
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      if (!userId) throw new Error('请先登录');
+
+      const [receivedRes, sentRes] = await Promise.all([
+        supabase.from('domain_offers').select('*').eq('seller_id', userId).order('created_at', { ascending: false }),
+        supabase.from('domain_offers').select('*').eq('buyer_id', userId).order('created_at', { ascending: false }),
       ]);
 
-      setReceivedOffers(received || []);
-      setSentOffers(sent || []);
-      calculateStats(received || [], sent || []);
+      const received = (receivedRes.data ?? []) as DomainOffer[];
+      const sent = (sentRes.data ?? []) as DomainOffer[];
+
+      setReceivedOffers(received);
+      setSentOffers(sent);
+      calculateStats(received, sent);
     } catch (error: any) {
       console.error('Error loading transactions:', error);
       toast.error(error.message || '加载交易记录失败');
