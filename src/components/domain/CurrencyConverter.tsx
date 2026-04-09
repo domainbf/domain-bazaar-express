@@ -28,7 +28,50 @@ const CURRENCIES = [
   { code: "THB", symbol: "฿", name: "泰铢" },
 ];
 
-const FRANKFURTER_BASE = "https://api.frankfurter.app";
+// Fallback rates relative to CNY (1 CNY = X target)
+const FALLBACK_RATES_FROM_CNY: Record<string, number> = {
+  CNY: 1,
+  USD: 0.1379,
+  EUR: 0.1267,
+  GBP: 0.1089,
+  JPY: 20.83,
+  HKD: 1.078,
+  SGD: 0.1862,
+  AUD: 0.2137,
+  CAD: 0.1923,
+  KRW: 189.5,
+  TWD: 4.46,
+  THB: 4.82,
+};
+
+const CACHE_KEY = "currency_rates_cache";
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+function getCachedRates(base: string): Record<string, number> | null {
+  try {
+    const raw = sessionStorage.getItem(`${CACHE_KEY}_${base}`);
+    if (!raw) return null;
+    const { rates, ts } = JSON.parse(raw);
+    if (Date.now() - ts < CACHE_TTL) return rates;
+  } catch { /* ignore */ }
+  return null;
+}
+
+function setCachedRates(base: string, rates: Record<string, number>) {
+  try {
+    sessionStorage.setItem(`${CACHE_KEY}_${base}`, JSON.stringify({ rates, ts: Date.now() }));
+  } catch { /* ignore */ }
+}
+
+function getFallbackRate(from: string, to: string): number {
+  if (from === to) return 1;
+  const fromCny = FALLBACK_RATES_FROM_CNY[from];
+  const toCny = FALLBACK_RATES_FROM_CNY[to];
+  if (!fromCny || !toCny) return 1;
+  // Convert: amount in `from` -> CNY -> `to`
+  // 1 from = (1/fromCny) CNY, then * toCny
+  return toCny / fromCny;
+}
 
 function formatAmount(amount: number, code: string): string {
   if (code === "JPY" || code === "KRW") {
@@ -44,26 +87,33 @@ export function CurrencyConverter({ priceAmount, priceCurrency }: CurrencyConver
   const [targetCurrency, setTargetCurrency] = useState(defaultTarget);
   const [rate, setRate] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [isFallback, setIsFallback] = useState(false);
 
   const fetchRate = useCallback(async (from: string, to: string) => {
-    if (from === to) {
-      setRate(1);
+    if (from === to) { setRate(1); setIsFallback(false); setLoading(false); return; }
+
+    // Check cache first
+    const cached = getCachedRates(from);
+    if (cached && cached[to] != null) {
+      setRate(cached[to]);
+      setIsFallback(false);
       setLoading(false);
       return;
     }
+
     setLoading(true);
-    setError(false);
     try {
-      const res = await fetch(`${FRANKFURTER_BASE}/latest?from=${from}&to=${to}`);
+      const res = await fetch(`https://open.er-api.com/v6/latest/${from}`);
       if (!res.ok) throw new Error("fetch failed");
       const data = await res.json();
-      setRate(data.rates[to] ?? null);
-      setLastUpdated(data.date ?? null);
+      if (data.result !== "success" || !data.rates) throw new Error("bad response");
+      setCachedRates(from, data.rates);
+      setRate(data.rates[to] ?? getFallbackRate(from, to));
+      setIsFallback(!data.rates[to]);
     } catch {
-      setError(true);
-      setRate(null);
+      const fb = getFallbackRate(from, to);
+      setRate(fb);
+      setIsFallback(true);
     } finally {
       setLoading(false);
     }
@@ -76,7 +126,6 @@ export function CurrencyConverter({ priceAmount, priceCurrency }: CurrencyConver
   const convertedAmount = rate != null ? priceAmount * rate : null;
   const targetInfo = CURRENCIES.find(c => c.code === targetCurrency);
   const baseInfo = CURRENCIES.find(c => c.code === baseCurrency);
-
   const availableTargets = CURRENCIES.filter(c => c.code !== baseCurrency);
 
   return (
@@ -95,12 +144,10 @@ export function CurrencyConverter({ priceAmount, priceCurrency }: CurrencyConver
               加载中...
             </span>
           )}
-          {!loading && error && (
-            <span className="text-destructive text-xs">汇率获取失败</span>
-          )}
-          {!loading && !error && convertedAmount != null && (
+          {!loading && convertedAmount != null && (
             <span className="font-bold text-foreground text-base">
               {targetInfo?.symbol}{formatAmount(convertedAmount, targetCurrency)}
+              {isFallback && <span className="ml-1 text-xs font-normal text-muted-foreground">(参考汇率)</span>}
             </span>
           )}
         </div>
@@ -131,7 +178,10 @@ export function CurrencyConverter({ priceAmount, priceCurrency }: CurrencyConver
             variant="ghost"
             size="sm"
             className="h-7 w-7 p-0"
-            onClick={() => fetchRate(baseCurrency, targetCurrency)}
+            onClick={() => {
+              try { sessionStorage.removeItem(`${CACHE_KEY}_${baseCurrency}`); } catch {}
+              fetchRate(baseCurrency, targetCurrency);
+            }}
             disabled={loading}
             title="刷新汇率"
           >
@@ -139,7 +189,6 @@ export function CurrencyConverter({ priceAmount, priceCurrency }: CurrencyConver
           </Button>
         </div>
       </div>
-
     </div>
   );
 }
