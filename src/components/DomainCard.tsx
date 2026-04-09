@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { apiGet, apiPost, apiDelete } from '@/lib/apiClient';
+import { supabase } from '@/integrations/supabase/client';
 import { DomainOfferForm } from './domain/DomainOfferForm';
 import { Badge } from './ui/badge';
 import { Heart, Shield } from 'lucide-react';
@@ -48,8 +48,13 @@ export const DomainCard = ({
     const checkFavorite = async () => {
       if (!user || !domainId) return;
       try {
-        const favorites = await apiGet<{ domain_id: string }[]>('/data/favorites');
-        setIsFavorited((favorites || []).some(f => f.domain_id === domainId));
+        const { data } = await supabase
+          .from('user_favorites')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('domain_id', domainId)
+          .limit(1);
+        setIsFavorited(Boolean(data?.length));
       } catch (err) { console.error(err); }
     };
     checkFavorite();
@@ -60,7 +65,12 @@ export const DomainCard = ({
       setIsAuthenticated(!!user);
       if (!domainId || !sellerId) {
         try {
-          const listing = await apiGet<{ id: string; owner_id: string }>(`/data/domain-listings/by-name/${encodeURIComponent(domain)}`);
+          const { data: listing } = await supabase
+            .from('domain_listings')
+            .select('id, owner_id')
+            .ilike('name', domain)
+            .limit(1)
+            .maybeSingle();
           if (listing) setDomainInfo({ id: listing.id, ownerId: listing.owner_id });
         } catch { /* proceed without domain info */ }
       }
@@ -80,11 +90,11 @@ export const DomainCard = ({
     setIsLoadingFavorite(true);
     try {
       if (isFavorited) {
-        await apiDelete(`/data/favorites/${targetId}`);
+        await supabase.from('user_favorites').delete().eq('user_id', user.id).eq('domain_id', targetId);
         setIsFavorited(false);
         toast.success('已取消收藏');
       } else {
-        await apiPost('/data/favorites', { domain_id: targetId });
+        await supabase.from('user_favorites').insert({ user_id: user.id, domain_id: targetId });
         setIsFavorited(true);
         setHeartKey(k => k + 1);
         toast.success('已添加到收藏');
