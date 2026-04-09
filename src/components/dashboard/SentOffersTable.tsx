@@ -50,7 +50,8 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
     setProcessingOffers(prev => ({ ...prev, [offerId]: true }));
     try {
       if (!user) { toast.error('请先登录'); return; }
-      await apiPatch(`/data/domain-offers/${offerId}`, { status: 'cancelled' });
+      const { error: patchErr } = await supabase.from('domain_offers').update({ status: 'cancelled' }).eq('id', offerId);
+      if (patchErr) throw new Error(patchErr.message);
       toast.success('报价已取消');
       setCancelDialog(null);
       if (onRefresh) await onRefresh();
@@ -68,19 +69,22 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
       if (!user) { toast.error('请先登录'); return; }
       if (action === 'accept') {
         const counterAmt = parsed.counterAmount ?? offer.amount;
-        await apiPatch(`/data/domain-offers/${offer.id}`, { status: 'accepted', amount: counterAmt });
+        const { error: pErr } = await supabase.from('domain_offers').update({ status: 'accepted', amount: counterAmt }).eq('id', offer.id);
+        if (pErr) throw new Error(pErr.message);
 
         // Create transaction record when buyer accepts seller's counter-offer
         if (offer.domain_id && offer.seller_id && user?.id) {
           try {
-            const txResult = await apiPost<any>('/data/transactions', {
+            const { data: txData, error: txError } = await supabase.from('transactions').insert({
               buyer_id: user.id,
               seller_id: offer.seller_id,
               domain_id: offer.domain_id,
               offer_id: offer.id,
               amount: counterAmt,
-            });
-            if (txResult?.id) {
+              payment_method: 'pending',
+              status: 'pending',
+            }).select('id').single();
+            if (!txError && txData?.id) {
               toast.success('已接受卖家还价，交易已创建');
               setCounterResponseDialog(null);
               if (onRefresh) await onRefresh();
@@ -94,7 +98,8 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
 
         toast.success('已接受卖家还价');
       } else {
-        await apiPatch(`/data/domain-offers/${offer.id}`, { status: 'rejected' });
+        const { error: rErr } = await supabase.from('domain_offers').update({ status: 'rejected' }).eq('id', offer.id);
+        if (rErr) throw new Error(rErr.message);
         toast.success('已拒绝卖家还价');
       }
       setCounterResponseDialog(null);
