@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { apiPost, apiPatch } from "@/lib/apiClient";
+import { supabase } from "@/integrations/supabase/client";
 import { DomainOffer } from "@/types/domain";
 import { Check, X, Mail, AlertCircle, Clock, Package, CheckCircle2, XCircle, Loader2, ArrowRight, MessageSquare, DollarSign, ArrowLeftRight } from 'lucide-react';
 import { useState, useEffect } from "react";

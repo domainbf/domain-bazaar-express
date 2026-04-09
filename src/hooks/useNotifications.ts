@@ -1,17 +1,22 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef } from 'react';
-import { apiGet, apiPatch, apiPost } from '@/lib/apiClient';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Notification } from '@/types/domain';
 import { toast } from 'sonner';
-import { useRealtimeSubscription } from './useRealtimeSubscription';
 
 const NOTIF_KEY = (userId: string) => ['notifications', userId] as const;
 
-const fetchNotifications = async (): Promise<Notification[]> => {
+const fetchNotifications = async (userId: string): Promise<Notification[]> => {
   try {
-    const data = await apiGet<Notification[]>('/data/notifications');
-    return data ?? [];
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (error) throw error;
+    return (data ?? []) as Notification[];
   } catch {
     return [];
   }
@@ -24,7 +29,7 @@ export const useNotifications = () => {
 
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: user ? NOTIF_KEY(user.id) : ['notifications', 'none'],
-    queryFn: () => (user ? fetchNotifications() : Promise.resolve([])),
+    queryFn: () => (user ? fetchNotifications(user.id) : Promise.resolve([])),
     enabled: !!user,
     staleTime: 60 * 1000,
     gcTime: 5 * 60 * 1000,
@@ -33,7 +38,6 @@ export const useNotifications = () => {
 
   const unreadCount = (notifications as Notification[]).filter(n => !n.is_read).length;
 
-  // Keep handler ref stable
   useEffect(() => {
     if (!user) return;
     handlerRef.current = (newNotif: Notification) => {
@@ -50,18 +54,23 @@ export const useNotifications = () => {
     };
   }, [user?.id, queryClient]);
 
-  // Real-time subscription via SSE
-  useRealtimeSubscription(
-    ['notifications'],
-    (event) => {
-      if (!user || event.type !== 'db-change') return;
-      if (event.eventType !== 'INSERT') return;
-      const row = event.new as unknown as Notification | undefined;
-      if (!row || row.user_id !== user.id) return;
-      handlerRef.current?.(row);
-    },
-    !!user
-  );
+  // Realtime subscription via Supabase channels
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel('notifications-realtime')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+        filter: `user_id=eq.${user.id}`,
+      }, (payload) => {
+        handlerRef.current?.(payload.new as Notification);
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id]);
 
   const markAsRead = async (notificationId: string) => {
     if (!user) return;
@@ -69,7 +78,7 @@ export const useNotifications = () => {
       old.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
     );
     try {
-      await apiPatch(`/data/notifications/${notificationId}/read`, {});
+      await supabase.rpc('mark_notification_as_read', { notification_id_param: notificationId });
     } catch (e) {
       console.warn('markAsRead failed:', e);
     }
@@ -81,7 +90,7 @@ export const useNotifications = () => {
       old.map(n => ({ ...n, is_read: true }))
     );
     try {
-      await apiPost('/data/notifications/read-all', {});
+      await supabase.rpc('mark_all_notifications_as_read', { user_id_param: user.id });
     } catch (e) {
       console.warn('markAllAsRead failed:', e);
     }
