@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { apiGet } from '@/lib/apiClient';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
@@ -40,14 +40,39 @@ export const DashboardTrendChart = () => {
   const fetchTrendData = async () => {
     setIsLoading(true);
     try {
-      const data = await apiGet<{ trends: TrendData[]; categories: { name: string; value: number }[] }>('/data/admin/trend-stats');
-      if (data?.trends) setTrendData(data.trends);
-      if (data?.categories) {
-        setCategoryData(data.categories.map((c: any) => ({
-          name: CAT_LABELS[c.name] || c.name,
-          value: c.value,
-        })));
+      // Generate 7-day trend from actual data
+      const today = new Date();
+      const sevenDaysAgo = new Date(today);
+      sevenDaysAgo.setDate(today.getDate() - 6);
+
+      const [domainsRes, offersRes, catRes] = await Promise.all([
+        supabase.from('domain_listings').select('created_at').gte('created_at', sevenDaysAgo.toISOString()),
+        supabase.from('domain_offers').select('created_at').gte('created_at', sevenDaysAgo.toISOString()),
+        supabase.from('domain_listings').select('category'),
+      ]);
+
+      // Build daily counts
+      const trends: TrendData[] = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        const dayDomains = (domainsRes.data ?? []).filter(r => r.created_at?.startsWith(dateStr)).length;
+        const dayOffers = (offersRes.data ?? []).filter(r => r.created_at?.startsWith(dateStr)).length;
+        trends.push({ date: dateStr.slice(5), users: 0, domains: dayDomains, offers: dayOffers, views: 0 });
       }
+      setTrendData(trends);
+
+      // Category distribution
+      const catCounts: Record<string, number> = {};
+      for (const row of (catRes.data ?? [])) {
+        const cat = (row.category as string) || 'standard';
+        catCounts[cat] = (catCounts[cat] || 0) + 1;
+      }
+      setCategoryData(Object.entries(catCounts).map(([name, value]) => ({
+        name: CAT_LABELS[name] || name,
+        value,
+      })));
     } catch (error) {
       console.error('Error fetching trend data:', error);
     } finally {
