@@ -116,7 +116,7 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
           <button onClick={resetErrorBoundary} className="w-full px-4 py-3 bg-foreground text-background rounded-lg hover:bg-foreground/90 transition-colors font-medium">
             重试
           </button>
-          <button onClick={() => window.location.href = '/'} className="w-full px-4 py-3 border border-border rounded-lg hover:bg-accent transition-colors text-foreground">
+          <button onClick={() => window.location.replace('/')} className="w-full px-4 py-3 border border-border rounded-lg hover:bg-accent transition-colors text-foreground">
             返回首页
           </button>
         </div>
@@ -268,32 +268,35 @@ AnimatedRoutes.displayName = 'AnimatedRoutes';
 
 function App() {
   useEffect(() => {
-    // Preload bottom-nav pages immediately (these are the most visited)
-    import('./pages/Marketplace').catch(() => {});
-    import('./pages/AuctionsPage').catch(() => {});
-    import('./pages/UserCenter').catch(() => {});
+    const connection = (navigator as Navigator & {
+      connection?: {
+        saveData?: boolean;
+        effectiveType?: string;
+      };
+    }).connection;
 
-    // Preload secondary routes after first paint settles
-    const timer = setTimeout(() => {
-      import('./components/domain/DomainDetailPage').catch(() => {});
+    if (connection?.saveData || ['slow-2g', '2g'].includes(connection?.effectiveType ?? '')) {
+      return;
+    }
+
+    const primaryTimer = window.setTimeout(() => {
+      import('./pages/Marketplace').catch(() => {});
+      import('./pages/AuctionsPage').catch(() => {});
+    }, 1200);
+
+    const secondaryTimer = window.setTimeout(() => {
       import('./pages/AuthPage').catch(() => {});
-      import('./pages/Dashboard').catch(() => {});
-      import('./pages/SellDomain').catch(() => {});
-    }, 800);
-    
-    // Preload remaining pages in idle time
-    const timer2 = setTimeout(() => {
-      import('./pages/FAQPage').catch(() => {});
-      import('./pages/ContactPage').catch(() => {});
-      import('./pages/ValuationPage').catch(() => {});
-      import('./pages/HelpPage').catch(() => {});
-    }, 3000);
-    
-    return () => { clearTimeout(timer); clearTimeout(timer2); };
+      import('./pages/UserCenter').catch(() => {});
+    }, 4000);
+
+    return () => {
+      clearTimeout(primaryTimer);
+      clearTimeout(secondaryTimer);
+    };
   }, []);
 
   return (
-    <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => window.location.reload()}>
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
       <DynamicFavicon />
       <CustomScripts />
       <PWAInstallBanner />

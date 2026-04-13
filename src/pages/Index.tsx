@@ -8,7 +8,6 @@ import { Navbar } from '@/components/Navbar';
 import { HeroSection } from '@/components/sections/HeroSection';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthModal } from '@/components/AuthModal';
-import { Domain } from '@/types/domain';
 import { fallbackDomains } from '@/data/availableDomains';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTranslation } from 'react-i18next';
@@ -16,8 +15,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { motion } from 'framer-motion';
 
 import { useNotifications } from '@/hooks/useNotifications';
+import { HomeDomainItem, useHomeData } from '@/hooks/useHomeData';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
-import { useDomainListings } from '@/hooks/useDomainListings';
 import { SkeletonCardGrid } from '@/components/common/SkeletonCard';
 
 import { Footer } from '@/components/sections/Footer';
@@ -29,19 +28,17 @@ const DomainMonitor = lazy(() => import('@/components/tools/DomainMonitor').then
 const SoldDomains = lazy(() => import('@/components/sections/SoldDomains').then(m => ({ default: m.SoldDomains })));
 const SupportSection = lazy(() => import('@/components/sections/SupportSection'));
 
-const FALLBACK_DOMAINS: Domain[] = fallbackDomains.slice(0, 9).map((d, i) => ({
+const FALLBACK_DOMAINS: HomeDomainItem[] = fallbackDomains.slice(0, 9).map((d, i) => ({
   id: `fallback-${i}`,
   name: d.name,
   price: parseInt(d.price),
   category: d.category,
   description: d.description || '',
-  status: 'available',
   highlight: d.highlight,
-  owner_id: '',
-  created_at: new Date().toISOString(),
-  is_verified: true,
-  verification_status: 'verified',
-  views: 0,
+   ownerId: '',
+   createdAt: new Date().toISOString(),
+   isVerified: true,
+   verificationStatus: 'verified',
 }));
 
 const Index = () => {
@@ -55,9 +52,7 @@ const Index = () => {
   const isMobile = useIsMobile();
   const { unreadCount } = useNotifications();
   const { config: siteConfig } = useSiteSettings();
-
-  // ── React Query — shares cache with Marketplace page ──────────
-  const { data: allDomains, isLoading } = useDomainListings();
+  const { data: homeData, isLoading } = useHomeData();
 
   // URL search param
   useEffect(() => {
@@ -66,10 +61,17 @@ const Index = () => {
   }, []);
 
   // Show top-9 by views, with fallback when DB is empty
-  const domains: Domain[] = useMemo(() => {
-    if (!allDomains?.length) return isLoading ? [] : FALLBACK_DOMAINS;
-    return [...allDomains].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 9);
-  }, [allDomains, isLoading]);
+  const domains: HomeDomainItem[] = useMemo(() => {
+    const featured = homeData?.hotDomains ?? [];
+
+    if (!featured.length) {
+      return isLoading ? [] : FALLBACK_DOMAINS;
+    }
+
+    return [...featured]
+      .sort((a, b) => Number(Boolean(b.highlight)) - Number(Boolean(a.highlight)))
+      .slice(0, 9);
+  }, [homeData?.hotDomains, isLoading]);
 
   const filteredDomains = useMemo(() => domains
     .filter(d => {
@@ -170,7 +172,8 @@ const Index = () => {
                           description={domain.description || ''}
                           category={domain.category || ''}
                           domainId={domain.id}
-                          sellerId={domain.owner_id || ''}
+                          sellerId={domain.ownerId || ''}
+                          isVerified={domain.isVerified ?? domain.verificationStatus === 'verified'}
                         />
                       ))}
                     </div>

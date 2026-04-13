@@ -85,7 +85,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
     const u = supaSession.user;
-    const adminStatus = await checkIsAdmin(u.id);
+    const [adminStatus, prof] = await Promise.all([
+      checkIsAdmin(u.id),
+      fetchProfile(u.id),
+    ]);
     const appUser: AppUser = {
       id: u.id,
       email: u.email ?? '',
@@ -98,7 +101,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       refresh_token: supaSession.refresh_token,
       user: appUser,
     };
-    const prof = await fetchProfile(u.id);
     if (!mountedRef.current) return;
     setUser(appUser);
     setSession(appSession);

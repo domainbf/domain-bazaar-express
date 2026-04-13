@@ -2,6 +2,7 @@ import { Gavel, Flame, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useHomeData } from '@/hooks/useHomeData';
 import { getDomainDetailPath } from '@/lib/domainRouting';
+import { DomainWordmark } from './DomainWordmark';
 
 export type BandType = 'auction' | 'hot' | 'sold';
 
@@ -19,14 +20,7 @@ function formatPrice(price: number) {
   return `¥${price.toLocaleString()}`;
 }
 
-function getDomainInitials(name: string): string {
-  const base = name.split('.')[0].toUpperCase();
-  if (base.length <= 4) return base;
-  return base.slice(0, 3);
-}
-
 function LogoCard({ item, onClick, index }: { item: DomainChip; onClick: () => void; index: number }) {
-  const initials = getDomainInitials(item.name);
   const ext = item.name.includes('.') ? '.' + item.name.split('.').slice(1).join('.') : '';
   const base = item.name.split('.')[0].toUpperCase();
 
@@ -45,6 +39,7 @@ function LogoCard({ item, onClick, index }: { item: DomainChip; onClick: () => v
             src={item.logoUrl}
             alt={item.name}
             className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 transition-opacity duration-200"
+            decoding="async"
             style={{ filter: 'grayscale(100%) contrast(1.15)' }}
           />
           <div className="absolute inset-0 bg-background/30" />
@@ -54,17 +49,7 @@ function LogoCard({ item, onClick, index }: { item: DomainChip; onClick: () => v
           </div>
         </>
       ) : (
-        <div className="flex flex-col items-center gap-1">
-          <span
-            className="font-black text-foreground leading-none tracking-tight select-none"
-            style={{ fontSize: initials.length <= 2 ? '1.75rem' : initials.length <= 3 ? '1.35rem' : '1.1rem' }}
-          >
-            {initials}
-          </span>
-          {ext && (
-            <span className="text-[10px] text-muted-foreground font-medium tracking-widest">{ext.toUpperCase()}</span>
-          )}
-        </div>
+        <DomainWordmark name={item.name} className="max-w-[104px]" />
       )}
       <span className="absolute bottom-1.5 right-2 text-[10px] text-muted-foreground/70 font-mono tabular-nums">
         {item.bandType === 'sold' ? '已售' : formatPrice(item.price)}

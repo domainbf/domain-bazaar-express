@@ -6,6 +6,13 @@ export interface HomeDomainItem {
   name: string;
   price: number;
   logoUrl?: string;
+  category?: string;
+  description?: string;
+  highlight?: boolean;
+  ownerId?: string;
+  isVerified?: boolean;
+  verificationStatus?: string;
+  createdAt?: string;
 }
 
 export interface HomeData {
@@ -16,25 +23,44 @@ export interface HomeData {
   totalSold: number;
 }
 
+const HOME_DOMAIN_SELECT = 'id, name, price, category, description, highlight, owner_id, is_verified, verification_status, created_at';
+
+const mapListingToHomeItem = (
+  listing: any,
+  logoMap: Record<string, string>,
+  overridePrice?: number
+): HomeDomainItem => {
+  const listingPrice = Number(listing.price) || 0;
+
+  return {
+    id: String(listing.id),
+    name: String(listing.name),
+    price: overridePrice ?? listingPrice,
+    logoUrl: logoMap[String(listing.id)] || undefined,
+    category: listing.category ? String(listing.category) : undefined,
+    description: listing.description ? String(listing.description) : undefined,
+    highlight: Boolean(listing.highlight),
+    ownerId: listing.owner_id ? String(listing.owner_id) : undefined,
+    isVerified: Boolean(listing.is_verified),
+    verificationStatus: listing.verification_status ? String(listing.verification_status) : undefined,
+    createdAt: listing.created_at ? String(listing.created_at) : undefined,
+  };
+};
+
 export const fetchHomeData = async (): Promise<HomeData> => {
-  // Fetch hot domains, sold domains, logo settings, and auctions in parallel
-  const [hotRes, soldRes, logoRes, auctionRes] = await Promise.all([
+  const [hotRes, soldRes, auctionRes] = await Promise.all([
     supabase
       .from('domain_listings')
-      .select('id, name, price')
+      .select(HOME_DOMAIN_SELECT)
       .eq('status', 'available')
       .order('created_at', { ascending: false })
       .limit(40),
     supabase
       .from('domain_listings')
-      .select('id, name, price')
+      .select(HOME_DOMAIN_SELECT, { count: 'exact' })
       .eq('status', 'sold')
       .order('created_at', { ascending: false })
       .limit(40),
-    supabase
-      .from('site_settings')
-      .select('key, value')
-      .like('key', 'domain_logo_%'),
     supabase
       .from('domain_auctions')
       .select('id, starting_price, current_price, domain_id')
@@ -42,50 +68,63 @@ export const fetchHomeData = async (): Promise<HomeData> => {
       .limit(20),
   ]);
 
-  // Build logo map
+  const hotRows = hotRes.data ?? [];
+  const soldRows = soldRes.data ?? [];
+  const auctionRows = auctionRes.data ?? [];
+  const auctionDomainIds = Array.from(
+    new Set(
+      auctionRows
+        .map((auction: any) => auction.domain_id)
+        .filter(Boolean)
+        .map((id: string) => String(id))
+    )
+  );
+
+  const neededDomainIds = Array.from(
+    new Set([
+      ...hotRows.map((row: any) => String(row.id)),
+      ...soldRows.map((row: any) => String(row.id)),
+      ...auctionDomainIds,
+    ])
+  );
+
+  const [logoRes, auctionDomainRes] = await Promise.all([
+    neededDomainIds.length > 0
+      ? supabase
+          .from('site_settings')
+          .select('key, value')
+          .in('key', neededDomainIds.map((id) => `domain_logo_${id}`))
+      : Promise.resolve({ data: [] as any[] }),
+    auctionDomainIds.length > 0
+      ? supabase
+          .from('domain_listings')
+          .select(HOME_DOMAIN_SELECT)
+          .in('id', auctionDomainIds)
+      : Promise.resolve({ data: [] as any[] }),
+  ]);
+
   const logoMap: Record<string, string> = {};
   for (const row of (logoRes.data ?? [])) {
     const id = (row.key as string).replace('domain_logo_', '');
     if (row.value) logoMap[id] = row.value as string;
   }
 
-  const hotDomains: HomeDomainItem[] = (hotRes.data ?? []).map((d: any) => ({
-    id: String(d.id),
-    name: String(d.name),
-    price: Number(d.price) || 0,
-    logoUrl: logoMap[d.id] || undefined,
-  }));
+  const hotDomains = hotRows.map((listing: any) => mapListingToHomeItem(listing, logoMap));
 
-  const soldDomains: HomeDomainItem[] = (soldRes.data ?? []).map((d: any) => ({
-    id: String(d.id),
-    name: String(d.name),
-    price: Number(d.price) || 0,
-    logoUrl: logoMap[d.id] || undefined,
-  }));
+  const soldDomains = soldRows.map((listing: any) => mapListingToHomeItem(listing, logoMap));
 
-  // For auctions, we need to fetch domain names separately
-  const auctionRows = auctionRes.data ?? [];
   let auctionDomains: HomeDomainItem[] = [];
-  if (auctionRows.length > 0) {
-    const domainIds = auctionRows.map((a: any) => a.domain_id).filter(Boolean);
-    if (domainIds.length > 0) {
-      const { data: domainData } = await supabase
-        .from('domain_listings')
-        .select('id, name, price')
-        .in('id', domainIds);
-      const domainMap = new Map((domainData ?? []).map((d: any) => [d.id, d]));
-      auctionDomains = auctionRows
-        .filter((a: any) => domainMap.has(a.domain_id))
-        .map((a: any) => {
-          const d = domainMap.get(a.domain_id)!;
-          return {
-            id: String(d.id),
-            name: String(d.name),
-            price: Number(a.current_price) || Number(a.starting_price) || 0,
-            logoUrl: logoMap[d.id] || undefined,
-          };
-        });
-    }
+  if (auctionRows.length > 0 && auctionDomainRes.data?.length) {
+    const domainMap = new Map((auctionDomainRes.data ?? []).map((listing: any) => [String(listing.id), listing]));
+
+    auctionDomains = auctionRows
+      .filter((auction: any) => domainMap.has(String(auction.domain_id)))
+      .map((auction: any) => {
+        const listing = domainMap.get(String(auction.domain_id))!;
+        const auctionPrice = Number(auction.current_price) || Number(auction.starting_price) || Number(listing.price) || 0;
+
+        return mapListingToHomeItem(listing, logoMap, auctionPrice);
+      });
   }
 
   return {
@@ -93,7 +132,7 @@ export const fetchHomeData = async (): Promise<HomeData> => {
     soldDomains,
     auctionDomains,
     logoMap,
-    totalSold: soldDomains.length,
+    totalSold: soldRes.count ?? soldDomains.length,
   };
 };
 
