@@ -35,6 +35,7 @@ const FALLBACK_DOMAINS: HomeDomainItem[] = fallbackDomains.slice(0, 9).map((d, i
   category: d.category,
   description: d.description || '',
   highlight: d.highlight,
+   currency: 'CNY',
    ownerId: '',
    createdAt: new Date().toISOString(),
    isVerified: true,
