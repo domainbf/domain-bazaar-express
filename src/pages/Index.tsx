@@ -169,6 +169,7 @@ const Index = () => {
                           key={domain.id}
                           domain={domain.name}
                           price={domain.price}
+                          currency={domain.currency}
                           highlight={domain.highlight || false}
                           description={domain.description || ''}
                           category={domain.category || ''}
