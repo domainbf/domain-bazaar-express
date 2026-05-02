@@ -20,6 +20,11 @@ const CATEGORY_LABELS: Record<string, string> = {
   business: '商业', keyword: '关键词',
 };
 
+const CURRENCY_SYMBOL: Record<string, string> = {
+  CNY: '¥', USD: '$', EUR: '€', GBP: '£', JPY: '¥', HKD: 'HK$',
+  SGD: 'S$', AUD: 'A$', CAD: 'C$', KRW: '₩', TWD: 'NT$', THB: '฿',
+};
+
 const FavoriteButton = ({ domainId }: { domainId: string }) => {
   const { user } = useAuth();
   const [isFavorited, setIsFavorited] = useState(false);
