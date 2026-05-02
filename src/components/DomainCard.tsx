@@ -14,6 +14,7 @@ import { getDomainDetailPath } from '@/lib/domainRouting';
 interface DomainCardProps {
   domain: string;
   price?: number | string;
+  currency?: string;
   highlight?: boolean;
   isSold?: boolean;
   domainId?: string;
@@ -30,8 +31,13 @@ const CATEGORY_LABELS: Record<string, string> = {
   brandable: '品牌', dev: '开发', numeric: '数字',
 };
 
+const CURRENCY_SYMBOL: Record<string, string> = {
+  CNY: '¥', USD: '$', EUR: '€', GBP: '£', JPY: '¥', HKD: 'HK$',
+  SGD: 'S$', AUD: 'A$', CAD: 'C$', KRW: '₩', TWD: 'NT$', THB: '฿',
+};
+
 export const DomainCard = ({
-  domain, price, highlight, isSold = false, domainId, sellerId,
+  domain, price, currency = 'CNY', highlight, isSold = false, domainId, sellerId,
   category, description, isVerified = false, index = 0,
 }: DomainCardProps) => {
   const { user } = useAuth();
