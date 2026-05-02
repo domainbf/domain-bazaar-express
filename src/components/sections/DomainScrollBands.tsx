@@ -10,14 +10,24 @@ interface DomainChip {
   id: string;
   name: string;
   price: number;
+  currency: string;
   logoUrl?: string;
   bandType?: BandType;
 }
 
-function formatPrice(price: number) {
+const CURRENCY_SYMBOL: Record<string, string> = {
+  CNY: '¥', USD: '$', EUR: '€', GBP: '£', JPY: '¥', HKD: 'HK$',
+  SGD: 'S$', AUD: 'A$', CAD: 'C$', KRW: '₩', TWD: 'NT$', THB: '฿',
+};
+
+function formatPrice(price: number, currency: string) {
   if (!price) return '面议';
-  if (price >= 10000) return `¥${(price / 10000).toFixed(price % 10000 === 0 ? 0 : 1)}万`;
-  return `¥${price.toLocaleString()}`;
+  const sym = CURRENCY_SYMBOL[currency] || '';
+  if (currency === 'CNY' && price >= 10000) {
+    return `${sym}${(price / 10000).toFixed(price % 10000 === 0 ? 0 : 1)}万`;
+  }
+  if (price >= 1000) return `${sym}${(price / 1000).toFixed(price % 1000 === 0 ? 0 : 1)}k`;
+  return `${sym}${price.toLocaleString()}`;
 }
 
 function LogoCard({ item, onClick, index }: { item: DomainChip; onClick: () => void; index: number }) {
@@ -27,9 +37,10 @@ function LogoCard({ item, onClick, index }: { item: DomainChip; onClick: () => v
   return (
     <button
       onClick={onClick}
+      title={item.name}
       data-testid={`logo-card-${item.id}-${index}`}
-      className="group relative inline-flex flex-col items-center justify-center mx-2 shrink-0
-        w-[120px] h-[80px] rounded-xl border border-border bg-card
+      className="group relative inline-flex flex-col items-center justify-center mx-1.5 shrink-0
+        w-[104px] h-[58px] rounded-lg border border-border bg-card
         hover:border-foreground/40 hover:bg-muted/40 transition-all duration-200
         overflow-hidden cursor-pointer"
     >
@@ -43,16 +54,16 @@ function LogoCard({ item, onClick, index }: { item: DomainChip; onClick: () => v
             style={{ filter: 'grayscale(100%) contrast(1.15)' }}
           />
           <div className="absolute inset-0 bg-background/30" />
-          <div className="relative z-10 flex flex-col items-center gap-0.5">
-            <span className="text-xs font-black text-foreground tracking-widest leading-none drop-shadow">{base}</span>
-            {ext && <span className="text-[9px] text-muted-foreground font-medium">{ext}</span>}
+          <div className="relative z-10 flex items-baseline gap-0.5 max-w-[92px] px-1">
+            <span className="truncate text-[11px] font-black text-foreground tracking-wide leading-none drop-shadow">{base}</span>
+            {ext && <span className="shrink-0 text-[9px] text-foreground/70 font-bold leading-none">{ext}</span>}
           </div>
         </>
       ) : (
-        <DomainWordmark name={item.name} className="max-w-[104px]" />
+        <DomainWordmark name={item.name} className="max-w-[96px]" />
       )}
-      <span className="absolute bottom-1.5 right-2 text-[10px] text-muted-foreground/70 font-mono tabular-nums">
-        {item.bandType === 'sold' ? '已售' : formatPrice(item.price)}
+      <span className="absolute bottom-1 right-1.5 text-[9px] text-muted-foreground/70 font-mono tabular-nums">
+        {item.bandType === 'sold' ? '已售' : formatPrice(item.price, item.currency)}
       </span>
     </button>
   );
@@ -93,6 +104,7 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
     id: a.id,
     name: a.name,
     price: a.price,
+    currency: a.currency,
     logoUrl: logoMap[a.id],
     bandType: 'auction' as BandType,
   }));

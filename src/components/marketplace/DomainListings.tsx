@@ -20,6 +20,11 @@ const CATEGORY_LABELS: Record<string, string> = {
   business: '商业', keyword: '关键词',
 };
 
+const CURRENCY_SYMBOL: Record<string, string> = {
+  CNY: '¥', USD: '$', EUR: '€', GBP: '£', JPY: '¥', HKD: 'HK$',
+  SGD: 'S$', AUD: 'A$', CAD: 'C$', KRW: '₩', TWD: 'NT$', THB: '฿',
+};
+
 const FavoriteButton = ({ domainId }: { domainId: string }) => {
   const { user } = useAuth();
   const [isFavorited, setIsFavorited] = useState(false);
@@ -116,7 +121,10 @@ const DomainRow = ({ domain, index }: { domain: Domain; index: number }) => {
           {/* Row 2: Price + badges */}
           <div className="flex items-center justify-between gap-2 mb-2">
             <span className="text-xl font-bold text-foreground tabular-nums">
-              {domain.price > 0 ? `¥${domain.price.toLocaleString()}` : '¥0'}
+              {(() => {
+                const sym = CURRENCY_SYMBOL[(domain.currency || 'CNY').toUpperCase()] || '¥';
+                return domain.price > 0 ? `${sym}${domain.price.toLocaleString()}` : `${sym}0`;
+              })()}
             </span>
             <div className="flex items-center gap-1.5 shrink-0">
               {domain.highlight && (
