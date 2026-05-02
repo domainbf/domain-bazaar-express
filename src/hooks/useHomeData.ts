@@ -5,6 +5,7 @@ export interface HomeDomainItem {
   id: string;
   name: string;
   price: number;
+  currency: string;
   logoUrl?: string;
   category?: string;
   description?: string;
