@@ -24,12 +24,13 @@ export interface HomeData {
   totalSold: number;
 }
 
-const HOME_DOMAIN_SELECT = 'id, name, price, category, description, highlight, owner_id, is_verified, verification_status, created_at';
+const HOME_DOMAIN_SELECT = 'id, name, price, currency, category, description, highlight, owner_id, is_verified, verification_status, created_at';
 
 const mapListingToHomeItem = (
   listing: any,
   logoMap: Record<string, string>,
-  overridePrice?: number
+  overridePrice?: number,
+  overrideCurrency?: string
 ): HomeDomainItem => {
   const listingPrice = Number(listing.price) || 0;
 
@@ -37,6 +38,7 @@ const mapListingToHomeItem = (
     id: String(listing.id),
     name: String(listing.name),
     price: overridePrice ?? listingPrice,
+    currency: (overrideCurrency ?? listing.currency ?? 'CNY').toString().toUpperCase(),
     logoUrl: logoMap[String(listing.id)] || undefined,
     category: listing.category ? String(listing.category) : undefined,
     description: listing.description ? String(listing.description) : undefined,
