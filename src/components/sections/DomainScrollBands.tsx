@@ -104,6 +104,7 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
     id: a.id,
     name: a.name,
     price: a.price,
+    currency: a.currency,
     logoUrl: logoMap[a.id],
     bandType: 'auction' as BandType,
   }));
