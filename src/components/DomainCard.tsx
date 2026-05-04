@@ -155,11 +155,19 @@ export const DomainCard = ({
         </button>
       </div>
 
-      {/* Domain name — visual anchor */}
+      {/* Domain name — visual anchor (auto-shrinks for long names so it never gets cut off) */}
       <div className="flex flex-col items-center pt-8 pb-2">
-        <Link to={getDomainDetailPath(domain)} className="w-full text-center">
-          <h3 className="text-4xl sm:text-5xl font-black text-foreground uppercase tracking-tight
-            hover:text-primary transition-colors duration-150 leading-none">
+        <Link to={getDomainDetailPath(domain)} className="block w-full text-center px-2">
+          <h3
+            className={`font-black text-foreground uppercase tracking-tight hover:text-primary transition-colors duration-150 leading-none break-words ${
+              domain.length <= 8 ? 'text-4xl sm:text-5xl'
+              : domain.length <= 12 ? 'text-3xl sm:text-4xl'
+              : domain.length <= 16 ? 'text-2xl sm:text-3xl'
+              : domain.length <= 22 ? 'text-xl sm:text-2xl'
+              : 'text-base sm:text-lg'
+            }`}
+            title={domain}
+          >
             {domain}
           </h3>
         </Link>
