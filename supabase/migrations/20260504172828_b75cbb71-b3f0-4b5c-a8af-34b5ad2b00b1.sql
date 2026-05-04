@@ -1,0 +1,2 @@
+ALTER TABLE public.domain_offers
+  ADD COLUMN IF NOT EXISTS currency TEXT NOT NULL DEFAULT 'CNY';

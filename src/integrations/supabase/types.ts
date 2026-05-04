@@ -465,6 +465,7 @@ export type Database = {
           buyer_id: string | null
           contact_email: string | null
           created_at: string | null
+          currency: string
           domain_id: string | null
           id: string
           message: string | null
@@ -478,6 +479,7 @@ export type Database = {
           buyer_id?: string | null
           contact_email?: string | null
           created_at?: string | null
+          currency?: string
           domain_id?: string | null
           id?: string
           message?: string | null
@@ -491,6 +493,7 @@ export type Database = {
           buyer_id?: string | null
           contact_email?: string | null
           created_at?: string | null
+          currency?: string
           domain_id?: string | null
           id?: string
           message?: string | null
