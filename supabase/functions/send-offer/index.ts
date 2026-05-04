@@ -266,6 +266,9 @@ serve(async (req) => {
         buyerId: buyerId || null,
         dashboardUrl: "/user-center?tab=transactions",
         domainOwnerEmail: ownerEmail || undefined,
+        currency: currency || domainCurrency || 'CNY',
+        currencySymbol,
+        formattedOffer,
       });
       console.log("邮件发送成功");
     } catch (emailError: any) {
