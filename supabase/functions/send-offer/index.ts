@@ -78,7 +78,7 @@ serve(async (req) => {
       );
     }
 
-    const { domain, offer, email, message, buyerId, sellerId, domainId, captchaToken } = requestData;
+    const { domain, offer, email, message, buyerId, sellerId, domainId, captchaToken, currency, currencySymbol, formattedOffer } = requestData;
 
     console.log("收到报价请求:", { domain, offer, email, buyerId, sellerId, domainId });
 
