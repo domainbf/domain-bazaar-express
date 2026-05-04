@@ -4,6 +4,11 @@ import { sendMailWithResend } from '../../utils/sendMailWithResend.ts';
 import { getUserEmailHtml } from '../templates/userOfferTemplate.ts';
 import { getOwnerEmailHtml } from '../templates/ownerOfferTemplate.ts';
 
+const SYMBOLS: Record<string, string> = {
+  CNY: '¥', USD: '$', EUR: '€', GBP: '£', JPY: '¥', HKD: 'HK$',
+  SGD: 'S$', AUD: 'A$', CAD: 'C$', KRW: '₩', TWD: 'NT$', THB: '฿',
+};
+
 export async function sendOfferEmails({
   domain,
   offer,
@@ -12,46 +17,45 @@ export async function sendOfferEmails({
   buyerId,
   dashboardUrl,
   domainOwnerEmail,
+  currency,
+  currencySymbol,
+  formattedOffer,
 }: OfferRequest & { domainOwnerEmail?: string | null }) {
-  console.log("开始发送报价邮件...");
-  console.log("发送参数:", { domain, offer, email, domainOwnerEmail });
-  
-  // 使用动态域名
+  const cur = (currency || 'CNY').toUpperCase();
+  const sym = currencySymbol || SYMBOLS[cur] || '';
+  const n = typeof offer === 'number' ? offer : parseFloat(String(offer)) || 0;
+  const display = formattedOffer || `${sym}${n.toLocaleString()} ${cur}`;
+
+  console.log("开始发送报价邮件...", { domain, display, email, domainOwnerEmail });
+
   const finalDashboardUrl = dashboardUrl || "/user-center?tab=domains";
 
-  const userEmailHtml = getUserEmailHtml(domain, offer, message, finalDashboardUrl);
-  const ownerEmailHtml = getOwnerEmailHtml(domain, offer, email, message, buyerId, finalDashboardUrl);
+  const userEmailHtml = getUserEmailHtml(domain, String(offer), message, finalDashboardUrl, { currency: cur, symbol: sym, display });
+  const ownerEmailHtml = getOwnerEmailHtml(domain, String(offer), email, message, buyerId, finalDashboardUrl, { currency: cur, symbol: sym, display });
 
   const from = "域见•你 域名交易平台 <noreply@noreply.example.com>";
 
   try {
-    // 发送给买家的确认邮件
-    console.log("发送买家确认邮件到:", email);
     const userEmailResponse = await sendMailWithResend(
       email,
-      `✅ 您对 ${domain} 的报价已收到 - ¥${offer}`,
+      `✅ 您对 ${domain} 的报价已收到 - ${display}`,
       userEmailHtml,
       { from }
     );
-    console.log("买家邮件发送成功:", userEmailResponse.data?.id);
 
     let ownerEmailResponse: any = null;
     if (domainOwnerEmail) {
-      console.log("发送卖家通知邮件到:", domainOwnerEmail);
       ownerEmailResponse = await sendMailWithResend(
         domainOwnerEmail,
-        `💰 ${domain} 收到新报价：¥${offer}`,
+        `💰 ${domain} 收到新报价：${display}`,
         ownerEmailHtml,
         { from }
       );
-      console.log("卖家邮件发送成功:", ownerEmailResponse.data?.id);
     } else {
       console.warn("卖家邮箱缺失，已跳过卖家通知邮件");
     }
 
-    console.log("所有报价邮件发送完成");
     return { userEmailResponse, ownerEmailResponse };
-    
   } catch (error: any) {
     console.error("报价邮件发送失败:", error);
     throw new Error(`邮件发送失败: ${error.message}`);
