@@ -230,6 +230,7 @@ export const DomainCard = ({
                 </DialogHeader>
                 <DomainOfferForm
                   domain={domain} domainId={domainInfo.id} sellerId={domainInfo.ownerId}
+                  initialCurrency={currency}
                   onClose={() => setIsDialogOpen(false)} isAuthenticated={isAuthenticated}
                 />
               </DialogContent>
