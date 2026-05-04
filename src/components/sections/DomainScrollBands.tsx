@@ -49,7 +49,7 @@ function LogoCard({ item, onClick, index }: { item: DomainChip; onClick: () => v
         <DomainWordmark name={item.name} className="max-w-[96px]" />
       )}
       <span className="absolute bottom-1 right-1.5 text-[9px] text-muted-foreground/70 font-mono tabular-nums">
-        {item.bandType === 'sold' ? '已售' : formatPrice(item.price, item.currency)}
+        {item.bandType === 'sold' ? '已售' : formatPriceCompact(item.price, item.currency)}
       </span>
     </button>
   );
