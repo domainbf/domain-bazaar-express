@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useHomeData } from '@/hooks/useHomeData';
 import { getDomainDetailPath } from '@/lib/domainRouting';
 import { DomainWordmark } from './DomainWordmark';
+import { formatPriceCompact } from '@/lib/currency';
 
 export type BandType = 'auction' | 'hot' | 'sold';
 
@@ -13,21 +14,6 @@ interface DomainChip {
   currency: string;
   logoUrl?: string;
   bandType?: BandType;
-}
-
-const CURRENCY_SYMBOL: Record<string, string> = {
-  CNY: '¥', USD: '$', EUR: '€', GBP: '£', JPY: '¥', HKD: 'HK$',
-  SGD: 'S$', AUD: 'A$', CAD: 'C$', KRW: '₩', TWD: 'NT$', THB: '฿',
-};
-
-function formatPrice(price: number, currency: string) {
-  if (!price) return '面议';
-  const sym = CURRENCY_SYMBOL[currency] || '';
-  if (currency === 'CNY' && price >= 10000) {
-    return `${sym}${(price / 10000).toFixed(price % 10000 === 0 ? 0 : 1)}万`;
-  }
-  if (price >= 1000) return `${sym}${(price / 1000).toFixed(price % 1000 === 0 ? 0 : 1)}k`;
-  return `${sym}${price.toLocaleString()}`;
 }
 
 function LogoCard({ item, onClick, index }: { item: DomainChip; onClick: () => void; index: number }) {
