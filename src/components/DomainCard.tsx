@@ -31,10 +31,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   brandable: '品牌', dev: '开发', numeric: '数字',
 };
 
-const CURRENCY_SYMBOL: Record<string, string> = {
-  CNY: '¥', USD: '$', EUR: '€', GBP: '£', JPY: '¥', HKD: 'HK$',
-  SGD: 'S$', AUD: 'A$', CAD: 'C$', KRW: '₩', TWD: 'NT$', THB: '฿',
-};
+import { formatPrice } from '@/lib/currency';
 
 export const DomainCard = ({
   domain, price, currency = 'CNY', highlight, isSold = false, domainId, sellerId,
@@ -158,11 +155,19 @@ export const DomainCard = ({
         </button>
       </div>
 
-      {/* Domain name — visual anchor */}
+      {/* Domain name — visual anchor (auto-shrinks for long names so it never gets cut off) */}
       <div className="flex flex-col items-center pt-8 pb-2">
-        <Link to={getDomainDetailPath(domain)} className="w-full text-center">
-          <h3 className="text-4xl sm:text-5xl font-black text-foreground uppercase tracking-tight
-            hover:text-primary transition-colors duration-150 leading-none">
+        <Link to={getDomainDetailPath(domain)} className="block w-full text-center px-2">
+          <h3
+            className={`font-black text-foreground uppercase tracking-tight hover:text-primary transition-colors duration-150 leading-none break-words ${
+              domain.length <= 8 ? 'text-4xl sm:text-5xl'
+              : domain.length <= 12 ? 'text-3xl sm:text-4xl'
+              : domain.length <= 16 ? 'text-2xl sm:text-3xl'
+              : domain.length <= 22 ? 'text-xl sm:text-2xl'
+              : 'text-base sm:text-lg'
+            }`}
+            title={domain}
+          >
             {domain}
           </h3>
         </Link>
@@ -175,9 +180,7 @@ export const DomainCard = ({
 
         {price !== undefined && (
           <span className="text-sm text-muted-foreground mt-2.5 font-medium tabular-nums">
-            售价 {typeof price === 'number'
-              ? `${CURRENCY_SYMBOL[(currency || 'CNY').toUpperCase()] || ''}${price.toLocaleString()}`
-              : price}
+            售价 {typeof price === 'number' ? formatPrice(price, currency) : price}
           </span>
         )}
 
@@ -227,6 +230,7 @@ export const DomainCard = ({
                 </DialogHeader>
                 <DomainOfferForm
                   domain={domain} domainId={domainInfo.id} sellerId={domainInfo.ownerId}
+                  initialCurrency={currency}
                   onClose={() => setIsDialogOpen(false)} isAuthenticated={isAuthenticated}
                 />
               </DialogContent>

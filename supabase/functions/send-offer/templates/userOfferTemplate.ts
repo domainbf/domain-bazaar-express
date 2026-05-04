@@ -4,6 +4,7 @@ export function getUserEmailHtml(
   offer: string,
   message: string | undefined,
   dashboardUrl: string,
+  currencyInfo: { currency?: string; symbol?: string; display?: string } = {},
   siteName = '域见•你',
   siteHostname = 'NIC.RW',
   siteDomain = 'https://nic.rw',
@@ -11,8 +12,10 @@ export function getUserEmailHtml(
 ): string {
   const primaryDashboardUrl = dashboardUrl || `${siteDomain}/user-center`;
   const offerNum = parseFloat(offer) || 0;
-  const formatted = `¥${offerNum.toLocaleString()}`;
-  const escrowFee = `¥${(offerNum * 0.01).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const cur = (currencyInfo.currency || 'CNY').toUpperCase();
+  const sym = currencyInfo.symbol || '¥';
+  const formatted = currencyInfo.display || `${sym}${offerNum.toLocaleString()} ${cur}`;
+  const escrowFee = `${sym}${(offerNum * 0.01).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${cur}`;
   const domainUpper = domain.toUpperCase();
   const year = new Date().getFullYear();
   const previewText = `您对 ${domainUpper} 的 ${formatted} 报价已成功提交，等待卖家回复`;

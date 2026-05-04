@@ -78,7 +78,7 @@ serve(async (req) => {
       );
     }
 
-    const { domain, offer, email, message, buyerId, sellerId, domainId, captchaToken } = requestData;
+    const { domain, offer, email, message, buyerId, sellerId, domainId, captchaToken, currency, currencySymbol, formattedOffer } = requestData;
 
     console.log("收到报价请求:", { domain, offer, email, buyerId, sellerId, domainId });
 
@@ -266,6 +266,9 @@ serve(async (req) => {
         buyerId: buyerId || null,
         dashboardUrl: "/user-center?tab=transactions",
         domainOwnerEmail: ownerEmail || undefined,
+        currency: currency || domainCurrency || 'CNY',
+        currencySymbol,
+        formattedOffer,
       });
       console.log("邮件发送成功");
     } catch (emailError: any) {

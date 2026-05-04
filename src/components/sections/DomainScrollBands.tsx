@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useHomeData } from '@/hooks/useHomeData';
 import { getDomainDetailPath } from '@/lib/domainRouting';
 import { DomainWordmark } from './DomainWordmark';
+import { formatPriceCompact } from '@/lib/currency';
 
 export type BandType = 'auction' | 'hot' | 'sold';
 
@@ -15,55 +16,34 @@ interface DomainChip {
   bandType?: BandType;
 }
 
-const CURRENCY_SYMBOL: Record<string, string> = {
-  CNY: '¥', USD: '$', EUR: '€', GBP: '£', JPY: '¥', HKD: 'HK$',
-  SGD: 'S$', AUD: 'A$', CAD: 'C$', KRW: '₩', TWD: 'NT$', THB: '฿',
-};
-
-function formatPrice(price: number, currency: string) {
-  if (!price) return '面议';
-  const sym = CURRENCY_SYMBOL[currency] || '';
-  if (currency === 'CNY' && price >= 10000) {
-    return `${sym}${(price / 10000).toFixed(price % 10000 === 0 ? 0 : 1)}万`;
-  }
-  if (price >= 1000) return `${sym}${(price / 1000).toFixed(price % 1000 === 0 ? 0 : 1)}k`;
-  return `${sym}${price.toLocaleString()}`;
-}
-
 function LogoCard({ item, onClick, index }: { item: DomainChip; onClick: () => void; index: number }) {
-  const ext = item.name.includes('.') ? '.' + item.name.split('.').slice(1).join('.') : '';
-  const base = item.name.split('.')[0].toUpperCase();
-
   return (
     <button
       onClick={onClick}
       title={item.name}
       data-testid={`logo-card-${item.id}-${index}`}
       className="group relative inline-flex flex-col items-center justify-center mx-1.5 shrink-0
-        w-[104px] h-[58px] rounded-lg border border-border bg-card
+        w-[120px] sm:w-[132px] h-[62px] rounded-lg border border-border bg-card
         hover:border-foreground/40 hover:bg-muted/40 transition-all duration-200
         overflow-hidden cursor-pointer"
     >
-      {item.logoUrl ? (
+      {item.logoUrl && (
         <>
           <img
             src={item.logoUrl}
             alt={item.name}
-            className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 transition-opacity duration-200"
+            className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-50 transition-opacity duration-200"
             decoding="async"
             style={{ filter: 'grayscale(100%) contrast(1.15)' }}
           />
-          <div className="absolute inset-0 bg-background/30" />
-          <div className="relative z-10 flex items-baseline gap-0.5 max-w-[92px] px-1">
-            <span className="truncate text-[11px] font-black text-foreground tracking-wide leading-none drop-shadow">{base}</span>
-            {ext && <span className="shrink-0 text-[9px] text-foreground/70 font-bold leading-none">{ext}</span>}
-          </div>
+          <div className="absolute inset-0 bg-background/40" />
         </>
-      ) : (
-        <DomainWordmark name={item.name} className="max-w-[96px]" />
       )}
-      <span className="absolute bottom-1 right-1.5 text-[9px] text-muted-foreground/70 font-mono tabular-nums">
-        {item.bandType === 'sold' ? '已售' : formatPrice(item.price, item.currency)}
+      <div className="relative z-10 flex items-center justify-center w-full px-1.5">
+        <DomainWordmark name={item.name} className="max-w-[116px] sm:max-w-[128px]" />
+      </div>
+      <span className="absolute bottom-1 right-1.5 text-[9px] text-muted-foreground/70 font-mono tabular-nums z-10">
+        {item.bandType === 'sold' ? '已售' : formatPriceCompact(item.price, item.currency)}
       </span>
     </button>
   );

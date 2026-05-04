@@ -1,15 +1,18 @@
 
 export interface OfferRequest {
   domain: string;
-  offer: string;
+  offer: string | number;
   email: string;
   message?: string;
   buyerId?: string | null;
   domainId?: string;
   sellerId?: string;
   ownerEmail?: string;
-  captchaToken: string;
+  captchaToken?: string;
   dashboardUrl?: string;
+  currency?: string;
+  currencySymbol?: string;
+  formattedOffer?: string;
 }
 
 export interface VerifyCaptchaResponse {
