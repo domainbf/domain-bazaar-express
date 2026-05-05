@@ -270,6 +270,8 @@ const Index = () => {
                             domainId={domain.id}
                             sellerId={domain.ownerId || ''}
                             isVerified={domain.isVerified ?? domain.verificationStatus === 'verified'}
+                            searchQuery={searchQuery}
+                            onQuickView={() => setQuickView(domain)}
                           />
                         </motion.div>
                       ))}
