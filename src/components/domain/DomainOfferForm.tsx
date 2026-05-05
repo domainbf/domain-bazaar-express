@@ -85,6 +85,7 @@ export const DomainOfferForm = ({
 
     if (!captchaToken) { setError('请完成人机验证'); toast.error('请完成人机验证'); return; }
     if (!numericOffer) { setError('请输入有效的报价金额'); toast.error('请输入有效的报价金额'); return; }
+    if (!isBuyNow && rangeError) { setError(rangeError); toast.error(rangeError); return; }
     if (!email || !email.includes('@')) { setError('请输入有效的邮箱地址'); toast.error('请输入有效的邮箱地址'); return; }
 
     setIsLoading(true);
