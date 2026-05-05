@@ -201,12 +201,24 @@ export const DomainOfferForm = ({
         </div>
 
         {/* 价格预览 — 防止用户混淆币种 */}
-        <div className="rounded-md bg-muted/40 border border-border px-3 py-2 text-xs text-muted-foreground">
+        <div className={`rounded-md border px-3 py-2 text-xs space-y-1 ${
+          rangeError ? 'bg-destructive/10 border-destructive/30 text-destructive' : 'bg-muted/40 border-border text-muted-foreground'
+        }`}>
           {previewText ? (
-            <span>提交后金额将记录为：<span className="font-semibold text-foreground tabular-nums">{previewText} {currency}</span></span>
+            <div>提交后金额将记录为：<span className="font-semibold text-foreground tabular-nums">{previewText} {currency}</span>
+              {convertedPreview && (
+                <span className="ml-2 text-muted-foreground">≈ <span className="font-semibold text-foreground tabular-nums">{convertedPreview}</span></span>
+              )}
+            </div>
           ) : (
-            <span>请输入报价金额，将以 <span className="font-semibold text-foreground">{currency}</span> 提交</span>
+            <div>请输入报价金额，将以 <span className="font-semibold text-foreground">{currency}</span> 提交</div>
           )}
+          {limits && !isBuyNow && (
+            <div className="text-[11px]">
+              建议范围：<span className="tabular-nums">{formatPrice(limits.min, currency)}</span> – <span className="tabular-nums">{formatPrice(limits.max, currency)}</span>
+            </div>
+          )}
+          {rangeError && <div className="font-medium">{rangeError}</div>}
         </div>
       </div>
 
