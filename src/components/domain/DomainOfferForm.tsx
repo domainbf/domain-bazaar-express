@@ -18,6 +18,9 @@ interface DomainOfferFormProps {
   initialOffer?: number;
   initialCurrency?: string;
   isBuyNow?: boolean;
+  /** 卖家在 listing 中设定的价格（用于换算到 CNY 后判断最低/最高） */
+  listingPrice?: number;
+  listingCurrency?: string;
 }
 
 export const DomainOfferForm = ({
