@@ -62,28 +62,34 @@ const Index = () => {
     if (s) setSearchQuery(s);
   }, []);
 
-  // Show top-9 by views, with fallback when DB is empty
+  // Use full hot list (up to ~50) so search/filter has more to work with on /index
   const domains: HomeDomainItem[] = useMemo(() => {
     const featured = homeData?.hotDomains ?? [];
-
     if (!featured.length) {
       return isLoading ? [] : FALLBACK_DOMAINS;
     }
-
-    return [...featured]
-      .sort((a, b) => Number(Boolean(b.highlight)) - Number(Boolean(a.highlight)))
-      .slice(0, 9);
+    return [...featured].sort((a, b) => Number(Boolean(b.highlight)) - Number(Boolean(a.highlight)));
   }, [homeData?.hotDomains, isLoading]);
 
-  const filteredDomains = useMemo(() => domains
-    .filter(d => {
-      if (filter !== 'all' && d.category !== filter) return false;
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase().trim();
-        return d.name?.toLowerCase().includes(q) || d.description?.toLowerCase().includes(q);
-      }
-      return true;
-    }), [domains, filter, searchQuery]);
+  // Available extensions, derived dynamically from data
+  const availableExtensions = useMemo(() => {
+    const set = new Set<string>();
+    domains.forEach(d => {
+      const idx = d.name.lastIndexOf('.');
+      if (idx > 0) set.add(d.name.slice(idx).toLowerCase());
+    });
+    return Array.from(set).sort();
+  }, [domains]);
+
+  const filteredDomains = useMemo(() => domains.filter(d => {
+    if (filter !== 'all' && d.category !== filter) return false;
+    if (extFilter !== 'all' && !d.name.toLowerCase().endsWith(extFilter)) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      return d.name?.toLowerCase().includes(q) || d.description?.toLowerCase().includes(q);
+    }
+    return true;
+  }).slice(0, 12), [domains, filter, extFilter, searchQuery]);
 
   const handleSellDomains = () => {
     if (user) navigate('/user-center?tab=domains');
