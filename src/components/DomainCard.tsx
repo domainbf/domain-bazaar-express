@@ -275,6 +275,8 @@ export const DomainCard = ({
                 <DomainOfferForm
                   domain={domain} domainId={domainInfo.id} sellerId={domainInfo.ownerId}
                   initialCurrency={currency}
+                  listingPrice={typeof price === 'number' ? price : undefined}
+                  listingCurrency={currency}
                   onClose={() => setIsDialogOpen(false)} isAuthenticated={isAuthenticated}
                 />
               </DialogContent>
