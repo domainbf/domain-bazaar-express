@@ -177,21 +177,44 @@ export const DomainCard = ({
 
       {/* Domain name — visual anchor (auto-shrinks for long names so it never gets cut off) */}
       <div className="flex flex-col items-center pt-8 pb-2">
-        <Link to={getDomainDetailPath(domain)} className="block w-full text-center px-2">
-          <h3
-            className={`font-black text-foreground uppercase tracking-tight hover:text-primary transition-colors duration-150 leading-[1.05] break-all ${
-              domain.length <= 8 ? 'text-4xl sm:text-5xl'
-              : domain.length <= 12 ? 'text-3xl sm:text-4xl'
-              : domain.length <= 16 ? 'text-2xl sm:text-3xl'
-              : domain.length <= 20 ? 'text-xl sm:text-2xl'
-              : domain.length <= 26 ? 'text-base sm:text-xl'
-              : 'text-sm sm:text-base'
-            }`}
-            title={domain}
+        {onQuickView ? (
+          <button
+            type="button"
+            onClick={onQuickView}
+            className="block w-full text-center px-2"
+            data-testid={`button-quickview-${domainId}`}
           >
-            {domain}
-          </h3>
-        </Link>
+            <h3
+              className={`font-black text-foreground uppercase tracking-tight hover:text-primary transition-colors duration-150 leading-[1.05] break-all ${
+                domain.length <= 8 ? 'text-4xl sm:text-5xl'
+                : domain.length <= 12 ? 'text-3xl sm:text-4xl'
+                : domain.length <= 16 ? 'text-2xl sm:text-3xl'
+                : domain.length <= 20 ? 'text-xl sm:text-2xl'
+                : domain.length <= 26 ? 'text-base sm:text-xl'
+                : 'text-sm sm:text-base'
+              }`}
+              title={domain}
+            >
+              <HighlightedText text={domain} query={searchQuery} />
+            </h3>
+          </button>
+        ) : (
+          <Link to={getDomainDetailPath(domain)} className="block w-full text-center px-2">
+            <h3
+              className={`font-black text-foreground uppercase tracking-tight hover:text-primary transition-colors duration-150 leading-[1.05] break-all ${
+                domain.length <= 8 ? 'text-4xl sm:text-5xl'
+                : domain.length <= 12 ? 'text-3xl sm:text-4xl'
+                : domain.length <= 16 ? 'text-2xl sm:text-3xl'
+                : domain.length <= 20 ? 'text-xl sm:text-2xl'
+                : domain.length <= 26 ? 'text-base sm:text-xl'
+                : 'text-sm sm:text-base'
+              }`}
+              title={domain}
+            >
+              <HighlightedText text={domain} query={searchQuery} />
+            </h3>
+          </Link>
+        )}
 
         {category && (
           <Badge variant="secondary" className="text-[11px] mt-3 px-3">
