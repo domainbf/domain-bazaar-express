@@ -411,6 +411,16 @@ const Index = () => {
 
       
       <AuthModal open={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+
+      <DomainQuickViewDialog
+        open={!!quickView}
+        onClose={() => setQuickView(null)}
+        domain={quickView?.name || ''}
+        domainId={quickView?.id}
+        sellerId={quickView?.ownerId}
+        price={quickView?.price}
+        currency={quickView?.currency}
+      />
     </div>
   );
 };
