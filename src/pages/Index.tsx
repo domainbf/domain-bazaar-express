@@ -191,8 +191,8 @@ const Index = () => {
                   <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent md:hidden" />
                 </div>
 
-                <div className="max-w-md mx-auto mb-6">
-                  <div className="relative">
+                <div className="max-w-md mx-auto mb-4 flex gap-2">
+                  <div className="relative flex-1">
                     <Input
                       type="text"
                       placeholder={t('marketplace.searchPlaceholder')}
@@ -202,6 +202,17 @@ const Index = () => {
                     />
                     <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                   </div>
+                  <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+                    <SelectTrigger className="w-[130px] h-10 md:h-12 font-bold text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="hot">🔥 热门</SelectItem>
+                      <SelectItem value="latest_offer">🆕 最新报价</SelectItem>
+                      <SelectItem value="price_asc">↑ 价格从低</SelectItem>
+                      <SelectItem value="price_desc">↓ 价格从高</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Extension chips */}
