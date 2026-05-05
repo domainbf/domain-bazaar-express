@@ -49,6 +49,9 @@ const Index = () => {
   const [filter, setFilter] = useState('all');
   const [extFilter, setExtFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'hot' | 'latest_offer' | 'price_asc' | 'price_desc'>('hot');
+  const [latestOfferMap, setLatestOfferMap] = useState<Record<string, string>>({});
+  const [quickView, setQuickView] = useState<HomeDomainItem | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('marketplace');
   const { user } = useAuth();
