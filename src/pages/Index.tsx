@@ -87,15 +87,48 @@ const Index = () => {
     return Array.from(set).sort();
   }, [domains]);
 
-  const filteredDomains = useMemo(() => domains.filter(d => {
-    if (filter !== 'all' && d.category !== filter) return false;
-    if (extFilter !== 'all' && !d.name.toLowerCase().endsWith(extFilter)) return false;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      return d.name?.toLowerCase().includes(q) || d.description?.toLowerCase().includes(q);
+  // Fetch latest offer timestamps so we can sort by 最新报价
+  useEffect(() => {
+    const ids = (homeData?.hotDomains ?? []).map(d => d.id).filter(Boolean);
+    if (!ids.length) return;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from('domain_offers')
+        .select('domain_id, created_at')
+        .in('domain_id', ids)
+        .order('created_at', { ascending: false });
+      if (!data) return;
+      const map: Record<string, string> = {};
+      for (const row of data) {
+        if (!map[row.domain_id]) map[row.domain_id] = row.created_at;
+      }
+      setLatestOfferMap(map);
+    })();
+  }, [homeData?.hotDomains]);
+
+  const filteredDomains = useMemo(() => {
+    const list = domains.filter(d => {
+      if (filter !== 'all' && d.category !== filter) return false;
+      if (extFilter !== 'all' && !d.name.toLowerCase().endsWith(extFilter)) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        return d.name?.toLowerCase().includes(q) || d.description?.toLowerCase().includes(q);
+      }
+      return true;
+    });
+
+    const sorted = [...list];
+    if (sortBy === 'price_asc') sorted.sort((a, b) => (a.price || 0) - (b.price || 0));
+    else if (sortBy === 'price_desc') sorted.sort((a, b) => (b.price || 0) - (a.price || 0));
+    else if (sortBy === 'latest_offer') {
+      sorted.sort((a, b) => {
+        const ta = latestOfferMap[a.id] ? new Date(latestOfferMap[a.id]).getTime() : 0;
+        const tb = latestOfferMap[b.id] ? new Date(latestOfferMap[b.id]).getTime() : 0;
+        return tb - ta;
+      });
     }
-    return true;
-  }).slice(0, 12), [domains, filter, extFilter, searchQuery]);
+    return sorted.slice(0, 12);
+  }, [domains, filter, extFilter, searchQuery, sortBy, latestOfferMap]);
 
   const handleSellDomains = () => {
     if (user) navigate('/user-center?tab=domains');
