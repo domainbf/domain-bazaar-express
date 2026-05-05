@@ -43,3 +43,22 @@ export function formatPriceCompact(price: number | null | undefined, currency?: 
   if (n >= 1000) return `${sym}${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}k`;
   return `${sym}${n.toLocaleString()}`;
 }
+
+/** 近似汇率（相对 CNY），用于离线预览换算 */
+export const FALLBACK_RATES_FROM_CNY: Record<string, number> = {
+  CNY: 1, USD: 0.1379, EUR: 0.1267, GBP: 0.1089, JPY: 20.83,
+  HKD: 1.078, SGD: 0.1862, AUD: 0.2137, CAD: 0.1923,
+  KRW: 189.5, TWD: 4.46, THB: 4.82,
+};
+
+/** 将任意币种金额换算到目标币种（基于 CNY 中转，使用近似汇率） */
+export function convertCurrency(amount: number, from: string, to: string): number {
+  const f = (from || 'CNY').toUpperCase();
+  const t = (to || 'CNY').toUpperCase();
+  if (f === t) return amount;
+  const fromRate = FALLBACK_RATES_FROM_CNY[f] ?? 1;
+  const toRate = FALLBACK_RATES_FROM_CNY[t] ?? 1;
+  // amount(from) -> CNY -> to
+  const inCny = amount / fromRate;
+  return inCny * toRate;
+}
