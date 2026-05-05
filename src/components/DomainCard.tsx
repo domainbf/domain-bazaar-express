@@ -24,6 +24,8 @@ interface DomainCardProps {
   isVerified?: boolean;
   views?: number;
   index?: number;
+  searchQuery?: string;
+  onQuickView?: () => void;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -33,9 +35,27 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 import { formatPrice } from '@/lib/currency';
 
+// 高亮搜索匹配的部分
+function HighlightedText({ text, query }: { text: string; query?: string }) {
+  if (!query?.trim()) return <>{text}</>;
+  const q = query.trim().toLowerCase();
+  const lower = text.toLowerCase();
+  const idx = lower.indexOf(q);
+  if (idx < 0) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark className="bg-yellow-300/70 dark:bg-yellow-500/40 text-foreground rounded px-0.5">
+        {text.slice(idx, idx + q.length)}
+      </mark>
+      {text.slice(idx + q.length)}
+    </>
+  );
+}
+
 export const DomainCard = ({
   domain, price, currency = 'CNY', highlight, isSold = false, domainId, sellerId,
-  category, description, isVerified = false, index = 0,
+  category, description, isVerified = false, index = 0, searchQuery, onQuickView,
 }: DomainCardProps) => {
   const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -157,21 +177,44 @@ export const DomainCard = ({
 
       {/* Domain name — visual anchor (auto-shrinks for long names so it never gets cut off) */}
       <div className="flex flex-col items-center pt-8 pb-2">
-        <Link to={getDomainDetailPath(domain)} className="block w-full text-center px-2">
-          <h3
-            className={`font-black text-foreground uppercase tracking-tight hover:text-primary transition-colors duration-150 leading-[1.05] break-all ${
-              domain.length <= 8 ? 'text-4xl sm:text-5xl'
-              : domain.length <= 12 ? 'text-3xl sm:text-4xl'
-              : domain.length <= 16 ? 'text-2xl sm:text-3xl'
-              : domain.length <= 20 ? 'text-xl sm:text-2xl'
-              : domain.length <= 26 ? 'text-base sm:text-xl'
-              : 'text-sm sm:text-base'
-            }`}
-            title={domain}
+        {onQuickView ? (
+          <button
+            type="button"
+            onClick={onQuickView}
+            className="block w-full text-center px-2"
+            data-testid={`button-quickview-${domainId}`}
           >
-            {domain}
-          </h3>
-        </Link>
+            <h3
+              className={`font-black text-foreground uppercase tracking-tight hover:text-primary transition-colors duration-150 leading-[1.05] break-all ${
+                domain.length <= 8 ? 'text-4xl sm:text-5xl'
+                : domain.length <= 12 ? 'text-3xl sm:text-4xl'
+                : domain.length <= 16 ? 'text-2xl sm:text-3xl'
+                : domain.length <= 20 ? 'text-xl sm:text-2xl'
+                : domain.length <= 26 ? 'text-base sm:text-xl'
+                : 'text-sm sm:text-base'
+              }`}
+              title={domain}
+            >
+              <HighlightedText text={domain} query={searchQuery} />
+            </h3>
+          </button>
+        ) : (
+          <Link to={getDomainDetailPath(domain)} className="block w-full text-center px-2">
+            <h3
+              className={`font-black text-foreground uppercase tracking-tight hover:text-primary transition-colors duration-150 leading-[1.05] break-all ${
+                domain.length <= 8 ? 'text-4xl sm:text-5xl'
+                : domain.length <= 12 ? 'text-3xl sm:text-4xl'
+                : domain.length <= 16 ? 'text-2xl sm:text-3xl'
+                : domain.length <= 20 ? 'text-xl sm:text-2xl'
+                : domain.length <= 26 ? 'text-base sm:text-xl'
+                : 'text-sm sm:text-base'
+              }`}
+              title={domain}
+            >
+              <HighlightedText text={domain} query={searchQuery} />
+            </h3>
+          </Link>
+        )}
 
         {category && (
           <Badge variant="secondary" className="text-[11px] mt-3 px-3">
@@ -232,6 +275,8 @@ export const DomainCard = ({
                 <DomainOfferForm
                   domain={domain} domainId={domainInfo.id} sellerId={domainInfo.ownerId}
                   initialCurrency={currency}
+                  listingPrice={typeof price === 'number' ? price : undefined}
+                  listingCurrency={currency}
                   onClose={() => setIsDialogOpen(false)} isAuthenticated={isAuthenticated}
                 />
               </DialogContent>

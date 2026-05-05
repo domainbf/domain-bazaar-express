@@ -7,7 +7,7 @@ import { Mail, Send, Loader2, ShieldCheck, AlertCircle } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/contexts/AuthContext';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
-import { CURRENCIES, formatPrice, getCurrencySymbol } from '@/lib/currency';
+import { CURRENCIES, formatPrice, getCurrencySymbol, convertCurrency } from '@/lib/currency';
 
 interface DomainOfferFormProps {
   domain: string;
@@ -18,6 +18,9 @@ interface DomainOfferFormProps {
   initialOffer?: number;
   initialCurrency?: string;
   isBuyNow?: boolean;
+  /** 卖家在 listing 中设定的价格（用于换算到 CNY 后判断最低/最高） */
+  listingPrice?: number;
+  listingCurrency?: string;
 }
 
 export const DomainOfferForm = ({
@@ -29,6 +32,8 @@ export const DomainOfferForm = ({
   initialOffer,
   initialCurrency = 'CNY',
   isBuyNow = false,
+  listingPrice,
+  listingCurrency = 'CNY',
 }: DomainOfferFormProps) => {
   const { session } = useAuth();
   const [offer, setOffer] = useState(initialOffer ? String(initialOffer) : '');
@@ -48,12 +53,39 @@ export const DomainOfferForm = ({
   const previewText = numericOffer != null ? formatPrice(numericOffer, currency) : null;
   const symbol = getCurrencySymbol(currency);
 
+  // 最低 / 最高（以挂牌币种为基准），最低=挂牌价的 30%，最高=挂牌价的 5 倍
+  const limits = useMemo(() => {
+    if (!listingPrice || listingPrice <= 0) return null;
+    const minInListing = listingPrice * 0.3;
+    const maxInListing = listingPrice * 5;
+    return {
+      min: convertCurrency(minInListing, listingCurrency, currency),
+      max: convertCurrency(maxInListing, listingCurrency, currency),
+    };
+  }, [listingPrice, listingCurrency, currency]);
+
+  // 换算到挂牌币种的预览
+  const convertedPreview = useMemo(() => {
+    if (numericOffer == null) return null;
+    if (currency === listingCurrency.toUpperCase()) return null;
+    const v = convertCurrency(numericOffer, currency, listingCurrency);
+    return formatPrice(v, listingCurrency);
+  }, [numericOffer, currency, listingCurrency]);
+
+  const rangeError = useMemo(() => {
+    if (!numericOffer || !limits) return null;
+    if (numericOffer < limits.min) return `报价过低，建议不低于 ${formatPrice(limits.min, currency)}`;
+    if (numericOffer > limits.max) return `报价过高，建议不超过 ${formatPrice(limits.max, currency)}`;
+    return null;
+  }, [numericOffer, limits, currency]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
     if (!captchaToken) { setError('请完成人机验证'); toast.error('请完成人机验证'); return; }
     if (!numericOffer) { setError('请输入有效的报价金额'); toast.error('请输入有效的报价金额'); return; }
+    if (!isBuyNow && rangeError) { setError(rangeError); toast.error(rangeError); return; }
     if (!email || !email.includes('@')) { setError('请输入有效的邮箱地址'); toast.error('请输入有效的邮箱地址'); return; }
 
     setIsLoading(true);
@@ -169,12 +201,24 @@ export const DomainOfferForm = ({
         </div>
 
         {/* 价格预览 — 防止用户混淆币种 */}
-        <div className="rounded-md bg-muted/40 border border-border px-3 py-2 text-xs text-muted-foreground">
+        <div className={`rounded-md border px-3 py-2 text-xs space-y-1 ${
+          rangeError ? 'bg-destructive/10 border-destructive/30 text-destructive' : 'bg-muted/40 border-border text-muted-foreground'
+        }`}>
           {previewText ? (
-            <span>提交后金额将记录为：<span className="font-semibold text-foreground tabular-nums">{previewText} {currency}</span></span>
+            <div>提交后金额将记录为：<span className="font-semibold text-foreground tabular-nums">{previewText} {currency}</span>
+              {convertedPreview && (
+                <span className="ml-2 text-muted-foreground">≈ <span className="font-semibold text-foreground tabular-nums">{convertedPreview}</span></span>
+              )}
+            </div>
           ) : (
-            <span>请输入报价金额，将以 <span className="font-semibold text-foreground">{currency}</span> 提交</span>
+            <div>请输入报价金额，将以 <span className="font-semibold text-foreground">{currency}</span> 提交</div>
           )}
+          {limits && !isBuyNow && (
+            <div className="text-[11px]">
+              建议范围：<span className="tabular-nums">{formatPrice(limits.min, currency)}</span> – <span className="tabular-nums">{formatPrice(limits.max, currency)}</span>
+            </div>
+          )}
+          {rangeError && <div className="font-medium">{rangeError}</div>}
         </div>
       </div>
 

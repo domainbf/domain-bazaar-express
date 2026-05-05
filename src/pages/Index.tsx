@@ -22,6 +22,9 @@ import { SkeletonCardGrid } from '@/components/common/SkeletonCard';
 import { Footer } from '@/components/sections/Footer';
 import { HowItWorksSection } from '@/components/sections/HowItWorksSection';
 import { DealsShowcaseSection } from '@/components/sections/DealsShowcaseSection';
+import { DomainQuickViewDialog } from '@/components/domain/DomainQuickViewDialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
 
 const DomainEstimator = lazy(() => import('@/components/tools/DomainEstimator').then(m => ({ default: m.DomainEstimator })));
 const DomainMonitor = lazy(() => import('@/components/tools/DomainMonitor').then(m => ({ default: m.DomainMonitor })));
@@ -46,6 +49,9 @@ const Index = () => {
   const [filter, setFilter] = useState('all');
   const [extFilter, setExtFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'hot' | 'latest_offer' | 'price_asc' | 'price_desc'>('hot');
+  const [latestOfferMap, setLatestOfferMap] = useState<Record<string, string>>({});
+  const [quickView, setQuickView] = useState<HomeDomainItem | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('marketplace');
   const { user } = useAuth();
@@ -81,15 +87,48 @@ const Index = () => {
     return Array.from(set).sort();
   }, [domains]);
 
-  const filteredDomains = useMemo(() => domains.filter(d => {
-    if (filter !== 'all' && d.category !== filter) return false;
-    if (extFilter !== 'all' && !d.name.toLowerCase().endsWith(extFilter)) return false;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      return d.name?.toLowerCase().includes(q) || d.description?.toLowerCase().includes(q);
+  // Fetch latest offer timestamps so we can sort by 最新报价
+  useEffect(() => {
+    const ids = (homeData?.hotDomains ?? []).map(d => d.id).filter(Boolean);
+    if (!ids.length) return;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from('domain_offers')
+        .select('domain_id, created_at')
+        .in('domain_id', ids)
+        .order('created_at', { ascending: false });
+      if (!data) return;
+      const map: Record<string, string> = {};
+      for (const row of data) {
+        if (!map[row.domain_id]) map[row.domain_id] = row.created_at;
+      }
+      setLatestOfferMap(map);
+    })();
+  }, [homeData?.hotDomains]);
+
+  const filteredDomains = useMemo(() => {
+    const list = domains.filter(d => {
+      if (filter !== 'all' && d.category !== filter) return false;
+      if (extFilter !== 'all' && !d.name.toLowerCase().endsWith(extFilter)) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        return d.name?.toLowerCase().includes(q) || d.description?.toLowerCase().includes(q);
+      }
+      return true;
+    });
+
+    const sorted = [...list];
+    if (sortBy === 'price_asc') sorted.sort((a, b) => (a.price || 0) - (b.price || 0));
+    else if (sortBy === 'price_desc') sorted.sort((a, b) => (b.price || 0) - (a.price || 0));
+    else if (sortBy === 'latest_offer') {
+      sorted.sort((a, b) => {
+        const ta = latestOfferMap[a.id] ? new Date(latestOfferMap[a.id]).getTime() : 0;
+        const tb = latestOfferMap[b.id] ? new Date(latestOfferMap[b.id]).getTime() : 0;
+        return tb - ta;
+      });
     }
-    return true;
-  }).slice(0, 12), [domains, filter, extFilter, searchQuery]);
+    return sorted.slice(0, 12);
+  }, [domains, filter, extFilter, searchQuery, sortBy, latestOfferMap]);
 
   const handleSellDomains = () => {
     if (user) navigate('/user-center?tab=domains');
@@ -152,8 +191,8 @@ const Index = () => {
                   <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent md:hidden" />
                 </div>
 
-                <div className="max-w-md mx-auto mb-6">
-                  <div className="relative">
+                <div className="max-w-md mx-auto mb-4 flex gap-2">
+                  <div className="relative flex-1">
                     <Input
                       type="text"
                       placeholder={t('marketplace.searchPlaceholder')}
@@ -163,6 +202,17 @@ const Index = () => {
                     />
                     <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                   </div>
+                  <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+                    <SelectTrigger className="w-[130px] h-10 md:h-12 font-bold text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="hot">🔥 热门</SelectItem>
+                      <SelectItem value="latest_offer">🆕 最新报价</SelectItem>
+                      <SelectItem value="price_asc">↑ 价格从低</SelectItem>
+                      <SelectItem value="price_desc">↓ 价格从高</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Extension chips */}
@@ -220,6 +270,8 @@ const Index = () => {
                             domainId={domain.id}
                             sellerId={domain.ownerId || ''}
                             isVerified={domain.isVerified ?? domain.verificationStatus === 'verified'}
+                            searchQuery={searchQuery}
+                            onQuickView={() => setQuickView(domain)}
                           />
                         </motion.div>
                       ))}
@@ -359,6 +411,16 @@ const Index = () => {
 
       
       <AuthModal open={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+
+      <DomainQuickViewDialog
+        open={!!quickView}
+        onClose={() => setQuickView(null)}
+        domain={quickView?.name || ''}
+        domainId={quickView?.id}
+        sellerId={quickView?.ownerId}
+        price={quickView?.price}
+        currency={quickView?.currency}
+      />
     </div>
   );
 };
