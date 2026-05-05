@@ -152,7 +152,7 @@ const Index = () => {
                   <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent md:hidden" />
                 </div>
 
-                <div className="max-w-md mx-auto mb-10">
+                <div className="max-w-md mx-auto mb-6">
                   <div className="relative">
                     <Input
                       type="text"
@@ -165,25 +165,63 @@ const Index = () => {
                   </div>
                 </div>
 
+                {/* Extension chips */}
+                {availableExtensions.length > 0 && (
+                  <div className="max-w-2xl mx-auto mb-8 overflow-x-auto scrollbar-hide">
+                    <div className="flex gap-2 justify-start md:justify-center min-w-max px-4 md:px-0">
+                      <button
+                        onClick={() => setExtFilter('all')}
+                        className={`text-xs font-bold px-3 py-1.5 rounded-full border transition-all ${
+                          extFilter === 'all'
+                            ? 'bg-foreground text-background border-foreground'
+                            : 'bg-background text-foreground border-border hover:border-foreground/50'
+                        }`}
+                      >
+                        全部后缀
+                      </button>
+                      {availableExtensions.map(ext => (
+                        <button
+                          key={ext}
+                          onClick={() => setExtFilter(ext)}
+                          className={`text-xs font-mono font-bold px-3 py-1.5 rounded-full border transition-all ${
+                            extFilter === ext
+                              ? 'bg-foreground text-background border-foreground'
+                              : 'bg-background text-foreground border-border hover:border-foreground/50'
+                          }`}
+                        >
+                          {ext}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Domain Cards */}
                 {isLoading ? (
                   <SkeletonCardGrid count={6} />
                 ) : filteredDomains.length > 0 ? (
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-8 px-2 md:px-0">
-                      {filteredDomains.map((domain) => (
-                        <DomainCard
+                      {filteredDomains.map((domain, i) => (
+                        <motion.div
                           key={domain.id}
-                          domain={domain.name}
-                          price={domain.price}
-                          currency={domain.currency}
-                          highlight={domain.highlight || false}
-                          description={domain.description || ''}
-                          category={domain.category || ''}
-                          domainId={domain.id}
-                          sellerId={domain.ownerId || ''}
-                          isVerified={domain.isVerified ?? domain.verificationStatus === 'verified'}
-                        />
+                          initial={{ opacity: 0, y: 18 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true, margin: '-40px' }}
+                          transition={{ duration: 0.35, delay: Math.min(i, 8) * 0.05 }}
+                        >
+                          <DomainCard
+                            domain={domain.name}
+                            price={domain.price}
+                            currency={domain.currency}
+                            highlight={domain.highlight || false}
+                            description={domain.description || ''}
+                            category={domain.category || ''}
+                            domainId={domain.id}
+                            sellerId={domain.ownerId || ''}
+                            isVerified={domain.isVerified ?? domain.verificationStatus === 'verified'}
+                          />
+                        </motion.div>
                       ))}
                     </div>
                     <div className="text-center">
