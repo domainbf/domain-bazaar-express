@@ -32,6 +32,8 @@ export const DomainOfferForm = ({
   initialOffer,
   initialCurrency = 'CNY',
   isBuyNow = false,
+  listingPrice,
+  listingCurrency = 'CNY',
 }: DomainOfferFormProps) => {
   const { session } = useAuth();
   const [offer, setOffer] = useState(initialOffer ? String(initialOffer) : '');
@@ -50,6 +52,32 @@ export const DomainOfferForm = ({
 
   const previewText = numericOffer != null ? formatPrice(numericOffer, currency) : null;
   const symbol = getCurrencySymbol(currency);
+
+  // 最低 / 最高（以挂牌币种为基准），最低=挂牌价的 30%，最高=挂牌价的 5 倍
+  const limits = useMemo(() => {
+    if (!listingPrice || listingPrice <= 0) return null;
+    const minInListing = listingPrice * 0.3;
+    const maxInListing = listingPrice * 5;
+    return {
+      min: convertCurrency(minInListing, listingCurrency, currency),
+      max: convertCurrency(maxInListing, listingCurrency, currency),
+    };
+  }, [listingPrice, listingCurrency, currency]);
+
+  // 换算到挂牌币种的预览
+  const convertedPreview = useMemo(() => {
+    if (numericOffer == null) return null;
+    if (currency === listingCurrency.toUpperCase()) return null;
+    const v = convertCurrency(numericOffer, currency, listingCurrency);
+    return formatPrice(v, listingCurrency);
+  }, [numericOffer, currency, listingCurrency]);
+
+  const rangeError = useMemo(() => {
+    if (!numericOffer || !limits) return null;
+    if (numericOffer < limits.min) return `报价过低，建议不低于 ${formatPrice(limits.min, currency)}`;
+    if (numericOffer > limits.max) return `报价过高，建议不超过 ${formatPrice(limits.max, currency)}`;
+    return null;
+  }, [numericOffer, limits, currency]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
