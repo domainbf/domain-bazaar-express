@@ -44,6 +44,7 @@ const FALLBACK_DOMAINS: HomeDomainItem[] = fallbackDomains.slice(0, 9).map((d, i
 
 const Index = () => {
   const [filter, setFilter] = useState('all');
+  const [extFilter, setExtFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('marketplace');
