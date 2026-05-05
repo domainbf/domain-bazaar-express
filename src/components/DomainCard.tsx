@@ -24,6 +24,8 @@ interface DomainCardProps {
   isVerified?: boolean;
   views?: number;
   index?: number;
+  searchQuery?: string;
+  onQuickView?: () => void;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -33,9 +35,27 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 import { formatPrice } from '@/lib/currency';
 
+// 高亮搜索匹配的部分
+function HighlightedText({ text, query }: { text: string; query?: string }) {
+  if (!query?.trim()) return <>{text}</>;
+  const q = query.trim().toLowerCase();
+  const lower = text.toLowerCase();
+  const idx = lower.indexOf(q);
+  if (idx < 0) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark className="bg-yellow-300/70 dark:bg-yellow-500/40 text-foreground rounded px-0.5">
+        {text.slice(idx, idx + q.length)}
+      </mark>
+      {text.slice(idx + q.length)}
+    </>
+  );
+}
+
 export const DomainCard = ({
   domain, price, currency = 'CNY', highlight, isSold = false, domainId, sellerId,
-  category, description, isVerified = false, index = 0,
+  category, description, isVerified = false, index = 0, searchQuery, onQuickView,
 }: DomainCardProps) => {
   const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
