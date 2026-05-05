@@ -7,7 +7,7 @@ import { Mail, Send, Loader2, ShieldCheck, AlertCircle } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/contexts/AuthContext';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
-import { CURRENCIES, formatPrice, getCurrencySymbol } from '@/lib/currency';
+import { CURRENCIES, formatPrice, getCurrencySymbol, convertCurrency } from '@/lib/currency';
 
 interface DomainOfferFormProps {
   domain: string;
