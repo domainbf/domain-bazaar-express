@@ -178,6 +178,34 @@ export const DomainOfferForm = ({
         </div>
       )}
 
+      {submitState && (
+        <div className="rounded-md border border-border bg-muted/40 p-3 space-y-2 mb-2">
+          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">报价状态</div>
+          <div className="space-y-1.5 text-sm">
+            <div className="flex items-center gap-2 text-foreground">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              <span>已提交 · <span className="tabular-nums font-semibold">{formatPrice(submitState.amount, submitState.currency)}</span></span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className={`w-4 h-4 ${submitState.status !== 'submitted' ? 'text-emerald-500' : 'text-muted-foreground animate-pulse'}`} />
+              <span className={submitState.status !== 'submitted' ? 'text-foreground' : 'text-muted-foreground'}>
+                待卖家审核
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {submitState.status === 'emailed' ? (
+                <><MailCheck className="w-4 h-4 text-emerald-500" /><span className="text-foreground">邮件通知已发送</span></>
+              ) : (
+                <><Mail className="w-4 h-4 text-muted-foreground animate-pulse" /><span className="text-muted-foreground">正在发送邮件通知…</span></>
+              )}
+            </div>
+          </div>
+          <Button type="button" variant="outline" size="sm" className="w-full" onClick={onClose}>
+            完成
+          </Button>
+        </div>
+      )}
+
       <div className="space-y-2">
         <label className="text-sm font-medium text-foreground">
           {isBuyNow ? '购买金额（标价）' : '您的报价'}
