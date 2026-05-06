@@ -63,6 +63,7 @@ export const DomainCard = ({
   const [isFavorited, setIsFavorited] = useState(false);
   const [isLoadingFavorite, setIsLoadingFavorite] = useState(false);
   const [heartKey, setHeartKey] = useState(0);
+  const [copied, setCopied] = useState(false);
   const [domainInfo, setDomainInfo] = useState<{id?: string; ownerId?: string}>({
     id: domainId, ownerId: sellerId,
   });
