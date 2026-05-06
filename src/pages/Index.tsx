@@ -52,6 +52,7 @@ const Index = () => {
   const [sortBy, setSortBy] = useState<'hot' | 'latest_offer' | 'price_asc' | 'price_desc'>('hot');
   const [latestOfferMap, setLatestOfferMap] = useState<Record<string, string>>({});
   const [quickView, setQuickView] = useState<HomeDomainItem | null>(null);
+  const [visibleCount, setVisibleCount] = useState(12);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('marketplace');
   const { user } = useAuth();
