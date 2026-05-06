@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Mail, Send, Loader2, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Mail, Send, Loader2, ShieldCheck, AlertCircle, CheckCircle2, Clock, MailCheck } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/contexts/AuthContext';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
