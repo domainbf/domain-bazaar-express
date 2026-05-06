@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from '@/integrations/supabase/client';
 import { DomainOfferForm } from './domain/DomainOfferForm';
 import { Badge } from './ui/badge';
-import { Heart, Shield } from 'lucide-react';
+import { Heart, Shield, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -63,6 +63,7 @@ export const DomainCard = ({
   const [isFavorited, setIsFavorited] = useState(false);
   const [isLoadingFavorite, setIsLoadingFavorite] = useState(false);
   const [heartKey, setHeartKey] = useState(0);
+  const [copied, setCopied] = useState(false);
   const [domainInfo, setDomainInfo] = useState<{id?: string; ownerId?: string}>({
     id: domainId, ownerId: sellerId,
   });
@@ -157,22 +158,41 @@ export const DomainCard = ({
             </Badge>
           )}
         </div>
-        <button
-          key={heartKey}
-          className={`h-7 w-7 rounded-full flex items-center justify-center transition-all
-            ${isFavorited
-              ? 'text-red-500 hover:text-red-400 hover:bg-red-500/10 dark:hover:bg-red-950/30'
-              : 'text-muted-foreground hover:text-red-500 hover:bg-red-500/10 dark:hover:bg-red-950/30 opacity-0 group-hover:opacity-100'
-            }
-            ${heartKey > 0 ? 'animate-heart' : ''}
-          `}
-          onClick={handleToggleFavorite}
-          disabled={isLoadingFavorite}
-          aria-label={isFavorited ? '取消收藏' : '收藏'}
-          data-testid={`button-favorite-${domainId}`}
-        >
-          <Heart className={`h-3.5 w-3.5 transition-transform ${isFavorited ? 'fill-current' : ''}`} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            className="h-7 w-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+            onClick={async (e) => {
+              e.preventDefault(); e.stopPropagation();
+              try {
+                await navigator.clipboard.writeText(domain);
+                setCopied(true);
+                toast.success(`已复制 ${domain}`);
+                setTimeout(() => setCopied(false), 1500);
+              } catch { toast.error('复制失败'); }
+            }}
+            aria-label="复制域名"
+            data-testid={`button-copy-${domainId}`}
+          >
+            {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+          </button>
+          <button
+            key={heartKey}
+            className={`h-7 w-7 rounded-full flex items-center justify-center transition-all
+              ${isFavorited
+                ? 'text-red-500 hover:text-red-400 hover:bg-red-500/10 dark:hover:bg-red-950/30'
+                : 'text-muted-foreground hover:text-red-500 hover:bg-red-500/10 dark:hover:bg-red-950/30 opacity-0 group-hover:opacity-100'
+              }
+              ${heartKey > 0 ? 'animate-heart' : ''}
+            `}
+            onClick={handleToggleFavorite}
+            disabled={isLoadingFavorite}
+            aria-label={isFavorited ? '取消收藏' : '收藏'}
+            data-testid={`button-favorite-${domainId}`}
+          >
+            <Heart className={`h-3.5 w-3.5 transition-transform ${isFavorited ? 'fill-current' : ''}`} />
+          </button>
+        </div>
       </div>
 
       {/* Domain name — visual anchor (auto-shrinks for long names so it never gets cut off) */}

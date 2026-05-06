@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Mail, Send, Loader2, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Mail, Send, Loader2, ShieldCheck, AlertCircle, CheckCircle2, Clock, MailCheck } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/contexts/AuthContext';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
@@ -21,6 +21,7 @@ interface DomainOfferFormProps {
   /** 卖家在 listing 中设定的价格（用于换算到 CNY 后判断最低/最高） */
   listingPrice?: number;
   listingCurrency?: string;
+  onSubmitted?: () => void;
 }
 
 export const DomainOfferForm = ({
@@ -34,6 +35,7 @@ export const DomainOfferForm = ({
   isBuyNow = false,
   listingPrice,
   listingCurrency = 'CNY',
+  onSubmitted,
 }: DomainOfferFormProps) => {
   const { session } = useAuth();
   const [offer, setOffer] = useState(initialOffer ? String(initialOffer) : '');
@@ -43,6 +45,7 @@ export const DomainOfferForm = ({
   const [isLoading, setIsLoading] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [submitState, setSubmitState] = useState<{ status: 'submitted' | 'reviewing' | 'emailed'; amount: number; currency: string } | null>(null);
   const captchaRef = useRef<HCaptcha>(null);
 
   const numericOffer = useMemo(() => {
@@ -123,7 +126,12 @@ export const DomainOfferForm = ({
 
       if (insertError) throw new Error(insertError.message);
 
+      // 立即标记为已提交 + 待审核
+      setSubmitState({ status: 'submitted', amount: numericOffer, currency });
+      onSubmitted?.();
+
       // 邮件通知（含币种与符号）
+      setSubmitState({ status: 'reviewing', amount: numericOffer, currency });
       supabase.functions.invoke('send-offer', {
         body: {
           domain,
@@ -136,12 +144,15 @@ export const DomainOfferForm = ({
           message,
           buyerId: session?.user?.id || null,
         },
-      }).catch(err => console.warn('Offer email notification failed:', err));
+      }).then(() => {
+        setSubmitState({ status: 'emailed', amount: numericOffer, currency });
+      }).catch(err => {
+        console.warn('Offer email notification failed:', err);
+      });
 
       toast.success('您的报价已成功提交！');
-      setOffer(''); setEmail(''); setMessage(''); setCaptchaToken(null);
+      setOffer(''); setMessage(''); setCaptchaToken(null);
       captchaRef.current?.resetCaptcha();
-      onClose();
     } catch (err: any) {
       const msg = err.message || '提交报价失败，请稍后重试';
       setError(msg); toast.error(msg);
@@ -164,6 +175,34 @@ export const DomainOfferForm = ({
         <div className="bg-destructive/10 border border-destructive/30 p-3 rounded-md mb-4 flex items-start">
           <AlertCircle className="w-5 h-5 text-destructive mr-2 mt-0.5 flex-shrink-0" />
           <p className="text-destructive text-sm">{error}</p>
+        </div>
+      )}
+
+      {submitState && (
+        <div className="rounded-md border border-border bg-muted/40 p-3 space-y-2 mb-2">
+          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">报价状态</div>
+          <div className="space-y-1.5 text-sm">
+            <div className="flex items-center gap-2 text-foreground">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              <span>已提交 · <span className="tabular-nums font-semibold">{formatPrice(submitState.amount, submitState.currency)}</span></span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className={`w-4 h-4 ${submitState.status !== 'submitted' ? 'text-emerald-500' : 'text-muted-foreground animate-pulse'}`} />
+              <span className={submitState.status !== 'submitted' ? 'text-foreground' : 'text-muted-foreground'}>
+                待卖家审核
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {submitState.status === 'emailed' ? (
+                <><MailCheck className="w-4 h-4 text-emerald-500" /><span className="text-foreground">邮件通知已发送</span></>
+              ) : (
+                <><Mail className="w-4 h-4 text-muted-foreground animate-pulse" /><span className="text-muted-foreground">正在发送邮件通知…</span></>
+              )}
+            </div>
+          </div>
+          <Button type="button" variant="outline" size="sm" className="w-full" onClick={onClose}>
+            完成
+          </Button>
         </div>
       )}
 

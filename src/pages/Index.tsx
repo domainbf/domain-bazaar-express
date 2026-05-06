@@ -52,6 +52,7 @@ const Index = () => {
   const [sortBy, setSortBy] = useState<'hot' | 'latest_offer' | 'price_asc' | 'price_desc'>('hot');
   const [latestOfferMap, setLatestOfferMap] = useState<Record<string, string>>({});
   const [quickView, setQuickView] = useState<HomeDomainItem | null>(null);
+  const [visibleCount, setVisibleCount] = useState(12);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('marketplace');
   const { user } = useAuth();
@@ -106,7 +107,7 @@ const Index = () => {
     })();
   }, [homeData?.hotDomains]);
 
-  const filteredDomains = useMemo(() => {
+  const sortedDomains = useMemo(() => {
     const list = domains.filter(d => {
       if (filter !== 'all' && d.category !== filter) return false;
       if (extFilter !== 'all' && !d.name.toLowerCase().endsWith(extFilter)) return false;
@@ -127,8 +128,20 @@ const Index = () => {
         return tb - ta;
       });
     }
-    return sorted.slice(0, 12);
+    return sorted;
   }, [domains, filter, extFilter, searchQuery, sortBy, latestOfferMap]);
+
+  const filteredDomains = useMemo(() => sortedDomains.slice(0, visibleCount), [sortedDomains, visibleCount]);
+
+  // 重置分页（筛选/搜索/排序联动）
+  useEffect(() => { setVisibleCount(12); }, [filter, extFilter, searchQuery, sortBy]);
+
+  // 用于搜索后缀高亮：拿到查询匹配的后缀
+  const matchedExtFromQuery = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q.startsWith('.')) return null;
+    return availableExtensions.find(e => e.startsWith(q)) || null;
+  }, [searchQuery, availableExtensions]);
 
   const handleSellDomains = () => {
     if (user) navigate('/user-center?tab=domains');
@@ -229,19 +242,25 @@ const Index = () => {
                       >
                         全部后缀
                       </button>
-                      {availableExtensions.map(ext => (
-                        <button
-                          key={ext}
-                          onClick={() => setExtFilter(ext)}
-                          className={`text-xs font-mono font-bold px-3 py-1.5 rounded-full border transition-all ${
-                            extFilter === ext
-                              ? 'bg-foreground text-background border-foreground'
-                              : 'bg-background text-foreground border-border hover:border-foreground/50'
-                          }`}
-                        >
-                          {ext}
-                        </button>
-                      ))}
+                      {availableExtensions.map(ext => {
+                        const isActive = extFilter === ext;
+                        const isMatched = matchedExtFromQuery === ext;
+                        return (
+                          <button
+                            key={ext}
+                            onClick={() => setExtFilter(ext)}
+                            className={`text-xs font-mono font-bold px-3 py-1.5 rounded-full border transition-all ${
+                              isActive
+                                ? 'bg-foreground text-background border-foreground'
+                                : isMatched
+                                  ? 'bg-yellow-300/70 dark:bg-yellow-500/40 text-foreground border-yellow-500/60 ring-2 ring-yellow-400/60'
+                                  : 'bg-background text-foreground border-border hover:border-foreground/50'
+                            }`}
+                          >
+                            {ext}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -276,10 +295,24 @@ const Index = () => {
                         </motion.div>
                       ))}
                     </div>
-                    <div className="text-center">
-                      <Link to="/marketplace">
-                        <Button className="px-8 py-3">查看更多域名</Button>
-                      </Link>
+                    <div className="text-center space-y-3">
+                      <div className="text-xs text-muted-foreground">
+                        显示 <span className="font-bold text-foreground tabular-nums">{filteredDomains.length}</span> / {sortedDomains.length} 个域名
+                      </div>
+                      <div className="flex justify-center gap-3 flex-wrap">
+                        {visibleCount < sortedDomains.length && (
+                          <Button
+                            onClick={() => setVisibleCount(c => c + 12)}
+                            variant="outline"
+                            className="px-6 py-2 font-bold"
+                          >
+                            加载更多 ({sortedDomains.length - visibleCount})
+                          </Button>
+                        )}
+                        <Link to="/marketplace">
+                          <Button className="px-6 py-2">前往完整市场 →</Button>
+                        </Link>
+                      </div>
                     </div>
                   </>
                 ) : (
