@@ -39,6 +39,7 @@ export async function saveOfferToDatabase(supabase: SupabaseClient, offerData: a
       .insert({
         domain_id: offerData.domainId,
         amount: parseFloat(offerData.offer),
+        currency: (offerData.currency || 'CNY').toUpperCase(),
         contact_email: offerData.email,
         message: offerData.message || '',
         buyer_id: offerData.buyerId,
