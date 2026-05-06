@@ -295,10 +295,24 @@ const Index = () => {
                         </motion.div>
                       ))}
                     </div>
-                    <div className="text-center">
-                      <Link to="/marketplace">
-                        <Button className="px-8 py-3">查看更多域名</Button>
-                      </Link>
+                    <div className="text-center space-y-3">
+                      <div className="text-xs text-muted-foreground">
+                        显示 <span className="font-bold text-foreground tabular-nums">{filteredDomains.length}</span> / {sortedDomains.length} 个域名
+                      </div>
+                      <div className="flex justify-center gap-3 flex-wrap">
+                        {visibleCount < sortedDomains.length && (
+                          <Button
+                            onClick={() => setVisibleCount(c => c + 12)}
+                            variant="outline"
+                            className="px-6 py-2 font-bold"
+                          >
+                            加载更多 ({sortedDomains.length - visibleCount})
+                          </Button>
+                        )}
+                        <Link to="/marketplace">
+                          <Button className="px-6 py-2">前往完整市场 →</Button>
+                        </Link>
+                      </div>
                     </div>
                   </>
                 ) : (
