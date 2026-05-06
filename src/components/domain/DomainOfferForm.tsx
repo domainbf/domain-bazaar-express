@@ -35,6 +35,7 @@ export const DomainOfferForm = ({
   isBuyNow = false,
   listingPrice,
   listingCurrency = 'CNY',
+  onSubmitted,
 }: DomainOfferFormProps) => {
   const { session } = useAuth();
   const [offer, setOffer] = useState(initialOffer ? String(initialOffer) : '');
@@ -44,6 +45,7 @@ export const DomainOfferForm = ({
   const [isLoading, setIsLoading] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [submitState, setSubmitState] = useState<{ status: 'submitted' | 'reviewing' | 'emailed'; amount: number; currency: string } | null>(null);
   const captchaRef = useRef<HCaptcha>(null);
 
   const numericOffer = useMemo(() => {
