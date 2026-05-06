@@ -242,19 +242,25 @@ const Index = () => {
                       >
                         全部后缀
                       </button>
-                      {availableExtensions.map(ext => (
-                        <button
-                          key={ext}
-                          onClick={() => setExtFilter(ext)}
-                          className={`text-xs font-mono font-bold px-3 py-1.5 rounded-full border transition-all ${
-                            extFilter === ext
-                              ? 'bg-foreground text-background border-foreground'
-                              : 'bg-background text-foreground border-border hover:border-foreground/50'
-                          }`}
-                        >
-                          {ext}
-                        </button>
-                      ))}
+                      {availableExtensions.map(ext => {
+                        const isActive = extFilter === ext;
+                        const isMatched = matchedExtFromQuery === ext;
+                        return (
+                          <button
+                            key={ext}
+                            onClick={() => setExtFilter(ext)}
+                            className={`text-xs font-mono font-bold px-3 py-1.5 rounded-full border transition-all ${
+                              isActive
+                                ? 'bg-foreground text-background border-foreground'
+                                : isMatched
+                                  ? 'bg-yellow-300/70 dark:bg-yellow-500/40 text-foreground border-yellow-500/60 ring-2 ring-yellow-400/60'
+                                  : 'bg-background text-foreground border-border hover:border-foreground/50'
+                            }`}
+                          >
+                            {ext}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
