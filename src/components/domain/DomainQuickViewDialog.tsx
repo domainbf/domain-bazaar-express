@@ -33,21 +33,44 @@ export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerI
   const [offers, setOffers] = useState<OfferRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [showOfferForm, setShowOfferForm] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const loadOffers = useCallback(async () => {
+    if (!domainId) return;
+    setLoading(true);
+    const { data } = await (supabase as any)
+      .from('domain_offers')
+      .select('id, amount, currency, status, created_at')
+      .eq('domain_id', domainId)
+      .order('amount', { ascending: false })
+      .limit(10);
+    setOffers(data || []);
+    setLoading(false);
+  }, [domainId]);
 
   useEffect(() => {
     if (!open || !domainId) return;
-    setLoading(true);
-    (async () => {
-      const { data } = await (supabase as any)
-        .from('domain_offers')
-        .select('id, amount, currency, status, created_at')
-        .eq('domain_id', domainId)
-        .order('amount', { ascending: false })
-        .limit(10);
-      setOffers(data || []);
-      setLoading(false);
-    })();
-  }, [open, domainId]);
+    loadOffers();
+    // 实时订阅报价变化
+    const channel = (supabase as any)
+      .channel(`offers-${domainId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'domain_offers', filter: `domain_id=eq.${domainId}` }, () => {
+        loadOffers();
+      })
+      .subscribe();
+    return () => { (supabase as any).removeChannel(channel); };
+  }, [open, domainId, loadOffers]);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(domain);
+      setCopied(true);
+      toast.success(`已复制 ${domain}`);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      toast.error('复制失败');
+    }
+  };
 
   const minOffer = price ? Math.round(price * 0.3) : null;
   const highest = offers[0];
@@ -59,6 +82,12 @@ export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerI
           <DialogTitle className="text-2xl font-black uppercase tracking-tight text-center break-all">
             {domain}
           </DialogTitle>
+          <div className="flex justify-center pt-1">
+            <Button type="button" variant="outline" size="sm" onClick={handleCopy} className="h-7 gap-1.5 text-xs">
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? '已复制' : '复制域名'}
+            </Button>
+          </div>
         </DialogHeader>
 
         {showOfferForm ? (
@@ -69,6 +98,7 @@ export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerI
             initialCurrency={currency}
             listingPrice={price}
             listingCurrency={currency}
+            onSubmitted={loadOffers}
             onClose={() => { setShowOfferForm(false); onClose(); }}
             isAuthenticated={!!user}
           />
