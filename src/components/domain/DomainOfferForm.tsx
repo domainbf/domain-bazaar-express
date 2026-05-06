@@ -126,7 +126,12 @@ export const DomainOfferForm = ({
 
       if (insertError) throw new Error(insertError.message);
 
+      // 立即标记为已提交 + 待审核
+      setSubmitState({ status: 'submitted', amount: numericOffer, currency });
+      onSubmitted?.();
+
       // 邮件通知（含币种与符号）
+      setSubmitState({ status: 'reviewing', amount: numericOffer, currency });
       supabase.functions.invoke('send-offer', {
         body: {
           domain,
@@ -139,12 +144,15 @@ export const DomainOfferForm = ({
           message,
           buyerId: session?.user?.id || null,
         },
-      }).catch(err => console.warn('Offer email notification failed:', err));
+      }).then(() => {
+        setSubmitState({ status: 'emailed', amount: numericOffer, currency });
+      }).catch(err => {
+        console.warn('Offer email notification failed:', err);
+      });
 
       toast.success('您的报价已成功提交！');
-      setOffer(''); setEmail(''); setMessage(''); setCaptchaToken(null);
+      setOffer(''); setMessage(''); setCaptchaToken(null);
       captchaRef.current?.resetCaptcha();
-      onClose();
     } catch (err: any) {
       const msg = err.message || '提交报价失败，请稍后重试';
       setError(msg); toast.error(msg);
