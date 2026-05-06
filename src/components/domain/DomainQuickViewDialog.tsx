@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -6,8 +6,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/currency';
 import { getDomainDetailPath } from '@/lib/domainRouting';
 import { DomainOfferForm } from './DomainOfferForm';
-import { Loader2, History, ArrowRight, Tag } from 'lucide-react';
+import { Loader2, History, ArrowRight, Tag, Copy, Check } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface OfferRow {
   id: string;
