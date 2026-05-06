@@ -111,31 +111,16 @@ export const DomainOfferForm = ({
         throw new Error('域名信息不完整，无法提交报价');
       }
 
-      const { error: insertError } = await supabase
-        .from('domain_offers')
-        .insert({
-          domain_id: domainInfo.domainId,
-          seller_id: domainInfo.sellerId,
-          buyer_id: session?.user?.id || null,
-          amount: numericOffer,
-          currency,
-          contact_email: email,
-          message: message || '',
-          status: 'pending',
-        } as any);
-
-      if (insertError) throw new Error(insertError.message);
-
-      // 立即标记为已提交 + 待审核
+      // 立即标记为已提交 + 待审核（写入与邮件通过边缘函数统一处理，绕过 RLS 并支持未登录用户）
       setSubmitState({ status: 'submitted', amount: numericOffer, currency });
       onSubmitted?.();
-
-      // 邮件通知（含币种与符号）
       setSubmitState({ status: 'reviewing', amount: numericOffer, currency });
-      supabase.functions.invoke('send-offer', {
+
+      const { data: invokeData, error: invokeError } = await supabase.functions.invoke('send-offer', {
         body: {
           domain,
           domainId: domainInfo.domainId,
+          sellerId: domainInfo.sellerId,
           offer: numericOffer,
           currency,
           currencySymbol: symbol,
@@ -143,12 +128,16 @@ export const DomainOfferForm = ({
           email,
           message,
           buyerId: session?.user?.id || null,
+          captchaToken,
         },
-      }).then(() => {
-        setSubmitState({ status: 'emailed', amount: numericOffer, currency });
-      }).catch(err => {
-        console.warn('Offer email notification failed:', err);
       });
+
+      if (invokeError || (invokeData && invokeData.success === false)) {
+        const msg = invokeError?.message || (invokeData as any)?.error || '提交失败，请稍后重试';
+        throw new Error(msg);
+      }
+
+      setSubmitState({ status: 'emailed', amount: numericOffer, currency });
 
       toast.success('您的报价已成功提交！');
       setOffer(''); setMessage(''); setCaptchaToken(null);
