@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from '@/integrations/supabase/client';
 import { DomainOfferForm } from './domain/DomainOfferForm';
 import { Badge } from './ui/badge';
-import { Heart, Shield } from 'lucide-react';
+import { Heart, Shield, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
