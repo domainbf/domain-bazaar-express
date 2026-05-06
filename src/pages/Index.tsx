@@ -107,7 +107,7 @@ const Index = () => {
     })();
   }, [homeData?.hotDomains]);
 
-  const filteredDomains = useMemo(() => {
+  const sortedDomains = useMemo(() => {
     const list = domains.filter(d => {
       if (filter !== 'all' && d.category !== filter) return false;
       if (extFilter !== 'all' && !d.name.toLowerCase().endsWith(extFilter)) return false;
@@ -128,8 +128,20 @@ const Index = () => {
         return tb - ta;
       });
     }
-    return sorted.slice(0, 12);
+    return sorted;
   }, [domains, filter, extFilter, searchQuery, sortBy, latestOfferMap]);
+
+  const filteredDomains = useMemo(() => sortedDomains.slice(0, visibleCount), [sortedDomains, visibleCount]);
+
+  // 重置分页（筛选/搜索/排序联动）
+  useEffect(() => { setVisibleCount(12); }, [filter, extFilter, searchQuery, sortBy]);
+
+  // 用于搜索后缀高亮：拿到查询匹配的后缀
+  const matchedExtFromQuery = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q.startsWith('.')) return null;
+    return availableExtensions.find(e => e.startsWith(q)) || null;
+  }, [searchQuery, availableExtensions]);
 
   const handleSellDomains = () => {
     if (user) navigate('/user-center?tab=domains');
