@@ -47,6 +47,8 @@ export const DomainOfferForm = ({
   const [error, setError] = useState<string | null>(null);
   const [submitState, setSubmitState] = useState<{ status: 'submitted' | 'reviewing' | 'emailed'; amount: number; currency: string } | null>(null);
   const captchaRef = useRef<HCaptcha>(null);
+  const inflightRef = useRef<string | null>(null);
+  const submittedKeysRef = useRef<Set<string>>(new Set());
 
   const numericOffer = useMemo(() => {
     const n = parseFloat(offer);
@@ -86,11 +88,24 @@ export const DomainOfferForm = ({
     e.preventDefault();
     setError(null);
 
+    if (isLoading || inflightRef.current) {
+      // 防重复点击：忽略
+      return;
+    }
+
     if (!captchaToken) { setError('请完成人机验证'); toast.error('请完成人机验证'); return; }
     if (!numericOffer) { setError('请输入有效的报价金额'); toast.error('请输入有效的报价金额'); return; }
     if (!isBuyNow && rangeError) { setError(rangeError); toast.error(rangeError); return; }
     if (!email || !email.includes('@')) { setError('请输入有效的邮箱地址'); toast.error('请输入有效的邮箱地址'); return; }
 
+    // 客户端幂等键：domain + email + amount + currency
+    const idemKey = `${domain}|${(session?.user?.id || email).toLowerCase()}|${numericOffer}|${currency}`;
+    if (submittedKeysRef.current.has(idemKey)) {
+      const m = '该报价已提交，无需重复提交';
+      setError(m); toast.info(m);
+      return;
+    }
+    inflightRef.current = idemKey;
     setIsLoading(true);
 
     try {
@@ -111,7 +126,6 @@ export const DomainOfferForm = ({
         throw new Error('域名信息不完整，无法提交报价');
       }
 
-      // 立即标记为已提交 + 待审核（写入与邮件通过边缘函数统一处理，绕过 RLS 并支持未登录用户）
       setSubmitState({ status: 'submitted', amount: numericOffer, currency });
       onSubmitted?.();
       setSubmitState({ status: 'reviewing', amount: numericOffer, currency });
@@ -129,23 +143,38 @@ export const DomainOfferForm = ({
           message,
           buyerId: session?.user?.id || null,
           captchaToken,
+          idempotencyKey: idemKey,
         },
       });
 
-      if (invokeError || (invokeData && invokeData.success === false)) {
-        const msg = invokeError?.message || (invokeData as any)?.error || '提交失败，请稍后重试';
-        throw new Error(msg);
+      if (invokeError) {
+        throw new Error(invokeError.message || '网络异常，请稍后重试');
+      }
+      if (invokeData && (invokeData as any).success === false) {
+        throw new Error((invokeData as any).error || '提交失败，请稍后重试');
+      }
+
+      // 标记成功提交（避免重复）
+      submittedKeysRef.current.add(idemKey);
+
+      if ((invokeData as any)?.duplicate) {
+        toast.info('检测到相同金额的报价已存在，已为您复用');
+      } else {
+        toast.success('您的报价已成功提交！');
       }
 
       setSubmitState({ status: 'emailed', amount: numericOffer, currency });
-
-      toast.success('您的报价已成功提交！');
       setOffer(''); setMessage(''); setCaptchaToken(null);
       captchaRef.current?.resetCaptcha();
     } catch (err: any) {
-      const msg = err.message || '提交报价失败，请稍后重试';
+      const msg = err?.message || '提交报价失败，请稍后重试';
       setError(msg); toast.error(msg);
+      // 失败回滚状态展示，允许用户重试
+      setSubmitState(null);
+      setCaptchaToken(null);
+      captchaRef.current?.resetCaptcha();
     } finally {
+      inflightRef.current = null;
       setIsLoading(false);
     }
   };

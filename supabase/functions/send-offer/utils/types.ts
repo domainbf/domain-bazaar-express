@@ -13,6 +13,7 @@ export interface OfferRequest {
   currency?: string;
   currencySymbol?: string;
   formattedOffer?: string;
+  idempotencyKey?: string;
 }
 
 export interface VerifyCaptchaResponse {
