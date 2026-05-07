@@ -5,7 +5,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.48.1";
 import { corsHeaders } from "./utils/cors.ts";
 import { OfferRequest } from "./utils/types.ts";
 import { sendOfferEmails } from "./services/email.ts";
-import { saveOfferToDatabase, createOfferNotification } from "./services/db.ts";
+import { saveOfferToDatabase, createOfferNotification, findRecentDuplicateOffer, deleteOffer } from "./services/db.ts";
 import { verifyCaptcha } from "./services/captcha.ts";
 
 serve(async (req) => {
@@ -209,59 +209,83 @@ serve(async (req) => {
       console.log("域名所有者邮箱:", ownerEmail);
     }
 
-    let offerId: string | null = null;
+    // 获取域名货币（用于邮件与通知）
+    let domainCurrency = 'CNY';
     try {
-      // 保存报价到数据库
+      const { data: domainInfo } = await supabaseAdmin
+        .from('domain_listings')
+        .select('currency')
+        .eq('id', finalDomainId)
+        .maybeSingle();
+      if (domainInfo?.currency) domainCurrency = domainInfo.currency;
+    } catch (_e) {
+      console.warn("获取域名货币失败，使用默认CNY");
+    }
+
+    // 幂等性检查：5 分钟内相同报价直接返回已存在记录
+    let offerId: string | null = null;
+    let wasDuplicate = false;
+    try {
+      const dupId = await findRecentDuplicateOffer(supabaseAdmin, {
+        domainId: finalDomainId,
+        amount: parseFloat(String(offer)),
+        currency: (currency || domainCurrency || 'CNY').toUpperCase(),
+        buyerId: buyerId || null,
+        email,
+      });
+      if (dupId) {
+        wasDuplicate = true;
+        offerId = dupId;
+        console.log("幂等：检测到重复报价，跳过插入与邮件:", dupId);
+        return new Response(
+          JSON.stringify({
+            success: true,
+            duplicate: true,
+            offerId: dupId,
+            message: "您已提交过相同金额的报价，无需重复提交",
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } catch (dupErr) {
+      console.warn("幂等性检查失败，继续创建:", dupErr);
+    }
+
+    // 保存报价
+    try {
       console.log("保存报价到数据库...");
       offerId = await saveOfferToDatabase(supabaseAdmin, {
         ...requestData,
         domainId: finalDomainId,
         sellerId: finalSellerId,
+        currency: (currency || domainCurrency || 'CNY').toUpperCase(),
       });
       console.log("报价保存成功, ID:", offerId);
-      
-      // 获取域名货币信息
-      let domainCurrency = 'CNY';
-      try {
-        const { data: domainInfo } = await supabaseAdmin
-          .from('domain_listings')
-          .select('currency')
-          .eq('id', finalDomainId)
-          .single();
-        if (domainInfo?.currency) {
-          domainCurrency = domainInfo.currency;
-        }
-      } catch (e) {
-        console.warn("获取域名货币失败，使用默认CNY");
-      }
-
-      // 创建站内通知给卖家和买家
-      if (finalSellerId && offerId) {
-        console.log("创建站内通知...");
-        await createOfferNotification(
-          supabaseAdmin,
-          finalSellerId,
-          domain,
-          parseFloat(offer),
-          offerId,
-          email,
-          buyerId || null,
-          domainCurrency
-        );
-        console.log("站内通知创建成功");
-      }
     } catch (dbError: any) {
-      console.error("数据库操作失败:", dbError);
-      // 不阻止邮件发送，但记录错误
+      console.error("数据库写入失败:", dbError);
+      return new Response(
+        JSON.stringify({ error: `报价保存失败: ${dbError.message}`, success: false }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
+    // 站内通知（失败不阻塞）
+    if (finalSellerId && offerId) {
+      try {
+        await createOfferNotification(
+          supabaseAdmin, finalSellerId, domain, parseFloat(String(offer)),
+          offerId, email, buyerId || null, currency || domainCurrency
+        );
+      } catch (e) {
+        console.warn("站内通知失败（已忽略）:", e);
+      }
+    }
+
+    // 发送邮件
     try {
-      // 发送邮件通知
       console.log("开始发送邮件通知...");
       await sendOfferEmails({
-        domain,
-        offer,
-        email,
+        domain, offer, email,
         message: message || "",
         buyerId: buyerId || null,
         dashboardUrl: "/user-center?tab=transactions",
@@ -272,28 +296,27 @@ serve(async (req) => {
       });
       console.log("邮件发送成功");
     } catch (emailError: any) {
-      console.error("邮件发送失败:", emailError);
+      console.error("邮件发送失败，回滚报价:", emailError);
+      if (offerId && !wasDuplicate) {
+        await deleteOffer(supabaseAdmin, offerId);
+      }
       return new Response(
-        JSON.stringify({ 
-          error: `邮件发送失败: ${emailError.message}`,
-          success: false
+        JSON.stringify({
+          error: `邮件发送失败，已回滚报价记录，请稍后重试。原因：${emailError.message}`,
+          success: false,
+          rolledBack: true,
         }),
-        {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log(`报价处理成功: ${domain} - ¥${offer}`);
+    console.log(`报价处理成功: ${domain} - ${currency || domainCurrency} ${offer}`);
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: true,
-        message: "报价提交成功，买家和卖家都将收到邮件通知"
+        offerId,
+        message: "报价提交成功，买家和卖家都将收到邮件通知",
       }),
       {
         status: 200,
