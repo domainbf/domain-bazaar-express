@@ -1,6 +1,6 @@
 
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
@@ -9,13 +9,9 @@ import { DomainOffer } from '@/types/domain';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-  TrendingUp, 
-  DollarSign, 
-  ArrowUpRight,
-  ArrowDownRight,
-  BarChart3,
-  RefreshCw
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  TrendingUp, DollarSign, ArrowUpRight, ArrowDownRight, BarChart3, RefreshCw, Filter, ArrowUpDown
 } from 'lucide-react';
 import { ReceivedOffersTable } from '@/components/dashboard/ReceivedOffersTable';
 import { SentOffersTable } from '@/components/dashboard/SentOffersTable';
