@@ -467,7 +467,10 @@ export type Database = {
           created_at: string | null
           currency: string
           domain_id: string | null
+          duplicate_count: number
           id: string
+          idempotency_key: string | null
+          last_duplicate_at: string | null
           message: string | null
           seller_id: string | null
           status: string | null
@@ -481,7 +484,10 @@ export type Database = {
           created_at?: string | null
           currency?: string
           domain_id?: string | null
+          duplicate_count?: number
           id?: string
+          idempotency_key?: string | null
+          last_duplicate_at?: string | null
           message?: string | null
           seller_id?: string | null
           status?: string | null
@@ -495,7 +501,10 @@ export type Database = {
           created_at?: string | null
           currency?: string
           domain_id?: string | null
+          duplicate_count?: number
           id?: string
+          idempotency_key?: string | null
+          last_duplicate_at?: string | null
           message?: string | null
           seller_id?: string | null
           status?: string | null
@@ -1029,6 +1038,69 @@ export type Database = {
           type?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      offer_audit_logs: {
+        Row: {
+          amount: number | null
+          buyer_id: string | null
+          contact_email: string | null
+          created_at: string
+          currency: string | null
+          domain_id: string | null
+          duplicate_of: string | null
+          email_error: string | null
+          email_status: string | null
+          event_type: string
+          id: string
+          idempotency_key: string | null
+          ip_address: unknown
+          metadata: Json | null
+          offer_id: string | null
+          rollback_reason: string | null
+          seller_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          amount?: number | null
+          buyer_id?: string | null
+          contact_email?: string | null
+          created_at?: string
+          currency?: string | null
+          domain_id?: string | null
+          duplicate_of?: string | null
+          email_error?: string | null
+          email_status?: string | null
+          event_type: string
+          id?: string
+          idempotency_key?: string | null
+          ip_address?: unknown
+          metadata?: Json | null
+          offer_id?: string | null
+          rollback_reason?: string | null
+          seller_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          amount?: number | null
+          buyer_id?: string | null
+          contact_email?: string | null
+          created_at?: string
+          currency?: string | null
+          domain_id?: string | null
+          duplicate_of?: string | null
+          email_error?: string | null
+          email_status?: string | null
+          event_type?: string
+          id?: string
+          idempotency_key?: string | null
+          ip_address?: unknown
+          metadata?: Json | null
+          offer_id?: string | null
+          rollback_reason?: string | null
+          seller_id?: string | null
+          user_agent?: string | null
         }
         Relationships: []
       }

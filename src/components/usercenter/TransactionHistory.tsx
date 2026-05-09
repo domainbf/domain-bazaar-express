@@ -1,6 +1,6 @@
 
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
@@ -9,13 +9,9 @@ import { DomainOffer } from '@/types/domain';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-  TrendingUp, 
-  DollarSign, 
-  ArrowUpRight,
-  ArrowDownRight,
-  BarChart3,
-  RefreshCw
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  TrendingUp, DollarSign, ArrowUpRight, ArrowDownRight, BarChart3, RefreshCw, Filter, ArrowUpDown
 } from 'lucide-react';
 import { ReceivedOffersTable } from '@/components/dashboard/ReceivedOffersTable';
 import { SentOffersTable } from '@/components/dashboard/SentOffersTable';
@@ -42,15 +38,17 @@ export const TransactionHistory = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'time_desc' | 'time_asc' | 'amount_desc' | 'amount_asc'>('time_desc');
 
   // 页面加载时加载数据
   useEffect(() => {
     loadTransactions();
   }, []);
 
-  // 实时监听发出的报价状态变化
+  // 实时监听报价 + 交易变化
   useRealtimeSubscription(
-    ["transactions"],
+    ["domain_offers", "transactions"],
     (_event) => { loadTransactions(); }
   );
 
@@ -117,6 +115,23 @@ export const TransactionHistory = () => {
       monthlyGrowth
     });
   };
+
+  const applyFilterSort = (list: DomainOffer[]) => {
+    let arr = list;
+    if (statusFilter !== 'all') arr = arr.filter(o => o.status === statusFilter);
+    arr = [...arr].sort((a, b) => {
+      switch (sortBy) {
+        case 'time_asc': return +new Date(a.created_at) - +new Date(b.created_at);
+        case 'amount_desc': return Number(b.amount) - Number(a.amount);
+        case 'amount_asc': return Number(a.amount) - Number(b.amount);
+        case 'time_desc':
+        default: return +new Date(b.created_at) - +new Date(a.created_at);
+      }
+    });
+    return arr;
+  };
+  const filteredReceived = useMemo(() => applyFilterSort(receivedOffers), [receivedOffers, statusFilter, sortBy]);
+  const filteredSent = useMemo(() => applyFilterSort(sentOffers), [sentOffers, statusFilter, sortBy]);
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -241,23 +256,50 @@ export const TransactionHistory = () => {
         </CardContent>
       </Card>
 
+      {/* 筛选 + 排序工具栏 */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <Filter className="h-4 w-4" /> 状态：
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="h-9 w-[140px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">全部</SelectItem>
+            <SelectItem value="pending">待处理</SelectItem>
+            <SelectItem value="countered">已还价</SelectItem>
+            <SelectItem value="accepted">已接受</SelectItem>
+            <SelectItem value="rejected">已拒绝</SelectItem>
+            <SelectItem value="cancelled">已取消</SelectItem>
+            <SelectItem value="completed">已完成</SelectItem>
+          </SelectContent>
+        </Select>
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground ml-2">
+          <ArrowUpDown className="h-4 w-4" /> 排序：
+        </div>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+          <SelectTrigger className="h-9 w-[160px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="time_desc">最新优先</SelectItem>
+            <SelectItem value="time_asc">最早优先</SelectItem>
+            <SelectItem value="amount_desc">金额从高到低</SelectItem>
+            <SelectItem value="amount_asc">金额从低到高</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* 交易记录表格 */}
       <Tabs defaultValue="received" className="w-full">
         <TabsList className="mb-6">
-          <TabsTrigger value="received">
-            收到的报价 ({stats.totalReceived})
-          </TabsTrigger>
-          <TabsTrigger value="sent">
-            发出的报价 ({stats.totalSent})
-          </TabsTrigger>
+          <TabsTrigger value="received">收到的报价 ({filteredReceived.length})</TabsTrigger>
+          <TabsTrigger value="sent">发出的报价 ({filteredSent.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="received">
-          <ReceivedOffersTable offers={receivedOffers} onRefresh={loadTransactions} />
+          <ReceivedOffersTable offers={filteredReceived} onRefresh={loadTransactions} />
         </TabsContent>
 
         <TabsContent value="sent">
-          <SentOffersTable offers={sentOffers} onRefresh={loadTransactions} />
+          <SentOffersTable offers={filteredSent} onRefresh={loadTransactions} />
         </TabsContent>
       </Tabs>
     </div>

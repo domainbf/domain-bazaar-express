@@ -44,8 +44,9 @@ export const DomainOfferForm = ({
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ message: string; type: 'network' | 'duplicate' | 'email_failed' | 'db_error' | 'validation' | 'unknown'; reason?: string } | null>(null);
   const [submitState, setSubmitState] = useState<{ status: 'submitted' | 'reviewing' | 'emailed'; amount: number; currency: string } | null>(null);
+  const [showReason, setShowReason] = useState(false);
   const captchaRef = useRef<HCaptcha>(null);
   const inflightRef = useRef<string | null>(null);
   const submittedKeysRef = useRef<Set<string>>(new Set());
@@ -84,25 +85,26 @@ export const DomainOfferForm = ({
     return null;
   }, [numericOffer, limits, currency]);
 
+  const setErr = (message: string, type: typeof error extends { type: infer T } ? T : never = 'unknown' as any, reason?: string) => {
+    setError({ message, type: type as any, reason });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setShowReason(false);
 
-    if (isLoading || inflightRef.current) {
-      // 防重复点击：忽略
-      return;
-    }
+    if (isLoading || inflightRef.current) return;
 
-    if (!captchaToken) { setError('请完成人机验证'); toast.error('请完成人机验证'); return; }
-    if (!numericOffer) { setError('请输入有效的报价金额'); toast.error('请输入有效的报价金额'); return; }
-    if (!isBuyNow && rangeError) { setError(rangeError); toast.error(rangeError); return; }
-    if (!email || !email.includes('@')) { setError('请输入有效的邮箱地址'); toast.error('请输入有效的邮箱地址'); return; }
+    if (!captchaToken) { setErr('请完成人机验证', 'validation'); toast.error('请完成人机验证'); return; }
+    if (!numericOffer) { setErr('请输入有效的报价金额', 'validation'); toast.error('请输入有效的报价金额'); return; }
+    if (!isBuyNow && rangeError) { setErr(rangeError, 'validation'); toast.error(rangeError); return; }
+    if (!email || !email.includes('@')) { setErr('请输入有效的邮箱地址', 'validation'); toast.error('请输入有效的邮箱地址'); return; }
 
-    // 客户端幂等键：domain + email + amount + currency
     const idemKey = `${domain}|${(session?.user?.id || email).toLowerCase()}|${numericOffer}|${currency}`;
     if (submittedKeysRef.current.has(idemKey)) {
-      const m = '该报价已提交，无需重复提交';
-      setError(m); toast.info(m);
+      setErr('该报价已提交，无需重复提交', 'duplicate', '本次会话已成功提交过相同金额的报价');
+      toast.info('该报价已提交');
       return;
     }
     inflightRef.current = idemKey;
@@ -110,20 +112,15 @@ export const DomainOfferForm = ({
 
     try {
       let domainInfo = { domainId, sellerId };
-
       if (!domainId || !sellerId) {
         const { data: domainData, error: domainError } = await supabase
-          .from('domain_listings')
-          .select('id, owner_id')
-          .ilike('name', domain)
-          .maybeSingle();
-        if (domainError) throw new Error('查询域名信息时出错，请稍后重试');
-        if (!domainData) throw new Error('未找到该域名信息，请确认域名是否正确');
+          .from('domain_listings').select('id, owner_id').ilike('name', domain).maybeSingle();
+        if (domainError) throw Object.assign(new Error('查询域名信息时出错，请稍后重试'), { errType: 'network' });
+        if (!domainData) throw Object.assign(new Error('未找到该域名信息，请确认域名是否正确'), { errType: 'validation' });
         domainInfo = { domainId: domainData.id, sellerId: domainData.owner_id };
       }
-
       if (!domainInfo.domainId || !domainInfo.sellerId) {
-        throw new Error('域名信息不完整，无法提交报价');
+        throw Object.assign(new Error('域名信息不完整，无法提交报价'), { errType: 'validation' });
       }
 
       setSubmitState({ status: 'submitted', amount: numericOffer, currency });
@@ -132,33 +129,30 @@ export const DomainOfferForm = ({
 
       const { data: invokeData, error: invokeError } = await supabase.functions.invoke('send-offer', {
         body: {
-          domain,
-          domainId: domainInfo.domainId,
-          sellerId: domainInfo.sellerId,
-          offer: numericOffer,
-          currency,
-          currencySymbol: symbol,
+          domain, domainId: domainInfo.domainId, sellerId: domainInfo.sellerId,
+          offer: numericOffer, currency, currencySymbol: symbol,
           formattedOffer: formatPrice(numericOffer, currency),
-          email,
-          message,
+          email, message,
           buyerId: session?.user?.id || null,
-          captchaToken,
-          idempotencyKey: idemKey,
+          captchaToken, idempotencyKey: idemKey,
         },
       });
 
       if (invokeError) {
-        throw new Error(invokeError.message || '网络异常，请稍后重试');
+        throw Object.assign(new Error(invokeError.message || '网络异常，请检查网络后重试'), { errType: 'network' });
       }
       if (invokeData && (invokeData as any).success === false) {
-        throw new Error((invokeData as any).error || '提交失败，请稍后重试');
+        const remoteType = (invokeData as any).errorType;
+        throw Object.assign(
+          new Error((invokeData as any).error || '提交失败，请稍后重试'),
+          { errType: remoteType || 'unknown', rolledBack: (invokeData as any).rolledBack }
+        );
       }
 
-      // 标记成功提交（避免重复）
       submittedKeysRef.current.add(idemKey);
 
       if ((invokeData as any)?.duplicate) {
-        toast.info('检测到相同金额的报价已存在，已为您复用');
+        toast.info('已检测到相同金额的报价，已自动归并');
       } else {
         toast.success('您的报价已成功提交！');
       }
@@ -167,9 +161,19 @@ export const DomainOfferForm = ({
       setOffer(''); setMessage(''); setCaptchaToken(null);
       captchaRef.current?.resetCaptcha();
     } catch (err: any) {
+      const type = err?.errType || 'unknown';
       const msg = err?.message || '提交报价失败，请稍后重试';
-      setError(msg); toast.error(msg);
-      // 失败回滚状态展示，允许用户重试
+      const reason = type === 'email_failed'
+        ? '邮件网关返回失败，系统已自动回滚数据库记录，您可立即重新提交'
+        : type === 'network'
+        ? '网络或服务暂时不可用，请检查连接后重试'
+        : type === 'db_error'
+        ? '数据库写入失败，未发送邮件，您可重新提交'
+        : type === 'duplicate'
+        ? '5 分钟内已存在相同金额的报价，已自动归并'
+        : undefined;
+      setError({ message: msg, type, reason });
+      toast.error(msg);
       setSubmitState(null);
       setCaptchaToken(null);
       captchaRef.current?.resetCaptcha();
@@ -190,9 +194,39 @@ export const DomainOfferForm = ({
       )}
 
       {error && (
-        <div className="bg-destructive/10 border border-destructive/30 p-3 rounded-md mb-4 flex items-start">
-          <AlertCircle className="w-5 h-5 text-destructive mr-2 mt-0.5 flex-shrink-0" />
-          <p className="text-destructive text-sm">{error}</p>
+        <div className="bg-destructive/10 border border-destructive/30 p-3 rounded-md mb-4">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="w-5 h-5 text-destructive mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-destructive/20 text-destructive font-semibold">
+                  {error.type === 'network' ? '网络异常' :
+                   error.type === 'duplicate' ? '幂等命中' :
+                   error.type === 'email_failed' ? '邮件失败·已回滚' :
+                   error.type === 'db_error' ? '数据库错误' :
+                   error.type === 'validation' ? '校验失败' : '未知错误'}
+                </span>
+              </div>
+              <p className="text-destructive text-sm">{error.message}</p>
+              {showReason && error.reason && (
+                <p className="text-xs text-muted-foreground mt-2 p-2 bg-background rounded border border-border">{error.reason}</p>
+              )}
+              <div className="flex gap-2 mt-2">
+                {error.reason && (
+                  <button type="button" onClick={() => setShowReason(v => !v)}
+                    className="text-xs text-destructive underline hover:no-underline">
+                    {showReason ? '隐藏原因' : '查看原因'}
+                  </button>
+                )}
+                {(error.type === 'network' || error.type === 'email_failed' || error.type === 'db_error') && (
+                  <button type="button" onClick={() => { setError(null); }}
+                    className="text-xs text-destructive underline hover:no-underline">
+                    重新提交
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -309,7 +343,7 @@ export const DomainOfferForm = ({
         <HCaptcha
           sitekey="10000000-ffff-ffff-ffff-000000000001"
           onVerify={(token) => { setCaptchaToken(token); setError(null); }}
-          onError={() => { setCaptchaToken(null); setError('人机验证失败，请重试'); }}
+          onError={() => { setCaptchaToken(null); setErr('人机验证失败，请重试', 'validation'); }}
           ref={captchaRef}
           size="normal"
         />
