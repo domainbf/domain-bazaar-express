@@ -85,25 +85,26 @@ export const DomainOfferForm = ({
     return null;
   }, [numericOffer, limits, currency]);
 
+  const setErr = (message: string, type: typeof error extends { type: infer T } ? T : never = 'unknown' as any, reason?: string) => {
+    setError({ message, type: type as any, reason });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setShowReason(false);
 
-    if (isLoading || inflightRef.current) {
-      // 防重复点击：忽略
-      return;
-    }
+    if (isLoading || inflightRef.current) return;
 
-    if (!captchaToken) { setError('请完成人机验证'); toast.error('请完成人机验证'); return; }
-    if (!numericOffer) { setError('请输入有效的报价金额'); toast.error('请输入有效的报价金额'); return; }
-    if (!isBuyNow && rangeError) { setError(rangeError); toast.error(rangeError); return; }
-    if (!email || !email.includes('@')) { setError('请输入有效的邮箱地址'); toast.error('请输入有效的邮箱地址'); return; }
+    if (!captchaToken) { setErr('请完成人机验证', 'validation'); toast.error('请完成人机验证'); return; }
+    if (!numericOffer) { setErr('请输入有效的报价金额', 'validation'); toast.error('请输入有效的报价金额'); return; }
+    if (!isBuyNow && rangeError) { setErr(rangeError, 'validation'); toast.error(rangeError); return; }
+    if (!email || !email.includes('@')) { setErr('请输入有效的邮箱地址', 'validation'); toast.error('请输入有效的邮箱地址'); return; }
 
-    // 客户端幂等键：domain + email + amount + currency
     const idemKey = `${domain}|${(session?.user?.id || email).toLowerCase()}|${numericOffer}|${currency}`;
     if (submittedKeysRef.current.has(idemKey)) {
-      const m = '该报价已提交，无需重复提交';
-      setError(m); toast.info(m);
+      setErr('该报价已提交，无需重复提交', 'duplicate', '本次会话已成功提交过相同金额的报价');
+      toast.info('该报价已提交');
       return;
     }
     inflightRef.current = idemKey;
@@ -111,20 +112,15 @@ export const DomainOfferForm = ({
 
     try {
       let domainInfo = { domainId, sellerId };
-
       if (!domainId || !sellerId) {
         const { data: domainData, error: domainError } = await supabase
-          .from('domain_listings')
-          .select('id, owner_id')
-          .ilike('name', domain)
-          .maybeSingle();
-        if (domainError) throw new Error('查询域名信息时出错，请稍后重试');
-        if (!domainData) throw new Error('未找到该域名信息，请确认域名是否正确');
+          .from('domain_listings').select('id, owner_id').ilike('name', domain).maybeSingle();
+        if (domainError) throw Object.assign(new Error('查询域名信息时出错，请稍后重试'), { errType: 'network' });
+        if (!domainData) throw Object.assign(new Error('未找到该域名信息，请确认域名是否正确'), { errType: 'validation' });
         domainInfo = { domainId: domainData.id, sellerId: domainData.owner_id };
       }
-
       if (!domainInfo.domainId || !domainInfo.sellerId) {
-        throw new Error('域名信息不完整，无法提交报价');
+        throw Object.assign(new Error('域名信息不完整，无法提交报价'), { errType: 'validation' });
       }
 
       setSubmitState({ status: 'submitted', amount: numericOffer, currency });
@@ -133,33 +129,30 @@ export const DomainOfferForm = ({
 
       const { data: invokeData, error: invokeError } = await supabase.functions.invoke('send-offer', {
         body: {
-          domain,
-          domainId: domainInfo.domainId,
-          sellerId: domainInfo.sellerId,
-          offer: numericOffer,
-          currency,
-          currencySymbol: symbol,
+          domain, domainId: domainInfo.domainId, sellerId: domainInfo.sellerId,
+          offer: numericOffer, currency, currencySymbol: symbol,
           formattedOffer: formatPrice(numericOffer, currency),
-          email,
-          message,
+          email, message,
           buyerId: session?.user?.id || null,
-          captchaToken,
-          idempotencyKey: idemKey,
+          captchaToken, idempotencyKey: idemKey,
         },
       });
 
       if (invokeError) {
-        throw new Error(invokeError.message || '网络异常，请稍后重试');
+        throw Object.assign(new Error(invokeError.message || '网络异常，请检查网络后重试'), { errType: 'network' });
       }
       if (invokeData && (invokeData as any).success === false) {
-        throw new Error((invokeData as any).error || '提交失败，请稍后重试');
+        const remoteType = (invokeData as any).errorType;
+        throw Object.assign(
+          new Error((invokeData as any).error || '提交失败，请稍后重试'),
+          { errType: remoteType || 'unknown', rolledBack: (invokeData as any).rolledBack }
+        );
       }
 
-      // 标记成功提交（避免重复）
       submittedKeysRef.current.add(idemKey);
 
       if ((invokeData as any)?.duplicate) {
-        toast.info('检测到相同金额的报价已存在，已为您复用');
+        toast.info('已检测到相同金额的报价，已自动归并');
       } else {
         toast.success('您的报价已成功提交！');
       }
@@ -168,9 +161,19 @@ export const DomainOfferForm = ({
       setOffer(''); setMessage(''); setCaptchaToken(null);
       captchaRef.current?.resetCaptcha();
     } catch (err: any) {
+      const type = err?.errType || 'unknown';
       const msg = err?.message || '提交报价失败，请稍后重试';
-      setError(msg); toast.error(msg);
-      // 失败回滚状态展示，允许用户重试
+      const reason = type === 'email_failed'
+        ? '邮件网关返回失败，系统已自动回滚数据库记录，您可立即重新提交'
+        : type === 'network'
+        ? '网络或服务暂时不可用，请检查连接后重试'
+        : type === 'db_error'
+        ? '数据库写入失败，未发送邮件，您可重新提交'
+        : type === 'duplicate'
+        ? '5 分钟内已存在相同金额的报价，已自动归并'
+        : undefined;
+      setError({ message: msg, type, reason });
+      toast.error(msg);
       setSubmitState(null);
       setCaptchaToken(null);
       captchaRef.current?.resetCaptcha();
