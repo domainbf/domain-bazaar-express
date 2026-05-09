@@ -343,7 +343,7 @@ export const DomainOfferForm = ({
         <HCaptcha
           sitekey="10000000-ffff-ffff-ffff-000000000001"
           onVerify={(token) => { setCaptchaToken(token); setError(null); }}
-          onError={() => { setCaptchaToken(null); setError('人机验证失败，请重试'); }}
+          onError={() => { setCaptchaToken(null); setErr('人机验证失败，请重试', 'validation'); }}
           ref={captchaRef}
           size="normal"
         />
