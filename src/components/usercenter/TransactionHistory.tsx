@@ -116,6 +116,23 @@ export const TransactionHistory = () => {
     });
   };
 
+  const applyFilterSort = (list: DomainOffer[]) => {
+    let arr = list;
+    if (statusFilter !== 'all') arr = arr.filter(o => o.status === statusFilter);
+    arr = [...arr].sort((a, b) => {
+      switch (sortBy) {
+        case 'time_asc': return +new Date(a.created_at) - +new Date(b.created_at);
+        case 'amount_desc': return Number(b.amount) - Number(a.amount);
+        case 'amount_asc': return Number(a.amount) - Number(b.amount);
+        case 'time_desc':
+        default: return +new Date(b.created_at) - +new Date(a.created_at);
+      }
+    });
+    return arr;
+  };
+  const filteredReceived = useMemo(() => applyFilterSort(receivedOffers), [receivedOffers, statusFilter, sortBy]);
+  const filteredSent = useMemo(() => applyFilterSort(sentOffers), [sentOffers, statusFilter, sortBy]);
+
   if (isLoading) {
     return <LoadingSpinner />;
   }
