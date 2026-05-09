@@ -194,9 +194,39 @@ export const DomainOfferForm = ({
       )}
 
       {error && (
-        <div className="bg-destructive/10 border border-destructive/30 p-3 rounded-md mb-4 flex items-start">
-          <AlertCircle className="w-5 h-5 text-destructive mr-2 mt-0.5 flex-shrink-0" />
-          <p className="text-destructive text-sm">{error}</p>
+        <div className="bg-destructive/10 border border-destructive/30 p-3 rounded-md mb-4">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="w-5 h-5 text-destructive mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-destructive/20 text-destructive font-semibold">
+                  {error.type === 'network' ? '网络异常' :
+                   error.type === 'duplicate' ? '幂等命中' :
+                   error.type === 'email_failed' ? '邮件失败·已回滚' :
+                   error.type === 'db_error' ? '数据库错误' :
+                   error.type === 'validation' ? '校验失败' : '未知错误'}
+                </span>
+              </div>
+              <p className="text-destructive text-sm">{error.message}</p>
+              {showReason && error.reason && (
+                <p className="text-xs text-muted-foreground mt-2 p-2 bg-background rounded border border-border">{error.reason}</p>
+              )}
+              <div className="flex gap-2 mt-2">
+                {error.reason && (
+                  <button type="button" onClick={() => setShowReason(v => !v)}
+                    className="text-xs text-destructive underline hover:no-underline">
+                    {showReason ? '隐藏原因' : '查看原因'}
+                  </button>
+                )}
+                {(error.type === 'network' || error.type === 'email_failed' || error.type === 'db_error') && (
+                  <button type="button" onClick={() => { setError(null); }}
+                    className="text-xs text-destructive underline hover:no-underline">
+                    重新提交
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
