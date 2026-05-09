@@ -38,15 +38,17 @@ export const TransactionHistory = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'time_desc' | 'time_asc' | 'amount_desc' | 'amount_asc'>('time_desc');
 
   // 页面加载时加载数据
   useEffect(() => {
     loadTransactions();
   }, []);
 
-  // 实时监听发出的报价状态变化
+  // 实时监听报价 + 交易变化
   useRealtimeSubscription(
-    ["transactions"],
+    ["domain_offers", "transactions"],
     (_event) => { loadTransactions(); }
   );
 
