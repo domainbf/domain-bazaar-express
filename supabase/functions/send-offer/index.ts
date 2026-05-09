@@ -5,7 +5,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.48.1";
 import { corsHeaders } from "./utils/cors.ts";
 import { OfferRequest } from "./utils/types.ts";
 import { sendOfferEmails } from "./services/email.ts";
-import { saveOfferToDatabase, createOfferNotification, findRecentDuplicateOffer, deleteOffer } from "./services/db.ts";
+import { saveOfferToDatabase, createOfferNotification, findRecentDuplicateOffer, deleteOffer, recordAuditLog, incrementDuplicateCount } from "./services/db.ts";
 import { verifyCaptcha } from "./services/captcha.ts";
 
 serve(async (req) => {
