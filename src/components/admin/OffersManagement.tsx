@@ -12,7 +12,8 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, RefreshCw, Download, MoreHorizontal, Check, X, Clock, MessageSquare } from 'lucide-react';
+import { Checkbox } from "@/components/ui/checkbox";
+import { Search, RefreshCw, Download, MoreHorizontal, Check, X, Clock, MessageSquare, CheckSquare } from 'lucide-react';
 
 interface Offer {
   id: string;
@@ -48,6 +49,7 @@ export const OffersManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadOffers();
@@ -89,6 +91,32 @@ export const OffersManagement = () => {
       toast.success('报价已删除');
     } catch (error: any) {
       toast.error('删除失败: ' + error.message);
+    }
+  };
+
+  const bulkUpdateStatus = async (status: string) => {
+    if (selectedIds.size === 0) { toast.error('请先选择报价'); return; }
+    if (!confirm(`确定要将 ${selectedIds.size} 条报价的状态修改为「${statusLabels[status] || status}」吗？`)) return;
+    try {
+      await Promise.all(Array.from(selectedIds).map(id => apiPatch(`/data/domain-offers/${id}`, { status })));
+      setOffers(offers.map(o => selectedIds.has(o.id) ? { ...o, status } : o));
+      toast.success(`已批量更新 ${selectedIds.size} 条报价`);
+      setSelectedIds(new Set());
+    } catch (error: any) {
+      toast.error('批量操作失败：' + error.message);
+    }
+  };
+
+  const bulkDelete = async () => {
+    if (selectedIds.size === 0) { toast.error('请先选择报价'); return; }
+    if (!confirm(`确定要删除 ${selectedIds.size} 条报价吗？此操作不可撤销。`)) return;
+    try {
+      await Promise.all(Array.from(selectedIds).map(id => apiDelete(`/data/domain-offers/${id}`)));
+      setOffers(offers.filter(o => !selectedIds.has(o.id)));
+      toast.success(`已删除 ${selectedIds.size} 条`);
+      setSelectedIds(new Set());
+    } catch (error: any) {
+      toast.error('删除失败：' + error.message);
     }
   };
 
@@ -163,10 +191,35 @@ export const OffersManagement = () => {
         </Select>
       </div>
 
+      {selectedIds.size > 0 && (
+        <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg border bg-muted/30">
+          <span className="text-sm font-medium mr-2">已选 {selectedIds.size} 条</span>
+          <Button size="sm" variant="outline" onClick={() => bulkUpdateStatus('accepted')}>
+            <Check className="h-4 w-4 mr-1 text-green-600" />批量接受
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => bulkUpdateStatus('rejected')}>
+            <X className="h-4 w-4 mr-1 text-red-600" />批量拒绝
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => bulkUpdateStatus('pending')}>
+            <Clock className="h-4 w-4 mr-1" />重置为待处理
+          </Button>
+          <Button size="sm" variant="destructive" onClick={bulkDelete}>
+            <X className="h-4 w-4 mr-1" />批量删除
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>取消选择</Button>
+        </div>
+      )}
+
       <div className="overflow-x-auto rounded-lg border">
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-muted/50">
+              <th className="p-4 w-10">
+                <Checkbox
+                  checked={filteredOffers.length > 0 && selectedIds.size === filteredOffers.length}
+                  onCheckedChange={(c) => setSelectedIds(c ? new Set(filteredOffers.map(o => o.id)) : new Set())}
+                />
+              </th>
               <th className="text-left p-4 font-medium">域名</th>
               <th className="text-left p-4 font-medium">报价金额</th>
               <th className="text-left p-4 font-medium">买家邮箱</th>
@@ -180,9 +233,19 @@ export const OffersManagement = () => {
           </thead>
           <tbody>
             {filteredOffers.length === 0 ? (
-              <tr><td colSpan={9} className="text-center py-12 text-muted-foreground">暂无报价记录</td></tr>
+              <tr><td colSpan={10} className="text-center py-12 text-muted-foreground">暂无报价记录</td></tr>
             ) : filteredOffers.map(offer => (
               <tr key={offer.id} className="border-b hover:bg-muted/30">
+                <td className="p-4">
+                  <Checkbox
+                    checked={selectedIds.has(offer.id)}
+                    onCheckedChange={(c) => {
+                      const next = new Set(selectedIds);
+                      if (c) next.add(offer.id); else next.delete(offer.id);
+                      setSelectedIds(next);
+                    }}
+                  />
+                </td>
                 <td className="p-4 font-medium">{offer.domain_name || '—'}</td>
                 <td className="p-4 font-bold text-primary">¥{offer.amount?.toLocaleString()}</td>
                 <td className="p-4 text-sm">{offer.buyer_email || '匿名'}</td>

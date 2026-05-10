@@ -16,22 +16,44 @@ export async function getDomainOwnerEmail(supabase: SupabaseClient, domainId: st
 }
 
 /**
- * 5 分钟内查找重复报价（自动合并到首条）
+ * 读取站点合并策略配置
+ */
+export async function getMergePolicy(supabase: SupabaseClient): Promise<{ strategy: string; windowSec: number }> {
+  try {
+    const { data } = await supabase
+      .from('site_settings')
+      .select('key, value')
+      .in('key', ['offer_merge_strategy', 'offer_idempotency_window_sec']);
+    const map: Record<string, string> = {};
+    for (const r of data || []) if (r.key) map[r.key] = r.value || '';
+    const windowSec = parseInt(map['offer_idempotency_window_sec'] || '300', 10);
+    return {
+      strategy: map['offer_merge_strategy'] || 'auto_merge',
+      windowSec: isNaN(windowSec) ? 300 : Math.min(Math.max(windowSec, 60), 3600),
+    };
+  } catch {
+    return { strategy: 'auto_merge', windowSec: 300 };
+  }
+}
+
+/**
+ * 在配置窗口内查找重复报价
  * 匹配：相同 domain_id + amount + currency + (buyer_id 或 contact_email)
  */
 export async function findRecentDuplicateOffer(
   supabase: SupabaseClient,
-  params: { domainId: string; amount: number; currency: string; buyerId?: string | null; email: string }
+  params: { domainId: string; amount: number; currency: string; buyerId?: string | null; email: string; windowSec?: number }
 ): Promise<string | null> {
   try {
-    const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const windowSec = params.windowSec ?? 300;
+    const cutoff = new Date(Date.now() - windowSec * 1000).toISOString();
     let query = supabase
       .from('domain_offers')
       .select('id')
       .eq('domain_id', params.domainId)
       .eq('amount', params.amount)
       .eq('currency', (params.currency || 'CNY').toUpperCase())
-      .gte('created_at', fiveMinAgo)
+      .gte('created_at', cutoff)
       .order('created_at', { ascending: true })
       .limit(1);
     if (params.buyerId) query = query.eq('buyer_id', params.buyerId);
