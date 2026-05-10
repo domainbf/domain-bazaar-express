@@ -246,6 +246,7 @@ export const OffersManagement = () => {
                     }}
                   />
                 </td>
+                <td className="p-4 font-medium">{offer.domain_name || '—'}</td>
                 <td className="p-4 font-bold text-primary">¥{offer.amount?.toLocaleString()}</td>
                 <td className="p-4 text-sm">{offer.buyer_email || '匿名'}</td>
                 <td className="p-4 text-sm">{offer.seller_email || '—'}</td>
