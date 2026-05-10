@@ -229,31 +229,56 @@ serve(async (req) => {
     const normalizedCurrency = (currency || domainCurrency || 'CNY').toUpperCase();
     const numericAmount = parseFloat(String(offer));
 
-    // 幂等性检查：5 分钟内相同报价直接返回已存在记录（自动归并到首条）
+    // 读取站点合并策略与窗口
+    const mergePolicy = await getMergePolicy(supabaseAdmin);
+
+    // 幂等性检查：在配置窗口内查找重复报价
     let offerId: string | null = null;
     let wasDuplicate = false;
+    let duplicateOfId: string | null = null;
     try {
       const dupId = await findRecentDuplicateOffer(supabaseAdmin, {
         domainId: finalDomainId, amount: numericAmount, currency: normalizedCurrency,
-        buyerId: buyerId || null, email,
+        buyerId: buyerId || null, email, windowSec: mergePolicy.windowSec,
       });
       if (dupId) {
         wasDuplicate = true;
-        offerId = dupId;
+        duplicateOfId = dupId;
+
+        if (mergePolicy.strategy === 'reject') {
+          await recordAuditLog(supabaseAdmin, {
+            offerId: dupId, domainId: finalDomainId, buyerId: buyerId || null, sellerId: finalSellerId,
+            eventType: 'duplicate_hit', idempotencyKey, duplicateOf: dupId,
+            amount: numericAmount, currency: normalizedCurrency, contactEmail: email,
+            ipAddress, userAgent,
+            metadata: { merge_strategy: 'reject', window_sec: mergePolicy.windowSec },
+          });
+          return new Response(
+            JSON.stringify({ success: false, duplicate: true, errorType: 'duplicate', error: '请勿重复提交相同金额的报价，请稍后再试。' }),
+            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        if (mergePolicy.strategy === 'auto_merge') {
+          offerId = dupId;
+          await incrementDuplicateCount(supabaseAdmin, dupId);
+          await recordAuditLog(supabaseAdmin, {
+            offerId: dupId, domainId: finalDomainId, buyerId: buyerId || null, sellerId: finalSellerId,
+            eventType: 'duplicate_hit', idempotencyKey, duplicateOf: dupId,
+            amount: numericAmount, currency: normalizedCurrency, contactEmail: email,
+            ipAddress, userAgent,
+            metadata: { merge_strategy: 'auto_merge_to_first', window_sec: mergePolicy.windowSec },
+          });
+          return new Response(
+            JSON.stringify({ success: true, duplicate: true, offerId: dupId, message: "您已提交过相同金额的报价，已自动归并到原记录" }),
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        // shadow_record: fallthrough — create a new row but mark duplicate_of in audit
         await incrementDuplicateCount(supabaseAdmin, dupId);
-        await recordAuditLog(supabaseAdmin, {
-          offerId: dupId, domainId: finalDomainId, buyerId: buyerId || null, sellerId: finalSellerId,
-          eventType: 'duplicate_hit', idempotencyKey, duplicateOf: dupId,
-          amount: numericAmount, currency: normalizedCurrency, contactEmail: email,
-          ipAddress, userAgent,
-          metadata: { reason: '5 分钟内相同 (domain, buyer/email, amount, currency) 已存在', merge_strategy: 'auto_merge_to_first' },
-        });
-        return new Response(
-          JSON.stringify({ success: true, duplicate: true, offerId: dupId, message: "您已提交过相同金额的报价，已自动归并到原记录" }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
       }
     } catch (dupErr) { console.warn("幂等性检查失败，继续创建:", dupErr); }
+
 
     // 保存报价
     try {
@@ -265,8 +290,10 @@ serve(async (req) => {
       await recordAuditLog(supabaseAdmin, {
         offerId, domainId: finalDomainId, buyerId: buyerId || null, sellerId: finalSellerId,
         eventType: 'submitted', idempotencyKey,
+        duplicateOf: duplicateOfId,
         amount: numericAmount, currency: normalizedCurrency, contactEmail: email,
         ipAddress, userAgent,
+        metadata: { merge_strategy: mergePolicy.strategy, shadow: !!duplicateOfId },
       });
     } catch (dbError: any) {
       await recordAuditLog(supabaseAdmin, {
