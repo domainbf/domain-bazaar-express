@@ -12,7 +12,8 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, RefreshCw, Download, MoreHorizontal, Check, X, Clock, MessageSquare } from 'lucide-react';
+import { Checkbox } from "@/components/ui/checkbox";
+import { Search, RefreshCw, Download, MoreHorizontal, Check, X, Clock, MessageSquare, CheckSquare } from 'lucide-react';
 
 interface Offer {
   id: string;
@@ -48,6 +49,7 @@ export const OffersManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadOffers();
@@ -89,6 +91,32 @@ export const OffersManagement = () => {
       toast.success('报价已删除');
     } catch (error: any) {
       toast.error('删除失败: ' + error.message);
+    }
+  };
+
+  const bulkUpdateStatus = async (status: string) => {
+    if (selectedIds.size === 0) { toast.error('请先选择报价'); return; }
+    if (!confirm(`确定要将 ${selectedIds.size} 条报价的状态修改为「${statusLabels[status] || status}」吗？`)) return;
+    try {
+      await Promise.all(Array.from(selectedIds).map(id => apiPatch(`/data/domain-offers/${id}`, { status })));
+      setOffers(offers.map(o => selectedIds.has(o.id) ? { ...o, status } : o));
+      toast.success(`已批量更新 ${selectedIds.size} 条报价`);
+      setSelectedIds(new Set());
+    } catch (error: any) {
+      toast.error('批量操作失败：' + error.message);
+    }
+  };
+
+  const bulkDelete = async () => {
+    if (selectedIds.size === 0) { toast.error('请先选择报价'); return; }
+    if (!confirm(`确定要删除 ${selectedIds.size} 条报价吗？此操作不可撤销。`)) return;
+    try {
+      await Promise.all(Array.from(selectedIds).map(id => apiDelete(`/data/domain-offers/${id}`)));
+      setOffers(offers.filter(o => !selectedIds.has(o.id)));
+      toast.success(`已删除 ${selectedIds.size} 条`);
+      setSelectedIds(new Set());
+    } catch (error: any) {
+      toast.error('删除失败：' + error.message);
     }
   };
 
