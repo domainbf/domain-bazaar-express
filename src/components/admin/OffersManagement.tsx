@@ -191,10 +191,35 @@ export const OffersManagement = () => {
         </Select>
       </div>
 
+      {selectedIds.size > 0 && (
+        <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg border bg-muted/30">
+          <span className="text-sm font-medium mr-2">已选 {selectedIds.size} 条</span>
+          <Button size="sm" variant="outline" onClick={() => bulkUpdateStatus('accepted')}>
+            <Check className="h-4 w-4 mr-1 text-green-600" />批量接受
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => bulkUpdateStatus('rejected')}>
+            <X className="h-4 w-4 mr-1 text-red-600" />批量拒绝
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => bulkUpdateStatus('pending')}>
+            <Clock className="h-4 w-4 mr-1" />重置为待处理
+          </Button>
+          <Button size="sm" variant="destructive" onClick={bulkDelete}>
+            <X className="h-4 w-4 mr-1" />批量删除
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>取消选择</Button>
+        </div>
+      )}
+
       <div className="overflow-x-auto rounded-lg border">
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-muted/50">
+              <th className="p-4 w-10">
+                <Checkbox
+                  checked={filteredOffers.length > 0 && selectedIds.size === filteredOffers.length}
+                  onCheckedChange={(c) => setSelectedIds(c ? new Set(filteredOffers.map(o => o.id)) : new Set())}
+                />
+              </th>
               <th className="text-left p-4 font-medium">域名</th>
               <th className="text-left p-4 font-medium">报价金额</th>
               <th className="text-left p-4 font-medium">买家邮箱</th>
@@ -208,10 +233,19 @@ export const OffersManagement = () => {
           </thead>
           <tbody>
             {filteredOffers.length === 0 ? (
-              <tr><td colSpan={9} className="text-center py-12 text-muted-foreground">暂无报价记录</td></tr>
+              <tr><td colSpan={10} className="text-center py-12 text-muted-foreground">暂无报价记录</td></tr>
             ) : filteredOffers.map(offer => (
               <tr key={offer.id} className="border-b hover:bg-muted/30">
-                <td className="p-4 font-medium">{offer.domain_name || '—'}</td>
+                <td className="p-4">
+                  <Checkbox
+                    checked={selectedIds.has(offer.id)}
+                    onCheckedChange={(c) => {
+                      const next = new Set(selectedIds);
+                      if (c) next.add(offer.id); else next.delete(offer.id);
+                      setSelectedIds(next);
+                    }}
+                  />
+                </td>
                 <td className="p-4 font-bold text-primary">¥{offer.amount?.toLocaleString()}</td>
                 <td className="p-4 text-sm">{offer.buyer_email || '匿名'}</td>
                 <td className="p-4 text-sm">{offer.seller_email || '—'}</td>
