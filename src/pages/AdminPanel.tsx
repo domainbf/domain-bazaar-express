@@ -26,6 +26,9 @@ import { AdminMessagesView } from '@/components/admin/AdminMessagesView';
 import { AdminTickets } from '@/components/admin/AdminTickets';
 import { AdminNotificationSender } from '@/components/admin/AdminNotificationSender';
 import { AdminFeedback } from '@/components/admin/AdminFeedback';
+import { AdminUnifiedSearch } from '@/components/admin/AdminUnifiedSearch';
+import { AdminAuditLogs } from '@/components/admin/AdminAuditLogs';
+import { MergeStrategyManager } from '@/components/admin/MergeStrategyManager';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -38,7 +41,8 @@ import {
   DollarSign, FileText, Shield, AlertTriangle, Percent,
   Users, Star, Home, BookOpen, Search, Sliders, CreditCard,
   Settings, Activity, Menu, ChevronRight, LogOut, RefreshCw,
-  MessageSquare, Package, Scale, Bell, Mail, Headphones, Inbox
+  MessageSquare, Package, Scale, Bell, Mail, Headphones, Inbox,
+  ScrollText, GitMerge, SearchCode
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -100,7 +104,9 @@ export const AdminPanel = () => {
       title: '数据概览',
       items: [
         { id: 'dashboard', label: '仪表盘', icon: LayoutDashboard },
+        { id: 'unified-search', label: '统一搜索/导出', icon: SearchCode },
         { id: 'activity', label: '活动日志', icon: Activity },
+        { id: 'audit-logs', label: '报价审计日志', icon: ScrollText },
       ]
     },
     {
@@ -117,6 +123,7 @@ export const AdminPanel = () => {
       items: [
         { id: 'transactions', label: '全部交易', icon: DollarSign },
         { id: 'offers', label: '报价管理', icon: MessageSquare, badge: pendingOffers },
+        { id: 'merge-strategy', label: '重复合并策略', icon: GitMerge },
         { id: 'escrow', label: '资金托管', icon: Shield },
         { id: 'disputes', label: '纠纷申诉', icon: AlertTriangle, badge: pendingDisputes },
         { id: 'commission', label: '手续费配置', icon: Percent },
@@ -232,7 +239,10 @@ export const AdminPanel = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard': return <AdminDashboard />;
+      case 'unified-search': return <AdminUnifiedSearch />;
       case 'activity': return <AdminActivityLog />;
+      case 'audit-logs': return <AdminAuditLogs />;
+      case 'merge-strategy': return <MergeStrategyManager />;
       case 'domains': return <AllDomainListings />;
       case 'verifications': return <PendingVerifications />;
       case 'auctions': return <AdminAuctionManagement />;
