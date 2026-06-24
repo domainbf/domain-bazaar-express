@@ -129,66 +129,51 @@ export function CurrencyConverter({ priceAmount, priceCurrency }: CurrencyConver
   const availableTargets = CURRENCIES.filter(c => c.code !== baseCurrency);
 
   return (
-    <div className="mt-3 rounded-xl border border-border bg-muted/40 px-4 py-3">
-      <div className="flex items-center justify-between gap-2 flex-wrap">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
-          <span className="shrink-0">货币换算</span>
-          <span className="shrink-0 font-medium text-foreground">
-            {baseInfo?.symbol}{priceAmount.toLocaleString()} {baseCurrency}
-          </span>
-          <span className="shrink-0">≈</span>
-
-          {loading && (
-            <span className="flex items-center gap-1 text-muted-foreground">
-              <RefreshCw className="h-3 w-3 animate-spin" />
-              加载中...
-            </span>
-          )}
-          {!loading && convertedAmount != null && (
-            <span className="font-bold text-foreground text-base">
-              {targetInfo?.symbol}{formatAmount(convertedAmount, targetCurrency)}
-              {isFallback && <span className="ml-1 text-xs font-normal text-muted-foreground">(参考汇率)</span>}
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1">
-                {targetCurrency}
-                <ChevronDown className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="max-h-64 overflow-y-auto">
-              {availableTargets.map(c => (
-                <DropdownMenuItem
-                  key={c.code}
-                  onSelect={() => setTargetCurrency(c.code)}
-                  className={`text-sm gap-2 ${targetCurrency === c.code ? "font-bold" : ""}`}
-                >
-                  <span className="w-8 shrink-0 font-mono">{c.code}</span>
-                  <span className="text-muted-foreground">{c.name}</span>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 w-7 p-0"
-            onClick={() => {
-              try { sessionStorage.removeItem(`${CACHE_KEY}_${baseCurrency}`); } catch {}
-              fetchRate(baseCurrency, targetCurrency);
-            }}
-            disabled={loading}
-            title="刷新汇率"
+    <div className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+      <span>≈</span>
+      {loading ? (
+        <RefreshCw className="h-3 w-3 animate-spin" />
+      ) : convertedAmount != null ? (
+        <span className="font-medium text-foreground">
+          {targetInfo?.symbol}{formatAmount(convertedAmount, targetCurrency)}
+        </span>
+      ) : null}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded hover:bg-muted transition-colors text-xs font-mono"
           >
-            <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
-          </Button>
-        </div>
-      </div>
+            {targetCurrency}
+            <ChevronDown className="h-3 w-3" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="max-h-64 overflow-y-auto">
+          {availableTargets.map(c => (
+            <DropdownMenuItem
+              key={c.code}
+              onSelect={() => setTargetCurrency(c.code)}
+              className={`text-sm gap-2 ${targetCurrency === c.code ? "font-bold" : ""}`}
+            >
+              <span className="w-10 shrink-0 font-mono">{c.code}</span>
+              <span className="text-muted-foreground">{c.name}</span>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      {isFallback && <span className="text-[10px]">(参考)</span>}
+      <button
+        type="button"
+        onClick={() => {
+          try { sessionStorage.removeItem(`${CACHE_KEY}_${baseCurrency}`); } catch {}
+          fetchRate(baseCurrency, targetCurrency);
+        }}
+        disabled={loading}
+        title="刷新汇率"
+        className="p-0.5 rounded hover:bg-muted transition-colors"
+      >
+        <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
+      </button>
     </div>
   );
 }
