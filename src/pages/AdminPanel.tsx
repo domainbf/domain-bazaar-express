@@ -246,6 +246,7 @@ export const AdminPanel = () => {
       case 'unified-search': return <AdminUnifiedSearch />;
       case 'activity': return <AdminActivityLog />;
       case 'audit-logs': return <AdminAuditLogs />;
+      case 'telemetry': return <AdminTelemetry />;
       case 'merge-strategy': return <MergeStrategyManager />;
       case 'domains': return <AllDomainListings />;
       case 'verifications': return <PendingVerifications />;
