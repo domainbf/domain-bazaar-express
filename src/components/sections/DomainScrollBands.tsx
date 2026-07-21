@@ -160,21 +160,52 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
   }, []);
 
   const auctionDomains: DomainChip[] = (homeData?.auctionDomains ?? []).map(a => ({
-    id: a.id, name: a.name, price: a.price, currency: a.currency,
+    id: a.id, name: a.name, price: a.price, currency: a.currency, logoUrl: a.logoUrl,
     bandType: 'auction' as BandType,
   }));
 
   const rawHot = homeData?.hotDomains ?? [];
   const hotDomains: DomainChip[] = rawHot.slice(0, 20).map(d => ({
-    id: d.id, name: d.name, price: d.price, currency: d.currency,
+    id: d.id, name: d.name, price: d.price, currency: d.currency, logoUrl: d.logoUrl,
     bandType: 'hot' as BandType,
   }));
 
   const rawSold = showSold ? (homeData?.soldDomains ?? []) : [];
   const soldDomains: DomainChip[] = rawSold.slice(0, 30).map(d => ({
-    id: d.id, name: d.name, price: d.price, currency: d.currency,
+    id: d.id, name: d.name, price: d.price, currency: d.currency, logoUrl: d.logoUrl,
     bandType: 'sold' as BandType,
   }));
+
+  // 首页曝光时自动补齐拍卖/热门缺失 logo（限速：串行 + 2s 间隔，会话内去重）
+  useEffect(() => {
+    const missing = [...auctionDomains, ...hotDomains].filter(d => !d.logoUrl);
+    if (!missing.length) return;
+    const KEY = '__domain_logo_backfill__';
+    const w = window as any;
+    if (!w[KEY]) w[KEY] = new Set<string>();
+    const seen: Set<string> = w[KEY];
+    const queue = missing.filter(d => !seen.has(d.id)).slice(0, 8);
+    if (!queue.length) return;
+    queue.forEach(d => seen.add(d.id));
+
+    let cancelled = false;
+    (async () => {
+      for (const d of queue) {
+        if (cancelled) return;
+        try {
+          await supabase.functions.invoke('generate-domain-logo', {
+            body: { domainId: d.id, domainName: d.name, triggeredBy: 'home-auto' },
+          });
+        } catch { /* silent */ }
+        await new Promise(r => setTimeout(r, 2000));
+      }
+      if (!cancelled) queryClient.invalidateQueries({ queryKey: ['home', 'data'] });
+    })();
+
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [homeData?.hotDomains, homeData?.auctionDomains]);
+
 
   const pad = (arr: DomainChip[]) => (arr.length >= 4 ? arr : [...arr, ...arr]);
 
