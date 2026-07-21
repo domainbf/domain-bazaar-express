@@ -317,7 +317,15 @@ export const PaymentGatewaySettings = () => {
                 </div>
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => testGateway(gateway)}
+                  disabled={testingId === gateway.id}
+                >
+                  <PlugZap className="h-4 w-4 mr-2" />
+                  {testingId === gateway.id ? '测试中...' : '测试连接'}
+                </Button>
                 <Button
                   onClick={() => saveGateway(gateway)}
                   disabled={savingId === gateway.id}
