@@ -140,6 +140,12 @@ const fetchDomainDetails = async (identifier: string | undefined) => {
     ? ownerResult.value.data ?? null
     : null;
 
+  reportRoute({
+    type: 'detail_fetch_ok',
+    domain: domainRow.name,
+    durationMs: Math.round(performance.now() - start),
+  });
+
   return {
     domain: toDomain(domainRow, analytics, owner),
     priceHistory,
