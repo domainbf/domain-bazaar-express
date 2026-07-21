@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Gavel, Flame, CheckCircle } from 'lucide-react';
@@ -7,14 +8,30 @@ import { DomainWordmark } from './DomainWordmark';
 import { formatPriceCompact } from '@/lib/currency';
 import { supabase } from '@/integrations/supabase/client';
 import { isUuidLike } from '@/lib/domainRouting';
+import { reportRoute } from '@/lib/routeTelemetry';
 
 // 预加载详情页 chunk，避免点击后长时间白屏
 let detailChunkPromise: Promise<unknown> | null = null;
 const preloadDetailChunk = () => {
   if (!detailChunkPromise) {
-    detailChunkPromise = import('@/components/domain/DomainDetailPage');
+    detailChunkPromise = import('@/components/domain/DomainDetailPage').catch((err) => {
+      detailChunkPromise = null; // allow retry
+      reportRoute({ type: 'chunk_load_error', reason: (err as Error)?.message });
+      throw err;
+    });
   }
   return detailChunkPromise;
+};
+
+// 空闲时机预热
+const idlePreload = () => {
+  const w = window as any;
+  const run = () => { void preloadDetailChunk(); };
+  if (typeof w.requestIdleCallback === 'function') {
+    w.requestIdleCallback(run, { timeout: 2000 });
+  } else {
+    setTimeout(run, 400);
+  }
 };
 
 export type BandType = 'auction' | 'hot' | 'sold';
@@ -58,16 +75,39 @@ function LogoCard({ item, onClick, index, onPrefetch }: LogoCardProps & { onPref
   );
 }
 
-function MarqueeRow({ items, direction, onChipClick, onPrefetch }: {
+function MarqueeRow({ items, direction, onChipClick, onPrefetch, onVisible }: {
   items: DomainChip[];
   direction: 'ltr' | 'rtl';
   onChipClick: (domainName: string) => void;
   onPrefetch: (item: DomainChip) => void;
+  onVisible: () => void;
 }) {
+  const rowRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!rowRef.current || typeof IntersectionObserver === 'undefined') {
+      onVisible();
+      return;
+    }
+    const el = rowRef.current;
+    const io = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          onVisible();
+          io.disconnect();
+          break;
+        }
+      }
+    }, { rootMargin: '200px' });
+    io.observe(el);
+    return () => io.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   if (!items.length) return null;
   const doubled = [...items, ...items];
   return (
-    <div className="overflow-hidden w-full">
+    <div ref={rowRef} className="overflow-hidden w-full">
       <div
         className={direction === 'rtl' ? 'animate-marquee-rtl' : 'animate-marquee-ltr'}
         style={{ display: 'flex', width: 'max-content', willChange: 'transform' }}
@@ -93,6 +133,11 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
   const queryClient = useQueryClient();
   const { data: homeData } = useHomeData();
 
+  // 组件挂载后立即空闲预热详情 chunk，避免用户首次点击时才开始下载
+  useEffect(() => {
+    idlePreload();
+  }, []);
+
   const auctionDomains: DomainChip[] = (homeData?.auctionDomains ?? []).map(a => ({
     id: a.id, name: a.name, price: a.price, currency: a.currency,
     bandType: 'auction' as BandType,
@@ -111,14 +156,24 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
   }));
 
   const pad = (arr: DomainChip[]) => (arr.length >= 4 ? arr : [...arr, ...arr]);
+
   const handleChipClick = (domainName: string) => {
-    preloadDetailChunk();
+    const start = performance.now();
+    reportRoute({ type: 'nav_click', domain: domainName, route: getDomainDetailPath(domainName) });
+    void preloadDetailChunk();
     navigate(getDomainDetailPath(domainName));
+    // 记录首个 rAF 到达路由后的耗时，便于观察"进不去"问题
+    requestAnimationFrame(() => {
+      reportRoute({
+        type: 'nav_click',
+        domain: domainName,
+        durationMs: Math.round(performance.now() - start),
+        reason: 'raf-after-nav',
+      });
+    });
   };
 
-  const handlePrefetch = (item: DomainChip) => {
-    preloadDetailChunk();
-    // 预取详情数据到 react-query 缓存，点击后可即时呈现
+  const prefetchItem = (item: DomainChip) => {
     const key = ['domainDetail', item.name];
     if (queryClient.getQueryData(key)) return;
     queryClient.prefetchQuery({
@@ -134,6 +189,17 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
     }).catch(() => { /* silent */ });
   };
 
+  const handlePrefetch = (item: DomainChip) => {
+    void preloadDetailChunk();
+    prefetchItem(item);
+  };
+
+  // 当整行滚动到视口附近时，批量预取前 6 条详情
+  const handleRowVisible = (items: DomainChip[]) => {
+    void preloadDetailChunk();
+    items.slice(0, 6).forEach(prefetchItem);
+  };
+
   if (!auctionDomains.length && !hotDomains.length) return null;
 
   return (
@@ -144,7 +210,7 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
             <Gavel className="h-3.5 w-3.5 text-foreground/50" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">拍卖域名</span>
           </div>
-          <MarqueeRow items={pad(auctionDomains)} direction="ltr" onChipClick={handleChipClick} onPrefetch={handlePrefetch} />
+          <MarqueeRow items={pad(auctionDomains)} direction="ltr" onChipClick={handleChipClick} onPrefetch={handlePrefetch} onVisible={() => handleRowVisible(auctionDomains)} />
         </div>
       )}
 
@@ -154,7 +220,7 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
             <Flame className="h-3.5 w-3.5 text-foreground/50" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">热门域名</span>
           </div>
-          <MarqueeRow items={pad(hotDomains)} direction="rtl" onChipClick={handleChipClick} onPrefetch={handlePrefetch} />
+          <MarqueeRow items={pad(hotDomains)} direction="rtl" onChipClick={handleChipClick} onPrefetch={handlePrefetch} onVisible={() => handleRowVisible(hotDomains)} />
         </div>
       )}
 
@@ -164,7 +230,7 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
             <CheckCircle className="h-3.5 w-3.5 text-foreground/50" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">成交案例</span>
           </div>
-          <MarqueeRow items={pad(soldDomains)} direction="ltr" onChipClick={handleChipClick} onPrefetch={handlePrefetch} />
+          <MarqueeRow items={pad(soldDomains)} direction="ltr" onChipClick={handleChipClick} onPrefetch={handlePrefetch} onVisible={() => handleRowVisible(soldDomains)} />
         </div>
       )}
     </div>

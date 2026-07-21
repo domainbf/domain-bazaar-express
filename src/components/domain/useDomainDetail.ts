@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { isUuidLike, safeDecodeDomainIdentifier } from "@/lib/domainRouting";
 import { Domain } from "@/types/domain";
+import { reportRoute } from "@/lib/routeTelemetry";
 
 interface DomainDetailResponse {
   domain: Domain & {
@@ -56,6 +57,7 @@ const toDomain = (
 const fetchDomainDetails = async (identifier: string | undefined) => {
   const normalized = safeDecodeDomainIdentifier(identifier);
   if (!normalized) return null;
+  const start = performance.now();
 
   const domainQuery = isUuidLike(normalized)
     ? supabase
@@ -75,10 +77,22 @@ const fetchDomainDetails = async (identifier: string | undefined) => {
   if (domainError) {
     // 不向 ErrorBoundary 抛出，交由 UI 显示"未找到"或触发重试
     console.warn('[useDomainDetail] domain query error:', domainError.message);
+    reportRoute({
+      type: 'detail_fetch_error',
+      domain: normalized,
+      durationMs: Math.round(performance.now() - start),
+      reason: domainError.message,
+    });
     return null;
   }
 
   if (!domainRow) {
+    reportRoute({
+      type: 'detail_fetch_error',
+      domain: normalized,
+      durationMs: Math.round(performance.now() - start),
+      reason: 'not_found',
+    });
     return null;
   }
 
@@ -125,6 +139,12 @@ const fetchDomainDetails = async (identifier: string | undefined) => {
   const owner = ownerResult.status === 'fulfilled' && !ownerResult.value.error
     ? ownerResult.value.data ?? null
     : null;
+
+  reportRoute({
+    type: 'detail_fetch_ok',
+    domain: domainRow.name,
+    durationMs: Math.round(performance.now() - start),
+  });
 
   return {
     domain: toDomain(domainRow, analytics, owner),

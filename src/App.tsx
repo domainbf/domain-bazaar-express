@@ -11,6 +11,7 @@ import { PWAInstallBanner } from './components/pwa/PWAInstallBanner';
 import { TopProgressBar } from './components/common/TopProgressBar';
 import { GlobalBottomNav } from './components/mobile/GlobalBottomNav';
 import { FeedbackButton } from './components/common/FeedbackButton';
+import { lazyRetry, reportRoute } from '@/lib/routeTelemetry';
 
 // Route-based code splitting
 const Index = lazy(() => import('./pages/Index'));
@@ -24,7 +25,9 @@ const ResetPassword = lazy(() => import('./pages/ResetPassword').then(m => ({ de
 const AuthCallback = lazy(() => import('./pages/AuthCallback').then(m => ({ default: m.AuthCallback })));
 const UserCenter = lazy(() => import('./pages/UserCenter').then(m => ({ default: m.UserCenter })));
 const UserProfilePage = lazy(() => import('./pages/UserProfile').then(m => ({ default: m.UserProfilePage })));
-const DomainDetailPage = lazy(() => import('./components/domain/DomainDetailPage').then(m => ({ default: m.DomainDetailPage })));
+// DomainDetailPage: wrapped with lazyRetry so a transient chunk load
+// failure (mobile network hiccup) auto-retries instead of stalling.
+const DomainDetailPage = lazy(lazyRetry(() => import('./components/domain/DomainDetailPage').then(m => ({ default: m.DomainDetailPage }))));
 const MyDomainsPage = lazy(() => import('./pages/MyDomainsPage').then(m => ({ default: m.MyDomainsPage })));
 const ContactPage = lazy(() => import('./pages/ContactPage').then(m => ({ default: m.ContactPage })));
 const FAQPage = lazy(() => import('./pages/FAQPage').then(m => ({ default: m.FAQPage })));
@@ -70,6 +73,11 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
   useEffect(() => {
     if (isChunkError || reported.current) return;
     reported.current = true;
+    reportRoute({
+      type: 'route_error',
+      route: window.location.pathname,
+      reason: error?.message || 'unknown',
+    });
     fetch('/api/data/crash-report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
