@@ -410,7 +410,7 @@ const Index = () => {
         </section>
 
         <Suspense fallback={null}><SupportSection /></Suspense>
-        <Suspense fallback={null}><SoldDomains /></Suspense>
+        <Suspense fallback={null}><DomainShowcaseTabs /></Suspense>
 
         {/* CTA */}
         <section className="py-16 md:py-20 bg-card relative overflow-hidden">
