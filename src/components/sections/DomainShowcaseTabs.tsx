@@ -118,7 +118,7 @@ export const DomainShowcaseTabs = () => {
                   variant === 'sold' ? 'text-emerald-600 dark:text-emerald-400' : 'text-foreground'
                 }`}
               >
-                {formatCurrency(d.price, d.currency)}
+                {formatPrice(d.price, d.currency)}
               </span>
               <button
                 onClick={(e) => { e.preventDefault(); copy(d.name); }}
