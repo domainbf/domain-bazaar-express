@@ -22,7 +22,7 @@ import { SkeletonCardGrid } from '@/components/common/SkeletonCard';
 import { Footer } from '@/components/sections/Footer';
 import { HowItWorksSection } from '@/components/sections/HowItWorksSection';
 import { DealsShowcaseSection } from '@/components/sections/DealsShowcaseSection';
-import { DomainQuickViewDialog } from '@/components/domain/DomainQuickViewDialog';
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -51,7 +51,7 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'hot' | 'latest_offer' | 'price_asc' | 'price_desc'>('hot');
   const [latestOfferMap, setLatestOfferMap] = useState<Record<string, string>>({});
-  const [quickView, setQuickView] = useState<HomeDomainItem | null>(null);
+  
   const [visibleCount, setVisibleCount] = useState(12);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('marketplace');
@@ -290,7 +290,7 @@ const Index = () => {
                             sellerId={domain.ownerId || ''}
                             isVerified={domain.isVerified ?? domain.verificationStatus === 'verified'}
                             searchQuery={searchQuery}
-                            onQuickView={() => setQuickView(domain)}
+                            
                           />
                         </motion.div>
                       ))}
@@ -444,16 +444,6 @@ const Index = () => {
 
       
       <AuthModal open={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
-
-      <DomainQuickViewDialog
-        open={!!quickView}
-        onClose={() => setQuickView(null)}
-        domain={quickView?.name || ''}
-        domainId={quickView?.id}
-        sellerId={quickView?.ownerId}
-        price={quickView?.price}
-        currency={quickView?.currency}
-      />
     </div>
   );
 };

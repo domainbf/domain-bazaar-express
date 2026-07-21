@@ -360,7 +360,6 @@ export const Marketplace = () => {
               domains={filteredDomains}
               isMobile={isMobile}
               layout={layout}
-              onSelect={openPreview}
             />
           )}
         </div>
@@ -369,23 +368,6 @@ export const Marketplace = () => {
           <SoldDomains />
         </div>
       </div>
-
-      {/* ── Detail drawer (uses existing QuickView dialog) ── */}
-      {preview && (
-        <DomainQuickViewDialog
-          open={previewIndex != null}
-          onClose={closePreview}
-          domain={preview.name}
-          domainId={preview.id}
-          sellerId={preview.owner_id}
-          price={preview.price}
-          currency={preview.currency}
-          onPrev={goPrev}
-          onNext={goNext}
-          hasPrev={(previewIndex ?? 0) > 0}
-          hasNext={(previewIndex ?? 0) < filteredDomains.length - 1}
-        />
-      )}
     </div>
   );
 };
