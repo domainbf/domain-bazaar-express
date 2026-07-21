@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
   CreditCard, Smartphone, Banknote, Shield, Save, RefreshCw,
-  Eye, EyeOff, CheckCircle, XCircle, AlertTriangle
+  Eye, EyeOff, CheckCircle, XCircle, AlertTriangle, PlugZap
 } from 'lucide-react';
 
 interface GatewayConfig {
