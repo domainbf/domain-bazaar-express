@@ -121,7 +121,7 @@ export const DomainDetailPage = () => {
   }
 
   if (error || !domain) {
-    return <NotFound />;
+    return <DomainDetailError error={error as Error | null} onRetry={() => reload?.()} />;
   }
 
   const isOwner = user?.id === domain.owner_id;
