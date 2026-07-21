@@ -32,6 +32,7 @@ const fetchAvailableDomains = async (): Promise<Domain[]> => {
     id: String(d.id ?? ''),
     name: String(d.name ?? ''),
     price: Number(d.price) || 0,
+    currency: String(d.currency ?? 'CNY'),
     category: String(d.category ?? 'standard'),
     description: String(d.description ?? ''),
     status: String(d.status ?? 'available'),
@@ -44,6 +45,7 @@ const fetchAvailableDomains = async (): Promise<Domain[]> => {
     favorites: Number(analyticsMap[d.id]?.favorites) || 0,
     offers: Number(analyticsMap[d.id]?.offers) || 0,
   }));
+
 };
 
 export const DOMAIN_LISTINGS_KEY = ['domains', 'available'] as const;

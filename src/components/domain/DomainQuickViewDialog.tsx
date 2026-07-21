@@ -6,9 +6,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/currency';
 import { getDomainDetailPath } from '@/lib/domainRouting';
 import { DomainOfferForm } from './DomainOfferForm';
-import { Loader2, History, ArrowRight, Tag, Copy, Check } from 'lucide-react';
+import { Loader2, History, ArrowRight, Tag, Copy, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+
 
 interface OfferRow {
   id: string;
@@ -26,9 +27,14 @@ interface Props {
   sellerId?: string;
   price?: number;
   currency?: string;
+  onPrev?: () => void;
+  onNext?: () => void;
+  hasPrev?: boolean;
+  hasNext?: boolean;
 }
 
-export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerId, price, currency = 'CNY' }: Props) {
+export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerId, price, currency = 'CNY', onPrev, onNext, hasPrev, hasNext }: Props) {
+
   const { user } = useAuth();
   const [offers, setOffers] = useState<OfferRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -72,16 +78,56 @@ export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerI
     }
   };
 
+  // Keyboard prev/next when a sibling list is provided
+  useEffect(() => {
+    if (!open || showOfferForm) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' && hasPrev && onPrev) { e.preventDefault(); onPrev(); }
+      else if (e.key === 'ArrowRight' && hasNext && onNext) { e.preventDefault(); onNext(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, showOfferForm, hasPrev, hasNext, onPrev, onNext]);
+
   const minOffer = price ? Math.round(price * 0.3) : null;
   const highest = offers[0];
+  const canNav = !!(onPrev || onNext);
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && (onClose(), setShowOfferForm(false))}>
       <DialogContent className="bg-background border-border max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-black uppercase tracking-tight text-center break-all">
-            {domain}
-          </DialogTitle>
+          <div className="flex items-center gap-2">
+            {canNav && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={onPrev}
+                disabled={!hasPrev}
+                aria-label="上一个域名"
+                className="h-8 w-8 shrink-0"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+            )}
+            <DialogTitle className="flex-1 text-2xl font-black uppercase tracking-tight text-center break-all">
+              {domain}
+            </DialogTitle>
+            {canNav && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={onNext}
+                disabled={!hasNext}
+                aria-label="下一个域名"
+                className="h-8 w-8 shrink-0"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
           <div className="flex justify-center pt-1">
             <Button type="button" variant="outline" size="sm" onClick={handleCopy} className="h-7 gap-1.5 text-xs">
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
@@ -89,6 +135,7 @@ export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerI
             </Button>
           </div>
         </DialogHeader>
+
 
         {showOfferForm ? (
           <DomainOfferForm

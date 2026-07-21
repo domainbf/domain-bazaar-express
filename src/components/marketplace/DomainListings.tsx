@@ -1,21 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Domain } from '@/types/domain';
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { Shield, Eye, Tag, Star, ArrowUpRight, Heart } from 'lucide-react';
+import { Star, ArrowUpRight, Heart, Shield, Eye, Tag } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { apiGet, apiPost, apiDelete } from '@/lib/apiClient';
+import { useFavorites } from '@/hooks/useFavorites';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
+// Kept for backwards compatibility — layout choice is now purely a density hint.
 export type MarketplaceLayout = 'card' | 'bento' | 'magazine' | 'masonry';
 
 export interface DomainListingsProps {
   domains: Domain[];
   isLoading: boolean;
   isMobile?: boolean;
+  /** Density preset — 'featured' shows a large hero row; 'grid' is uniform. Default 'featured'. */
   layout?: MarketplaceLayout;
+  /** When provided, cards open the drawer instead of navigating to the detail page. */
+  onSelect?: (domain: Domain, index: number) => void;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -34,300 +37,219 @@ const formatPrice = (d: Domain) => {
   return d.price > 0 ? `${sym}${d.price.toLocaleString()}` : `${sym}0`;
 };
 
-// ─── Favorite button (shared) ───────────────────────────────────────────────
-const FavoriteButton = ({ domainId, size = 'md' }: { domainId: string; size?: 'sm' | 'md' }) => {
+// Auto-shrink domain text so long names never overflow the card.
+const domainTextSize = (name: string, hero: boolean) => {
+  const len = name.length;
+  if (hero) {
+    if (len <= 10) return 'text-5xl sm:text-7xl';
+    if (len <= 16) return 'text-4xl sm:text-6xl';
+    if (len <= 22) return 'text-3xl sm:text-5xl';
+    return 'text-2xl sm:text-4xl';
+  }
+  if (len <= 8)  return 'text-3xl sm:text-4xl';
+  if (len <= 14) return 'text-2xl sm:text-3xl';
+  if (len <= 20) return 'text-xl sm:text-2xl';
+  return 'text-base sm:text-lg';
+};
+
+// ─── Favorite heart (shared, uses global favorites cache) ────────────────────
+const FavoriteHeart = ({ domainId }: { domainId: string }) => {
   const { user } = useAuth();
-  const [isFavorited, setIsFavorited] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (!user || !domainId) return;
-    apiGet<{ domain_id: string }[]>('/data/favorites')
-      .then(favs => { if (favs.some(f => f.domain_id === domainId)) setIsFavorited(true); })
-      .catch(() => {});
-  }, [user?.id, domainId]);
-
-  const handleToggle = async (e: React.MouseEvent) => {
+  const { isFavorited, toggle, toggling } = useFavorites();
+  const active = isFavorited(domainId);
+  const handle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (!user) { toast.error('请先登录后再收藏'); return; }
-    setIsLoading(true);
-    try {
-      if (isFavorited) {
-        await apiDelete(`/data/favorites/${domainId}`);
-        setIsFavorited(false);
-        toast.success('已取消收藏');
-      } else {
-        await apiPost('/data/favorites', { domain_id: domainId });
-        setIsFavorited(true);
-        toast.success('已添加到收藏');
-      }
-    } catch (error: any) {
-      toast.error(error.message || '操作失败');
-    } finally {
-      setIsLoading(false);
-    }
+    toggle(domainId);
   };
-
-  const dim = size === 'sm' ? 'h-7 w-7' : 'h-8 w-8';
-  const icon = size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4';
-
   return (
     <button
-      onClick={handleToggle}
-      disabled={isLoading}
+      type="button"
+      onClick={handle}
+      disabled={toggling}
       data-testid={`button-favorite-${domainId}`}
+      aria-label={active ? '取消收藏' : '收藏'}
       className={cn(
-        dim,
-        'flex items-center justify-center rounded-full transition-all shrink-0',
-        isFavorited
-          ? 'text-red-500'
-          : 'text-muted-foreground/40 group-hover:text-muted-foreground/70 hover:text-red-400',
+        'h-8 w-8 shrink-0 flex items-center justify-center rounded-full transition-colors backdrop-blur-sm',
+        'bg-white/10 hover:bg-white/20',
+        active ? 'text-red-400' : 'text-white/60 hover:text-white',
       )}
-      aria-label={isFavorited ? '取消收藏' : '收藏'}
     >
-      <Heart className={cn(icon, isFavorited && 'fill-current')} />
+      <Heart className={cn('h-4 w-4', active && 'fill-current')} />
     </button>
   );
 };
 
-// ─── Shared badges ──────────────────────────────────────────────────────────
-const Badges = ({ domain, compact = false }: { domain: Domain; compact?: boolean }) => {
-  const categoryLabel = domain.category ? (CATEGORY_LABELS[domain.category] || domain.category) : null;
-  const hasViews = typeof domain.views === 'number' && domain.views > 0;
-  const size = compact ? 'text-[10px]' : 'text-[11px]';
-  return (
-    <div className={cn('flex items-center gap-2 text-muted-foreground', size)}>
-      {categoryLabel && (
-        <span className="inline-flex items-center gap-1"><Tag className="h-2.5 w-2.5" />{categoryLabel}</span>
-      )}
-      {hasViews && (
-        <span className="inline-flex items-center gap-1"><Eye className="h-2.5 w-2.5" />{domain.views}</span>
-      )}
-      {domain.is_verified && (
-        <span className="inline-flex items-center gap-1"><Shield className="h-2.5 w-2.5" />已验证</span>
-      )}
-    </div>
-  );
-};
+// ─── The one and only card style ────────────────────────────────────────────
+interface CardProps {
+  domain: Domain;
+  index: number;
+  hero?: boolean;
+  onSelect?: (d: Domain, i: number) => void;
+}
 
-// ─── Framer-motion wrapper ──────────────────────────────────────────────────
-const CardMotion = ({ i, children }: { i: number; children: React.ReactNode }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 8 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1], delay: Math.min(i * 0.025, 0.2) }}
-  >
-    {children}
-  </motion.div>
-);
+const HeroStyleCard = ({ domain, index, hero, onSelect }: CardProps) => {
+  const isFeatured = !!(hero || domain.highlight);
+  const categoryLabel = domain.category ? (CATEGORY_LABELS[domain.category] || domain.category) : '标准';
+  const badgeText = hero ? '本期头条' : (domain.highlight ? '★ 精选' : categoryLabel);
 
-// ─── Card variant (uniform card grid) ──────────────────────────────────────
-const UniformCard = ({ domain, index }: { domain: Domain; index: number }) => (
-  <CardMotion i={index}>
-    <Link
-      to={`/domain/${encodeURIComponent(domain.name)}`}
-      data-testid={`card-uniform-${domain.id}`}
-      className={cn(
-        'group relative flex flex-col justify-between h-full',
-        'rounded-2xl border border-border bg-card p-5',
-        'transition-all duration-200 hover:border-foreground/40 hover:shadow-[0_8px_30px_-8px_hsl(var(--foreground)/0.12)]',
-        domain.highlight && 'bg-foreground text-background border-foreground',
-      )}
-    >
-      <div className="flex items-start justify-between gap-2 mb-6">
-        <span className={cn(
-          'text-[10px] font-medium px-2 py-0.5 rounded-full',
-          domain.highlight ? 'bg-background/20 text-background' : 'bg-muted text-muted-foreground',
-        )}>
-          {domain.highlight ? '★ 精选' : (CATEGORY_LABELS[domain.category || ''] || '标准')}
-        </span>
-        <FavoriteButton domainId={domain.id} size="sm" />
-      </div>
-      <h3 className={cn(
-        'font-black uppercase tracking-tight leading-none break-all mb-3',
-        domain.name.length > 16 ? 'text-lg' : 'text-2xl',
-      )}>
-        {domain.name}
-      </h3>
-      <div className="flex items-end justify-between">
-        <span className="text-xl font-bold tabular-nums">{formatPrice(domain)}</span>
-        <ArrowUpRight className={cn(
-          'h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5',
-          domain.highlight ? 'text-background/70' : 'text-muted-foreground/50',
-        )} />
-      </div>
-    </Link>
-  </CardMotion>
-);
+  const inner = (
+    <>
+      {/* Dotted pattern overlay */}
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-[0.10] pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(circle at 20% 20%, currentColor 1.2px, transparent 1.2px)',
+          backgroundSize: hero ? '20px 20px' : '14px 14px',
+        }}
+      />
 
-// ─── Bento — 1 hero (col-span-2) + normal cards ────────────────────────────
-const BentoCard = ({ domain, index, hero }: { domain: Domain; index: number; hero?: boolean }) => (
-  <CardMotion i={index}>
-    <Link
-      to={`/domain/${encodeURIComponent(domain.name)}`}
-      data-testid={`card-bento-${domain.id}`}
-      className={cn(
-        'group relative flex flex-col justify-between h-full rounded-2xl border p-5 transition-all duration-200',
-        hero
-          ? 'bg-foreground text-background border-foreground sm:col-span-2 sm:row-span-2 min-h-[220px] p-6'
-          : 'bg-card border-border hover:border-foreground/40 hover:shadow-[0_8px_30px_-8px_hsl(var(--foreground)/0.12)]',
-      )}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <span className={cn(
-          'text-[10px] font-medium px-2 py-0.5 rounded-full',
-          hero ? 'bg-background/20 text-background' : 'bg-muted text-muted-foreground',
-        )}>
-          {hero ? '★ 头条精选' : (CATEGORY_LABELS[domain.category || ''] || '标准')}
-        </span>
-        <FavoriteButton domainId={domain.id} size="sm" />
-      </div>
-      <h3 className={cn(
-        'font-black uppercase tracking-tight leading-none break-all',
-        hero ? 'text-4xl sm:text-5xl my-6' : (domain.name.length > 16 ? 'text-base' : 'text-xl'),
-        !hero && 'my-3',
-      )}>
-        {domain.name}
-      </h3>
-      <div className="flex items-end justify-between">
-        <span className={cn('font-bold tabular-nums', hero ? 'text-3xl' : 'text-lg')}>
-          {formatPrice(domain)}
-        </span>
-        {hero && <Badges domain={domain} />}
-        <ArrowUpRight className={cn(
-          hero ? 'hidden' : 'h-4 w-4 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5',
-        )} />
-      </div>
-    </Link>
-  </CardMotion>
-);
+      {/* Subtle top-glow highlight */}
+      <div
+        aria-hidden
+        className="absolute -top-32 -right-24 h-64 w-64 rounded-full bg-white/[0.06] blur-3xl pointer-events-none"
+      />
 
-// ─── Magazine — hero row + grid ─────────────────────────────────────────────
-const MagazineHero = ({ domain, index }: { domain: Domain; index: number }) => (
-  <CardMotion i={index}>
-    <Link
-      to={`/domain/${encodeURIComponent(domain.name)}`}
-      data-testid={`card-magazine-hero-${domain.id}`}
-      className="group relative block rounded-3xl border border-foreground/10 bg-gradient-to-br from-foreground to-foreground/80 text-background p-8 sm:p-12 overflow-hidden"
-    >
-      <div className="absolute inset-0 opacity-[0.08]" style={{
-        backgroundImage: 'radial-gradient(circle at 30% 20%, currentColor 1px, transparent 1px)',
-        backgroundSize: '18px 18px',
-      }} />
-      <div className="relative">
-        <div className="flex items-center gap-2 mb-6">
-          <span className="text-[10px] uppercase tracking-widest font-bold bg-background/20 text-background px-2 py-1 rounded-full">
-            <Star className="inline h-2.5 w-2.5 fill-current mr-1" />本期头条
-          </span>
-          <FavoriteButton domainId={domain.id} size="sm" />
-        </div>
-        <h2 className={cn(
-          'font-black uppercase tracking-tight leading-[0.9] break-all mb-6',
-          domain.name.length > 22 ? 'text-3xl sm:text-5xl' : 'text-5xl sm:text-7xl',
-        )}>
-          {domain.name}
-        </h2>
-        <div className="flex items-end justify-between flex-wrap gap-4">
-          <div>
-            <p className="text-[11px] opacity-60 uppercase tracking-widest mb-1">一口价</p>
-            <p className="text-3xl sm:text-4xl font-bold tabular-nums">{formatPrice(domain)}</p>
-          </div>
-          <div className="inline-flex items-center gap-2 text-sm font-medium group-hover:gap-3 transition-all">
-            立即查看 <ArrowUpRight className="h-4 w-4" />
-          </div>
-        </div>
-      </div>
-    </Link>
-  </CardMotion>
-);
-
-const MagazineCard = ({ domain, index }: { domain: Domain; index: number }) => (
-  <CardMotion i={index}>
-    <Link
-      to={`/domain/${encodeURIComponent(domain.name)}`}
-      data-testid={`card-magazine-${domain.id}`}
-      className="group flex flex-col justify-between h-full rounded-2xl border border-border bg-card p-4 transition-all hover:border-foreground/40 hover:-translate-y-0.5"
-    >
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <Badges domain={domain} compact />
-        <FavoriteButton domainId={domain.id} size="sm" />
-      </div>
-      <h3 className={cn(
-        'font-black uppercase tracking-tight leading-none break-all mb-3',
-        domain.name.length > 18 ? 'text-base' : 'text-xl',
-      )}>
-        {domain.name}
-      </h3>
-      <div className="flex items-center justify-between">
-        <span className="text-base font-bold tabular-nums">{formatPrice(domain)}</span>
-        <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-      </div>
-    </Link>
-  </CardMotion>
-);
-
-// ─── Masonry — variable height cards ────────────────────────────────────────
-const MasonryCard = ({ domain, index }: { domain: Domain; index: number }) => {
-  const isTall = index % 4 === 0 || domain.highlight;
-  return (
-    <CardMotion i={index}>
-      <Link
-        to={`/domain/${encodeURIComponent(domain.name)}`}
-        data-testid={`card-masonry-${domain.id}`}
-        className={cn(
-          'group block break-inside-avoid mb-3 rounded-2xl border p-5 transition-all',
-          domain.highlight
-            ? 'bg-foreground text-background border-foreground'
-            : 'bg-card border-border hover:border-foreground/40',
-          isTall && 'py-8',
-        )}
-      >
+      <div className="relative flex flex-col h-full">
+        {/* Top: badge + heart */}
         <div className="flex items-start justify-between gap-2 mb-4">
           <span className={cn(
-            'text-[10px] font-medium px-2 py-0.5 rounded-full',
-            domain.highlight ? 'bg-background/20 text-background' : 'bg-muted text-muted-foreground',
+            'inline-flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold',
+            'bg-white/10 text-white px-2.5 py-1 rounded-full backdrop-blur-sm',
           )}>
-            {domain.highlight ? '★ 精选' : (CATEGORY_LABELS[domain.category || ''] || '标准')}
+            {hero && <Star className="h-2.5 w-2.5 fill-current" />}
+            {badgeText}
           </span>
-          <FavoriteButton domainId={domain.id} size="sm" />
+          <FavoriteHeart domainId={domain.id} />
         </div>
+
+        {/* Domain wordmark */}
         <h3 className={cn(
-          'font-black uppercase tracking-tight leading-none break-all mb-3',
-          isTall ? 'text-3xl' : (domain.name.length > 16 ? 'text-lg' : 'text-2xl'),
+          'font-black uppercase tracking-tight leading-[0.95] break-all text-white',
+          hero ? 'my-6' : 'my-4',
+          domainTextSize(domain.name, isFeatured),
         )}>
           {domain.name}
         </h3>
-        <div className="flex items-center justify-between">
-          <span className={cn('font-bold tabular-nums', isTall ? 'text-xl' : 'text-base')}>
-            {formatPrice(domain)}
-          </span>
-          <ArrowUpRight className={cn(
-            'h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5',
-            domain.highlight ? 'text-background/70' : 'text-muted-foreground/50',
-          )} />
+
+        {/* Bottom: price + CTA */}
+        <div className="mt-auto flex items-end justify-between gap-3">
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-white/50 mb-1">一口价</p>
+            <p className={cn(
+              'font-bold tabular-nums text-white',
+              hero ? 'text-3xl sm:text-4xl' : 'text-2xl',
+            )}>
+              {formatPrice(domain)}
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-white/80 group-hover:text-white group-hover:gap-2.5 transition-all">
+            立即查看 <ArrowUpRight className="h-3.5 w-3.5" />
+          </div>
         </div>
-        {isTall && !domain.highlight && (
-          <div className="mt-4 pt-4 border-t border-border">
-            <Badges domain={domain} compact />
+
+        {/* Meta strip (only if extra data exists) */}
+        {(domain.is_verified || (domain.views ?? 0) > 0) && (
+          <div className="mt-4 pt-3 border-t border-white/10 flex items-center gap-3 text-[10px] text-white/50 uppercase tracking-wider">
+            <span className="inline-flex items-center gap-1"><Tag className="h-2.5 w-2.5" />{categoryLabel}</span>
+            {(domain.views ?? 0) > 0 && (
+              <span className="inline-flex items-center gap-1"><Eye className="h-2.5 w-2.5" />{domain.views}</span>
+            )}
+            {domain.is_verified && (
+              <span className="inline-flex items-center gap-1 ml-auto text-emerald-300/80"><Shield className="h-2.5 w-2.5" />已验证</span>
+            )}
           </div>
         )}
-      </Link>
-    </CardMotion>
+      </div>
+    </>
+  );
+
+  const wrapperClass = cn(
+    'group relative block overflow-hidden isolate',
+    'rounded-2xl border border-white/10',
+    'bg-gradient-to-br from-neutral-900 via-neutral-950 to-black text-white',
+    'shadow-[0_2px_20px_-8px_rgba(0,0,0,0.4)]',
+    'transition-all duration-300',
+    'hover:border-white/25 hover:-translate-y-0.5 hover:shadow-[0_16px_40px_-12px_rgba(0,0,0,0.6)]',
+    hero ? 'p-6 sm:p-8 min-h-[260px] sm:min-h-[300px]' : 'p-5 min-h-[200px]',
+  );
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1], delay: Math.min(index * 0.03, 0.24) }}
+      className={hero ? 'sm:col-span-2' : ''}
+    >
+      {onSelect ? (
+        <button
+          type="button"
+          onClick={() => onSelect(domain, index)}
+          data-testid={`card-domain-${domain.id}`}
+          className={cn(wrapperClass, 'w-full text-left cursor-pointer')}
+        >
+          {inner}
+        </button>
+      ) : (
+        <Link
+          to={`/domain/${encodeURIComponent(domain.name)}`}
+          data-testid={`card-domain-${domain.id}`}
+          className={wrapperClass}
+        >
+          {inner}
+        </Link>
+      )}
+    </motion.div>
   );
 };
 
-// ─── Main ────────────────────────────────────────────────────────────────────
-export const DomainListings = ({ domains, isLoading, isMobile, layout = 'card' }: DomainListingsProps) => {
+// ─── Skeleton — matches card silhouette, staggered fade for smooth loads ────
+const CardSkeleton = ({ hero, i }: { hero?: boolean; i: number }) => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.2, delay: Math.min(i * 0.04, 0.2) }}
+    className={cn(
+      'relative rounded-2xl border border-white/10 bg-neutral-900/60 overflow-hidden',
+      hero ? 'p-6 sm:p-8 min-h-[260px] sm:min-h-[300px] sm:col-span-2' : 'p-5 min-h-[200px]',
+    )}
+  >
+    <div className="animate-pulse space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="h-5 w-20 rounded-full bg-white/10" />
+        <div className="h-8 w-8 rounded-full bg-white/10" />
+      </div>
+      <div className={cn('h-10 rounded bg-white/10', hero ? 'w-3/4 sm:h-16' : 'w-2/3')} />
+      <div className="h-3 w-1/3 rounded bg-white/10" />
+      <div className="h-7 w-1/2 rounded bg-white/10" />
+    </div>
+  </motion.div>
+);
+
+// ─── Main list — one unified style with optional hero row ───────────────────
+export const DomainListings = ({ domains, isLoading, isMobile, layout = 'card', onSelect }: DomainListingsProps) => {
+  // The 'magazine' preset places a hero card at the front; every other preset renders uniform cards.
+  const showHero = layout === 'magazine' || layout === 'bento';
+
+  const gridClass = isMobile
+    ? 'grid grid-cols-1 gap-4'
+    : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-fr';
+
+  const list = useMemo(() => domains, [domains]);
+
   if (isLoading) {
     return (
-      <div className="flex justify-center py-20">
-        <LoadingSpinner />
+      <div className={gridClass}>
+        {Array.from({ length: 8 }).map((_, i) => (
+          <CardSkeleton key={i} i={i} hero={showHero && i === 0} />
+        ))}
       </div>
     );
   }
 
-  if (domains.length === 0) {
+  if (list.length === 0) {
     return (
       <div className="text-center py-20">
         <h3 className="text-2xl font-bold text-foreground mb-2">没有找到域名</h3>
@@ -336,42 +258,17 @@ export const DomainListings = ({ domains, isLoading, isMobile, layout = 'card' }
     );
   }
 
-  if (layout === 'card') {
-    return (
-      <div className={cn('grid gap-3', isMobile ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4')}>
-        {domains.map((d, i) => <UniformCard key={d.id} domain={d} index={i} />)}
-      </div>
-    );
-  }
-
-  if (layout === 'bento') {
-    return (
-      <div className={cn('grid gap-3 auto-rows-[minmax(140px,auto)]', isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4')}>
-        {domains.map((d, i) => (
-          <BentoCard key={d.id} domain={d} index={i} hero={i === 0} />
-        ))}
-      </div>
-    );
-  }
-
-  if (layout === 'magazine') {
-    const [hero, ...rest] = domains;
-    return (
-      <div className="space-y-3">
-        {hero && <MagazineHero domain={hero} index={0} />}
-        {rest.length > 0 && (
-          <div className={cn('grid gap-3', isMobile ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4')}>
-            {rest.map((d, i) => <MagazineCard key={d.id} domain={d} index={i + 1} />)}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // masonry
   return (
-    <div className={cn('gap-3', isMobile ? 'columns-1 sm:columns-2' : 'columns-2 md:columns-3 lg:columns-4')}>
-      {domains.map((d, i) => <MasonryCard key={d.id} domain={d} index={i} />)}
+    <div className={gridClass}>
+      {list.map((d, i) => (
+        <HeroStyleCard
+          key={d.id}
+          domain={d}
+          index={i}
+          hero={showHero && i === 0}
+          onSelect={onSelect}
+        />
+      ))}
     </div>
   );
 };
