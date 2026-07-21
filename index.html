@@ -1,33 +1,85 @@
-
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>域见•你 - 域名交易平台</title>
-    <meta name="description" content="域见•你 域名交易平台：买卖优质精品域名，安全高效">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>域见•你 — 精品域名交易平台｜安全托管·AI估值·域名拍卖</title>
+    <meta name="description" content="域见•你（NIC.BN）是专业的精品域名交易平台，提供域名一口价出售、竞价拍卖、AI 智能估值、第三方托管、DNS 域名监控与安全过户服务，助力个人与企业发现并交易高价值域名。" />
+    <meta name="keywords" content="域名交易, 精品域名, 域名出售, 域名拍卖, 域名估值, AI 域名估值, 域名托管, 域名过户, domain marketplace, domain for sale, premium domains" />
     <meta name="author" content="域见•你" />
-    <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/JRL5cCRiAqUu0eBT4GPmgFJAhYx1/social-images/social-1770545343639-IMG_8979.png.svg">
-    
-    <!-- Dynamic canonical & og:url -->
+    <meta name="application-name" content="域见•你" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <meta http-equiv="content-language" content="zh-CN" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="域见•你" />
+    <meta property="og:title" content="域见•你 — 精品域名交易平台" />
+    <meta property="og:description" content="精品域名一口价 · 竞价拍卖 · AI 智能估值 · 安全托管过户。发现并交易高价值域名。" />
+    <meta property="og:image" content="https://nicbn.lovable.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="域见•你 · 精品域名交易平台" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:locale:alternate" content="en_US" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="域见•你 — 精品域名交易平台" />
+    <meta name="twitter:description" content="精品域名一口价 · 竞价拍卖 · AI 智能估值 · 安全托管过户。" />
+    <meta name="twitter:image" content="https://nicbn.lovable.app/og-image.png" />
+    <meta name="twitter:image:alt" content="域见•你 · 精品域名交易平台" />
+
+    <!-- Dynamic canonical & og:url (per route) -->
     <script>
       (function() {
-        var origin = window.location.origin;
-        var path = window.location.pathname;
-        var canonical = origin + path;
-        
-        // Set canonical link
-        var link = document.createElement('link');
-        link.rel = 'canonical';
-        link.href = canonical;
-        document.head.appendChild(link);
-        
-        // Set og:url
-        var ogUrl = document.createElement('meta');
-        ogUrl.setAttribute('property', 'og:url');
-        ogUrl.content = canonical;
-        document.head.appendChild(ogUrl);
+        try {
+          var origin = window.location.origin;
+          var path = window.location.pathname + window.location.search;
+          var canonical = origin + path;
+          var link = document.createElement('link');
+          link.rel = 'canonical';
+          link.href = canonical;
+          document.head.appendChild(link);
+          var ogUrl = document.createElement('meta');
+          ogUrl.setAttribute('property', 'og:url');
+          ogUrl.content = canonical;
+          document.head.appendChild(ogUrl);
+          var twUrl = document.createElement('meta');
+          twUrl.setAttribute('name', 'twitter:url');
+          twUrl.content = canonical;
+          document.head.appendChild(twUrl);
+        } catch(e) {}
       })();
+    </script>
+
+    <!-- JSON-LD: Organization + WebSite (helps GEO / AI search grounding) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "name": "域见•你",
+          "alternateName": ["NIC.BN", "Yujian Ni"],
+          "url": "https://nicbn.lovable.app",
+          "logo": "https://nicbn.lovable.app/og-image.png",
+          "description": "专业的精品域名交易平台，提供一口价出售、竞价拍卖、AI 估值、安全托管与过户服务。",
+          "sameAs": []
+        },
+        {
+          "@type": "WebSite",
+          "name": "域见•你",
+          "url": "https://nicbn.lovable.app",
+          "inLanguage": "zh-CN",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://nicbn.lovable.app/marketplace?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        }
+      ]
+    }
     </script>
 
     <!-- Performance: preconnect/dns-prefetch -->
@@ -35,26 +87,16 @@
     <link rel="dns-prefetch" href="https://trqxaizkwuizuhlfmdup.supabase.co">
     <link rel="preconnect" href="https://cdn.gpteng.co" crossorigin>
     <link rel="dns-prefetch" href="https://cdn.gpteng.co">
-    
-  
-  
-  
-  <link rel="icon" type="image/png" href="https://storage.googleapis.com/gpt-engineer-file-uploads/JRL5cCRiAqUu0eBT4GPmgFJAhYx1/uploads/1770211429575-jsongj_com_透明化图片.png">
-  <link rel="apple-touch-icon" href="/icons/pwa-192x192.png">
-  <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#1a1a2e">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="域见•你">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="域见•你 - 域名交易平台">
-  <meta name="twitter:title" content="域见•你 - 域名交易平台">
-  <meta property="og:description" content="域见•你 域名交易平台：买卖优质精品域名，安全高效">
-  <meta name="twitter:description" content="域见•你 域名交易平台：买卖优质精品域名，安全高效">
-  <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/JRL5cCRiAqUu0eBT4GPmgFJAhYx1/social-images/social-1770545343639-IMG_8979.png.svg">
-</head>
+
+    <link rel="icon" type="image/png" href="https://storage.googleapis.com/gpt-engineer-file-uploads/JRL5cCRiAqUu0eBT4GPmgFJAhYx1/uploads/1770211429575-jsongj_com_透明化图片.png">
+    <link rel="apple-touch-icon" href="/icons/pwa-192x192.png">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="域见•你">
+  </head>
 
   <body>
     <div id="root"></div>

@@ -520,6 +520,9 @@ export const DomainDetailPage = () => {
               onClose={() => { setIsOfferModalOpen(false); setIsBuyNow(false); }}
               isAuthenticated={!!user}
               initialOffer={isBuyNow ? domain.price : undefined}
+              initialCurrency={(domain as any).currency || 'CNY'}
+              listingPrice={domain.price}
+              listingCurrency={(domain as any).currency || 'CNY'}
               isBuyNow={isBuyNow}
             />
           </DialogContent>
