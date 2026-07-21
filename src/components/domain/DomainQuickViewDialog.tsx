@@ -6,9 +6,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/currency';
 import { getDomainDetailPath } from '@/lib/domainRouting';
 import { DomainOfferForm } from './DomainOfferForm';
-import { Loader2, History, ArrowRight, Tag, Copy, Check } from 'lucide-react';
+import { Loader2, History, ArrowRight, Tag, Copy, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+
 
 interface OfferRow {
   id: string;
