@@ -385,6 +385,51 @@ export type Database = {
         }
         Relationships: []
       }
+      domain_logo_generation_logs: {
+        Row: {
+          cache_hit: boolean
+          created_at: string
+          domain_id: string | null
+          domain_name: string
+          duration_ms: number | null
+          error_message: string | null
+          fallback_used: boolean
+          id: string
+          logo_url: string | null
+          provider: string | null
+          status: string
+          triggered_by: string | null
+        }
+        Insert: {
+          cache_hit?: boolean
+          created_at?: string
+          domain_id?: string | null
+          domain_name: string
+          duration_ms?: number | null
+          error_message?: string | null
+          fallback_used?: boolean
+          id?: string
+          logo_url?: string | null
+          provider?: string | null
+          status: string
+          triggered_by?: string | null
+        }
+        Update: {
+          cache_hit?: boolean
+          created_at?: string
+          domain_id?: string | null
+          domain_name?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          fallback_used?: boolean
+          id?: string
+          logo_url?: string | null
+          provider?: string | null
+          status?: string
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
       domain_monitoring: {
         Row: {
           check_interval: number | null

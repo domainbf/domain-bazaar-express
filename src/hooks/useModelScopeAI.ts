@@ -9,13 +9,18 @@ export async function generateAndSaveDomainLogo(
   domainName: string,
   onProgress?: (msg: string) => void,
   _type?: string,
-  category?: string
+  category?: string,
+  opts?: { force?: boolean; triggeredBy?: string }
 ): Promise<string | null> {
   try {
     onProgress?.(`正在生成 ${domainName} 的域名 Logo…`);
 
     const { data, error } = await supabase.functions.invoke('generate-domain-logo', {
-      body: { domainId, domainName, category },
+      body: {
+        domainId, domainName, category,
+        force: !!opts?.force,
+        triggeredBy: opts?.triggeredBy || 'auto',
+      },
     });
 
     if (error) throw new Error(error.message || 'Edge function failed');

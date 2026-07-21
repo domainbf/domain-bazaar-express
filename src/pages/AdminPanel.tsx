@@ -29,6 +29,7 @@ import { AdminFeedback } from '@/components/admin/AdminFeedback';
 import { AdminUnifiedSearch } from '@/components/admin/AdminUnifiedSearch';
 import { AdminAuditLogs } from '@/components/admin/AdminAuditLogs';
 import { MergeStrategyManager } from '@/components/admin/MergeStrategyManager';
+import { AdminLogoManagement } from '@/components/admin/AdminLogoManagement';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -42,7 +43,7 @@ import {
   Users, Star, Home, BookOpen, Search, Sliders, CreditCard,
   Settings, Activity, Menu, ChevronRight, LogOut, RefreshCw,
   MessageSquare, Package, Scale, Bell, Mail, Headphones, Inbox,
-  ScrollText, GitMerge, SearchCode
+  ScrollText, GitMerge, SearchCode, ImageIcon
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -116,6 +117,7 @@ export const AdminPanel = () => {
         { id: 'verifications', label: '待审验证', icon: CheckSquare, badge: pendingVerifications },
         { id: 'auctions', label: '拍卖管理', icon: Gavel },
         { id: 'bulk', label: '批量操作', icon: Layers },
+        { id: 'logos', label: 'Logo 管理', icon: ImageIcon },
       ]
     },
     {
@@ -247,6 +249,7 @@ export const AdminPanel = () => {
       case 'verifications': return <PendingVerifications />;
       case 'auctions': return <AdminAuctionManagement />;
       case 'bulk': return <BulkDomainOperations />;
+      case 'logos': return <AdminLogoManagement />;
       case 'transactions': return <AdminTransactionManagement />;
       case 'offers': return <OffersManagement />;
       case 'escrow': return <EscrowService isAdmin={true} />;
