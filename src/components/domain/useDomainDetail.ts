@@ -144,7 +144,8 @@ export function useDomainDetail() {
     enabled: !!identifier,
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
-    retry: false,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 4000),
   });
 
   return {
