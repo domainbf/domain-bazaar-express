@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
-import { DomainListings } from '@/components/marketplace/DomainListings';
+import { DomainListings, type MarketplaceLayout } from '@/components/marketplace/DomainListings';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { SoldDomains } from '@/components/sections/SoldDomains';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -8,9 +8,19 @@ import { useDomainListings, DOMAIN_LISTINGS_KEY } from '@/hooks/useDomainListing
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, X, TrendingUp, RefreshCw, Star, Flame } from 'lucide-react';
+import { Search, X, TrendingUp, RefreshCw, Star, Flame, LayoutGrid, LayoutDashboard, Newspaper, Rows3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
+import { cn } from '@/lib/utils';
+
+const LAYOUT_STORAGE_KEY = 'nicbn_marketplace_layout';
+const LAYOUT_OPTIONS: { id: MarketplaceLayout; label: string; icon: typeof LayoutGrid }[] = [
+  { id: 'card',     label: '卡片网格', icon: LayoutGrid },
+  { id: 'bento',    label: 'Bento',   icon: LayoutDashboard },
+  { id: 'magazine', label: '杂志',    icon: Newspaper },
+  { id: 'masonry',  label: '瀑布流',  icon: Rows3 },
+];
+
 
 const getDomainExtension = (domain: string): string => {
   const match = domain.match(/(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?$/);
@@ -51,9 +61,19 @@ export const Marketplace = () => {
   const [priceChip, setPriceChip] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [layout, setLayout] = useState<MarketplaceLayout>(() => {
+    if (typeof window === 'undefined') return 'card';
+    const saved = window.localStorage.getItem(LAYOUT_STORAGE_KEY) as MarketplaceLayout | null;
+    return saved && LAYOUT_OPTIONS.some(o => o.id === saved) ? saved : 'card';
+  });
   const isMobile = useIsMobile();
   const { unreadCount } = useNotifications();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') window.localStorage.setItem(LAYOUT_STORAGE_KEY, layout);
+  }, [layout]);
+
 
   const { data: allDomains = [], isLoading, isError, refetch } = useDomainListings();
 
@@ -107,7 +127,11 @@ export const Marketplace = () => {
     queryClient.invalidateQueries({ queryKey: DOMAIN_LISTINGS_KEY });
   };
 
-  const px = isMobile ? 'px-4' : 'max-w-3xl mx-auto px-6';
+  // Grid layouts benefit from a wider container on desktop; the classic list-like default stays narrower.
+  const px = isMobile ? 'px-4' : (layout === 'card' || layout === 'bento' || layout === 'masonry' || layout === 'magazine')
+    ? 'max-w-7xl mx-auto px-6'
+    : 'max-w-3xl mx-auto px-6';
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -251,9 +275,9 @@ export const Marketplace = () => {
             </section>
           )}
 
-          {/* Count + verified toggle */}
+          {/* Count + verified toggle + layout switcher */}
           {!isLoading && (
-            <div className="flex items-center justify-between py-3">
+            <div className="flex items-center justify-between py-3 gap-3 flex-wrap">
               <p className="text-sm text-muted-foreground" data-testid="text-domain-count">
                 共 <span className="font-semibold text-foreground">{filteredDomains.length}</span> 个域名
                 {filteredDomains.length !== allDomains.length && (
@@ -261,6 +285,30 @@ export const Marketplace = () => {
                 )}
               </p>
               <div className="flex items-center gap-2">
+                {/* Layout switcher — persists in localStorage */}
+                <div className="inline-flex items-center rounded-full border border-border p-0.5 bg-muted/40" role="tablist" aria-label="布局切换">
+                  {LAYOUT_OPTIONS.map(opt => {
+                    const Icon = opt.icon;
+                    const active = layout === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        onClick={() => setLayout(opt.id)}
+                        data-testid={`layout-${opt.id}`}
+                        aria-pressed={active}
+                        title={opt.label}
+                        className={cn(
+                          'h-7 w-7 flex items-center justify-center rounded-full transition-all',
+                          active
+                            ? 'bg-foreground text-background shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground',
+                        )}
+                      >
+                        <Icon className="h-3.5 w-3.5" />
+                      </button>
+                    );
+                  })}
+                </div>
                 <button
                   data-testid="toggle-verified-only"
                   onClick={() => setVerifiedOnly(!verifiedOnly)}
@@ -284,6 +332,7 @@ export const Marketplace = () => {
               </div>
             </div>
           )}
+
 
           {/* Domain list */}
           {isError ? (
@@ -315,7 +364,7 @@ export const Marketplace = () => {
               <Button onClick={clearAll} variant="outline" size="sm">清空筛选</Button>
             </div>
           ) : (
-            <DomainListings isLoading={false} domains={filteredDomains} isMobile={isMobile} />
+            <DomainListings isLoading={false} domains={filteredDomains} isMobile={isMobile} layout={layout} />
           )}
         </div>
 
