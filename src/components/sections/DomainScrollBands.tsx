@@ -28,10 +28,7 @@ interface LogoCardProps {
   onRetry?: () => void;
 }
 
-function LogoCard({ item, onClick, index, state, onRetry }: LogoCardProps) {
-  const showSkeleton = !item.logoUrl && (state === 'pending' || state === 'loading');
-  const showFailed = !item.logoUrl && state === 'failed';
-
+function LogoCard({ item, onClick, index }: LogoCardProps) {
   return (
     <button
       onClick={onClick}
@@ -42,23 +39,6 @@ function LogoCard({ item, onClick, index, state, onRetry }: LogoCardProps) {
         hover:border-foreground/40 hover:bg-muted/40 transition-all duration-200
         overflow-hidden cursor-pointer"
     >
-      {item.logoUrl && (
-        <>
-          <img
-            src={item.logoUrl}
-            alt={item.name}
-            className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-50 transition-opacity duration-200"
-            decoding="async"
-            style={{ filter: 'grayscale(100%) contrast(1.15)' }}
-          />
-          <div className="absolute inset-0 bg-background/40" />
-        </>
-      )}
-
-      {showSkeleton && (
-        <div className="absolute inset-0 bg-gradient-to-r from-muted/40 via-muted/70 to-muted/40 animate-pulse" />
-      )}
-
       <div className="relative z-10 flex items-center justify-center w-full px-1.5">
         <DomainWordmark name={item.name} className="max-w-[116px] sm:max-w-[128px]" />
       </div>
@@ -66,22 +46,6 @@ function LogoCard({ item, onClick, index, state, onRetry }: LogoCardProps) {
       <span className="absolute bottom-1 right-1.5 text-[9px] text-muted-foreground/70 font-mono tabular-nums z-10">
         {item.bandType === 'sold' ? '已售' : formatPriceCompact(item.price, item.currency)}
       </span>
-
-      {state === 'loading' && !item.logoUrl && (
-        <Loader2 className="absolute top-1 left-1 h-3 w-3 animate-spin text-muted-foreground z-10" />
-      )}
-
-      {showFailed && (
-        <span
-          role="button"
-          onClick={(e) => { e.stopPropagation(); onRetry?.(); }}
-          className="absolute top-1 left-1 z-20 inline-flex items-center gap-0.5 text-[9px] px-1 py-[1px]
-            rounded bg-destructive/10 text-destructive border border-destructive/30 hover:bg-destructive/20"
-          title="重试生成 Logo"
-        >
-          <RefreshCw className="h-2.5 w-2.5" />重试
-        </span>
-      )}
     </button>
   );
 }
