@@ -127,7 +127,11 @@ export const Marketplace = () => {
     queryClient.invalidateQueries({ queryKey: DOMAIN_LISTINGS_KEY });
   };
 
-  const px = isMobile ? 'px-4' : 'max-w-3xl mx-auto px-6';
+  // Grid layouts benefit from a wider container on desktop; the classic list-like default stays narrower.
+  const px = isMobile ? 'px-4' : (layout === 'card' || layout === 'bento' || layout === 'masonry' || layout === 'magazine')
+    ? 'max-w-7xl mx-auto px-6'
+    : 'max-w-3xl mx-auto px-6';
+
 
   return (
     <div className="min-h-screen bg-background">
