@@ -217,6 +217,10 @@ const AnimatedRoutes = memo(() => {
       <TopProgressBar />
       <div key={location.pathname} className="animate-in">
       <SiteGuard>
+      <ErrorBoundary
+        FallbackComponent={ErrorFallback}
+        resetKeys={[location.pathname]}
+      >
       <Routes location={location}>
         <Route path="/maintenance" element={<MaintenancePage />} />
         <Route path="/index" element={<Navigate to="/" replace />} />
@@ -259,6 +263,7 @@ const AnimatedRoutes = memo(() => {
         <Route path="/disclaimer" element={<DisclaimerPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </ErrorBoundary>
       </SiteGuard>
       </div>
     </>
