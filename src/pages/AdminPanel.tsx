@@ -117,6 +117,7 @@ export const AdminPanel = () => {
         { id: 'verifications', label: '待审验证', icon: CheckSquare, badge: pendingVerifications },
         { id: 'auctions', label: '拍卖管理', icon: Gavel },
         { id: 'bulk', label: '批量操作', icon: Layers },
+        { id: 'logos', label: 'Logo 管理', icon: ImageIcon },
       ]
     },
     {
