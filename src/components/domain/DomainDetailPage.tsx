@@ -85,7 +85,7 @@ const cardHoverVariants = {
 };
 
 export const DomainDetailPage = () => {
-  const { domain, similarDomains, priceHistory, isLoading, error } = useDomainDetail();
+  const { domain, similarDomains, priceHistory, isLoading, error, reload } = useDomainDetail() as any;
   const { analytics, trends, isFavorited, recordView, toggleFavorite } = useDomainAnalytics(domain?.id || '');
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const [isBuyNow, setIsBuyNow] = useState(false);
