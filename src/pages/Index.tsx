@@ -28,7 +28,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const DomainEstimator = lazy(() => import('@/components/tools/DomainEstimator').then(m => ({ default: m.DomainEstimator })));
 const DomainMonitor = lazy(() => import('@/components/tools/DomainMonitor').then(m => ({ default: m.DomainMonitor })));
-const SoldDomains = lazy(() => import('@/components/sections/SoldDomains').then(m => ({ default: m.SoldDomains })));
+const DomainShowcaseTabs = lazy(() => import('@/components/sections/DomainShowcaseTabs').then(m => ({ default: m.DomainShowcaseTabs })));
 const SupportSection = lazy(() => import('@/components/sections/SupportSection'));
 
 const FALLBACK_DOMAINS: HomeDomainItem[] = fallbackDomains.slice(0, 9).map((d, i) => ({
