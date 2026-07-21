@@ -15,12 +15,19 @@ interface DomainShareButtonsProps {
 }
 
 export const DomainShareButtons: React.FC<DomainShareButtonsProps> = ({ domainName }) => {
-  const currentUrl = window.location.href;
   const shareText = `查看这个域名：${domainName}`;
 
-  const handleShare = (platform: string) => {
+  const handleShare = async (platform: string) => {
+    // Always compute the exact current-route absolute URL and force og:url /
+    // twitter:url / canonical to match before we hand it to a scraper.
+    const { prepareShareUrl, verifyHeadUrls } = await import('@/lib/canonicalUrl');
+    const currentUrl = prepareShareUrl();
+    const check = verifyHeadUrls(currentUrl);
+    if (!check.ok) {
+      console.warn('[share] head tags mismatch after sync:', check.mismatches);
+    }
+
     let shareUrl = '';
-    
     switch (platform) {
       case 'facebook':
         shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`;
@@ -35,13 +42,17 @@ export const DomainShareButtons: React.FC<DomainShareButtonsProps> = ({ domainNa
         shareUrl = `mailto:?subject=${encodeURIComponent(`域名推荐：${domainName}`)}&body=${encodeURIComponent(`${shareText}\n${currentUrl}`)}`;
         break;
       case 'copy':
-        navigator.clipboard.writeText(currentUrl);
-        toast.success('链接已复制到剪贴板');
+        try {
+          await navigator.clipboard.writeText(currentUrl);
+          toast.success('链接已复制到剪贴板');
+        } catch {
+          toast.error('复制失败，请手动复制');
+        }
         return;
     }
-    
+
     if (shareUrl) {
-      window.open(shareUrl, '_blank', 'width=600,height=400');
+      window.open(shareUrl, '_blank', 'width=600,height=400,noopener,noreferrer');
     }
   };
 
