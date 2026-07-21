@@ -14,6 +14,9 @@ const EVENT_LABELS: Record<RouteTelemetryEvent['type'], string> = {
   detail_fetch_ok: '详情加载成功',
   detail_fetch_error: '详情加载失败',
   chunk_load_error: '资源块加载失败',
+  chunk_load_retry: '资源块重试',
+  chunk_load_giveup: '资源块加载彻底失败',
+  unhandled_rejection: '未处理 Promise 错误',
   route_error: '页面错误',
 };
 
