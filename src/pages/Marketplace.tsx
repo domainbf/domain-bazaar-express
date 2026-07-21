@@ -5,22 +5,18 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { SoldDomains } from '@/components/sections/SoldDomains';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useDomainListings, DOMAIN_LISTINGS_KEY } from '@/hooks/useDomainListings';
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Search, X, TrendingUp, RefreshCw, Star, Flame, LayoutGrid, LayoutDashboard, Newspaper, Rows3 } from 'lucide-react';
+import { useFavorites } from '@/hooks/useFavorites';
+import { useAuth } from '@/contexts/AuthContext';
+import { DomainQuickViewDialog } from '@/components/domain/DomainQuickViewDialog';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  Search, X, TrendingUp, RefreshCw, Heart, ArrowDownAZ, Ruler, Hash,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { cn } from '@/lib/utils';
-
-const LAYOUT_STORAGE_KEY = 'nicbn_marketplace_layout';
-const LAYOUT_OPTIONS: { id: MarketplaceLayout; label: string; icon: typeof LayoutGrid }[] = [
-  { id: 'card',     label: '卡片网格', icon: LayoutGrid },
-  { id: 'bento',    label: 'Bento',   icon: LayoutDashboard },
-  { id: 'magazine', label: '杂志',    icon: Newspaper },
-  { id: 'masonry',  label: '瀑布流',  icon: Rows3 },
-];
-
+import { toast } from 'sonner';
+import type { Domain } from '@/types/domain';
 
 const getDomainExtension = (domain: string): string => {
   const match = domain.match(/(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?$/);
@@ -49,51 +45,63 @@ const PRICE_CHIPS = [
 ];
 
 const SORT_OPTIONS = [
-  { id: 'newest', label: '最新上架' },
-  { id: 'price_asc', label: '价格↑' },
-  { id: 'price_desc', label: '价格↓' },
-  { id: 'views', label: '最多浏览' },
-];
+  { id: 'newest',        label: '最新上架',    icon: null },
+  { id: 'price_asc',     label: '价格 ↑',       icon: null },
+  { id: 'price_desc',    label: '价格 ↓',       icon: null },
+  { id: 'length_asc',    label: '短域名优先',   icon: Ruler },
+  { id: 'alphanum',      label: '字母数字优先', icon: Hash },
+  { id: 'name_asc',      label: 'A-Z',         icon: ArrowDownAZ },
+  { id: 'views',         label: '最多浏览',     icon: null },
+] as const;
+
+// Basename before the TLD, e.g. "test.com" → "test"
+const domainBase = (name: string) => {
+  const i = name.lastIndexOf('.');
+  return i > 0 ? name.slice(0, i) : name;
+};
+
+// Alphanumeric-priority key: pure numeric first, then short letters+digits, then longer.
+const alphanumScore = (name: string) => {
+  const base = domainBase(name).toLowerCase();
+  const isAlnum = /^[a-z0-9]+$/.test(base);
+  const hasDigit = /\d/.test(base);
+  const rank = !isAlnum ? 3 : (/^\d+$/.test(base) ? 0 : (hasDigit ? 1 : 2));
+  return rank * 1000 + base.length;
+};
 
 export const Marketplace = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [tldFilter, setTldFilter] = useState('all');
   const [priceChip, setPriceChip] = useState('all');
-  const [sortBy, setSortBy] = useState('newest');
+  const [sortBy, setSortBy] = useState<string>('newest');
   const [verifiedOnly, setVerifiedOnly] = useState(false);
-  const [layout, setLayout] = useState<MarketplaceLayout>(() => {
-    if (typeof window === 'undefined') return 'card';
-    const saved = window.localStorage.getItem(LAYOUT_STORAGE_KEY) as MarketplaceLayout | null;
-    return saved && LAYOUT_OPTIONS.some(o => o.id === saved) ? saved : 'card';
-  });
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  // Layout kept for backwards compat; hero row is enabled by default via 'magazine'.
+  const layout: MarketplaceLayout = 'magazine';
+
   const isMobile = useIsMobile();
+  const { user } = useAuth();
   const { unreadCount } = useNotifications();
+  const { favoriteSet } = useFavorites();
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') window.localStorage.setItem(LAYOUT_STORAGE_KEY, layout);
-  }, [layout]);
-
 
   const { data: allDomains = [], isLoading, isError, refetch } = useDomainListings();
 
   useEffect(() => {
     const s = new URLSearchParams(window.location.search).get('search');
     if (s) setSearchQuery(s);
+    const fav = new URLSearchParams(window.location.search).get('fav');
+    if (fav === '1') setFavoritesOnly(true);
   }, []);
-
-  const featuredDomains = useMemo(
-    () => allDomains.filter(d => d.highlight).slice(0, 6),
-    [allDomains]
-  );
 
   const filteredDomains = useMemo(() => {
     let result = [...allDomains];
-    if (tldFilter !== 'all')
+    if (tldFilter !== 'all') {
       result = result.filter(d =>
         getDomainExtension(d.name) === tldFilter ||
         getDomainExtension(d.name).endsWith(tldFilter)
       );
+    }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       result = result.filter(d =>
@@ -102,36 +110,62 @@ export const Marketplace = () => {
       );
     }
     const pc = PRICE_CHIPS.find(p => p.id === priceChip);
-    if (pc && pc.id !== 'all')
+    if (pc && pc.id !== 'all') {
       result = result.filter(d => d.price >= pc.min && d.price <= pc.max);
+    }
     if (verifiedOnly) result = result.filter(d => d.is_verified);
+    if (favoritesOnly) result = result.filter(d => favoriteSet.has(d.id));
+
     result.sort((a, b) => {
       switch (sortBy) {
-        case 'price_asc':  return a.price - b.price;
-        case 'price_desc': return b.price - a.price;
-        case 'views':      return (b.views || 0) - (a.views || 0);
-        default:           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case 'price_asc':   return a.price - b.price;
+        case 'price_desc':  return b.price - a.price;
+        case 'length_asc':  return domainBase(a.name).length - domainBase(b.name).length
+                                 || a.name.localeCompare(b.name);
+        case 'alphanum':    return alphanumScore(a.name) - alphanumScore(b.name)
+                                 || a.name.localeCompare(b.name);
+        case 'name_asc':    return a.name.localeCompare(b.name);
+        case 'views':       return (b.views || 0) - (a.views || 0);
+        default:            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       }
     });
     return result;
-  }, [allDomains, tldFilter, searchQuery, priceChip, verifiedOnly, sortBy]);
+  }, [allDomains, tldFilter, searchQuery, priceChip, verifiedOnly, favoritesOnly, favoriteSet, sortBy]);
 
-  const hasActiveFilters = tldFilter !== 'all' || priceChip !== 'all' || verifiedOnly || sortBy !== 'newest' || searchQuery.trim();
+  const hasActiveFilters =
+    tldFilter !== 'all' || priceChip !== 'all' || verifiedOnly || favoritesOnly ||
+    sortBy !== 'newest' || !!searchQuery.trim();
 
   const clearAll = () => {
     setTldFilter('all'); setPriceChip('all'); setSortBy('newest');
-    setVerifiedOnly(false); setSearchQuery('');
+    setVerifiedOnly(false); setFavoritesOnly(false); setSearchQuery('');
   };
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: DOMAIN_LISTINGS_KEY });
   };
 
-  // Grid layouts benefit from a wider container on desktop; the classic list-like default stays narrower.
-  const px = isMobile ? 'px-4' : (layout === 'card' || layout === 'bento' || layout === 'masonry' || layout === 'magazine')
-    ? 'max-w-7xl mx-auto px-6'
-    : 'max-w-3xl mx-auto px-6';
+  const toggleFavoritesOnly = () => {
+    if (!user) { toast.error('请先登录后再筛选收藏'); return; }
+    setFavoritesOnly(v => !v);
+  };
 
+  // ── Drawer / preview state ────────────────────────────────────
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const preview = previewIndex != null ? filteredDomains[previewIndex] : null;
+  const openPreview = (_d: Domain, i: number) => setPreviewIndex(i);
+  const closePreview = () => setPreviewIndex(null);
+  const goPrev = () => setPreviewIndex(i => (i != null && i > 0 ? i - 1 : i));
+  const goNext = () => setPreviewIndex(i => (i != null && i < filteredDomains.length - 1 ? i + 1 : i));
+
+  // Reset preview if the list shrinks past the current index.
+  useEffect(() => {
+    if (previewIndex != null && previewIndex >= filteredDomains.length) {
+      setPreviewIndex(filteredDomains.length > 0 ? filteredDomains.length - 1 : null);
+    }
+  }, [filteredDomains.length, previewIndex]);
+
+  const px = isMobile ? 'px-4' : 'max-w-7xl mx-auto px-6';
 
   return (
     <div className="min-h-screen bg-background">
@@ -142,24 +176,39 @@ export const Marketplace = () => {
         {/* ── Search bar ─────────────────────────────────────── */}
         <div className="border-b border-border bg-background">
           <div className={`${px} py-3`}>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="搜索域名..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="h-10 pl-9 pr-9 bg-muted/40 border-border rounded-lg text-sm"
-                data-testid="input-search-marketplace"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              )}
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="搜索域名..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="h-10 pl-9 pr-9 bg-muted/40 border-border rounded-lg text-sm"
+                  data-testid="input-search-marketplace"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+              <button
+                onClick={toggleFavoritesOnly}
+                data-testid="toggle-favorites-only"
+                className={`h-10 px-3 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors shrink-0 ${
+                  favoritesOnly
+                    ? 'bg-red-500/10 text-red-500 border border-red-500/40'
+                    : 'bg-muted/40 text-muted-foreground border border-border hover:text-foreground'
+                }`}
+                title={favoritesOnly ? '显示全部' : '仅显示我的收藏'}
+              >
+                <Heart className={`h-3.5 w-3.5 ${favoritesOnly ? 'fill-current' : ''}`} />
+                {!isMobile && '我的收藏'}
+              </button>
             </div>
           </div>
         </div>
@@ -207,25 +256,30 @@ export const Marketplace = () => {
               ))}
             </div>
             {/* Row 2: Sort options */}
-            <div className="flex items-center gap-1 py-2">
-              {SORT_OPTIONS.map(opt => (
-                <button
-                  key={opt.id}
-                  data-testid={`sort-${opt.id}`}
-                  onClick={() => setSortBy(opt.id)}
-                  className={`px-2.5 py-1 rounded text-xs whitespace-nowrap transition-colors ${
-                    sortBy === opt.id
-                      ? 'bg-foreground text-background font-semibold'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
+            <div className="flex items-center gap-1 py-2 overflow-x-auto scrollbar-hide">
+              {SORT_OPTIONS.map(opt => {
+                const Icon = opt.icon;
+                const active = sortBy === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    data-testid={`sort-${opt.id}`}
+                    onClick={() => setSortBy(opt.id)}
+                    className={`px-2.5 py-1 rounded text-xs whitespace-nowrap transition-colors inline-flex items-center gap-1 shrink-0 ${
+                      active
+                        ? 'bg-foreground text-background font-semibold'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {Icon && <Icon className="h-3 w-3" />}
+                    {opt.label}
+                  </button>
+                );
+              })}
               {hasActiveFilters && (
                 <button
                   onClick={clearAll}
-                  className="ml-auto p-1 text-muted-foreground hover:text-foreground rounded"
+                  className="ml-auto p-1 text-muted-foreground hover:text-foreground rounded shrink-0"
                   data-testid="button-clear-filters"
                   title="清空筛选"
                 >
@@ -239,43 +293,7 @@ export const Marketplace = () => {
         {/* ── Main Content ────────────────────────────────────── */}
         <div className={px}>
 
-          {/* Featured section — only when no active filters */}
-          {!isLoading && featuredDomains.length > 0 && !hasActiveFilters && (
-            <section className="mt-5 mb-6">
-              <div className="flex items-center gap-2 mb-3">
-                <Flame className="h-4 w-4 text-orange-500" />
-                <span className="text-sm font-bold">精选推荐</span>
-                <Badge variant="secondary" className="text-[10px] h-4 px-1.5">HOT</Badge>
-              </div>
-              <div className={`grid gap-2 ${isMobile ? 'grid-cols-2' : 'grid-cols-3'}`}>
-                {featuredDomains.map(domain => (
-                  <Link
-                    key={domain.id}
-                    to={`/domain/${encodeURIComponent(domain.name)}`}
-                    data-testid={`featured-domain-${domain.id}`}
-                    className="group block rounded-xl border border-border bg-card px-4 py-3 hover:bg-muted/40 transition-colors"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[10px] font-medium text-orange-500 flex items-center gap-0.5">
-                        <Star className="h-2.5 w-2.5 fill-current" />精选
-                      </span>
-                      {domain.is_verified && (
-                        <span className="text-[10px] text-muted-foreground">已验证</span>
-                      )}
-                    </div>
-                    <p className="font-black text-sm uppercase tracking-tight truncate text-foreground group-hover:text-primary transition-colors">
-                      {domain.name}
-                    </p>
-                    <p className="text-sm font-bold text-foreground mt-1">
-                      {domain.price > 0 ? `$${domain.price.toLocaleString()}` : '$0'}
-                    </p>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Count + verified toggle + layout switcher */}
+          {/* Count + verified toggle */}
           {!isLoading && (
             <div className="flex items-center justify-between py-3 gap-3 flex-wrap">
               <p className="text-sm text-muted-foreground" data-testid="text-domain-count">
@@ -283,32 +301,13 @@ export const Marketplace = () => {
                 {filteredDomains.length !== allDomains.length && (
                   <span className="ml-1 text-xs text-muted-foreground/60">/ {allDomains.length}</span>
                 )}
+                {favoritesOnly && (
+                  <span className="ml-2 inline-flex items-center gap-1 text-[10px] text-red-500 font-medium">
+                    <Heart className="h-2.5 w-2.5 fill-current" />仅收藏
+                  </span>
+                )}
               </p>
               <div className="flex items-center gap-2">
-                {/* Layout switcher — persists in localStorage */}
-                <div className="inline-flex items-center rounded-full border border-border p-0.5 bg-muted/40" role="tablist" aria-label="布局切换">
-                  {LAYOUT_OPTIONS.map(opt => {
-                    const Icon = opt.icon;
-                    const active = layout === opt.id;
-                    return (
-                      <button
-                        key={opt.id}
-                        onClick={() => setLayout(opt.id)}
-                        data-testid={`layout-${opt.id}`}
-                        aria-pressed={active}
-                        title={opt.label}
-                        className={cn(
-                          'h-7 w-7 flex items-center justify-center rounded-full transition-all',
-                          active
-                            ? 'bg-foreground text-background shadow-sm'
-                            : 'text-muted-foreground hover:text-foreground',
-                        )}
-                      >
-                        <Icon className="h-3.5 w-3.5" />
-                      </button>
-                    );
-                  })}
-                </div>
                 <button
                   data-testid="toggle-verified-only"
                   onClick={() => setVerifiedOnly(!verifiedOnly)}
@@ -333,7 +332,6 @@ export const Marketplace = () => {
             </div>
           )}
 
-
           {/* Domain list */}
           {isError ? (
             <div className="text-center py-16">
@@ -341,14 +339,7 @@ export const Marketplace = () => {
               <Button onClick={() => refetch()} variant="outline" size="sm">重新加载</Button>
             </div>
           ) : isLoading ? (
-            <div className="rounded-xl border border-border overflow-hidden bg-card">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="px-4 py-4 border-b border-border animate-pulse">
-                  <div className="h-7 w-48 bg-muted rounded mb-2" />
-                  <div className="h-5 w-24 bg-muted rounded" />
-                </div>
-              ))}
-            </div>
+            <DomainListings isLoading domains={[]} isMobile={isMobile} layout={layout} />
           ) : filteredDomains.length === 0 && allDomains.length === 0 ? (
             <div className="text-center py-20">
               <div className="text-5xl mb-4">🔍</div>
@@ -364,7 +355,13 @@ export const Marketplace = () => {
               <Button onClick={clearAll} variant="outline" size="sm">清空筛选</Button>
             </div>
           ) : (
-            <DomainListings isLoading={false} domains={filteredDomains} isMobile={isMobile} layout={layout} />
+            <DomainListings
+              isLoading={false}
+              domains={filteredDomains}
+              isMobile={isMobile}
+              layout={layout}
+              onSelect={openPreview}
+            />
           )}
         </div>
 
@@ -372,6 +369,25 @@ export const Marketplace = () => {
           <SoldDomains />
         </div>
       </div>
+
+      {/* ── Detail drawer (uses existing QuickView dialog) ── */}
+      {preview && (
+        <DomainQuickViewDialog
+          open={previewIndex != null}
+          onClose={closePreview}
+          domain={preview.name}
+          domainId={preview.id}
+          sellerId={preview.owner_id}
+          price={preview.price}
+          currency={preview.currency}
+          onPrev={goPrev}
+          onNext={goNext}
+          hasPrev={(previewIndex ?? 0) > 0}
+          hasNext={(previewIndex ?? 0) < filteredDomains.length - 1}
+        />
+      )}
     </div>
   );
 };
+
+export default Marketplace;
