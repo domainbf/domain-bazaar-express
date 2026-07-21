@@ -275,9 +275,9 @@ export const Marketplace = () => {
             </section>
           )}
 
-          {/* Count + verified toggle */}
+          {/* Count + verified toggle + layout switcher */}
           {!isLoading && (
-            <div className="flex items-center justify-between py-3">
+            <div className="flex items-center justify-between py-3 gap-3 flex-wrap">
               <p className="text-sm text-muted-foreground" data-testid="text-domain-count">
                 共 <span className="font-semibold text-foreground">{filteredDomains.length}</span> 个域名
                 {filteredDomains.length !== allDomains.length && (
@@ -285,6 +285,30 @@ export const Marketplace = () => {
                 )}
               </p>
               <div className="flex items-center gap-2">
+                {/* Layout switcher — persists in localStorage */}
+                <div className="inline-flex items-center rounded-full border border-border p-0.5 bg-muted/40" role="tablist" aria-label="布局切换">
+                  {LAYOUT_OPTIONS.map(opt => {
+                    const Icon = opt.icon;
+                    const active = layout === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        onClick={() => setLayout(opt.id)}
+                        data-testid={`layout-${opt.id}`}
+                        aria-pressed={active}
+                        title={opt.label}
+                        className={cn(
+                          'h-7 w-7 flex items-center justify-center rounded-full transition-all',
+                          active
+                            ? 'bg-foreground text-background shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground',
+                        )}
+                      >
+                        <Icon className="h-3.5 w-3.5" />
+                      </button>
+                    );
+                  })}
+                </div>
                 <button
                   data-testid="toggle-verified-only"
                   onClick={() => setVerifiedOnly(!verifiedOnly)}
@@ -308,6 +332,7 @@ export const Marketplace = () => {
               </div>
             </div>
           )}
+
 
           {/* Domain list */}
           {isError ? (
