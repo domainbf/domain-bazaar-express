@@ -73,6 +73,11 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
   useEffect(() => {
     if (isChunkError || reported.current) return;
     reported.current = true;
+    reportRoute({
+      type: 'route_error',
+      route: window.location.pathname,
+      reason: error?.message || 'unknown',
+    });
     fetch('/api/data/crash-report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
