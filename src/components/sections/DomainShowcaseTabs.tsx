@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useHomeData } from '@/hooks/useHomeData';
-import { formatCurrency } from '@/lib/currency';
+import { formatPrice } from '@/lib/currency';
 import { toast } from 'sonner';
 
 type Item = {
