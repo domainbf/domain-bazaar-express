@@ -1,9 +1,21 @@
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Gavel, Flame, CheckCircle } from 'lucide-react';
 import { useHomeData } from '@/hooks/useHomeData';
 import { getDomainDetailPath } from '@/lib/domainRouting';
 import { DomainWordmark } from './DomainWordmark';
 import { formatPriceCompact } from '@/lib/currency';
+import { supabase } from '@/integrations/supabase/client';
+import { isUuidLike } from '@/lib/domainRouting';
+
+// 预加载详情页 chunk，避免点击后长时间白屏
+let detailChunkPromise: Promise<unknown> | null = null;
+const preloadDetailChunk = () => {
+  if (!detailChunkPromise) {
+    detailChunkPromise = import('@/components/domain/DomainDetailPage');
+  }
+  return detailChunkPromise;
+};
 
 export type BandType = 'auction' | 'hot' | 'sold';
 
