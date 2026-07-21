@@ -30,6 +30,7 @@ import { AdminUnifiedSearch } from '@/components/admin/AdminUnifiedSearch';
 import { AdminAuditLogs } from '@/components/admin/AdminAuditLogs';
 import { MergeStrategyManager } from '@/components/admin/MergeStrategyManager';
 import { AdminLogoManagement } from '@/components/admin/AdminLogoManagement';
+import { AdminTelemetry } from '@/components/admin/AdminTelemetry';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -108,6 +109,7 @@ export const AdminPanel = () => {
         { id: 'unified-search', label: '统一搜索/导出', icon: SearchCode },
         { id: 'activity', label: '活动日志', icon: Activity },
         { id: 'audit-logs', label: '报价审计日志', icon: ScrollText },
+        { id: 'telemetry', label: '路由遥测', icon: Activity },
       ]
     },
     {
@@ -244,6 +246,7 @@ export const AdminPanel = () => {
       case 'unified-search': return <AdminUnifiedSearch />;
       case 'activity': return <AdminActivityLog />;
       case 'audit-logs': return <AdminAuditLogs />;
+      case 'telemetry': return <AdminTelemetry />;
       case 'merge-strategy': return <MergeStrategyManager />;
       case 'domains': return <AllDomainListings />;
       case 'verifications': return <PendingVerifications />;

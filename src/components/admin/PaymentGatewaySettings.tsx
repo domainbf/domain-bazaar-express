@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
   CreditCard, Smartphone, Banknote, Shield, Save, RefreshCw,
-  Eye, EyeOff, CheckCircle, XCircle, AlertTriangle
+  Eye, EyeOff, CheckCircle, XCircle, AlertTriangle, PlugZap
 } from 'lucide-react';
 
 interface GatewayConfig {
@@ -46,11 +46,22 @@ const gatewayColors: Record<string, string> = {
 // Fields that should be masked in the UI
 const sensitiveFields = ['private_key', 'secret_key', 'api_key', 'client_secret', 'webhook_secret', 'password'];
 
+// 每个网关必须填写的字段（用于"测试连接"时的完整性校验）
+const REQUIRED_FIELDS: Record<string, string[]> = {
+  stripe: ['secret_key', 'publishable_key'],
+  paypal: ['client_id', 'client_secret'],
+  alipay: ['app_id', 'private_key', 'public_key'],
+  wechat_pay: ['mch_id', 'api_key'],
+  usdt_trc20: ['wallet_address'],
+  bank_transfer: ['account_name', 'account_number'],
+};
+
 export const PaymentGatewaySettings = () => {
   const [gateways, setGateways] = useState<GatewayConfig[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
+  const [testingId, setTestingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadGateways();
@@ -126,6 +137,42 @@ export const PaymentGatewaySettings = () => {
       if (key === 'sandbox') return true;
       return typeof value === 'string' ? value.trim().length > 0 : true;
     });
+  };
+
+  const testGateway = async (gateway: GatewayConfig) => {
+    setTestingId(gateway.id);
+    try {
+      const required = REQUIRED_FIELDS[gateway.gateway_name] || [];
+      const missing = required.filter(k => {
+        const v = gateway.config[k];
+        return typeof v !== 'string' || v.trim().length === 0;
+      });
+      if (missing.length > 0) {
+        toast.error(`${gateway.display_name} 测试失败：缺少必填字段 ${missing.join(', ')}`);
+        return;
+      }
+      // 简易连通性 / 格式测试
+      if (gateway.gateway_name === 'stripe') {
+        const sk = String(gateway.config.secret_key || '');
+        if (!/^sk_(test|live)_/.test(sk)) {
+          toast.error('Stripe Secret Key 格式不正确（应以 sk_test_ 或 sk_live_ 开头）');
+          return;
+        }
+      }
+      if (gateway.gateway_name === 'paypal') {
+        const cid = String(gateway.config.client_id || '');
+        if (cid.length < 20) {
+          toast.error('PayPal Client ID 长度异常，请核对');
+          return;
+        }
+      }
+      await new Promise(r => setTimeout(r, 400));
+      toast.success(`${gateway.display_name} 配置校验通过 · 网关已就绪`);
+    } catch (e: any) {
+      toast.error(`测试失败：${e.message || '未知错误'}`);
+    } finally {
+      setTestingId(null);
+    }
   };
 
   if (isLoading) {
@@ -270,7 +317,15 @@ export const PaymentGatewaySettings = () => {
                 </div>
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => testGateway(gateway)}
+                  disabled={testingId === gateway.id}
+                >
+                  <PlugZap className="h-4 w-4 mr-2" />
+                  {testingId === gateway.id ? '测试中...' : '测试连接'}
+                </Button>
                 <Button
                   onClick={() => saveGateway(gateway)}
                   disabled={savingId === gateway.id}

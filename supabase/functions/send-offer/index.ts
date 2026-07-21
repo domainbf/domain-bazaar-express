@@ -201,13 +201,23 @@ serve(async (req) => {
 
     let ownerEmail: string | null = null;
     if (ownerError) {
-      console.warn("所有者信息获取失败，继续仅发送买家邮件:", ownerError);
-    } else if (!ownerProfile?.contact_email) {
-      console.warn("所有者邮箱不存在，继续仅发送买家邮件");
-    } else {
+      console.warn("所有者信息获取失败:", ownerError);
+    } else if (ownerProfile?.contact_email) {
       ownerEmail = ownerProfile.contact_email;
-      console.log("域名所有者邮箱:", ownerEmail);
     }
+    // 回落：profiles.contact_email 缺失时从 auth.users 拉取
+    if (!ownerEmail && finalSellerId) {
+      try {
+        const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(finalSellerId);
+        if (authUser?.user?.email) {
+          ownerEmail = authUser.user.email;
+          console.log("使用 auth.users 邮箱作为卖家收件人");
+        }
+      } catch (e) {
+        console.warn("auth.admin.getUserById 失败:", e);
+      }
+    }
+    if (!ownerEmail) console.warn("卖家邮箱最终仍不可用，将仅发送买家回执邮件");
 
     // 获取域名货币（用于邮件与通知）
     let domainCurrency = 'CNY';

@@ -4,6 +4,7 @@ import { DomainSeoHead } from "@/components/domain/DomainSeoHead";
 import { useDomainDetail } from "@/components/domain/useDomainDetail";
 import { useDomainAnalytics } from "@/hooks/useDomainAnalytics";
 import NotFound from "@/pages/NotFound";
+import { DomainDetailError } from "./DomainDetailError";
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -85,7 +86,7 @@ const cardHoverVariants = {
 };
 
 export const DomainDetailPage = () => {
-  const { domain, similarDomains, priceHistory, isLoading, error } = useDomainDetail();
+  const { domain, similarDomains, priceHistory, isLoading, error, reload } = useDomainDetail() as any;
   const { analytics, trends, isFavorited, recordView, toggleFavorite } = useDomainAnalytics(domain?.id || '');
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const [isBuyNow, setIsBuyNow] = useState(false);
@@ -121,7 +122,7 @@ export const DomainDetailPage = () => {
   }
 
   if (error || !domain) {
-    return <NotFound />;
+    return <DomainDetailError error={error as Error | null} onRetry={() => reload?.()} />;
   }
 
   const isOwner = user?.id === domain.owner_id;

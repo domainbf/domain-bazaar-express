@@ -1,6 +1,6 @@
 // Lightweight client-side route/detail error & timing telemetry.
-// Buffers events in-memory + logs structured payloads so they can be
-// grepped from console logs / forwarded later.
+// Buffers events in-memory + localStorage so admins can review them
+// across sessions from the /admin telemetry page.
 
 export interface RouteTelemetryEvent {
   type: 'nav_click' | 'detail_fetch_ok' | 'detail_fetch_error' | 'chunk_load_error' | 'route_error';
@@ -11,8 +11,29 @@ export interface RouteTelemetryEvent {
   ts: number;
 }
 
-const BUFFER: RouteTelemetryEvent[] = [];
-const MAX = 100;
+const STORAGE_KEY = 'nicbn.route_telemetry.v1';
+const MAX = 500;
+
+const loadFromStorage = (): RouteTelemetryEvent[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr.slice(-MAX) : [];
+  } catch {
+    return [];
+  }
+};
+
+const BUFFER: RouteTelemetryEvent[] = loadFromStorage();
+
+const persist = () => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(BUFFER.slice(-MAX)));
+  } catch { /* quota exceeded etc. */ }
+};
 
 export function reportRoute(evt: Omit<RouteTelemetryEvent, 'ts'>) {
   const record: RouteTelemetryEvent = { ...evt, ts: Date.now() };
@@ -26,13 +47,17 @@ export function reportRoute(evt: Omit<RouteTelemetryEvent, 'ts'>) {
     // eslint-disable-next-line no-console
     console.info(tag, record);
   }
-  try {
-    (window as any).__routeTelemetry = BUFFER;
-  } catch { /* ignore */ }
+  try { (window as any).__routeTelemetry = BUFFER; } catch { /* ignore */ }
+  persist();
 }
 
 export function getRouteTelemetry(): RouteTelemetryEvent[] {
   return [...BUFFER];
+}
+
+export function clearRouteTelemetry() {
+  BUFFER.length = 0;
+  persist();
 }
 
 // Retry helper for React.lazy(() => import(...)) so a transient chunk

@@ -33,7 +33,8 @@ export async function sendOfferEmails({
   const userEmailHtml = getUserEmailHtml(domain, String(offer), message, finalDashboardUrl, { currency: cur, symbol: sym, display });
   const ownerEmailHtml = getOwnerEmailHtml(domain, String(offer), email, message, buyerId, finalDashboardUrl, { currency: cur, symbol: sym, display });
 
-  const from = "域见•你 域名交易平台 <noreply@noreply.example.com>";
+  // 允许通过 OFFER_MAIL_FROM 覆盖；未配置时回落到 Resend 默认 sender，避免整封失败。
+  const from = Deno.env.get('OFFER_MAIL_FROM') || '域见•你 域名交易平台 <onboarding@resend.dev>';
 
   try {
     const userEmailResponse = await sendMailWithResend(
