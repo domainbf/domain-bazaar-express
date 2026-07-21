@@ -7,7 +7,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { useDomainListings, DOMAIN_LISTINGS_KEY } from '@/hooks/useDomainListings';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useAuth } from '@/contexts/AuthContext';
-import { DomainQuickViewDialog } from '@/components/domain/DomainQuickViewDialog';
+
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
