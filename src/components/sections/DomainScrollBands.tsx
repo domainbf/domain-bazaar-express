@@ -33,10 +33,13 @@ interface LogoCardProps {
   index: number;
 }
 
-function LogoCard({ item, onClick, index }: LogoCardProps) {
+function LogoCard({ item, onClick, index, onPrefetch }: LogoCardProps & { onPrefetch: () => void }) {
   return (
     <button
       onClick={onClick}
+      onMouseEnter={onPrefetch}
+      onTouchStart={onPrefetch}
+      onFocus={onPrefetch}
       title={item.name}
       data-testid={`logo-card-${item.id}-${index}`}
       className="group relative inline-flex flex-col items-center justify-center mx-1.5 shrink-0
@@ -55,10 +58,11 @@ function LogoCard({ item, onClick, index }: LogoCardProps) {
   );
 }
 
-function MarqueeRow({ items, direction, onChipClick }: {
+function MarqueeRow({ items, direction, onChipClick, onPrefetch }: {
   items: DomainChip[];
   direction: 'ltr' | 'rtl';
   onChipClick: (domainName: string) => void;
+  onPrefetch: (item: DomainChip) => void;
 }) {
   if (!items.length) return null;
   const doubled = [...items, ...items];
