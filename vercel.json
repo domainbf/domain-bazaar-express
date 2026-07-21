@@ -8,9 +8,14 @@
     "api/index.ts": {
       "maxDuration": 60,
       "memory": 1024
+    },
+    "api/seo.ts": {
+      "maxDuration": 15,
+      "memory": 512
     }
   },
   "routes": [
+    { "src": "/api/seo(.*)", "dest": "/api/seo" },
     {
       "src": "/api/(.*)",
       "dest": "/api/index"
