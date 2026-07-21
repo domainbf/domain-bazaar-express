@@ -39,7 +39,6 @@ const defaultPriceValidUntil = () => {
 export const DomainSeoHead: React.FC<Props> = ({ domain, analytics }) => {
   const domainPath = `/domain/${encodeURIComponent(domain.name)}`;
   const domainUrl = getCanonicalUrl(domainPath);
-  const ogImageUrl = `${SITE_ORIGIN}/og-image.png`;
   const alternates = getHreflangAlternates(domainPath);
 
   const currency = normalizeCurrency((domain as any).currency);
@@ -47,6 +46,14 @@ export const DomainSeoHead: React.FC<Props> = ({ domain, analytics }) => {
   const priceText = `${currencySymbol}${Number(domain.price || 0).toLocaleString()}`;
   const availability = availabilityFor(domain.status);
   const isForSale = domain.status === 'available' || domain.status === 'reserved';
+
+  // Dynamic OG image (price + domain + status). Cache-buster tied to updated_at
+  // so social platforms refetch when the listing changes.
+  const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL || 'https://trqxaizkwuizuhlfmdup.supabase.co';
+  const cacheKey = (domain as any).updated_at
+    ? Date.parse((domain as any).updated_at) || Date.now()
+    : Date.now();
+  const ogImageUrl = `${supabaseUrl}/functions/v1/og-image?d=${encodeURIComponent(domain.name)}&p=${Number(domain.price || 0)}&c=${currency}&s=${domain.status || 'available'}&v=${cacheKey}`;
 
   const title = `${domain.name} - ${domain.category === 'premium' ? '精品' : '优质'}域名出售 | 域见•你`;
   const description = domain.description
