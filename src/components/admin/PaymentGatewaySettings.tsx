@@ -46,6 +46,16 @@ const gatewayColors: Record<string, string> = {
 // Fields that should be masked in the UI
 const sensitiveFields = ['private_key', 'secret_key', 'api_key', 'client_secret', 'webhook_secret', 'password'];
 
+// 每个网关必须填写的字段（用于"测试连接"时的完整性校验）
+const REQUIRED_FIELDS: Record<string, string[]> = {
+  stripe: ['secret_key', 'publishable_key'],
+  paypal: ['client_id', 'client_secret'],
+  alipay: ['app_id', 'private_key', 'public_key'],
+  wechat_pay: ['mch_id', 'api_key'],
+  usdt_trc20: ['wallet_address'],
+  bank_transfer: ['account_name', 'account_number'],
+};
+
 export const PaymentGatewaySettings = () => {
   const [gateways, setGateways] = useState<GatewayConfig[]>([]);
   const [isLoading, setIsLoading] = useState(true);
