@@ -43,7 +43,7 @@ import {
   Users, Star, Home, BookOpen, Search, Sliders, CreditCard,
   Settings, Activity, Menu, ChevronRight, LogOut, RefreshCw,
   MessageSquare, Package, Scale, Bell, Mail, Headphones, Inbox,
-  ScrollText, GitMerge, SearchCode
+  ScrollText, GitMerge, SearchCode, ImageIcon
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
