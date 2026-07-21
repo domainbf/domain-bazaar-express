@@ -30,25 +30,57 @@
     <meta name="twitter:image" content="https://nicbn.lovable.app/og-image.png" />
     <meta name="twitter:image:alt" content="域见•你 · 精品域名交易平台" />
 
-    <!-- Dynamic canonical & og:url (per route) -->
+    <!-- Dynamic canonical, og:url, twitter:url, hreflang alternates (per route) -->
     <script>
       (function() {
         try {
-          var origin = window.location.origin;
-          var path = window.location.pathname + window.location.search;
-          var canonical = origin + path;
-          var link = document.createElement('link');
-          link.rel = 'canonical';
-          link.href = canonical;
-          document.head.appendChild(link);
-          var ogUrl = document.createElement('meta');
-          ogUrl.setAttribute('property', 'og:url');
-          ogUrl.content = canonical;
-          document.head.appendChild(ogUrl);
-          var twUrl = document.createElement('meta');
-          twUrl.setAttribute('name', 'twitter:url');
-          twUrl.content = canonical;
-          document.head.appendChild(twUrl);
+          var SITE = 'https://nicbn.lovable.app';
+          var host = window.location.hostname;
+          // Preview / lovable subdomains → advertise the prod origin as canonical.
+          var isPreview = /lovable\.app$/.test(host) && host !== 'nicbn.lovable.app';
+          var origin = isPreview ? SITE : window.location.origin;
+          var path = window.location.pathname || '/';
+          var params = new URLSearchParams(window.location.search);
+          var STRIP = ['utm_source','utm_medium','utm_campaign','utm_term','utm_content','gclid','fbclid','ref','_ga','mc_cid','mc_eid'];
+          STRIP.forEach(function(k){ params.delete(k); });
+          var qs = params.toString();
+          var canonical = origin + path + (qs ? '?' + qs : '');
+
+          function meta(attr, key, value) {
+            var m = document.createElement('meta');
+            m.setAttribute(attr, key);
+            m.setAttribute('content', value);
+            document.head.appendChild(m);
+          }
+          function link(rel, href, extra) {
+            var l = document.createElement('link');
+            l.setAttribute('rel', rel);
+            l.setAttribute('href', href);
+            if (extra) Object.keys(extra).forEach(function(k){ l.setAttribute(k, extra[k]); });
+            document.head.appendChild(l);
+          }
+
+          link('canonical', canonical);
+          meta('property', 'og:url', canonical);
+          meta('name', 'twitter:url', canonical);
+
+          // hreflang alternates: zh (default), en, x-default
+          function withLang(lang) {
+            var p = new URLSearchParams(params.toString());
+            if (lang) p.set('lang', lang); else p.delete('lang');
+            var q = p.toString();
+            return SITE + path + (q ? '?' + q : '');
+          }
+          link('alternate', withLang('zh'), { hreflang: 'zh-CN' });
+          link('alternate', withLang('zh'), { hreflang: 'zh-Hans' });
+          link('alternate', withLang('en'), { hreflang: 'en' });
+          link('alternate', withLang('en'), { hreflang: 'en-US' });
+          link('alternate', withLang(''), { hreflang: 'x-default' });
+
+          // Regional / GEO meta (helps AI search + regional grounding)
+          meta('name', 'geo.region', 'CN');
+          meta('name', 'geo.placename', 'Global');
+          meta('name', 'ICBM', '39.9042, 116.4074');
         } catch(e) {}
       })();
     </script>
