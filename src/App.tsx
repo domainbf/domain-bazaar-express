@@ -288,6 +288,33 @@ AnimatedRoutes.displayName = 'AnimatedRoutes';
 
 function App() {
   useEffect(() => {
+    // Clear stale chunk-reload guards from prior failed navigations so
+    // the ErrorBoundary can retry once again after a real deploy update.
+    try {
+      Object.keys(sessionStorage).forEach((k) => {
+        if (k.startsWith('_chunk_reload_')) sessionStorage.removeItem(k);
+      });
+    } catch { /* ignore */ }
+
+    // Global safety net: dynamic import() rejections that don't reach the
+    // ErrorBoundary (e.g. from prefetches, preload links) should still
+    // trigger a single reload so the user gets the fresh chunk.
+    const onRejection = (e: PromiseRejectionEvent) => {
+      const msg = String((e.reason as Error)?.message || e.reason || '');
+      if (
+        msg.includes('Importing a module script failed') ||
+        msg.includes('dynamically imported module') ||
+        msg.includes('Loading chunk')
+      ) {
+        const key = '_chunk_reload_global';
+        if (!sessionStorage.getItem(key)) {
+          sessionStorage.setItem(key, '1');
+          window.location.reload();
+        }
+      }
+    };
+    window.addEventListener('unhandledrejection', onRejection);
+
     const connection = (navigator as Navigator & {
       connection?: {
         saveData?: boolean;
@@ -296,7 +323,7 @@ function App() {
     }).connection;
 
     if (connection?.saveData || ['slow-2g', '2g'].includes(connection?.effectiveType ?? '')) {
-      return;
+      return () => window.removeEventListener('unhandledrejection', onRejection);
     }
 
     const primaryTimer = window.setTimeout(() => {
@@ -310,6 +337,7 @@ function App() {
     }, 4000);
 
     return () => {
+      window.removeEventListener('unhandledrejection', onRejection);
       clearTimeout(primaryTimer);
       clearTimeout(secondaryTimer);
     };
