@@ -6,5 +6,28 @@ Disallow: /user-center
 Disallow: /dashboard
 Disallow: /profile
 Disallow: /reset-password
+Disallow: /api/
+
+# Give AI-search crawlers explicit access to public content
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Disallow: /user-center
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+Disallow: /user-center
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+Disallow: /user-center
+
+User-agent: Googlebot
+Allow: /
+Disallow: /admin
+Disallow: /user-center
 
 Sitemap: https://nicbn.lovable.app/sitemap.xml
+Host: nicbn.lovable.app
