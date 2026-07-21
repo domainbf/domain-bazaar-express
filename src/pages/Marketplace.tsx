@@ -364,7 +364,7 @@ export const Marketplace = () => {
               <Button onClick={clearAll} variant="outline" size="sm">清空筛选</Button>
             </div>
           ) : (
-            <DomainListings isLoading={false} domains={filteredDomains} isMobile={isMobile} />
+            <DomainListings isLoading={false} domains={filteredDomains} isMobile={isMobile} layout={layout} />
           )}
         </div>
 
