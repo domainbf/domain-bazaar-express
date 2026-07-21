@@ -90,6 +90,7 @@ function MarqueeRow({ items, direction, onChipClick, onPrefetch }: {
 
 export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: homeData } = useHomeData();
 
   const auctionDomains: DomainChip[] = (homeData?.auctionDomains ?? []).map(a => ({
@@ -110,7 +111,28 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
   }));
 
   const pad = (arr: DomainChip[]) => (arr.length >= 4 ? arr : [...arr, ...arr]);
-  const handleChipClick = (domainName: string) => navigate(getDomainDetailPath(domainName));
+  const handleChipClick = (domainName: string) => {
+    preloadDetailChunk();
+    navigate(getDomainDetailPath(domainName));
+  };
+
+  const handlePrefetch = (item: DomainChip) => {
+    preloadDetailChunk();
+    // 预取详情数据到 react-query 缓存，点击后可即时呈现
+    const key = ['domainDetail', item.name];
+    if (queryClient.getQueryData(key)) return;
+    queryClient.prefetchQuery({
+      queryKey: key,
+      staleTime: 10 * 60 * 1000,
+      queryFn: async () => {
+        const q = isUuidLike(item.id)
+          ? supabase.from('domain_listings').select('*').eq('id', item.id).maybeSingle()
+          : supabase.from('domain_listings').select('*').ilike('name', item.name).limit(1).maybeSingle();
+        const { data } = await q;
+        return data ? { domain: data, priceHistory: [], similarDomains: [] } : null;
+      },
+    }).catch(() => { /* silent */ });
+  };
 
   if (!auctionDomains.length && !hotDomains.length) return null;
 
@@ -122,7 +144,7 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
             <Gavel className="h-3.5 w-3.5 text-foreground/50" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">拍卖域名</span>
           </div>
-          <MarqueeRow items={pad(auctionDomains)} direction="ltr" onChipClick={handleChipClick} />
+          <MarqueeRow items={pad(auctionDomains)} direction="ltr" onChipClick={handleChipClick} onPrefetch={handlePrefetch} />
         </div>
       )}
 
@@ -132,7 +154,7 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
             <Flame className="h-3.5 w-3.5 text-foreground/50" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">热门域名</span>
           </div>
-          <MarqueeRow items={pad(hotDomains)} direction="rtl" onChipClick={handleChipClick} />
+          <MarqueeRow items={pad(hotDomains)} direction="rtl" onChipClick={handleChipClick} onPrefetch={handlePrefetch} />
         </div>
       )}
 
@@ -142,7 +164,7 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
             <CheckCircle className="h-3.5 w-3.5 text-foreground/50" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">成交案例</span>
           </div>
-          <MarqueeRow items={pad(soldDomains)} direction="ltr" onChipClick={handleChipClick} />
+          <MarqueeRow items={pad(soldDomains)} direction="ltr" onChipClick={handleChipClick} onPrefetch={handlePrefetch} />
         </div>
       )}
     </div>
