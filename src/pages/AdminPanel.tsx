@@ -109,6 +109,7 @@ export const AdminPanel = () => {
         { id: 'unified-search', label: '统一搜索/导出', icon: SearchCode },
         { id: 'activity', label: '活动日志', icon: Activity },
         { id: 'audit-logs', label: '报价审计日志', icon: ScrollText },
+        { id: 'telemetry', label: '路由遥测', icon: Activity },
       ]
     },
     {
