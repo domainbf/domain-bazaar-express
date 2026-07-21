@@ -24,14 +24,14 @@ export function DomainWordmark({ name, className }: DomainWordmarkProps) {
 
   return (
     <div
-      className={cn('flex min-w-0 max-w-full items-baseline justify-center gap-0.5 px-1 text-center', className)}
+      className={cn('flex min-w-0 max-w-full items-center justify-center gap-[1px] px-1 text-center', className)}
       title={name}
     >
       <span className={cn('font-black leading-none tracking-tight text-foreground whitespace-nowrap', sizeClass)}>
         {base}
       </span>
       {ext ? (
-        <span className={cn('shrink-0 font-black leading-none tracking-tight text-foreground/70 whitespace-nowrap', sizeClass)}>
+        <span className={cn('shrink-0 font-black leading-none tracking-tight text-foreground/60 whitespace-nowrap', sizeClass)}>
           {ext}
         </span>
       ) : null}
