@@ -4,6 +4,7 @@ import { DomainSeoHead } from "@/components/domain/DomainSeoHead";
 import { useDomainDetail } from "@/components/domain/useDomainDetail";
 import { useDomainAnalytics } from "@/hooks/useDomainAnalytics";
 import NotFound from "@/pages/NotFound";
+import { DomainDetailError } from "./DomainDetailError";
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import {
