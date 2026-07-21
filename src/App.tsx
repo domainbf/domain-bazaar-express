@@ -55,18 +55,24 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
   const reported = useRef(false);
   const [crashId] = useState(() => Math.random().toString(36).slice(2, 9).toUpperCase());
 
+  const msg = error?.message || '';
   const isChunkError = !!(
-    error?.message?.includes('dynamically imported module') ||
-    error?.message?.includes('Loading chunk') ||
-    error?.message?.includes('Failed to fetch') ||
+    msg.includes('dynamically imported module') ||
+    msg.includes('Loading chunk') ||
+    msg.includes('Failed to fetch') ||
+    msg.includes('Importing a module script failed') ||
+    msg.includes('module script failed') ||
+    msg.includes('error loading dynamically imported') ||
+    msg.includes("Unexpected token '<'") ||
     error?.name === 'ChunkLoadError'
   );
 
   useEffect(() => {
     if (!isChunkError) return;
-    const reloaded = sessionStorage.getItem('_chunk_reload');
+    const key = '_chunk_reload_' + window.location.pathname;
+    const reloaded = sessionStorage.getItem(key);
     if (!reloaded) {
-      sessionStorage.setItem('_chunk_reload', '1');
+      sessionStorage.setItem(key, '1');
       window.location.reload();
     }
   }, [isChunkError]);
