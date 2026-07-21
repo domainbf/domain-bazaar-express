@@ -81,7 +81,6 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
 
   const logoMap = homeData?.logoMap ?? {};
 
-  // auctionDomains are now bundled inside the /data/home response — no extra request needed
   const auctionDomains: DomainChip[] = (homeData?.auctionDomains ?? []).map(a => ({
     id: a.id,
     name: a.name,
@@ -96,6 +95,28 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
 
   const rawSold = showSold ? (homeData?.soldDomains ?? []) : [];
   const soldDomains: DomainChip[] = rawSold.slice(0, 30).map(d => ({ ...d, bandType: 'sold' as BandType }));
+
+  // ─── 自动补齐缺失 Logo（智谱 CogView-3-Flash，一次一张，串行避免打爆免费额度）──
+  const triggeredRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const pending = [...auctionDomains, ...hotDomains].filter(
+      d => !d.logoUrl && !triggeredRef.current.has(d.id)
+    );
+    if (!pending.length) return;
+    let cancelled = false;
+    (async () => {
+      for (const d of pending.slice(0, 12)) {
+        if (cancelled) break;
+        triggeredRef.current.add(d.id);
+        try {
+          await generateAndSaveDomainLogo(d.id, d.name);
+        } catch { /* 静默失败，下一次刷新可重试 */ }
+        await new Promise(r => setTimeout(r, 1200));
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auctionDomains.length, hotDomains.length]);
 
   const pad = (arr: DomainChip[]) => (arr.length >= 4 ? arr : [...arr, ...arr]);
 
