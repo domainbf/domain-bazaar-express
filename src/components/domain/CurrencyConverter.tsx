@@ -129,51 +129,60 @@ export function CurrencyConverter({ priceAmount, priceCurrency }: CurrencyConver
   const availableTargets = CURRENCIES.filter(c => c.code !== baseCurrency);
 
   return (
-    <div className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-      <span>≈</span>
-      {loading ? (
-        <RefreshCw className="h-3 w-3 animate-spin" />
-      ) : convertedAmount != null ? (
-        <span className="font-medium text-foreground">
-          {targetInfo?.symbol}{formatAmount(convertedAmount, targetCurrency)}
-        </span>
-      ) : null}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded hover:bg-muted transition-colors text-xs font-mono"
-          >
-            {targetCurrency}
-            <ChevronDown className="h-3 w-3" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="max-h-64 overflow-y-auto">
-          {availableTargets.map(c => (
-            <DropdownMenuItem
-              key={c.code}
-              onSelect={() => setTargetCurrency(c.code)}
-              className={`text-sm gap-2 ${targetCurrency === c.code ? "font-bold" : ""}`}
+    <div className="mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-muted-foreground max-w-full">
+      <div className="inline-flex items-center gap-1 min-w-0">
+        <span aria-hidden>≈</span>
+        {loading ? (
+          <RefreshCw className="h-3 w-3 animate-spin shrink-0" />
+        ) : convertedAmount != null ? (
+          <span className="font-semibold text-foreground tabular-nums truncate">
+            {targetInfo?.symbol}{formatAmount(convertedAmount, targetCurrency)}
+          </span>
+        ) : null}
+      </div>
+
+      <div className="inline-flex items-center gap-1 shrink-0">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-border/60 hover:bg-muted transition-colors text-[11px] font-mono"
+              aria-label="切换目标币种"
             >
-              <span className="w-10 shrink-0 font-mono">{c.code}</span>
-              <span className="text-muted-foreground">{c.name}</span>
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-      {isFallback && <span className="text-[10px]">(参考)</span>}
-      <button
-        type="button"
-        onClick={() => {
-          try { sessionStorage.removeItem(`${CACHE_KEY}_${baseCurrency}`); } catch {}
-          fetchRate(baseCurrency, targetCurrency);
-        }}
-        disabled={loading}
-        title="刷新汇率"
-        className="p-0.5 rounded hover:bg-muted transition-colors"
-      >
-        <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
-      </button>
+              {targetCurrency}
+              <ChevronDown className="h-3 w-3" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="center" className="max-h-64 overflow-y-auto">
+            {availableTargets.map(c => (
+              <DropdownMenuItem
+                key={c.code}
+                onSelect={() => setTargetCurrency(c.code)}
+                className={`text-sm gap-2 ${targetCurrency === c.code ? "font-bold" : ""}`}
+              >
+                <span className="w-10 shrink-0 font-mono">{c.code}</span>
+                <span className="text-muted-foreground">{c.name}</span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <button
+          type="button"
+          onClick={() => {
+            try { sessionStorage.removeItem(`${CACHE_KEY}_${baseCurrency}`); } catch {}
+            fetchRate(baseCurrency, targetCurrency);
+          }}
+          disabled={loading}
+          title="刷新汇率"
+          aria-label="刷新汇率"
+          className="p-1 rounded hover:bg-muted transition-colors"
+        >
+          <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
+        </button>
+
+        {isFallback && <span className="text-[10px] opacity-70">参考</span>}
+      </div>
     </div>
   );
 }
