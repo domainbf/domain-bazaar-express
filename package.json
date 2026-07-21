@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "server": "tsx server/index.ts",
-    "prebuild": "npm run seo:sitemap && npm run seo:validate",
+    "prebuild": "node scripts/validate-lazy-routes.mjs && npm run seo:sitemap && npm run seo:validate",
     "build": "vite build && npm run build:server",
     "build:server": "esbuild server/index.ts --bundle --platform=node --format=cjs --outfile=dist/index.cjs --external:@libsql/client --external:better-sqlite3 --external:nodemailer --external:ioredis",
     "build:dev": "vite build --mode development",
