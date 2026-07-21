@@ -27,9 +27,14 @@ interface Props {
   sellerId?: string;
   price?: number;
   currency?: string;
+  onPrev?: () => void;
+  onNext?: () => void;
+  hasPrev?: boolean;
+  hasNext?: boolean;
 }
 
-export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerId, price, currency = 'CNY' }: Props) {
+export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerId, price, currency = 'CNY', onPrev, onNext, hasPrev, hasNext }: Props) {
+
   const { user } = useAuth();
   const [offers, setOffers] = useState<OfferRow[]>([]);
   const [loading, setLoading] = useState(false);
