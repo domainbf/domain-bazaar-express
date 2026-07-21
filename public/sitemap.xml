@@ -1,18 +1,123 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://nicbn.lovable.app/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
-  <url><loc>https://nicbn.lovable.app/marketplace</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
-  <url><loc>https://nicbn.lovable.app/auctions</loc><changefreq>hourly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://nicbn.lovable.app/valuation</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nicbn.lovable.app/sell</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nicbn.lovable.app/domain-monitor</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://nicbn.lovable.app/escrow</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://nicbn.lovable.app/platform-services</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://nicbn.lovable.app/community</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://nicbn.lovable.app/faq</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
-  <url><loc>https://nicbn.lovable.app/help</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
-  <url><loc>https://nicbn.lovable.app/contact</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
-  <url><loc>https://nicbn.lovable.app/terms</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
-  <url><loc>https://nicbn.lovable.app/privacy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
-  <url><loc>https://nicbn.lovable.app/disclaimer</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://nicbn.lovable.app/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://nicbn.lovable.app/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nicbn.lovable.app/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nicbn.lovable.app/" />
+  </url>
+  <url>
+    <loc>https://nicbn.lovable.app/marketplace</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://nicbn.lovable.app/marketplace?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nicbn.lovable.app/marketplace?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nicbn.lovable.app/marketplace" />
+  </url>
+  <url>
+    <loc>https://nicbn.lovable.app/auctions</loc>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://nicbn.lovable.app/auctions?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nicbn.lovable.app/auctions?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nicbn.lovable.app/auctions" />
+  </url>
+  <url>
+    <loc>https://nicbn.lovable.app/valuation</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://nicbn.lovable.app/valuation?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nicbn.lovable.app/valuation?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nicbn.lovable.app/valuation" />
+  </url>
+  <url>
+    <loc>https://nicbn.lovable.app/sell</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://nicbn.lovable.app/sell?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nicbn.lovable.app/sell?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nicbn.lovable.app/sell" />
+  </url>
+  <url>
+    <loc>https://nicbn.lovable.app/domain-monitor</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://nicbn.lovable.app/domain-monitor?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nicbn.lovable.app/domain-monitor?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nicbn.lovable.app/domain-monitor" />
+  </url>
+  <url>
+    <loc>https://nicbn.lovable.app/escrow</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://nicbn.lovable.app/escrow?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nicbn.lovable.app/escrow?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nicbn.lovable.app/escrow" />
+  </url>
+  <url>
+    <loc>https://nicbn.lovable.app/platform-services</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://nicbn.lovable.app/platform-services?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nicbn.lovable.app/platform-services?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nicbn.lovable.app/platform-services" />
+  </url>
+  <url>
+    <loc>https://nicbn.lovable.app/community</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://nicbn.lovable.app/community?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nicbn.lovable.app/community?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nicbn.lovable.app/community" />
+  </url>
+  <url>
+    <loc>https://nicbn.lovable.app/faq</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://nicbn.lovable.app/faq?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nicbn.lovable.app/faq?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nicbn.lovable.app/faq" />
+  </url>
+  <url>
+    <loc>https://nicbn.lovable.app/help</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://nicbn.lovable.app/help?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nicbn.lovable.app/help?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nicbn.lovable.app/help" />
+  </url>
+  <url>
+    <loc>https://nicbn.lovable.app/contact</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://nicbn.lovable.app/contact?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nicbn.lovable.app/contact?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nicbn.lovable.app/contact" />
+  </url>
+  <url>
+    <loc>https://nicbn.lovable.app/terms</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://nicbn.lovable.app/terms?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nicbn.lovable.app/terms?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nicbn.lovable.app/terms" />
+  </url>
+  <url>
+    <loc>https://nicbn.lovable.app/privacy</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://nicbn.lovable.app/privacy?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nicbn.lovable.app/privacy?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nicbn.lovable.app/privacy" />
+  </url>
+  <url>
+    <loc>https://nicbn.lovable.app/disclaimer</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://nicbn.lovable.app/disclaimer?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nicbn.lovable.app/disclaimer?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nicbn.lovable.app/disclaimer" />
+  </url>
 </urlset>
