@@ -61,9 +61,19 @@ export const Marketplace = () => {
   const [priceChip, setPriceChip] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [layout, setLayout] = useState<MarketplaceLayout>(() => {
+    if (typeof window === 'undefined') return 'card';
+    const saved = window.localStorage.getItem(LAYOUT_STORAGE_KEY) as MarketplaceLayout | null;
+    return saved && LAYOUT_OPTIONS.some(o => o.id === saved) ? saved : 'card';
+  });
   const isMobile = useIsMobile();
   const { unreadCount } = useNotifications();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') window.localStorage.setItem(LAYOUT_STORAGE_KEY, layout);
+  }, [layout]);
+
 
   const { data: allDomains = [], isLoading, isError, refetch } = useDomainListings();
 
