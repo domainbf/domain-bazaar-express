@@ -60,7 +60,7 @@ export const PaymentGatewaySettings = () => {
   const [gateways, setGateways] = useState<GatewayConfig[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
-  const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
+  const [testingId, setTestingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadGateways();
