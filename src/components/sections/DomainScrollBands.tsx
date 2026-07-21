@@ -1,11 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
-import { Gavel, Flame, CheckCircle, RefreshCw, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Gavel, Flame, CheckCircle } from 'lucide-react';
 import { useHomeData } from '@/hooks/useHomeData';
 import { getDomainDetailPath } from '@/lib/domainRouting';
 import { DomainWordmark } from './DomainWordmark';
 import { formatPriceCompact } from '@/lib/currency';
-import { generateAndSaveDomainLogo } from '@/hooks/useModelScopeAI';
 
 export type BandType = 'auction' | 'hot' | 'sold';
 
@@ -14,19 +12,15 @@ interface DomainChip {
   name: string;
   price: number;
   currency: string;
-  logoUrl?: string;
   bandType?: BandType;
 }
-
-type LogoState = 'pending' | 'loading' | 'ok' | 'failed';
 
 interface LogoCardProps {
   item: DomainChip;
   onClick: () => void;
   index: number;
-  state: LogoState;
-  onRetry?: () => void;
 }
+
 
 function LogoCard({ item, onClick, index }: LogoCardProps) {
   return (
