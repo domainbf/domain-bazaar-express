@@ -299,7 +299,8 @@ function App() {
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       <DynamicFavicon />
       <CustomScripts />
-      <PWAInstallBanner />
+      {/* PWA 添加到主屏弹窗已按需求禁用 */}
+      {/* <PWAInstallBanner /> */}
       <Suspense fallback={<RouteLoadingFallback />}>
         <AnimatedRoutes />
       </Suspense>
