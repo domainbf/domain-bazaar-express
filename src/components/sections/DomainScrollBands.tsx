@@ -79,6 +79,7 @@ function MarqueeRow({ items, direction, onChipClick, onPrefetch }: {
             key={`${item.id}-${i}`}
             item={item}
             onClick={() => onChipClick(item.name)}
+            onPrefetch={() => onPrefetch(item)}
             index={i}
           />
         ))}
