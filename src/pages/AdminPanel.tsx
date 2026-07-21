@@ -249,6 +249,7 @@ export const AdminPanel = () => {
       case 'verifications': return <PendingVerifications />;
       case 'auctions': return <AdminAuctionManagement />;
       case 'bulk': return <BulkDomainOperations />;
+      case 'logos': return <AdminLogoManagement />;
       case 'transactions': return <AdminTransactionManagement />;
       case 'offers': return <OffersManagement />;
       case 'escrow': return <EscrowService isAdmin={true} />;
