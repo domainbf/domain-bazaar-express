@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Gavel, Flame, CheckCircle } from 'lucide-react';
@@ -7,14 +8,30 @@ import { DomainWordmark } from './DomainWordmark';
 import { formatPriceCompact } from '@/lib/currency';
 import { supabase } from '@/integrations/supabase/client';
 import { isUuidLike } from '@/lib/domainRouting';
+import { reportRoute } from '@/lib/routeTelemetry';
 
 // 预加载详情页 chunk，避免点击后长时间白屏
 let detailChunkPromise: Promise<unknown> | null = null;
 const preloadDetailChunk = () => {
   if (!detailChunkPromise) {
-    detailChunkPromise = import('@/components/domain/DomainDetailPage');
+    detailChunkPromise = import('@/components/domain/DomainDetailPage').catch((err) => {
+      detailChunkPromise = null; // allow retry
+      reportRoute({ type: 'chunk_load_error', reason: (err as Error)?.message });
+      throw err;
+    });
   }
   return detailChunkPromise;
+};
+
+// 空闲时机预热
+const idlePreload = () => {
+  const w = window as any;
+  const run = () => { void preloadDetailChunk(); };
+  if (typeof w.requestIdleCallback === 'function') {
+    w.requestIdleCallback(run, { timeout: 2000 });
+  } else {
+    setTimeout(run, 400);
+  }
 };
 
 export type BandType = 'auction' | 'hot' | 'sold';
