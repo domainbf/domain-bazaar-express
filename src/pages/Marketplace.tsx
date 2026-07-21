@@ -150,20 +150,7 @@ export const Marketplace = () => {
     setFavoritesOnly(v => !v);
   };
 
-  // ── Drawer / preview state ────────────────────────────────────
-  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
-  const preview = previewIndex != null ? filteredDomains[previewIndex] : null;
-  const openPreview = (_d: Domain, i: number) => setPreviewIndex(i);
-  const closePreview = () => setPreviewIndex(null);
-  const goPrev = () => setPreviewIndex(i => (i != null && i > 0 ? i - 1 : i));
-  const goNext = () => setPreviewIndex(i => (i != null && i < filteredDomains.length - 1 ? i + 1 : i));
-
-  // Reset preview if the list shrinks past the current index.
-  useEffect(() => {
-    if (previewIndex != null && previewIndex >= filteredDomains.length) {
-      setPreviewIndex(filteredDomains.length > 0 ? filteredDomains.length - 1 : null);
-    }
-  }, [filteredDomains.length, previewIndex]);
+  // Drawer preview removed — cards now navigate directly to the domain detail page.
 
   const px = isMobile ? 'px-4' : 'max-w-7xl mx-auto px-6';
 
