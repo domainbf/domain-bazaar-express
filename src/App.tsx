@@ -14,58 +14,65 @@ import { FeedbackButton } from './components/common/FeedbackButton';
 import { lazyRetry, reportRoute } from '@/lib/routeTelemetry';
 
 // Route-based code splitting
-const Index = lazy(() => import('./pages/Index'));
-const AuthPage = lazy(() => import('./pages/AuthPage'));
-const Marketplace = lazy(() => import('./pages/Marketplace').then(m => ({ default: m.Marketplace })));
-const Dashboard = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })));
-const AdminPanel = lazy(() => import('./pages/AdminPanel').then(m => ({ default: m.AdminPanel })));
-const DomainVerification = lazy(() => import('./pages/DomainVerification').then(m => ({ default: m.DomainVerification })));
-const Profile = lazy(() => import('./pages/Profile').then(m => ({ default: m.Profile })));
-const ResetPassword = lazy(() => import('./pages/ResetPassword').then(m => ({ default: m.ResetPassword })));
-const AuthCallback = lazy(() => import('./pages/AuthCallback').then(m => ({ default: m.AuthCallback })));
-const UserCenter = lazy(() => import('./pages/UserCenter').then(m => ({ default: m.UserCenter })));
-const UserProfilePage = lazy(() => import('./pages/UserProfile').then(m => ({ default: m.UserProfilePage })));
-// DomainDetailPage: wrapped with lazyRetry so a transient chunk load
-// failure (mobile network hiccup) auto-retries instead of stalling.
+// All lazy imports are wrapped with lazyRetry so a transient chunk load
+// failure (mobile network hiccup, stale deploy) auto-retries instead of
+// crashing to the ErrorBoundary with "Importing a module script failed".
+const Index = lazy(lazyRetry(() => import('./pages/Index')));
+const AuthPage = lazy(lazyRetry(() => import('./pages/AuthPage')));
+const Marketplace = lazy(lazyRetry(() => import('./pages/Marketplace').then(m => ({ default: m.Marketplace }))));
+const Dashboard = lazy(lazyRetry(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard }))));
+const AdminPanel = lazy(lazyRetry(() => import('./pages/AdminPanel').then(m => ({ default: m.AdminPanel }))));
+const DomainVerification = lazy(lazyRetry(() => import('./pages/DomainVerification').then(m => ({ default: m.DomainVerification }))));
+const Profile = lazy(lazyRetry(() => import('./pages/Profile').then(m => ({ default: m.Profile }))));
+const ResetPassword = lazy(lazyRetry(() => import('./pages/ResetPassword').then(m => ({ default: m.ResetPassword }))));
+const AuthCallback = lazy(lazyRetry(() => import('./pages/AuthCallback').then(m => ({ default: m.AuthCallback }))));
+const UserCenter = lazy(lazyRetry(() => import('./pages/UserCenter').then(m => ({ default: m.UserCenter }))));
+const UserProfilePage = lazy(lazyRetry(() => import('./pages/UserProfile').then(m => ({ default: m.UserProfilePage }))));
 const DomainDetailPage = lazy(lazyRetry(() => import('./components/domain/DomainDetailPage').then(m => ({ default: m.DomainDetailPage }))));
-const MyDomainsPage = lazy(() => import('./pages/MyDomainsPage').then(m => ({ default: m.MyDomainsPage })));
-const ContactPage = lazy(() => import('./pages/ContactPage').then(m => ({ default: m.ContactPage })));
-const FAQPage = lazy(() => import('./pages/FAQPage').then(m => ({ default: m.FAQPage })));
-const SecurityCenter = lazy(() => import('./pages/SecurityCenter'));
-const Community = lazy(() => import('./pages/Community'));
-const SellDomainPage = lazy(() => import('./pages/SellDomain').then(m => ({ default: m.SellDomainPage })));
-const NotFound = lazy(() => import('./pages/NotFound'));
-const TransactionDetail = lazy(() => import('./pages/TransactionDetail'));
-const AuctionsPage = lazy(() => import('./pages/AuctionsPage').then(m => ({ default: m.AuctionsPage })));
-const ValuationPage = lazy(() => import('./pages/ValuationPage'));
-const DomainMonitorPage = lazy(() => import('./pages/DomainMonitorPage'));
-const EscrowPage = lazy(() => import('./pages/EscrowPage'));
-const SellerPage = lazy(() => import('./pages/SellerPage'));
-const BulkListingPage = lazy(() => import('./pages/BulkListingPage'));
-const DisputePage = lazy(() => import('./pages/DisputePage'));
-const PlatformServicesPage = lazy(() => import('./pages/PlatformServicesPage'));
-const HelpPage = lazy(() => import('./pages/HelpPage'));
-const TermsPage = lazy(() => import('./pages/TermsPage'));
-const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
-const DisclaimerPage = lazy(() => import('./pages/DisclaimerPage'));
-const MaintenancePage = lazy(() => import('./pages/MaintenancePage'));
+const MyDomainsPage = lazy(lazyRetry(() => import('./pages/MyDomainsPage').then(m => ({ default: m.MyDomainsPage }))));
+const ContactPage = lazy(lazyRetry(() => import('./pages/ContactPage').then(m => ({ default: m.ContactPage }))));
+const FAQPage = lazy(lazyRetry(() => import('./pages/FAQPage').then(m => ({ default: m.FAQPage }))));
+const SecurityCenter = lazy(lazyRetry(() => import('./pages/SecurityCenter')));
+const Community = lazy(lazyRetry(() => import('./pages/Community')));
+const SellDomainPage = lazy(lazyRetry(() => import('./pages/SellDomain').then(m => ({ default: m.SellDomainPage }))));
+const NotFound = lazy(lazyRetry(() => import('./pages/NotFound')));
+const TransactionDetail = lazy(lazyRetry(() => import('./pages/TransactionDetail')));
+const AuctionsPage = lazy(lazyRetry(() => import('./pages/AuctionsPage').then(m => ({ default: m.AuctionsPage }))));
+const ValuationPage = lazy(lazyRetry(() => import('./pages/ValuationPage')));
+const DomainMonitorPage = lazy(lazyRetry(() => import('./pages/DomainMonitorPage')));
+const EscrowPage = lazy(lazyRetry(() => import('./pages/EscrowPage')));
+const SellerPage = lazy(lazyRetry(() => import('./pages/SellerPage')));
+const BulkListingPage = lazy(lazyRetry(() => import('./pages/BulkListingPage')));
+const DisputePage = lazy(lazyRetry(() => import('./pages/DisputePage')));
+const PlatformServicesPage = lazy(lazyRetry(() => import('./pages/PlatformServicesPage')));
+const HelpPage = lazy(lazyRetry(() => import('./pages/HelpPage')));
+const TermsPage = lazy(lazyRetry(() => import('./pages/TermsPage')));
+const PrivacyPage = lazy(lazyRetry(() => import('./pages/PrivacyPage')));
+const DisclaimerPage = lazy(lazyRetry(() => import('./pages/DisclaimerPage')));
+const MaintenancePage = lazy(lazyRetry(() => import('./pages/MaintenancePage')));
 
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
   const reported = useRef(false);
   const [crashId] = useState(() => Math.random().toString(36).slice(2, 9).toUpperCase());
 
+  const msg = error?.message || '';
   const isChunkError = !!(
-    error?.message?.includes('dynamically imported module') ||
-    error?.message?.includes('Loading chunk') ||
-    error?.message?.includes('Failed to fetch') ||
+    msg.includes('dynamically imported module') ||
+    msg.includes('Loading chunk') ||
+    msg.includes('Failed to fetch') ||
+    msg.includes('Importing a module script failed') ||
+    msg.includes('module script failed') ||
+    msg.includes('error loading dynamically imported') ||
+    msg.includes("Unexpected token '<'") ||
     error?.name === 'ChunkLoadError'
   );
 
   useEffect(() => {
     if (!isChunkError) return;
-    const reloaded = sessionStorage.getItem('_chunk_reload');
+    const key = '_chunk_reload_' + window.location.pathname;
+    const reloaded = sessionStorage.getItem(key);
     if (!reloaded) {
-      sessionStorage.setItem('_chunk_reload', '1');
+      sessionStorage.setItem(key, '1');
       window.location.reload();
     }
   }, [isChunkError]);
@@ -281,6 +288,33 @@ AnimatedRoutes.displayName = 'AnimatedRoutes';
 
 function App() {
   useEffect(() => {
+    // Clear stale chunk-reload guards from prior failed navigations so
+    // the ErrorBoundary can retry once again after a real deploy update.
+    try {
+      Object.keys(sessionStorage).forEach((k) => {
+        if (k.startsWith('_chunk_reload_')) sessionStorage.removeItem(k);
+      });
+    } catch { /* ignore */ }
+
+    // Global safety net: dynamic import() rejections that don't reach the
+    // ErrorBoundary (e.g. from prefetches, preload links) should still
+    // trigger a single reload so the user gets the fresh chunk.
+    const onRejection = (e: PromiseRejectionEvent) => {
+      const msg = String((e.reason as Error)?.message || e.reason || '');
+      if (
+        msg.includes('Importing a module script failed') ||
+        msg.includes('dynamically imported module') ||
+        msg.includes('Loading chunk')
+      ) {
+        const key = '_chunk_reload_global';
+        if (!sessionStorage.getItem(key)) {
+          sessionStorage.setItem(key, '1');
+          window.location.reload();
+        }
+      }
+    };
+    window.addEventListener('unhandledrejection', onRejection);
+
     const connection = (navigator as Navigator & {
       connection?: {
         saveData?: boolean;
@@ -289,7 +323,7 @@ function App() {
     }).connection;
 
     if (connection?.saveData || ['slow-2g', '2g'].includes(connection?.effectiveType ?? '')) {
-      return;
+      return () => window.removeEventListener('unhandledrejection', onRejection);
     }
 
     const primaryTimer = window.setTimeout(() => {
@@ -303,6 +337,7 @@ function App() {
     }, 4000);
 
     return () => {
+      window.removeEventListener('unhandledrejection', onRejection);
       clearTimeout(primaryTimer);
       clearTimeout(secondaryTimer);
     };
