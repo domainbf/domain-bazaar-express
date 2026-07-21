@@ -1,9 +1,11 @@
+import { useEffect, useRef } from 'react';
 import { Gavel, Flame, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useHomeData } from '@/hooks/useHomeData';
 import { getDomainDetailPath } from '@/lib/domainRouting';
 import { DomainWordmark } from './DomainWordmark';
 import { formatPriceCompact } from '@/lib/currency';
+import { generateAndSaveDomainLogo } from '@/hooks/useModelScopeAI';
 
 export type BandType = 'auction' | 'hot' | 'sold';
 
