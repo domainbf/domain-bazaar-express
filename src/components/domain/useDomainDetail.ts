@@ -73,7 +73,9 @@ const fetchDomainDetails = async (identifier: string | undefined) => {
   const { data: domainRow, error: domainError } = await domainQuery;
 
   if (domainError) {
-    throw new Error(domainError.message);
+    // 不向 ErrorBoundary 抛出，交由 UI 显示"未找到"或触发重试
+    console.warn('[useDomainDetail] domain query error:', domainError.message);
+    return null;
   }
 
   if (!domainRow) {
