@@ -1,5 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { DomainAnalytics } from '@/types/domain';
 
@@ -18,6 +20,7 @@ export const useDomainAnalytics = (domainId: string, initialData?: InitialData) 
   const [isLoading, setIsLoading] = useState(!initialData?.analytics);
   const [isFavorited, setIsFavorited] = useState(false);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const loadAnalytics = useCallback(async () => {
     if (!domainId) return;
@@ -63,7 +66,16 @@ export const useDomainAnalytics = (domainId: string, initialData?: InitialData) 
   }, [domainId]);
 
   const toggleFavorite = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      toast.info('请先登录后再收藏', {
+        action: {
+          label: '去登录',
+          onClick: () => navigate(`/auth?redirect=${encodeURIComponent(window.location.pathname)}`),
+        },
+      });
+      return;
+    }
+    if (!domainId) return;
     try {
       if (isFavorited) {
         const { error } = await supabase
@@ -76,6 +88,7 @@ export const useDomainAnalytics = (domainId: string, initialData?: InitialData) 
 
         setIsFavorited(false);
         setAnalytics(prev => prev ? { ...prev, favorites: Math.max(0, (prev.favorites || 0) - 1) } : null);
+        toast.success('已取消收藏');
       } else {
         const { error } = await supabase
           .from('user_favorites')
@@ -85,11 +98,13 @@ export const useDomainAnalytics = (domainId: string, initialData?: InitialData) 
 
         setIsFavorited(true);
         setAnalytics(prev => prev ? { ...prev, favorites: (prev.favorites || 0) + 1 } : null);
+        toast.success('已加入收藏');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error toggling favorite:', err);
+      toast.error(err?.message?.includes('duplicate') ? '已在收藏中' : '收藏操作失败，请稍后重试');
     }
-  }, [domainId, isFavorited, user]);
+  }, [domainId, isFavorited, user, navigate]);
 
   const checkFavoriteStatus = useCallback(async () => {
     if (!user) {
