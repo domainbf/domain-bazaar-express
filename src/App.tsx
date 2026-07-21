@@ -114,13 +114,17 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
     );
   }
 
+  const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="text-center p-8 bg-card rounded-lg shadow-lg max-w-md w-full border border-border">
         <h2 className="text-2xl font-bold text-destructive mb-2">页面加载出错</h2>
         <p className="text-xs text-muted-foreground/50 mb-3 font-mono">错误ID: {crashId}</p>
         <p className="text-muted-foreground mb-4 text-sm">
-          抱歉，页面遇到了问题，已自动通知管理员。<br/>请尝试重试或返回首页。
+          {isOffline
+            ? '当前处于离线状态，请检查网络后重试。'
+            : '抱歉，页面遇到了问题，已自动通知管理员。'}<br/>请尝试重试或返回首页。
         </p>
         {error?.message && (
           <p className="text-xs text-muted-foreground/60 bg-muted rounded px-3 py-2 mb-4 text-left font-mono break-all">
@@ -130,6 +134,19 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
         <div className="space-y-3">
           <button onClick={resetErrorBoundary} className="w-full px-4 py-3 bg-foreground text-background rounded-lg hover:bg-foreground/90 transition-colors font-medium">
             重试
+          </button>
+          <button
+            onClick={() => {
+              // Clear per-path guard so we can attempt one fresh reload
+              try {
+                const key = '_chunk_reload_' + window.location.pathname;
+                sessionStorage.removeItem(key);
+              } catch { /* ignore */ }
+              window.location.reload();
+            }}
+            className="w-full px-4 py-3 border border-border rounded-lg hover:bg-accent transition-colors text-foreground"
+          >
+            重新加载当前路由
           </button>
           <button onClick={() => window.location.replace('/')} className="w-full px-4 py-3 border border-border rounded-lg hover:bg-accent transition-colors text-foreground">
             返回首页
@@ -301,11 +318,16 @@ function App() {
     // trigger a single reload so the user gets the fresh chunk.
     const onRejection = (e: PromiseRejectionEvent) => {
       const msg = String((e.reason as Error)?.message || e.reason || '');
-      if (
+      const isChunk =
         msg.includes('Importing a module script failed') ||
         msg.includes('dynamically imported module') ||
-        msg.includes('Loading chunk')
-      ) {
+        msg.includes('Loading chunk');
+      // Log every unhandled rejection to telemetry so admins see them
+      reportRoute({
+        type: isChunk ? 'chunk_load_error' : 'unhandled_rejection',
+        reason: msg || 'unknown',
+      });
+      if (isChunk) {
         const key = '_chunk_reload_global';
         if (!sessionStorage.getItem(key)) {
           sessionStorage.setItem(key, '1');
