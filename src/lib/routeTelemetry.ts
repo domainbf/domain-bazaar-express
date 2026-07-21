@@ -2,12 +2,24 @@
 // Buffers events in-memory + localStorage so admins can review them
 // across sessions from the /admin telemetry page.
 
+export type RouteTelemetryType =
+  | 'nav_click'
+  | 'detail_fetch_ok'
+  | 'detail_fetch_error'
+  | 'chunk_load_error'
+  | 'chunk_load_retry'
+  | 'chunk_load_giveup'
+  | 'unhandled_rejection'
+  | 'route_error';
+
 export interface RouteTelemetryEvent {
-  type: 'nav_click' | 'detail_fetch_ok' | 'detail_fetch_error' | 'chunk_load_error' | 'route_error';
+  type: RouteTelemetryType;
   domain?: string;
   route?: string;
   durationMs?: number;
   reason?: string;
+  userAgent?: string;
+  attempt?: number;
   ts: number;
 }
 
@@ -36,11 +48,16 @@ const persist = () => {
 };
 
 export function reportRoute(evt: Omit<RouteTelemetryEvent, 'ts'>) {
-  const record: RouteTelemetryEvent = { ...evt, ts: Date.now() };
+  const record: RouteTelemetryEvent = {
+    ...evt,
+    ts: Date.now(),
+    userAgent: evt.userAgent ?? (typeof navigator !== 'undefined' ? navigator.userAgent : undefined),
+    route: evt.route ?? (typeof window !== 'undefined' ? window.location.pathname : undefined),
+  };
   BUFFER.push(record);
   if (BUFFER.length > MAX) BUFFER.shift();
   const tag = `[route-telemetry:${evt.type}]`;
-  if (evt.type.endsWith('_error')) {
+  if (evt.type.endsWith('_error') || evt.type === 'unhandled_rejection' || evt.type === 'chunk_load_giveup') {
     // eslint-disable-next-line no-console
     console.error(tag, record);
   } else {
@@ -60,12 +77,13 @@ export function clearRouteTelemetry() {
   persist();
 }
 
-// Retry helper for React.lazy(() => import(...)) so a transient chunk
-// load failure doesn't leave the user stuck on a spinner.
+// Retry helper for React.lazy(() => import(...)) with exponential backoff.
+// On terminal failure emits a chunk_load_giveup event so the admin panel
+// can surface the offending route + UA.
 export function lazyRetry<T>(
   factory: () => Promise<T>,
-  attempts = 3,
-  delayMs = 600,
+  attempts = 4,
+  baseDelayMs = 400,
 ): () => Promise<T> {
   return async () => {
     let lastErr: unknown;
@@ -75,10 +93,14 @@ export function lazyRetry<T>(
       } catch (err) {
         lastErr = err;
         reportRoute({
-          type: 'chunk_load_error',
+          type: i === attempts - 1 ? 'chunk_load_giveup' : 'chunk_load_retry',
           reason: (err as Error)?.message || 'unknown',
+          attempt: i + 1,
         });
-        await new Promise((r) => setTimeout(r, delayMs * (i + 1)));
+        if (i === attempts - 1) break;
+        // Exponential backoff with jitter: 400ms, 800ms, 1600ms…
+        const delay = baseDelayMs * 2 ** i + Math.random() * 200;
+        await new Promise((r) => setTimeout(r, delay));
       }
     }
     throw lastErr;

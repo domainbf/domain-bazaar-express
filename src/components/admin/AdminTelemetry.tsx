@@ -14,6 +14,9 @@ const EVENT_LABELS: Record<RouteTelemetryEvent['type'], string> = {
   detail_fetch_ok: '详情加载成功',
   detail_fetch_error: '详情加载失败',
   chunk_load_error: '资源块加载失败',
+  chunk_load_retry: '资源块重试',
+  chunk_load_giveup: '资源块加载彻底失败',
+  unhandled_rejection: '未处理 Promise 错误',
   route_error: '页面错误',
 };
 
@@ -78,7 +81,7 @@ export const AdminTelemetry = () => {
   }, [filtered]);
 
   const exportCsv = () => {
-    const header = ['时间', '类型', '域名', '路由', '耗时(ms)', '原因'];
+    const header = ['时间', '类型', '域名', '路由', '耗时(ms)', '原因', 'UA'];
     const rows = filtered.map(e => [
       new Date(e.ts).toISOString(),
       EVENT_LABELS[e.type] || e.type,
@@ -86,6 +89,7 @@ export const AdminTelemetry = () => {
       e.route || '',
       e.durationMs ?? '',
       e.reason || '',
+      e.userAgent || '',
     ]);
     const csv = [header, ...rows].map(r => r.map(csvEscape).join(',')).join('\n');
     download(`route-telemetry-${Date.now()}.csv`, csv);
@@ -216,21 +220,23 @@ export const AdminTelemetry = () => {
                     <TableHead>路由</TableHead>
                     <TableHead className="text-right">耗时</TableHead>
                     <TableHead>原因</TableHead>
+                    <TableHead>UA</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filtered.slice(0, 300).map((e, i) => (
-                    <TableRow key={i} className={e.type.endsWith('_error') ? 'bg-destructive/5' : ''}>
+                    <TableRow key={i} className={e.type.endsWith('_error') || e.type === 'unhandled_rejection' || e.type === 'chunk_load_giveup' ? 'bg-destructive/5' : ''}>
                       <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{new Date(e.ts).toLocaleString()}</TableCell>
-                      <TableCell><Badge variant={e.type.endsWith('_error') ? 'destructive' : 'secondary'}>{EVENT_LABELS[e.type]}</Badge></TableCell>
+                      <TableCell><Badge variant={e.type.endsWith('_error') || e.type === 'unhandled_rejection' || e.type === 'chunk_load_giveup' ? 'destructive' : 'secondary'}>{EVENT_LABELS[e.type]}</Badge></TableCell>
                       <TableCell className="font-mono text-xs break-all">{e.domain || '—'}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">{e.route || '—'}</TableCell>
                       <TableCell className="text-right text-xs">{e.durationMs != null ? `${e.durationMs}ms` : '—'}</TableCell>
                       <TableCell className="text-xs text-muted-foreground max-w-sm truncate" title={e.reason}>{e.reason || '—'}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate" title={e.userAgent}>{e.userAgent || '—'}</TableCell>
                     </TableRow>
                   ))}
                   {filtered.length === 0 && (
-                    <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">暂无匹配事件</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">暂无匹配事件</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>

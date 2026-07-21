@@ -7,7 +7,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { useDomainListings, DOMAIN_LISTINGS_KEY } from '@/hooks/useDomainListings';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useAuth } from '@/contexts/AuthContext';
-import { DomainQuickViewDialog } from '@/components/domain/DomainQuickViewDialog';
+
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,7 +16,7 @@ import {
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import type { Domain } from '@/types/domain';
+
 
 const getDomainExtension = (domain: string): string => {
   const match = domain.match(/(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?$/);
@@ -150,20 +150,7 @@ export const Marketplace = () => {
     setFavoritesOnly(v => !v);
   };
 
-  // ── Drawer / preview state ────────────────────────────────────
-  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
-  const preview = previewIndex != null ? filteredDomains[previewIndex] : null;
-  const openPreview = (_d: Domain, i: number) => setPreviewIndex(i);
-  const closePreview = () => setPreviewIndex(null);
-  const goPrev = () => setPreviewIndex(i => (i != null && i > 0 ? i - 1 : i));
-  const goNext = () => setPreviewIndex(i => (i != null && i < filteredDomains.length - 1 ? i + 1 : i));
-
-  // Reset preview if the list shrinks past the current index.
-  useEffect(() => {
-    if (previewIndex != null && previewIndex >= filteredDomains.length) {
-      setPreviewIndex(filteredDomains.length > 0 ? filteredDomains.length - 1 : null);
-    }
-  }, [filteredDomains.length, previewIndex]);
+  // Drawer preview removed — cards now navigate directly to the domain detail page.
 
   const px = isMobile ? 'px-4' : 'max-w-7xl mx-auto px-6';
 
@@ -360,7 +347,6 @@ export const Marketplace = () => {
               domains={filteredDomains}
               isMobile={isMobile}
               layout={layout}
-              onSelect={openPreview}
             />
           )}
         </div>
@@ -369,23 +355,6 @@ export const Marketplace = () => {
           <SoldDomains />
         </div>
       </div>
-
-      {/* ── Detail drawer (uses existing QuickView dialog) ── */}
-      {preview && (
-        <DomainQuickViewDialog
-          open={previewIndex != null}
-          onClose={closePreview}
-          domain={preview.name}
-          domainId={preview.id}
-          sellerId={preview.owner_id}
-          price={preview.price}
-          currency={preview.currency}
-          onPrev={goPrev}
-          onNext={goNext}
-          hasPrev={(previewIndex ?? 0) > 0}
-          hasNext={(previewIndex ?? 0) < filteredDomains.length - 1}
-        />
-      )}
     </div>
   );
 };
