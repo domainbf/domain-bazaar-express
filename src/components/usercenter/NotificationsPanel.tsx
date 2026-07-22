@@ -276,6 +276,9 @@ export const NotificationsPanel = () => {
                           aria-label="选择通知"
                         />
                         <div className="flex-1 min-w-0">
+                          <Link
+                            to={notification.action_url || '#'}
+                            className="block"
                             onClick={() => {
                               if (!notification.is_read) {
                                 markAsRead(notification.id);
