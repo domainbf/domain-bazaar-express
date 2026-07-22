@@ -9,8 +9,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   Upload, CheckCircle2, TrendingUp, ShieldCheck, BarChart3, MessageSquare,
   Handshake, Star, DollarSign, Eye, Heart, Gavel, ArrowUpRight, Package,
-  Inbox,
+  Inbox, Globe2,
 } from 'lucide-react';
+import SellerAnalytics from '@/components/seller/SellerAnalytics';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserStats } from '@/hooks/useUserStats';
 import { supabase } from '@/integrations/supabase/client';
@@ -178,11 +179,14 @@ const SellerDashboard = ({ userId }: { userId: string }) => {
             实时追踪上架、报价、买家消息，一键管理您的域名资产
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button onClick={() => navigate('/user-center?tab=domains&new=1')} data-testid="seller-cta-new">
             <Upload className="h-4 w-4 mr-1.5" />上架新域名
           </Button>
           <Button variant="outline" onClick={() => navigate('/bulk-listing')}>批量上架</Button>
+          <Button variant="outline" onClick={() => navigate('/dns')}>
+            <Globe2 className="h-4 w-4 mr-1.5" />DNS 管理
+          </Button>
         </div>
       </div>
 
@@ -204,7 +208,11 @@ const SellerDashboard = ({ userId }: { userId: string }) => {
         )}
       </div>
 
+      {/* 30-day analytics */}
+      <SellerAnalytics userId={userId} />
+
       <div className="grid lg:grid-cols-3 gap-6">
+
         {/* Active listings */}
         <Card className="lg:col-span-2 border-border/60">
           <CardContent className="p-5">
