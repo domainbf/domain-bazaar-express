@@ -233,9 +233,9 @@ const CardSkeleton = ({ hero, i }: { hero?: boolean; i: number }) => (
 );
 
 // ─── Main list — one unified style with optional hero row ───────────────────
-export const DomainListings = ({ domains, isLoading, isMobile, layout = 'card', onSelect }: DomainListingsProps) => {
+export const DomainListings = ({ domains, isLoading, isMobile, layout = 'card', view = 'grid', onSelect }: DomainListingsProps) => {
   // The 'magazine' preset places a hero card at the front; every other preset renders uniform cards.
-  const showHero = layout === 'magazine' || layout === 'bento';
+  const showHero = view === 'grid' && (layout === 'magazine' || layout === 'bento');
 
   const gridClass = isMobile
     ? 'grid grid-cols-1 gap-4'
@@ -244,6 +244,15 @@ export const DomainListings = ({ domains, isLoading, isMobile, layout = 'card', 
   const list = useMemo(() => domains, [domains]);
 
   if (isLoading) {
+    if (view === 'list') {
+      return (
+        <div className="space-y-2">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="h-16 rounded-xl border border-border/60 bg-muted/30 animate-pulse" />
+          ))}
+        </div>
+      );
+    }
     return (
       <div className={gridClass}>
         {Array.from({ length: 8 }).map((_, i) => (
@@ -258,6 +267,14 @@ export const DomainListings = ({ domains, isLoading, isMobile, layout = 'card', 
       <div className="text-center py-20">
         <h3 className="text-2xl font-bold text-foreground mb-2">没有找到域名</h3>
         <p className="text-muted-foreground">尝试调整筛选条件或搜索不同的关键词</p>
+      </div>
+    );
+  }
+
+  if (view === 'list') {
+    return (
+      <div className="space-y-2">
+        {list.map((d, i) => <DomainListRow key={d.id} domain={d} index={i} />)}
       </div>
     );
   }
