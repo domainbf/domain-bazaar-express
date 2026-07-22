@@ -18,6 +18,7 @@ import {
   Square
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { Domain } from '@/types/domain';
 
 interface BatchDomainOperationsProps {
