@@ -30,12 +30,33 @@ const fmt = (v: number, cur = 'CNY') => {
   return `${sym}${Number(v || 0).toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
 };
 
+interface DeliveryLog {
+  id: string;
+  attempt: number;
+  status: string;
+  error: string | null;
+  duration_ms: number | null;
+  created_at: string;
+  triggered_by: string | null;
+}
+
 export default function OrderDetailPage() {
   const { id = '' } = useParams();
   const [txn, setTxn] = useState<Txn | null>(null);
   const [domainName, setDomainName] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [deliveries, setDeliveries] = useState<DeliveryLog[]>([]);
+
+  const loadDeliveries = async (txnId: string) => {
+    const { data } = await supabase
+      .from('receipt_delivery_log')
+      .select('id, attempt, status, error, duration_ms, created_at, triggered_by')
+      .eq('transaction_id', txnId)
+      .order('created_at', { ascending: false })
+      .limit(10);
+    setDeliveries((data as any) || []);
+  };
 
   const load = async () => {
     setLoading(true);
@@ -54,6 +75,7 @@ export default function OrderDetailPage() {
           .maybeSingle();
         setDomainName((d as any)?.name || '');
       }
+      loadDeliveries((data as any).id);
     }
     setLoading(false);
   };
