@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { Navbar } from '@/components/Navbar';
+import { useNotifications } from '@/hooks/useNotifications';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatPrice } from '@/lib/currency';
-import { Inbox, Mail, Clock, CheckCircle2, XCircle, MessageSquare, RefreshCw, ArrowRight } from 'lucide-react';
+import { Inbox, Mail, Clock, CheckCircle2, XCircle, MessageSquare, RefreshCw, ArrowRight, ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface OfferRow {
