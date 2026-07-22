@@ -1,4 +1,4 @@
-import { Search, Sparkles, ArrowRight, Zap, Shield, TrendingUp } from 'lucide-react';
+import { Search, Sparkles, ArrowRight, Zap, Shield, TrendingUp, ListChecks } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState, useMemo, useRef, useEffect } from 'react';
@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { useHomeData } from '@/hooks/useHomeData';
 import { motion, AnimatePresence } from 'framer-motion';
+import { BulkCheckDialog } from '@/components/search/BulkCheckDialog';
 
 const POPULAR_TLDS = ['.com', '.ai', '.io', '.co', '.app', '.dev', '.xyz', '.net'];
 
