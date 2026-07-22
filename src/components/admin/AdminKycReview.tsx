@@ -26,6 +26,9 @@ interface KycRow {
   reviewed_at: string | null;
   created_at: string;
   updated_at: string;
+  id_front_url?: string | null;
+  id_back_url?: string | null;
+  id_selfie_url?: string | null;
 }
 
 const STATUS: Record<string, { label: string; tone: any }> = {
