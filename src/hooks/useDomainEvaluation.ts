@@ -132,56 +132,40 @@ export const useDomainEvaluation = (domainName?: string) => {
     return Math.round(value);
   };
   
-  // Fetch similar domains from database for comparison
-  const fetchSimilarDomains = async (factors: DomainFactors) => {
+  // Fetch similar domains from database for comparison (real data only, no mocks)
+  const fetchSimilarDomains = async (factors: DomainFactors): Promise<{ name: string; price: number }[]> => {
     try {
-      // In a real app, this would be a more sophisticated query
-      let query = supabase
+      const { data, error } = await supabase
         .from('domain_listings')
         .select('name, price')
-        .eq('status', 'available');
-      
-      // Try to find domains with similar length
-      const lengthRange = 2;
-      query = query.gte('name', factors.length - lengthRange)
-                  .lte('name', factors.length + lengthRange);
-      
-      const { data, error } = await query.limit(5);
-      
+        .in('status', ['available', 'sold'])
+        .ilike('name', `%.${factors.tld}`)
+        .not('price', 'is', null)
+        .limit(50);
+
       if (error) throw error;
-      
-      if (!data || data.length === 0) {
-        // Generate mock similar domains
-        return generateMockSimilarDomains(factors);
-      }
-      
-      return data.map(d => ({
-        name: d.name,
-        price: Number(d.price)
-      }));
+      if (!data || data.length === 0) return [];
+
+      // Rank by length proximity, keep top 5
+      const scored = data
+        .map((d: any) => {
+          const base = String(d.name).split('.')[0] || '';
+          return {
+            name: d.name as string,
+            price: Number(d.price) || 0,
+            distance: Math.abs(base.length - factors.length),
+          };
+        })
+        .filter((d) => d.price > 0)
+        .sort((a, b) => a.distance - b.distance)
+        .slice(0, 5)
+        .map(({ name, price }) => ({ name, price }));
+
+      return scored;
     } catch (error) {
       console.error('Error fetching similar domains:', error);
-      // Fallback to mock data
-      return generateMockSimilarDomains(factors);
+      return [];
     }
-  };
-  
-  // Generate mock similar domains for comparison
-  const generateMockSimilarDomains = (factors: DomainFactors) => {
-    const similarDomains = [];
-    const basePrice = calculateBaseValue(factors);
-    
-    // Generate 3-5 similar domains with slight variations in name and price
-    const count = 3 + Math.floor(Math.random() * 3);
-    for (let i = 0; i < count; i++) {
-      const priceFactor = 0.8 + (Math.random() * 0.4); // 80-120% of base price
-      similarDomains.push({
-        name: `example${i + 1}.${factors.tld}`,
-        price: Math.round(basePrice * priceFactor)
-      });
-    }
-    
-    return similarDomains;
   };
   
   // Generate evaluation factors explaining the estimate
