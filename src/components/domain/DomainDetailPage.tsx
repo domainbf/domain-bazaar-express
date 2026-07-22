@@ -573,6 +573,25 @@ export const DomainDetailPage = () => {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* 联系卖家对话框 */}
+      {!isOwner && domain.owner_id && (
+        <Dialog open={isContactOpen} onOpenChange={setIsContactOpen}>
+          <DialogContent className="sm:max-w-[560px] p-0 gap-0 h-[80vh] flex flex-col">
+            <DialogHeader className="p-4 border-b">
+              <DialogTitle className="text-base">与卖家沟通 · {domain.name}</DialogTitle>
+              <DialogDescription className="text-xs">
+                消息将在站内通知与邮件中同步给对方，请勿在此透露支付账号或私人联系方式。
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <Suspense fallback={<div className="p-8 text-center text-sm text-muted-foreground">加载对话中...</div>}>
+                <LazyMessageCenter otherUserId={domain.owner_id} domainId={domain.id} />
+              </Suspense>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
       </motion.div>
     </AnimatePresence>
   );
