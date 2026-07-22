@@ -11,6 +11,7 @@ import { PWAInstallBanner } from './components/pwa/PWAInstallBanner';
 import { TopProgressBar } from './components/common/TopProgressBar';
 import { GlobalBottomNav } from './components/mobile/GlobalBottomNav';
 import { FeedbackButton } from './components/common/FeedbackButton';
+import { CommandPalette } from './components/common/CommandPalette';
 import { lazyRetry, reportRoute } from '@/lib/routeTelemetry';
 
 // Route-based code splitting
