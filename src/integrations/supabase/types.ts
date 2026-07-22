@@ -1155,6 +1155,7 @@ export type Database = {
           error: string | null
           from_stage: string | null
           id: string
+          idempotency_key: string | null
           metadata: Json
           operation: string
           operator_email: string | null
@@ -1168,6 +1169,7 @@ export type Database = {
           error?: string | null
           from_stage?: string | null
           id?: string
+          idempotency_key?: string | null
           metadata?: Json
           operation: string
           operator_email?: string | null
@@ -1181,6 +1183,7 @@ export type Database = {
           error?: string | null
           from_stage?: string | null
           id?: string
+          idempotency_key?: string | null
           metadata?: Json
           operation?: string
           operator_email?: string | null
