@@ -154,6 +154,7 @@ function MarqueeRow({ items, direction, onChipClick, onPrefetch, onVisible, badg
             onClick={() => onChipClick(item.name)}
             onPrefetch={() => onPrefetch(item)}
             index={i}
+            badge={badge}
           />
         ))}
       </div>
