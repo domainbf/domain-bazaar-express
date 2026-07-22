@@ -115,14 +115,19 @@ export default function OrderDetailPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="max-w-4xl mx-auto px-4 pt-24 pb-16">
-        <div className="mb-6 flex items-center justify-between">
+      <div className="max-w-4xl mx-auto px-4 pt-24 pb-16 print-container">
+        <div className="mb-6 flex items-center justify-between no-print">
           <Link to="/user-center?tab=transactions" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5">
             <ArrowLeft className="w-4 h-4" /> 我的订单
           </Link>
           <Badge variant={txn.status === 'completed' ? 'default' : 'secondary'}>
             {txn.status === 'completed' ? '已完成' : txn.status}
           </Badge>
+        </div>
+
+        <div className="hidden print:block mb-6">
+          <div className="text-2xl font-bold">域见·你 · 订单收据</div>
+          <div className="text-xs text-muted-foreground">生成时间 {new Date().toLocaleString('zh-CN')}</div>
         </div>
 
         <motion.div initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="rounded-2xl border border-border bg-card overflow-hidden mb-5">
@@ -134,12 +139,12 @@ export default function OrderDetailPage() {
                 {new Date(txn.created_at).toLocaleString('zh-CN')} · {txn.payment_method || '—'}
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 no-print">
               <Button variant="ghost" size="sm" onClick={copy}>
                 <Copy className="w-3.5 h-3.5 mr-1.5" /> 复制
               </Button>
               <Button variant="ghost" size="sm" onClick={() => window.print()}>
-                <Download className="w-3.5 h-3.5 mr-1.5" /> 打印
+                <Download className="w-3.5 h-3.5 mr-1.5" /> 下载 PDF
               </Button>
               <Button variant="ghost" size="sm" onClick={resend} disabled={sending}>
                 {sending ? <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Mail className="w-3.5 h-3.5 mr-1.5" />}
