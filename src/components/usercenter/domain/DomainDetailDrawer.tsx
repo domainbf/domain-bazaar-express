@@ -63,7 +63,7 @@ export const DomainDetailDrawer = ({ domain, open, onOpenChange, onUpdate }: Dom
               <DollarSign className="w-3 h-3" /> 报价
             </div>
             <div className="text-3xl font-bold">
-              {symbol}{Number(domain.price || 0).toLocaleString()}
+              {priceLabel}
             </div>
           </div>
 
