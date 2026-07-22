@@ -40,13 +40,26 @@ export const AuthForm = ({
   const { config } = useSiteSettings();
   const registrationClosed = config.registration_closed === 'true';
 
-  const handleGoogleLogin = () => {
-    toast.info('Google 第三方登录功能即将上线，请使用邮箱登录');
+  const handleOAuthLogin = async (provider: 'google' | 'github') => {
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
+      });
+      if (error) throw error;
+    } catch (e: any) {
+      const msg = e?.message || '';
+      if (msg.toLowerCase().includes('provider is not enabled')) {
+        toast.error(`${provider === 'google' ? 'Google' : 'GitHub'} 登录尚未在后台启用，请联系管理员`);
+      } else {
+        toast.error(msg || '第三方登录失败，请稍后重试');
+      }
+    }
   };
 
-  const handleGithubLogin = () => {
-    toast.info('GitHub 第三方登录功能即将上线，请使用邮箱登录');
-  };
+  const handleGoogleLogin = () => handleOAuthLogin('google');
+  const handleGithubLogin = () => handleOAuthLogin('github');
 
   // Restore remembered email
   useEffect(() => {
