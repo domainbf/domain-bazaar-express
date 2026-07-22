@@ -42,6 +42,8 @@ interface DisputeCenterProps {
   isAdmin?: boolean;
 }
 
+type StatusFilter = 'all' | 'active' | 'resolved';
+
 export const DisputeCenter = ({ isAdmin = false }: DisputeCenterProps) => {
   const { user } = useAuth();
   const [disputes, setDisputes] = useState<Dispute[]>([]);
@@ -49,10 +51,7 @@ export const DisputeCenter = ({ isAdmin = false }: DisputeCenterProps) => {
   const [selectedDispute, setSelectedDispute] = useState<Dispute | null>(null);
   const [adminNotes, setAdminNotes] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
-
-  useEffect(() => {
-    loadDisputes();
-  }, [isAdmin]);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   const loadDisputes = async () => {
     setIsLoading(true);
@@ -75,6 +74,29 @@ export const DisputeCenter = ({ isAdmin = false }: DisputeCenterProps) => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadDisputes();
+    // Realtime subscription for dispute changes
+    const channel = supabase
+      .channel(`disputes-${isAdmin ? 'admin' : user?.id ?? 'anon'}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'disputes' },
+        () => { loadDisputes(); }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin, user?.id]);
+
+  const isActive = (s: string | null) => ['open', 'under_review'].includes(s ?? '');
+  const filteredDisputes = disputes.filter(d => {
+    if (statusFilter === 'all') return true;
+    if (statusFilter === 'active') return isActive(d.status);
+    return !isActive(d.status);
+  });
+  const activeCount = disputes.filter(d => isActive(d.status)).length;
 
   const handleAdminResolve = async (resolution: string) => {
     if (!selectedDispute) return;
