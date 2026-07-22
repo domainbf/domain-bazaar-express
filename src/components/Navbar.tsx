@@ -260,6 +260,7 @@ export const Navbar = ({ unreadCount = 0, unreadMessages: unreadMessagesProp = 0
                 <div className="border-t border-border my-2" />
                 <Button variant="ghost" className="w-full justify-start" onClick={() => handleNavigation('/user-center')}>
                   <User className="h-4 w-4 mr-2" />用户中心
+                </Button>
                 <Button variant="ghost" className="w-full justify-start" onClick={() => handleNavigation('/my-offers')}>
                   <Inbox className="h-4 w-4 mr-2" />我的报价
                 </Button>
