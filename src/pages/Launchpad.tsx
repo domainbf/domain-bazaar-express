@@ -126,29 +126,8 @@ const StatCard = ({
   return href ? <Link to={href}>{inner}</Link> : inner;
 };
 
-// ── Module card ──────────────────────────────────────────────
-const ModuleCard = ({ mod }: { mod: ModuleDef }) => {
-  const Icon = mod.icon;
-  return (
-    <Link
-      to={mod.href}
-      className="group relative flex flex-col justify-between p-5 md:p-6 rounded-2xl bg-card border border-border hover:border-primary/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-elegant overflow-hidden h-full"
-    >
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-primary/[0.06] to-transparent pointer-events-none" />
-      <div className="relative">
-        <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary grid place-items-center mb-4">
-          <Icon className="w-5 h-5" />
-        </div>
-        <div className="text-base md:text-lg font-semibold text-foreground">{mod.title}</div>
-        <div className="mt-1 text-sm text-muted-foreground">{mod.desc}</div>
-      </div>
-      <div className="relative mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-primary">
-        {mod.cta}
-        <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-      </div>
-    </Link>
-  );
-};
+
+
 
 // ── Sortable module card ─────────────────────────────────────
 const SortableModuleCard = ({ mod }: { mod: ModuleDef }) => {
