@@ -30,6 +30,8 @@ import { toast } from 'sonner';
 import { apiGet } from '@/lib/apiClient';
 import { DomainListing } from '@/types/domain';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 // ── Types ───────────────────────────────────────────────────────
 interface CartItem {
@@ -74,6 +76,7 @@ const renewalOf = (p: number) => Math.max(Math.round(p * 0.3), 68);
 export default function CheckoutPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [step, setStep] = useState<StepKey>('search');
   const [query, setQuery] = useState('');
@@ -181,11 +184,11 @@ export default function CheckoutPage() {
 
   const submit = async () => {
     setProcessing(true);
-    // Simulate order submission — real payment would kick off Alipay/WeChat/Stripe here
-    await new Promise((r) => setTimeout(r, 900));
-    const orderId = `DV-${Date.now().toString().slice(-8)}`;
+    const clientOrderId = `DV-${Date.now().toString().slice(-8)}`;
+    const now = new Date().toISOString();
+    const orderNumber = `ORD-${now.slice(0, 10).replace(/-/g, '')}-${clientOrderId.replace(/-/g, '').slice(0, 8)}`;
     const payload = {
-      orderId,
+      orderId: clientOrderId,
       total: Math.round(total),
       renewalYearly: Math.round(renewalYearly),
       items: cart,
@@ -194,12 +197,52 @@ export default function CheckoutPage() {
       customNs,
       autoRenew,
       pay,
-      when: new Date().toISOString(),
+      when: now,
     };
     try {
-      sessionStorage.setItem(`checkout:${orderId}`, JSON.stringify(payload));
+      sessionStorage.setItem(`checkout:${clientOrderId}`, JSON.stringify(payload));
     } catch {}
-    navigate(`/checkout/success?order=${orderId}`);
+
+    // Try to persist a real transaction so /order/:id can load progress
+    let realOrderId: string | null = null;
+    if (user) {
+      try {
+        const firstItem = cart[0];
+        const { data: domain } = firstItem
+          ? await supabase.from('domains').select('id').eq('name', firstItem.name).maybeSingle()
+          : { data: null };
+        const { data: inserted, error } = await supabase
+          .from('transactions')
+          .insert({
+            domain_id: (domain as any)?.id || null,
+            buyer_id: user.id,
+            amount: Math.round(total),
+            currency: 'CNY',
+            payment_method: pay,
+            status: 'completed',
+            order_number: orderNumber,
+            progress_stage: 'paid',
+            stage_history: { submitted: now, paid: new Date().toISOString() },
+          })
+          .select('id')
+          .single();
+        if (!error && inserted?.id) {
+          realOrderId = (inserted as any).id;
+          try {
+            sessionStorage.setItem(`checkout:${realOrderId}`, JSON.stringify(payload));
+          } catch {}
+          // Fire receipt email (non-blocking); errors are captured server-side
+          supabase.functions.invoke('send-order-receipt', {
+            body: { transaction_id: realOrderId, triggered_by: 'checkout' },
+          }).catch(() => {});
+        }
+      } catch (e) {
+        console.warn('persist order failed', e);
+      }
+    }
+
+    // Redirect to real order detail page when we have one, else legacy success page
+    navigate(realOrderId ? `/order/${realOrderId}` : `/checkout/success?order=${clientOrderId}`);
   };
 
   return (
