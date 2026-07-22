@@ -144,15 +144,30 @@ export const DisputeCenter = ({ isAdmin = false }: DisputeCenterProps) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h3 className="font-semibold flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-destructive" />
           {isAdmin ? '所有纠纷申诉' : '我的纠纷申诉'}
+          {activeCount > 0 && (
+            <Badge variant="destructive" className="ml-1">{activeCount} 待处理</Badge>
+          )}
         </h3>
-        <Badge variant="secondary">{disputes.length} 条记录</Badge>
+        <div className="flex gap-1 bg-muted/40 p-1 rounded-lg">
+          {(['all', 'active', 'resolved'] as StatusFilter[]).map(f => (
+            <button
+              key={f}
+              onClick={() => setStatusFilter(f)}
+              className={`px-3 py-1 text-xs rounded-md transition ${
+                statusFilter === f ? 'bg-background shadow-sm font-medium' : 'text-muted-foreground'
+              }`}
+            >
+              {f === 'all' ? `全部 (${disputes.length})` : f === 'active' ? `进行中 (${activeCount})` : `已结案 (${disputes.length - activeCount})`}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {disputes.length === 0 ? (
+      {filteredDisputes.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
           <Shield className="w-12 h-12 mx-auto mb-3 opacity-30" />
           <p className="font-medium">暂无纠纷记录</p>
@@ -160,7 +175,7 @@ export const DisputeCenter = ({ isAdmin = false }: DisputeCenterProps) => {
         </div>
       ) : (
         <div className="space-y-3">
-          {disputes.map(dispute => {
+          {filteredDisputes.map(dispute => {
             const config = STATUS_CONFIG[dispute.status ?? 'open'];
             const StatusIcon = config?.icon ?? Clock;
             return (
