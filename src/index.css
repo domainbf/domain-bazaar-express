@@ -136,36 +136,57 @@
 /* Base Layout Styles */
 @layer components {
   .primary-button {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-semibold;
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 font-semibold shadow-sm hover:shadow-md active:scale-[0.98];
   }
   .secondary-button {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors font-semibold;
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all duration-200 font-semibold active:scale-[0.98];
   }
   .outline-button {
-    @apply border-2 border-border bg-transparent text-foreground hover:bg-accent transition-colors font-semibold;
+    @apply border border-border bg-transparent text-foreground hover:bg-accent hover:border-primary/30 transition-all duration-200 font-semibold active:scale-[0.98];
   }
   .simple-card {
-    @apply bg-card border border-border rounded-lg shadow-sm transition-all duration-300 h-full;
+    @apply bg-card border border-border rounded-xl transition-all duration-300 h-full;
+    box-shadow: var(--shadow-card);
   }
   .simple-card:hover {
-    @apply shadow-md;
+    @apply border-primary/20;
+    box-shadow: var(--shadow-elegant);
+    transform: translateY(-2px);
+  }
+  .premium-surface {
+    @apply bg-card/80 backdrop-blur-xl border border-border/60 rounded-2xl;
+    box-shadow: var(--shadow-card);
+  }
+  .gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+  .gradient-bg {
+    background: var(--gradient-primary);
+  }
+  .hero-aurora {
+    background: var(--gradient-hero);
   }
   .fade-in {
     animation: fadeIn 0.5s ease-out;
   }
   .domain-card-btn {
-    @apply bg-primary text-primary-foreground font-bold border-0;
+    @apply bg-primary text-primary-foreground font-semibold border-0;
   }
   .filter-button {
-    @apply bg-card text-foreground border-2 border-border font-bold hover:bg-accent;
+    @apply bg-card text-foreground border border-border font-medium hover:bg-accent hover:border-primary/30 transition-all;
   }
   .filter-button-active {
-    @apply bg-primary text-primary-foreground font-bold hover:bg-primary/90;
+    @apply bg-primary text-primary-foreground font-semibold hover:bg-primary/90 shadow-sm;
   }
   .filter-text {
-    @apply text-base font-bold;
+    @apply text-sm font-medium;
   }
 }
+
 
 /* ── Micro-interaction animations ─────────────────────────────────────────── */
 @keyframes icon-pop {
