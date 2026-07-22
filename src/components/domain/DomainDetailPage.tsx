@@ -293,7 +293,7 @@ export const DomainDetailPage = () => {
                     onClick={handleOffer}
                     disabled={domain.status !== "available"}
                   >
-                    <MessageSquare className="h-4 w-4 mr-2" />
+                    <DollarSign className="h-4 w-4 mr-2" />
                     提交报价
                   </Button>
                   <Button
@@ -305,6 +305,15 @@ export const DomainDetailPage = () => {
                     {isFavorited ? "已收藏" : "收藏"}
                   </Button>
                 </div>
+                <Button
+                  variant="ghost"
+                  className="w-full h-11 font-medium"
+                  onClick={handleContactSeller}
+                  disabled={!domain.owner_id}
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  联系卖家
+                </Button>
                 <p className="text-xs text-center text-muted-foreground">
                   所有交易都受到平台保护
                 </p>
