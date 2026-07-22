@@ -127,15 +127,40 @@ export default function PortfolioValuation() {
     }
   };
 
+  const buildShareUrl = () => {
+    const top = rows.slice(0, 10).map((r) => r.name);
+    const payload = {
+      v: 1,
+      id: shareId,
+      n: rows.length,
+      mid: totals.mid,
+      low: totals.low,
+      high: totals.high,
+      top,
+    };
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+    return `${window.location.origin}/tools/portfolio-valuation?snap=${encoded}`;
+  };
+
   const copyShare = async () => {
-    const url = `${window.location.origin}/tools/portfolio-valuation?ref=${shareId}`;
+    const url = buildShareUrl();
     try {
       await navigator.clipboard.writeText(url);
-      toast.success('分享链接已复制');
+      toast.success('分享链接已复制，社交卡片将自动生成');
     } catch {
       toast.error('复制失败');
     }
   };
+
+  const shareToSocial = (platform: 'twitter' | 'weibo') => {
+    const url = buildShareUrl();
+    const text = `我用「域见•你」评估了 ${rows.length} 个域名，组合中位估值 ${formatPrice(totals.mid, 'CNY')} 💎`;
+    const target = platform === 'twitter'
+      ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`
+      : `https://service.weibo.com/share/share.php?url=${encodeURIComponent(url)}&title=${encodeURIComponent(text)}`;
+    window.open(target, '_blank', 'noopener,noreferrer');
+  };
+
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6 print:py-2">
