@@ -23,6 +23,8 @@ const Marketplace = lazy(lazyRetry(() => import('./pages/Marketplace').then(m =>
 const Dashboard = lazy(lazyRetry(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard }))));
 const Launchpad = lazy(lazyRetry(() => import('./pages/Launchpad')));
 const PortfolioPage = lazy(lazyRetry(() => import('./pages/PortfolioPage')));
+const CheckoutPage = lazy(lazyRetry(() => import('./pages/CheckoutPage')));
+const CheckoutSuccessPage = lazy(lazyRetry(() => import('./pages/CheckoutSuccessPage')));
 
 const AdminPanel = lazy(lazyRetry(() => import('./pages/AdminPanel').then(m => ({ default: m.AdminPanel }))));
 const DomainVerification = lazy(lazyRetry(() => import('./pages/DomainVerification').then(m => ({ default: m.DomainVerification }))));
@@ -269,6 +271,9 @@ const AnimatedRoutes = memo(() => {
         <Route path="/dashboard" element={<ProtectedRoute><Launchpad /></ProtectedRoute>} />
         <Route path="/dashboard/classic" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/portfolio" element={<ProtectedRoute><PortfolioPage /></ProtectedRoute>} />
+        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
+
 
         <Route path="/user-center" element={<ProtectedRoute><UserCenter /></ProtectedRoute>} />
         <Route path="/user-center/*" element={<ProtectedRoute><UserCenter /></ProtectedRoute>} />
