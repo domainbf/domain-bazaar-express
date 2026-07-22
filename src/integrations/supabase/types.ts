@@ -1499,6 +1499,69 @@ export type Database = {
           },
         ]
       }
+      seller_kyc: {
+        Row: {
+          bank_name: string | null
+          country: string | null
+          created_at: string
+          full_name: string
+          id: string
+          id_number: string
+          id_type: string
+          notes: string | null
+          payout_account: string
+          payout_account_name: string | null
+          payout_method: string
+          phone: string | null
+          review_note: string | null
+          reviewed_at: string | null
+          reviewer_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bank_name?: string | null
+          country?: string | null
+          created_at?: string
+          full_name: string
+          id?: string
+          id_number: string
+          id_type: string
+          notes?: string | null
+          payout_account: string
+          payout_account_name?: string | null
+          payout_method: string
+          phone?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bank_name?: string | null
+          country?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          id_number?: string
+          id_type?: string
+          notes?: string | null
+          payout_account?: string
+          payout_account_name?: string | null
+          payout_method?: string
+          phone?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       site_content: {
         Row: {
           content: string | null
