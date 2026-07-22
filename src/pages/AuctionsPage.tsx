@@ -71,6 +71,13 @@ export const AuctionsPage = () => {
     loadAuctions();
   }, [loadAuctions]);
 
+  // Per-second tick to refresh countdown labels on active auction cards.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick(t => (t + 1) % 60), 1000);
+    return () => clearInterval(id);
+  }, []);
+
   useRealtimeSubscription(
     ["domain_auctions", "auction_bids"],
     (_event) => { loadAuctions(); }
