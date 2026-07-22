@@ -1,4 +1,4 @@
-import { Search, Sparkles, ArrowRight, Zap, Shield, TrendingUp } from 'lucide-react';
+import { Search, Sparkles, ArrowRight, Zap, Shield, TrendingUp, ListChecks } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState, useMemo, useRef, useEffect } from 'react';
@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { useHomeData } from '@/hooks/useHomeData';
 import { motion, AnimatePresence } from 'framer-motion';
+import { BulkCheckDialog } from '@/components/search/BulkCheckDialog';
 
 const POPULAR_TLDS = ['.com', '.ai', '.io', '.co', '.app', '.dev', '.xyz', '.net'];
 
@@ -254,6 +255,18 @@ export const HeroSection = () => {
                 {r.label}
               </button>
             ))}
+          </div>
+
+          {/* Bulk check trigger */}
+          <div className="mt-4 flex justify-center">
+            <BulkCheckDialog
+              trigger={
+                <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-foreground">
+                  <ListChecks className="w-3.5 h-3.5" />
+                  批量检查多个域名
+                </Button>
+              }
+            />
           </div>
         </motion.div>
 
