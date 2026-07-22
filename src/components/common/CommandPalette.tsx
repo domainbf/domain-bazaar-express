@@ -29,7 +29,13 @@ import {
   User,
   ArrowRight,
   Tag,
+  Wand2,
 } from 'lucide-react';
+
+interface AiSuggestion {
+  name: string;
+  reason?: string;
+}
 
 interface DomainHit {
   id: string;
