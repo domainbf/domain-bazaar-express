@@ -45,6 +45,14 @@ const PRICE_CHIPS = [
   { id: 'over100k', label: '10万以上', min: 100000, max: Infinity },
 ];
 
+const LENGTH_CHIPS = [
+  { id: 'all',   label: '不限长度', test: (_n: number) => true },
+  { id: 'xs',    label: '超短 ≤3',  test: (n: number) => n <= 3 },
+  { id: 'sm',    label: '短 4-6',   test: (n: number) => n >= 4 && n <= 6 },
+  { id: 'md',    label: '中 7-10',  test: (n: number) => n >= 7 && n <= 10 },
+  { id: 'lg',    label: '长 >10',   test: (n: number) => n > 10 },
+] as const;
+
 const SORT_OPTIONS = [
   { id: 'newest',        label: '最新上架',    icon: null },
   { id: 'price_asc',     label: '价格 ↑',       icon: null },
