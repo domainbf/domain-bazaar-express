@@ -53,6 +53,7 @@ const DomainValuationReport = lazy(() => import("./DomainValuationReport").then(
 const PriceHistoryChart = lazy(() => import("./PriceHistoryChart").then(m => ({ default: m.PriceHistoryChart })));
 const DomainAnalytics = lazy(() => import("./DomainAnalytics").then(m => ({ default: m.DomainAnalytics })));
 const DomainValuationTool = lazy(() => import("./DomainValuationTool").then(m => ({ default: m.DomainValuationTool })));
+const LazyMessageCenter = lazy(() => import("@/components/messages/MessageCenter").then(m => ({ default: m.MessageCenter })));
 
 // 页面过渡动画配置
 const pageVariants = {
@@ -90,6 +91,7 @@ export const DomainDetailPage = () => {
   const { analytics, trends, isFavorited, recordView, toggleFavorite } = useDomainAnalytics(domain?.id || '');
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const [isBuyNow, setIsBuyNow] = useState(false);
+  const [isContactOpen, setIsContactOpen] = useState(false);
   const [activeAuction, setActiveAuction] = useState<AuctionType | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -150,6 +152,16 @@ export const DomainDetailPage = () => {
     if (isOwner) {
       navigate(`/domain-verification/${domain.id}`);
     }
+  };
+
+  const handleContactSeller = () => {
+    if (isOwner) return;
+    if (!user) {
+      navigate(`/auth?redirect=/domain/${domain.name}`);
+      return;
+    }
+    if (!domain.owner_id) return;
+    setIsContactOpen(true);
   };
 
   return (
@@ -282,7 +294,7 @@ export const DomainDetailPage = () => {
                     onClick={handleOffer}
                     disabled={domain.status !== "available"}
                   >
-                    <MessageSquare className="h-4 w-4 mr-2" />
+                    <DollarSign className="h-4 w-4 mr-2" />
                     提交报价
                   </Button>
                   <Button
@@ -294,6 +306,15 @@ export const DomainDetailPage = () => {
                     {isFavorited ? "已收藏" : "收藏"}
                   </Button>
                 </div>
+                <Button
+                  variant="ghost"
+                  className="w-full h-11 font-medium"
+                  onClick={handleContactSeller}
+                  disabled={!domain.owner_id}
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  联系卖家
+                </Button>
                 <p className="text-xs text-center text-muted-foreground">
                   所有交易都受到平台保护
                 </p>
@@ -550,6 +571,25 @@ export const DomainDetailPage = () => {
               listingCurrency={(domain as any).currency || 'CNY'}
               isBuyNow={isBuyNow}
             />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* 联系卖家对话框 */}
+      {!isOwner && domain.owner_id && (
+        <Dialog open={isContactOpen} onOpenChange={setIsContactOpen}>
+          <DialogContent className="sm:max-w-[560px] p-0 gap-0 h-[80vh] flex flex-col">
+            <DialogHeader className="p-4 border-b">
+              <DialogTitle className="text-base">与卖家沟通 · {domain.name}</DialogTitle>
+              <DialogDescription className="text-xs">
+                消息将在站内通知与邮件中同步给对方，请勿在此透露支付账号或私人联系方式。
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <Suspense fallback={<div className="p-8 text-center text-sm text-muted-foreground">加载对话中...</div>}>
+                <LazyMessageCenter otherUserId={domain.owner_id} domainId={domain.id} />
+              </Suspense>
+            </div>
           </DialogContent>
         </Dialog>
       )}
