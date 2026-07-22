@@ -451,107 +451,12 @@ export default function PortfolioPage() {
       </div>
 
       {/* Slide-out drawer */}
-      <Sheet open={!!activeDomain} onOpenChange={(o) => !o && setActiveDomain(null)}>
-        <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
-          {activeDomain && (
-            <>
-              <SheetHeader className="text-left">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-primary text-primary-foreground grid place-items-center font-mono font-bold text-lg shrink-0">
-                    {activeDomain.name?.[0]?.toUpperCase() || '?'}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <SheetTitle className="text-xl truncate">{activeDomain.name}</SheetTitle>
-                    <SheetDescription className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline" className={`text-xs ${STATUS_TONES[activeDomain.status || ''] || ''}`}>
-                        {statusLabel(activeDomain.status)}
-                      </Badge>
-                      {activeDomain.is_verified && (
-                        <span className="inline-flex items-center gap-1 text-xs text-success">
-                          <ShieldCheck className="w-3 h-3" /> 已验证
-                        </span>
-                      )}
-                    </SheetDescription>
-                  </div>
-                </div>
-              </SheetHeader>
+      <DomainDetailDrawer
+        domain={activeDomain}
+        open={!!activeDomain}
+        onOpenChange={(o) => !o && setActiveDomain(null)}
+      />
 
-              {/* Price hero */}
-              <div className="mt-4 p-5 rounded-2xl bg-primary/5 border border-primary/20">
-                <div className="text-xs uppercase tracking-wider text-muted-foreground">当前价格</div>
-                <div className="mt-1 text-3xl font-bold gradient-text tabular-nums">
-                  {activeDomain.currency === 'USD' ? '$' : '¥'}
-                  {(Number(activeDomain.price) || 0).toLocaleString()}
-                </div>
-                {activeDomain.description && (
-                  <p className="mt-2 text-sm text-muted-foreground">{activeDomain.description}</p>
-                )}
-              </div>
-
-              {/* Stats grid */}
-              <div className="mt-4 grid grid-cols-3 gap-2">
-                <div className="p-3 rounded-xl bg-muted/50 border border-border text-center">
-                  <Eye className="w-4 h-4 mx-auto text-muted-foreground mb-1" />
-                  <div className="text-lg font-semibold tabular-nums">{activeDomain.views ?? 0}</div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider">浏览</div>
-                </div>
-                <div className="p-3 rounded-xl bg-muted/50 border border-border text-center">
-                  <Heart className="w-4 h-4 mx-auto text-muted-foreground mb-1" />
-                  <div className="text-lg font-semibold tabular-nums">{activeDomain.favorites ?? 0}</div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider">收藏</div>
-                </div>
-                <div className="p-3 rounded-xl bg-muted/50 border border-border text-center">
-                  <Inbox className="w-4 h-4 mx-auto text-muted-foreground mb-1" />
-                  <div className="text-lg font-semibold tabular-nums">{activeDomain.offers ?? 0}</div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider">报价</div>
-                </div>
-              </div>
-
-              {/* Metadata */}
-              <div className="mt-4 space-y-2 text-sm">
-                <div className="flex justify-between py-2 border-b border-border">
-                  <span className="text-muted-foreground">类别</span>
-                  <span className="font-medium">{activeDomain.category || '—'}</span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-border">
-                  <span className="text-muted-foreground">上架时间</span>
-                  <span className="font-medium tabular-nums">
-                    {activeDomain.created_at ? new Date(activeDomain.created_at).toLocaleString() : '—'}
-                  </span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-border">
-                  <span className="text-muted-foreground">币种</span>
-                  <span className="font-medium">{activeDomain.currency || 'CNY'}</span>
-                </div>
-              </div>
-
-              {/* Quick actions */}
-              <div className="mt-6 space-y-2">
-                <Link to={`/domain/${encodeURIComponent(activeDomain.name)}`} className="block">
-                  <Button className="w-full bg-gradient-primary text-primary-foreground border-0">
-                    <ExternalLink className="w-4 h-4 mr-1.5" /> 打开详情页
-                  </Button>
-                </Link>
-                <div className="grid grid-cols-2 gap-2">
-                  <Button variant="outline" onClick={() => copyName(activeDomain.name)}>
-                    <Copy className="w-4 h-4 mr-1.5" /> 复制
-                  </Button>
-                  <Link to={`/domain-verification/${activeDomain.id}`}>
-                    <Button variant="outline" className="w-full">
-                      <ShieldCheck className="w-4 h-4 mr-1.5" /> 验证
-                    </Button>
-                  </Link>
-                </div>
-                <Link to="/dashboard">
-                  <Button variant="ghost" className="w-full">
-                    <Pencil className="w-4 h-4 mr-1.5" /> 编辑域名
-                  </Button>
-                </Link>
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
     </div>
   );
 }
