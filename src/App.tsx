@@ -48,6 +48,7 @@ const ValuationPage = lazy(lazyRetry(() => import('./pages/ValuationPage')));
 const DomainMonitorPage = lazy(lazyRetry(() => import('./pages/DomainMonitorPage')));
 const EscrowPage = lazy(lazyRetry(() => import('./pages/EscrowPage')));
 const SellerPage = lazy(lazyRetry(() => import('./pages/SellerPage')));
+const DnsManagerPage = lazy(lazyRetry(() => import('./pages/DnsManagerPage')));
 const BulkListingPage = lazy(lazyRetry(() => import('./pages/BulkListingPage')));
 const DisputePage = lazy(lazyRetry(() => import('./pages/DisputePage')));
 const PlatformServicesPage = lazy(lazyRetry(() => import('./pages/PlatformServicesPage')));
