@@ -208,7 +208,11 @@ const SellerDashboard = ({ userId }: { userId: string }) => {
         )}
       </div>
 
+      {/* 30-day analytics */}
+      <SellerAnalytics userId={userId} />
+
       <div className="grid lg:grid-cols-3 gap-6">
+
         {/* Active listings */}
         <Card className="lg:col-span-2 border-border/60">
           <CardContent className="p-5">
