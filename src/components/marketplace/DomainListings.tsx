@@ -7,9 +7,11 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { DomainListRow } from './DomainListRow';
 
 // Kept for backwards compatibility — layout choice is now purely a density hint.
 export type MarketplaceLayout = 'card' | 'bento' | 'magazine' | 'masonry';
+export type MarketplaceView = 'grid' | 'list';
 
 export interface DomainListingsProps {
   domains: Domain[];
@@ -17,6 +19,8 @@ export interface DomainListingsProps {
   isMobile?: boolean;
   /** Density preset — 'featured' shows a large hero row; 'grid' is uniform. Default 'featured'. */
   layout?: MarketplaceLayout;
+  /** Grid (cards) vs list (dense rows). Default 'grid'. */
+  view?: MarketplaceView;
   /** When provided, cards open the drawer instead of navigating to the detail page. */
   onSelect?: (domain: Domain, index: number) => void;
 }
