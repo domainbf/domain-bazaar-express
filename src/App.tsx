@@ -13,6 +13,7 @@ import { GlobalBottomNav } from './components/mobile/GlobalBottomNav';
 import { FeedbackButton } from './components/common/FeedbackButton';
 import { CommandPalette } from './components/common/CommandPalette';
 import { lazyRetry, reportRoute } from '@/lib/routeTelemetry';
+import { ComponentErrorBoundary } from '@/components/common/ComponentErrorBoundary';
 
 // Route-based code splitting
 // All lazy imports are wrapped with lazyRetry so a transient chunk load
@@ -276,7 +277,7 @@ const AnimatedRoutes = memo(() => {
         <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/domain/:domainName" element={<DomainDetailPage />} />
         <Route path="/domains/:domainName" element={<DomainDetailPage />} />
-        <Route path="/dashboard" element={<ProtectedRoute><Launchpad /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute><ComponentErrorBoundary componentName="Launchpad"><Launchpad /></ComponentErrorBoundary></ProtectedRoute>} />
         <Route path="/dashboard/classic" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/portfolio" element={<ProtectedRoute><PortfolioPage /></ProtectedRoute>} />
         <Route path="/checkout" element={<CheckoutPage />} />
@@ -318,7 +319,7 @@ const AnimatedRoutes = memo(() => {
         <Route path="/disclaimer" element={<DisclaimerPage />} />
         <Route path="/notifications" element={<ProtectedRoute><NotificationsCenter /></ProtectedRoute>} />
         <Route path="/seller/earnings" element={<ProtectedRoute><SellerEarnings /></ProtectedRoute>} />
-        <Route path="/tools/portfolio-valuation" element={<PortfolioValuation />} />
+        <Route path="/tools/portfolio-valuation" element={<ComponentErrorBoundary componentName="PortfolioValuation"><PortfolioValuation /></ComponentErrorBoundary>} />
         <Route path="/my-offers" element={<ProtectedRoute><MyOffers /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
 
