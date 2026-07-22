@@ -32,6 +32,7 @@ import { DomainListing } from '@/types/domain';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { SecurityStrip } from '@/components/trust/SecurityStrip';
 
 // ── Types ───────────────────────────────────────────────────────
 interface CartItem {
@@ -262,6 +263,9 @@ export default function CheckoutPage() {
             </Button>
           </Link>
         </div>
+
+        {/* Security strip */}
+        <SecurityStrip />
 
         {/* Stepper */}
         <div className="rounded-2xl border border-border bg-card p-4 md:p-5 mb-6">

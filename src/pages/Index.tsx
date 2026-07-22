@@ -24,6 +24,7 @@ import { HowItWorksSection } from '@/components/sections/HowItWorksSection';
 import { DealsShowcaseSection } from '@/components/sections/DealsShowcaseSection';
 import { PremiumShowcase } from '@/components/sections/PremiumShowcase';
 import { TrustBar } from '@/components/trust/TrustBar';
+import { TestimonialsStrip } from '@/components/trust/TestimonialsStrip';
 
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -351,6 +352,8 @@ const Index = () => {
         </section>
 
         <DealsShowcaseSection />
+
+        <TestimonialsStrip />
 
         <HowItWorksSection />
 
