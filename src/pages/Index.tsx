@@ -156,6 +156,9 @@ const Index = () => {
       
       <div className={isMobile ? 'pb-20' : ''}>
         <HeroSection />
+        <PremiumShowcase />
+
+
 
         {/* Domain Tabs Section */}
         <section className="py-12 md:py-16 bg-card">
