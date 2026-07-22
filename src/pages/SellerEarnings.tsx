@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { formatPrice } from '@/lib/currency';
-import { Wallet, TrendingUp, ArrowUpRight, RefreshCw, Download } from 'lucide-react';
+import { Wallet, TrendingUp, ArrowUpRight, RefreshCw, Download, Lock } from 'lucide-react';
+import KycForm from '@/components/seller/KycForm';
 
 interface Settlement {
   id: string;
