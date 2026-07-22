@@ -46,8 +46,20 @@ export function AdminKycReview() {
   const [selected, setSelected] = useState<KycRow | null>(null);
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
+  const [docUrls, setDocUrls] = useState<Record<string, string>>({});
 
-  const load = async () => {
+  const signDocs = async (row: KycRow) => {
+    const paths = [row.id_front_url, row.id_back_url, row.id_selfie_url].filter(Boolean) as string[];
+    if (!paths.length) { setDocUrls({}); return; }
+    const map: Record<string, string> = {};
+    await Promise.all(paths.map(async (p) => {
+      const { data } = await supabase.storage.from('kyc-documents').createSignedUrl(p, 600);
+      if (data?.signedUrl) map[p] = data.signedUrl;
+    }));
+    setDocUrls(map);
+  };
+
+  useEffect(() => { if (selected) signDocs(selected); }, [selected?.id]);
     setLoading(true);
     const { data, error } = await (supabase as any)
       .from('seller_kyc')
