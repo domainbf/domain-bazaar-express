@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/sections/Footer';
+import { SellDomainQuickListForm } from '@/components/sell/SellDomainQuickListForm';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -124,6 +125,9 @@ export const SellDomainPage = () => {
           </div>
         </div>
       </section>
+
+      {/* Quick List Form (with preview + AI suggestion) */}
+      <SellDomainQuickListForm />
 
       {/* How It Works */}
       <section className="py-16 md:py-20 bg-card">

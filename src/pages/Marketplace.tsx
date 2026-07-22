@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
   Search, X, TrendingUp, RefreshCw, Heart, ArrowDownAZ, Ruler, Hash,
+  LayoutGrid, List as ListIcon,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -43,6 +44,14 @@ const PRICE_CHIPS = [
   { id: '20k-100k', label: '2万~10万', min: 20000, max: 100000 },
   { id: 'over100k', label: '10万以上', min: 100000, max: Infinity },
 ];
+
+const LENGTH_CHIPS = [
+  { id: 'all',   label: '不限长度', test: (_n: number) => true },
+  { id: 'xs',    label: '超短 ≤3',  test: (n: number) => n <= 3 },
+  { id: 'sm',    label: '短 4-6',   test: (n: number) => n >= 4 && n <= 6 },
+  { id: 'md',    label: '中 7-10',  test: (n: number) => n >= 7 && n <= 10 },
+  { id: 'lg',    label: '长 >10',   test: (n: number) => n > 10 },
+] as const;
 
 const SORT_OPTIONS = [
   { id: 'newest',        label: '最新上架',    icon: null },
@@ -76,6 +85,11 @@ export const Marketplace = () => {
   const [sortBy, setSortBy] = useState<string>('newest');
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [lengthChip, setLengthChip] = useState<string>('all');
+  const [view, setView] = useState<'grid' | 'list'>(() => {
+    try { return (localStorage.getItem('marketplace-view') as 'grid' | 'list') || 'grid'; } catch { return 'grid'; }
+  });
+  useEffect(() => { try { localStorage.setItem('marketplace-view', view); } catch {} }, [view]);
   // Layout kept for backwards compat; hero row is enabled by default via 'magazine'.
   const layout: MarketplaceLayout = 'magazine';
 
@@ -115,6 +129,10 @@ export const Marketplace = () => {
     }
     if (verifiedOnly) result = result.filter(d => d.is_verified);
     if (favoritesOnly) result = result.filter(d => favoriteSet.has(d.id));
+    const lc = LENGTH_CHIPS.find(l => l.id === lengthChip);
+    if (lc && lc.id !== 'all') {
+      result = result.filter(d => lc.test(domainBase(d.name).length));
+    }
 
     result.sort((a, b) => {
       switch (sortBy) {
@@ -130,15 +148,16 @@ export const Marketplace = () => {
       }
     });
     return result;
-  }, [allDomains, tldFilter, searchQuery, priceChip, verifiedOnly, favoritesOnly, favoriteSet, sortBy]);
+  }, [allDomains, tldFilter, searchQuery, priceChip, verifiedOnly, favoritesOnly, favoriteSet, sortBy, lengthChip]);
 
   const hasActiveFilters =
     tldFilter !== 'all' || priceChip !== 'all' || verifiedOnly || favoritesOnly ||
-    sortBy !== 'newest' || !!searchQuery.trim();
+    sortBy !== 'newest' || !!searchQuery.trim() || lengthChip !== 'all';
 
   const clearAll = () => {
     setTldFilter('all'); setPriceChip('all'); setSortBy('newest');
     setVerifiedOnly(false); setFavoritesOnly(false); setSearchQuery('');
+    setLengthChip('all');
   };
 
   const handleRefresh = () => {
@@ -242,6 +261,23 @@ export const Marketplace = () => {
                 </button>
               ))}
             </div>
+            {/* Row 1b: Length chips */}
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-2 border-b border-border/50">
+              {LENGTH_CHIPS.map(chip => (
+                <button
+                  key={chip.id}
+                  data-testid={`filter-length-${chip.id}`}
+                  onClick={() => setLengthChip(chip.id)}
+                  className={`px-3 py-1 rounded-full text-xs whitespace-nowrap transition-colors shrink-0 ${
+                    lengthChip === chip.id
+                      ? 'bg-foreground text-background font-semibold'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
             {/* Row 2: Sort options */}
             <div className="flex items-center gap-1 py-2 overflow-x-auto scrollbar-hide">
               {SORT_OPTIONS.map(opt => {
@@ -263,16 +299,38 @@ export const Marketplace = () => {
                   </button>
                 );
               })}
-              {hasActiveFilters && (
-                <button
-                  onClick={clearAll}
-                  className="ml-auto p-1 text-muted-foreground hover:text-foreground rounded shrink-0"
-                  data-testid="button-clear-filters"
-                  title="清空筛选"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              )}
+              <div className="ml-auto flex items-center gap-1 shrink-0">
+                <div className="inline-flex bg-muted/40 rounded-md p-0.5" role="tablist" aria-label="视图">
+                  <button
+                    type="button"
+                    onClick={() => setView('grid')}
+                    data-testid="view-grid"
+                    title="网格视图"
+                    className={`h-6 w-7 flex items-center justify-center rounded ${view === 'grid' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    <LayoutGrid className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setView('list')}
+                    data-testid="view-list"
+                    title="列表视图"
+                    className={`h-6 w-7 flex items-center justify-center rounded ${view === 'list' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    <ListIcon className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                {hasActiveFilters && (
+                  <button
+                    onClick={clearAll}
+                    className="p-1 text-muted-foreground hover:text-foreground rounded"
+                    data-testid="button-clear-filters"
+                    title="清空筛选"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -326,7 +384,7 @@ export const Marketplace = () => {
               <Button onClick={() => refetch()} variant="outline" size="sm">重新加载</Button>
             </div>
           ) : isLoading ? (
-            <DomainListings isLoading domains={[]} isMobile={isMobile} layout={layout} />
+            <DomainListings isLoading domains={[]} isMobile={isMobile} layout={layout} view={view} />
           ) : filteredDomains.length === 0 && allDomains.length === 0 ? (
             <div className="text-center py-20">
               <div className="text-5xl mb-4">🔍</div>
@@ -347,6 +405,7 @@ export const Marketplace = () => {
               domains={filteredDomains}
               isMobile={isMobile}
               layout={layout}
+              view={view}
             />
           )}
         </div>
