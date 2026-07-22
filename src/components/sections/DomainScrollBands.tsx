@@ -156,35 +156,8 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
     bandType: 'sold' as BandType,
   }));
 
-  // 首页曝光时自动补齐拍卖/热门缺失 logo（限速：串行 + 2s 间隔，会话内去重）
-  useEffect(() => {
-    const missing = [...auctionDomains, ...hotDomains].filter(d => !d.logoUrl);
-    if (!missing.length) return;
-    const KEY = '__domain_logo_backfill__';
-    const w = window as any;
-    if (!w[KEY]) w[KEY] = new Set<string>();
-    const seen: Set<string> = w[KEY];
-    const queue = missing.filter(d => !seen.has(d.id)).slice(0, 8);
-    if (!queue.length) return;
-    queue.forEach(d => seen.add(d.id));
-
-    let cancelled = false;
-    (async () => {
-      for (const d of queue) {
-        if (cancelled) return;
-        try {
-          await supabase.functions.invoke('generate-domain-logo', {
-            body: { domainId: d.id, domainName: d.name, triggeredBy: 'home-auto' },
-          });
-        } catch { /* silent */ }
-        await new Promise(r => setTimeout(r, 2000));
-      }
-      if (!cancelled) queryClient.invalidateQueries({ queryKey: ['home', 'data'] });
-    })();
-
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [homeData?.hotDomains, homeData?.auctionDomains]);
+  // 首页徽章统一使用纯排印风格，不再自动生成 AI logo（避免与 wordmark 重叠导致视觉杂乱）
+  // 如需为详情页/卡片生成 logo，请在后台"Logo 生成管理"手动触发。
 
 
   const pad = (arr: DomainChip[]) => (arr.length >= 4 ? arr : [...arr, ...arr]);
