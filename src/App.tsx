@@ -21,6 +21,9 @@ const Index = lazy(lazyRetry(() => import('./pages/Index')));
 const AuthPage = lazy(lazyRetry(() => import('./pages/AuthPage')));
 const Marketplace = lazy(lazyRetry(() => import('./pages/Marketplace').then(m => ({ default: m.Marketplace }))));
 const Dashboard = lazy(lazyRetry(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard }))));
+const Launchpad = lazy(lazyRetry(() => import('./pages/Launchpad')));
+const PortfolioPage = lazy(lazyRetry(() => import('./pages/PortfolioPage')));
+
 const AdminPanel = lazy(lazyRetry(() => import('./pages/AdminPanel').then(m => ({ default: m.AdminPanel }))));
 const DomainVerification = lazy(lazyRetry(() => import('./pages/DomainVerification').then(m => ({ default: m.DomainVerification }))));
 const Profile = lazy(lazyRetry(() => import('./pages/Profile').then(m => ({ default: m.Profile }))));
