@@ -247,51 +247,79 @@ export const MessagesPage = () => {
     }
   };
 
-  return (
-    <div className="flex h-full border rounded-lg overflow-hidden">
-      <div className="w-64 border-r flex flex-col shrink-0">
-        <div className="p-4 border-b">
-          <p className="font-semibold text-sm">消息</p>
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          {isLoading ? (
-            <div className="flex justify-center py-8"><LoadingSpinner /></div>
-          ) : conversations.length === 0 ? (
-            <p className="text-center text-muted-foreground text-sm py-8">暂无会话</p>
-          ) : (
-            conversations.map(conv => (
-              <button
-                key={conv.userId}
-                className={`w-full text-left p-3 border-b hover:bg-muted/40 transition-colors ${selectedUserId === conv.userId ? 'bg-muted' : ''}`}
-                onClick={() => setSelectedUserId(conv.userId)}
-                data-testid={`conversation-${conv.userId}`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm truncate">{conv.userName}</span>
-                  {conv.unread > 0 && (
-                    <span className="bg-foreground text-background text-xs rounded-full w-5 h-5 flex items-center justify-center shrink-0">
-                      {conv.unread}
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground truncate mt-0.5">{conv.lastMessage}</p>
-              </button>
-            ))
-          )}
-        </div>
-      </div>
-      <div className="flex-1">
-        {selectedUserId ? (
-          <MessageCenter otherUserId={selectedUserId} />
-        ) : (
-          <div className="flex items-center justify-center h-full text-muted-foreground">
-            <div className="text-center">
-              <User className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">选择一个会话开始聊天</p>
-            </div>
-          </div>
+  const list = (
+    <div className="flex flex-col h-full">
+      <div className="p-4 border-b flex items-center justify-between">
+        <p className="font-semibold text-sm">消息</p>
+        {conversations.length > 0 && (
+          <span className="text-xs text-muted-foreground">{conversations.length} 个会话</span>
         )}
       </div>
+      <div className="flex-1 overflow-y-auto">
+        {isLoading ? (
+          <div className="flex justify-center py-8"><LoadingSpinner /></div>
+        ) : conversations.length === 0 ? (
+          <div className="text-center py-12 px-4">
+            <User className="w-10 h-10 mx-auto mb-3 opacity-30" />
+            <p className="text-sm text-muted-foreground">暂无会话</p>
+            <p className="text-xs text-muted-foreground mt-1">在域名详情页联系卖家即可开始对话</p>
+          </div>
+        ) : (
+          conversations.map(conv => (
+            <button
+              key={conv.userId}
+              className={`w-full text-left p-3 border-b hover:bg-muted/40 transition-colors ${selectedUserId === conv.userId ? 'bg-muted' : ''}`}
+              onClick={() => setSelectedUserId(conv.userId)}
+              data-testid={`conversation-${conv.userId}`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-medium text-sm truncate">{conv.userName}</span>
+                {conv.unread > 0 && (
+                  <span className="bg-foreground text-background text-xs rounded-full min-w-5 h-5 px-1.5 flex items-center justify-center shrink-0">
+                    {conv.unread}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground truncate mt-0.5">{conv.lastMessage}</p>
+              <p className="text-[10px] text-muted-foreground/70 mt-0.5">
+                {formatDistanceToNow(new Date(conv.lastTime), { addSuffix: true, locale: zhCN })}
+              </p>
+            </button>
+          ))
+        )}
+      </div>
+    </div>
+  );
+
+  const conversation = selectedUserId ? (
+    <div className="flex flex-col h-full">
+      <div className="md:hidden p-2 border-b">
+        <Button variant="ghost" size="sm" onClick={() => setSelectedUserId(null)} className="text-xs">
+          ← 返回会话列表
+        </Button>
+      </div>
+      <div className="flex-1 min-h-0">
+        <MessageCenter otherUserId={selectedUserId} />
+      </div>
+    </div>
+  ) : (
+    <div className="flex items-center justify-center h-full text-muted-foreground">
+      <div className="text-center">
+        <User className="w-12 h-12 mx-auto mb-3 opacity-30" />
+        <p className="text-sm">选择一个会话开始聊天</p>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="flex h-full border rounded-lg overflow-hidden bg-background">
+      {/* Mobile: 堆叠切换 */}
+      <div className="md:hidden w-full h-full">
+        {selectedUserId ? conversation : list}
+      </div>
+      {/* Desktop: 双栏 */}
+      <div className="hidden md:flex w-64 border-r shrink-0">{list}</div>
+      <div className="hidden md:block flex-1">{conversation}</div>
     </div>
   );
 };
