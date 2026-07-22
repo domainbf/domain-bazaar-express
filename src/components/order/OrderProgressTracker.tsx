@@ -98,6 +98,11 @@ export function OrderProgressTracker({ orderId, initialStage = 'submitted', init
               <Bell className="w-3.5 h-3.5 mr-1.5" /> 通知
             </Button>
           </Link>
+          <Link to={`/dispute?order=${orderId}`}>
+            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+              <ShieldAlert className="w-3.5 h-3.5 mr-1.5" /> 申诉
+            </Button>
+          </Link>
         </div>
       </div>
 
