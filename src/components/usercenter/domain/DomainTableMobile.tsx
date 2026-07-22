@@ -93,7 +93,7 @@ export const DomainTableMobile = ({ domains, onDomainUpdate }: DomainTableMobile
               <div className="flex items-center text-foreground">
                 <DollarSign className="w-4 h-4 mr-1.5 text-muted-foreground" />
                 <span className="font-semibold">
-                  {domain.currency === 'CNY' ? '¥' : '$'}{domain.price.toLocaleString()}
+                  {formatPrice(domain.price, domain.currency)}
                 </span>
               </div>
               
