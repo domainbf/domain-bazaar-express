@@ -158,8 +158,8 @@ const SellerDashboard = ({ userId }: { userId: string }) => {
         (analytics ?? []).forEach((a: any) => { viewsMap[a.domain_id] = Number(a.views) || 0; });
       }
       setListings((dList ?? []).map((d: any) => ({ ...d, views: viewsMap[d.id] || 0 })));
-      setOffers((oList ?? []) as OfferRow[]);
-      setMessages((mList ?? []) as MessageRow[]);
+      setOffers(((oList ?? []) as unknown) as OfferRow[]);
+      setMessages(((mList ?? []) as unknown) as MessageRow[]);
       setLoading(false);
     })();
     return () => { cancelled = true; };
