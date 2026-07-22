@@ -27,8 +27,27 @@ Deno.serve(async (req) => {
     if (!isAdminData) throw new Error('无管理员权限');
 
     const body = await req.json();
-    const { action, transaction_id, to_stage } = body;
+    const { action, transaction_id, to_stage, idempotency_key } = body;
     if (!action || !transaction_id) throw new Error('参数缺失');
+
+    // Idempotency: if the same key was already recorded, return its result instead of re-running.
+    if (idempotency_key) {
+      const { data: existing } = await supabase
+        .from('order_operations_log')
+        .select('id, operation, status, error, to_stage, created_at')
+        .eq('idempotency_key', idempotency_key)
+        .maybeSingle();
+      if (existing) {
+        return new Response(
+          JSON.stringify({
+            ok: existing.status === 'success',
+            deduped: true,
+            previous: existing,
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
 
     const { data: txn, error: txnErr } = await supabase
       .from('transactions')
@@ -48,10 +67,27 @@ Deno.serve(async (req) => {
         status,
         error,
         metadata: meta,
+        idempotency_key: idempotency_key || null,
       });
     };
 
     if (action === 'resend_receipt' || action === 'retry_receipt') {
+      // Guard: if a successful receipt was sent in the last 30s, dedupe.
+      const cutoff = new Date(Date.now() - 30_000).toISOString();
+      const { data: recent } = await supabase
+        .from('receipt_delivery_log')
+        .select('id, created_at, status')
+        .eq('transaction_id', txn.id)
+        .eq('status', 'success')
+        .gte('created_at', cutoff)
+        .limit(1);
+      if (recent && recent.length > 0) {
+        await logOp(action, null, null, 'success', undefined, { deduped: true });
+        return new Response(JSON.stringify({ ok: true, deduped: true, reason: '30 秒内已成功发送，跳过' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       const resp = await fetch(`${supabaseUrl}/functions/v1/send-order-receipt`, {
         method: 'POST',
         headers: {
@@ -78,6 +114,13 @@ Deno.serve(async (req) => {
     if (action === 'advance_stage') {
       if (!VALID_STAGES.includes(to_stage)) throw new Error('无效阶段');
       const fromStage = txn.progress_stage || 'submitted';
+      const fromIdx = VALID_STAGES.indexOf(fromStage as any);
+      const toIdx = VALID_STAGES.indexOf(to_stage);
+      // Prevent stage rollback and no-op re-clicks.
+      if (toIdx <= fromIdx) {
+        await logOp('advance_stage', fromStage, to_stage, 'failed', '阶段无法回退或重复');
+        throw new Error(`当前阶段为「${fromStage}」，无法回退或重复推进到「${to_stage}」`);
+      }
       const history = { ...(txn.stage_history || {}), [to_stage]: new Date().toISOString() };
       const { error: upErr } = await supabase
         .from('transactions')
@@ -86,7 +129,8 @@ Deno.serve(async (req) => {
           stage_history: history,
           status: to_stage === 'transferred' ? 'completed' : txn.status,
         })
-        .eq('id', txn.id);
+        .eq('id', txn.id)
+        .eq('progress_stage', fromStage); // optimistic concurrency guard
       if (upErr) {
         await logOp('advance_stage', fromStage, to_stage, 'failed', upErr.message);
         throw new Error(upErr.message);
@@ -96,6 +140,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
 
     throw new Error('未知操作');
   } catch (e) {

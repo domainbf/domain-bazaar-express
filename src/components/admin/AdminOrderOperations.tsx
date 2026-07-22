@@ -104,12 +104,20 @@ export function AdminOrderOperations() {
     if (!selected) return;
     setBusy(action);
     try {
+      // Stable idempotency key per (action, txn, target-stage, minute-bucket) so
+      // rapid double-clicks map to the same key and are deduped server-side.
+      const bucket = Math.floor(Date.now() / 60_000);
+      const idempotency_key = `${action}:${selected.id}:${extra.to_stage || 'x'}:${bucket}`;
       const { data, error } = await supabase.functions.invoke('admin-order-operations', {
-        body: { action, transaction_id: selected.id, ...extra },
+        body: { action, transaction_id: selected.id, idempotency_key, ...extra },
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
-      toast.success(action === 'advance_stage' ? '阶段已推进' : '收据已重发');
+      if ((data as any)?.deduped) {
+        toast.info('已忽略重复操作' + ((data as any)?.reason ? `：${(data as any).reason}` : ''));
+      } else {
+        toast.success(action === 'advance_stage' ? '阶段已推进' : '收据已重发');
+      }
       await load();
       const fresh = txns.find((x) => x.id === selected.id);
       if (fresh) await loadDetails(fresh);
@@ -120,6 +128,7 @@ export function AdminOrderOperations() {
       setBusy(null);
     }
   };
+
 
   const filtered = txns.filter((t) => {
     if (!q) return true;
