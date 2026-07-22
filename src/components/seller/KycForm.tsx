@@ -29,6 +29,9 @@ export interface KycRecord {
   reviewed_at: string | null;
   created_at: string;
   updated_at: string;
+  id_front_url?: string | null;
+  id_back_url?: string | null;
+  id_selfie_url?: string | null;
 }
 
 interface Props {
@@ -59,7 +62,30 @@ export default function KycForm({ onStatusChange, compact }: Props) {
     payout_account_name: '',
     bank_name: '',
     notes: '',
+    id_front_url: '',
+    id_back_url: '',
+    id_selfie_url: '',
   });
+  const [uploading, setUploading] = useState<string | null>(null);
+
+  const uploadDoc = async (field: 'id_front_url' | 'id_back_url' | 'id_selfie_url', file: File) => {
+    if (!user) return;
+    if (file.size > 5 * 1024 * 1024) return toast.error('图片不能超过 5MB');
+    if (!file.type.startsWith('image/')) return toast.error('请上传图片文件');
+    setUploading(field);
+    try {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `${user.id}/${field}_${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('kyc-documents').upload(path, file, { upsert: true });
+      if (error) throw error;
+      setForm((f) => ({ ...f, [field]: path }));
+      toast.success('已上传');
+    } catch (e: any) {
+      toast.error(e.message || '上传失败');
+    } finally {
+      setUploading(null);
+    }
+  };
 
   const load = async () => {
     if (!user) return;
@@ -82,6 +108,9 @@ export default function KycForm({ onStatusChange, compact }: Props) {
         payout_account_name: data.payout_account_name || '',
         bank_name: data.bank_name || '',
         notes: data.notes || '',
+        id_front_url: data.id_front_url || '',
+        id_back_url: data.id_back_url || '',
+        id_selfie_url: data.id_selfie_url || '',
       });
       onStatusChange?.(data.status);
     } else {
@@ -205,6 +234,30 @@ export default function KycForm({ onStatusChange, compact }: Props) {
         <Field label="备注 (可选)">
           <Textarea rows={2} value={form.notes} disabled={locked} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
         </Field>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {([
+            ['id_front_url', '证件正面'],
+            ['id_back_url', '证件反面'],
+            ['id_selfie_url', '手持证件自拍'],
+          ] as const).map(([field, label]) => (
+            <div key={field} className="border rounded-lg p-3 space-y-2">
+              <Label className="text-xs text-muted-foreground">{label}</Label>
+              {form[field] ? (
+                <div className="text-xs text-muted-foreground break-all">已上传 ✓</div>
+              ) : (
+                <div className="text-xs text-muted-foreground">未上传</div>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                disabled={locked || uploading === field}
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadDoc(field, f); }}
+                className="text-xs w-full"
+              />
+              {uploading === field && <div className="text-xs text-muted-foreground">上传中…</div>}
+            </div>
+          ))}
+        </div>
         <div className="flex gap-2 flex-wrap pt-1">
           {status !== 'approved' && (
             <Button onClick={submit} disabled={saving || loading}>

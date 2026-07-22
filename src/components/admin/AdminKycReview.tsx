@@ -26,6 +26,9 @@ interface KycRow {
   reviewed_at: string | null;
   created_at: string;
   updated_at: string;
+  id_front_url?: string | null;
+  id_back_url?: string | null;
+  id_selfie_url?: string | null;
 }
 
 const STATUS: Record<string, { label: string; tone: any }> = {
@@ -43,6 +46,20 @@ export function AdminKycReview() {
   const [selected, setSelected] = useState<KycRow | null>(null);
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
+  const [docUrls, setDocUrls] = useState<Record<string, string>>({});
+
+  const signDocs = async (row: KycRow) => {
+    const paths = [row.id_front_url, row.id_back_url, row.id_selfie_url].filter(Boolean) as string[];
+    if (!paths.length) { setDocUrls({}); return; }
+    const map: Record<string, string> = {};
+    await Promise.all(paths.map(async (p) => {
+      const { data } = await supabase.storage.from('kyc-documents').createSignedUrl(p, 600);
+      if (data?.signedUrl) map[p] = data.signedUrl;
+    }));
+    setDocUrls(map);
+  };
+
+  useEffect(() => { if (selected) signDocs(selected); }, [selected?.id]);
 
   const load = async () => {
     setLoading(true);
@@ -155,6 +172,29 @@ export function AdminKycReview() {
                 <Row label="账户" value={selected.payout_account} />
                 <Row label="户名" value={selected.payout_account_name || '—'} />
                 {selected.bank_name && <Row label="开户行" value={selected.bank_name} />}
+                <div className="border-t pt-2" />
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    ['id_front_url', '正面'],
+                    ['id_back_url', '反面'],
+                    ['id_selfie_url', '自拍'],
+                  ] as const).map(([k, label]) => {
+                    const path = (selected as any)[k] as string | null | undefined;
+                    const url = path ? docUrls[path] : null;
+                    return (
+                      <div key={k} className="border rounded overflow-hidden">
+                        <div className="text-[11px] text-muted-foreground px-1.5 py-1 bg-muted/40">{label}</div>
+                        {url ? (
+                          <a href={url} target="_blank" rel="noreferrer">
+                            <img src={url} alt={label} className="w-full h-24 object-cover" />
+                          </a>
+                        ) : (
+                          <div className="w-full h-24 flex items-center justify-center text-[11px] text-muted-foreground">未提交</div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
                 <div className="border-t pt-2" />
                 <Row label="状态" value={<Badge variant={STATUS[selected.status]?.tone}>{STATUS[selected.status]?.label}</Badge>} />
                 {selected.reviewed_at && (
