@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast"
-import { LogOut, Settings, User, Bell, Menu, X, MessageSquare, Globe, Tag, Gavel } from "lucide-react";
+import { LogOut, Settings, User, Bell, Menu, X, MessageSquare, Globe, Tag, Gavel, Inbox } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from '@/hooks/useSiteSettings';
