@@ -122,7 +122,7 @@ export const NotificationsMenu = () => {
         
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild className="cursor-pointer">
-          <Link to="/user-center?tab=notifications" className="w-full text-center text-sm">
+          <Link to="/notifications" className="w-full text-center text-sm" onClick={() => setOpen(false)}>
             查看全部通知
           </Link>
         </DropdownMenuItem>
