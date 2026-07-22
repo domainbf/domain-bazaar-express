@@ -299,16 +299,38 @@ export const Marketplace = () => {
                   </button>
                 );
               })}
-              {hasActiveFilters && (
-                <button
-                  onClick={clearAll}
-                  className="ml-auto p-1 text-muted-foreground hover:text-foreground rounded shrink-0"
-                  data-testid="button-clear-filters"
-                  title="清空筛选"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              )}
+              <div className="ml-auto flex items-center gap-1 shrink-0">
+                <div className="inline-flex bg-muted/40 rounded-md p-0.5" role="tablist" aria-label="视图">
+                  <button
+                    type="button"
+                    onClick={() => setView('grid')}
+                    data-testid="view-grid"
+                    title="网格视图"
+                    className={`h-6 w-7 flex items-center justify-center rounded ${view === 'grid' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    <LayoutGrid className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setView('list')}
+                    data-testid="view-list"
+                    title="列表视图"
+                    className={`h-6 w-7 flex items-center justify-center rounded ${view === 'list' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    <ListIcon className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                {hasActiveFilters && (
+                  <button
+                    onClick={clearAll}
+                    className="p-1 text-muted-foreground hover:text-foreground rounded"
+                    data-testid="button-clear-filters"
+                    title="清空筛选"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
