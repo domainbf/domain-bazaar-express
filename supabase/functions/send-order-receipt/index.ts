@@ -44,6 +44,25 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Idempotency guard: if a successful send already happened in the last 30 seconds,
+    // skip regardless of `force` so double-clicks on the client can never spam mailboxes.
+    {
+      const cutoff = new Date(Date.now() - 30_000).toISOString();
+      const { data: recent } = await supabase
+        .from('receipt_delivery_log')
+        .select('id, created_at')
+        .eq('transaction_id', transaction_id)
+        .eq('status', 'success')
+        .gte('created_at', cutoff)
+        .limit(1);
+      if (recent && recent.length > 0) {
+        return new Response(JSON.stringify({ ok: true, deduped: true, reason: '30 秒内已成功发送' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
+
     const { data: domain } = await supabase
       .from('domains')
       .select('id, name, expires_at, registrar')
