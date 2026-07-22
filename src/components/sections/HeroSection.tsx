@@ -256,6 +256,18 @@ export const HeroSection = () => {
               </button>
             ))}
           </div>
+
+          {/* Bulk check trigger */}
+          <div className="mt-4 flex justify-center">
+            <BulkCheckDialog
+              trigger={
+                <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-foreground">
+                  <ListChecks className="w-3.5 h-3.5" />
+                  批量检查多个域名
+                </Button>
+              }
+            />
+          </div>
         </motion.div>
 
         {/* Trust signals */}
