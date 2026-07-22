@@ -319,6 +319,7 @@ const AnimatedRoutes = memo(() => {
         <Route path="/notifications" element={<ProtectedRoute><NotificationsCenter /></ProtectedRoute>} />
         <Route path="/seller/earnings" element={<ProtectedRoute><SellerEarnings /></ProtectedRoute>} />
         <Route path="/tools/portfolio-valuation" element={<PortfolioValuation />} />
+        <Route path="/my-offers" element={<ProtectedRoute><MyOffers /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
 
       </Routes>
