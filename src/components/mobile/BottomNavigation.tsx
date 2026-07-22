@@ -103,6 +103,8 @@ export const BottomNavigation = ({ unreadCount = 0, unreadMessages = 0 }: Bottom
   };
 
   const handleNavigation = (item: typeof navItems[0]) => {
+    // Subtle haptic on tap (supported browsers)
+    try { if ('vibrate' in navigator) (navigator as any).vibrate?.(8); } catch {}
     if ((item.authRequired || item.path === '/user-center') && !user) {
       navigate('/auth');
       return;
