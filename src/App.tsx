@@ -284,7 +284,7 @@ const AnimatedRoutes = memo(() => {
         <Route path="/user-center/*" element={<ProtectedRoute><UserCenter /></ProtectedRoute>} />
         <Route path="/domain-management" element={<ProtectedRoute><MyDomainsPage /></ProtectedRoute>} />
         <Route path="/dns" element={<ProtectedRoute><DnsManagerPage /></ProtectedRoute>} />
-        <Route path="/dns/:name" element={<ProtectedRoute><DnsManagerPage /></ProtectedRoute>} />
+
 
         <Route path="/admin" element={<ProtectedRoute adminOnly={true}><AdminPanel /></ProtectedRoute>} />
         <Route path="/admin/*" element={<ProtectedRoute adminOnly={true}><AdminPanel /></ProtectedRoute>} />
