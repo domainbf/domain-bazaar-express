@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { formatPrice } from '@/lib/currency';
-import { Wallet, TrendingUp, ArrowUpRight, RefreshCw, Download } from 'lucide-react';
+import { Wallet, TrendingUp, ArrowUpRight, RefreshCw, Download, Lock } from 'lucide-react';
+import KycForm from '@/components/seller/KycForm';
 
 interface Settlement {
   id: string;
@@ -32,6 +33,8 @@ export default function SellerEarnings() {
   const [amount, setAmount] = useState('');
   const [account, setAccount] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [kycStatus, setKycStatus] = useState<string>('none');
+  const kycApproved = kycStatus === 'approved';
 
   const load = async () => {
     if (!user) return;
@@ -89,6 +92,7 @@ export default function SellerEarnings() {
   }, [items, withdrawals]);
 
   const submitWithdrawal = async () => {
+    if (!kycApproved) return toast.error('请先完成实名认证与收款资料审核');
     const n = Number(amount);
     if (!Number.isFinite(n) || n <= 0) return toast.error('请输入有效金额');
     if (n > stats.available) return toast.error('超出可提现余额');
@@ -166,8 +170,10 @@ export default function SellerEarnings() {
         <StatCard label="可提现余额" value={formatPrice(stats.available, 'CNY')} highlight sub="申请后 1-3 个工作日" />
       </div>
 
+      <KycForm onStatusChange={setKycStatus} />
+
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+        <Card className={!kycApproved ? 'opacity-70' : ''}>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <ArrowUpRight className="w-4 h-4" /> 申请提现
@@ -201,13 +207,15 @@ export default function SellerEarnings() {
             </div>
             <Button
               className="w-full"
-              disabled={submitting || stats.available <= 0}
+              disabled={submitting || stats.available <= 0 || !kycApproved}
               onClick={submitWithdrawal}
             >
-              {submitting ? '提交中…' : '提交提现申请'}
+              {!kycApproved && <Lock className="w-4 h-4 mr-1.5" />}
+              {submitting ? '提交中…' : !kycApproved ? '需先通过实名审核' : '提交提现申请'}
             </Button>
           </CardContent>
         </Card>
+
 
         <Card>
           <CardHeader>

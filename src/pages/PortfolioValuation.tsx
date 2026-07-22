@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { formatPrice } from '@/lib/currency';
 import { supabase } from '@/integrations/supabase/client';
-import { Sparkles, Printer, Copy, Loader2, TrendingUp } from 'lucide-react';
+import { Sparkles, Printer, Copy, Loader2, TrendingUp, Share2, Twitter } from 'lucide-react';
 
 interface Row {
   name: string;
@@ -76,7 +76,39 @@ export default function PortfolioValuation() {
   const [rows, setRows] = useState<Row[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiNarrative, setAiNarrative] = useState<string>('');
-  const [shareId] = useState(() => Math.random().toString(36).slice(2, 10));
+  const [shareId, setShareId] = useState(() => Math.random().toString(36).slice(2, 10));
+
+  // Snapshot from ?snap= (social share preview / SEO)
+  useEffect(() => {
+    const snap = new URLSearchParams(window.location.search).get('snap');
+    if (!snap) return;
+    try {
+      const decoded = JSON.parse(decodeURIComponent(escape(atob(snap))));
+      if (decoded?.top?.length) {
+        const restored = decoded.top.map(evaluateOne).filter(Boolean) as Row[];
+        if (restored.length) {
+          setRows(restored);
+          if (decoded.id) setShareId(decoded.id);
+          // Update document metadata for social crawlers landing on this URL
+          const title = `域名组合估值报告 · ${restored.length} 个域名 · ${decoded.mid ? '¥' + Math.round(decoded.mid).toLocaleString('zh-CN') : ''}`;
+          document.title = title;
+          const desc = `头部资产 ${restored.slice(0, 3).map(r => r.name).join('、')} · 中位估值 ¥${Math.round(decoded.mid || 0).toLocaleString('zh-CN')}`;
+          const setMeta = (attr: 'name' | 'property', key: string, val: string) => {
+            let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
+            if (!el) { el = document.createElement('meta'); el.setAttribute(attr, key); document.head.appendChild(el); }
+            el.setAttribute('content', val);
+          };
+          setMeta('name', 'description', desc);
+          setMeta('property', 'og:title', title);
+          setMeta('property', 'og:description', desc);
+          setMeta('property', 'og:type', 'article');
+          setMeta('name', 'twitter:card', 'summary_large_image');
+          setMeta('name', 'twitter:title', title);
+          setMeta('name', 'twitter:description', desc);
+        }
+      }
+    } catch (e) { console.warn('invalid snapshot', e); }
+  }, []);
 
   const totals = useMemo(() => {
     const mid = rows.reduce((s, r) => s + r.mid, 0);
@@ -127,15 +159,40 @@ export default function PortfolioValuation() {
     }
   };
 
+  const buildShareUrl = () => {
+    const top = rows.slice(0, 10).map((r) => r.name);
+    const payload = {
+      v: 1,
+      id: shareId,
+      n: rows.length,
+      mid: totals.mid,
+      low: totals.low,
+      high: totals.high,
+      top,
+    };
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+    return `${window.location.origin}/tools/portfolio-valuation?snap=${encoded}`;
+  };
+
   const copyShare = async () => {
-    const url = `${window.location.origin}/tools/portfolio-valuation?ref=${shareId}`;
+    const url = buildShareUrl();
     try {
       await navigator.clipboard.writeText(url);
-      toast.success('分享链接已复制');
+      toast.success('分享链接已复制，社交卡片将自动生成');
     } catch {
       toast.error('复制失败');
     }
   };
+
+  const shareToSocial = (platform: 'twitter' | 'weibo') => {
+    const url = buildShareUrl();
+    const text = `我用「域见•你」评估了 ${rows.length} 个域名，组合中位估值 ${formatPrice(totals.mid, 'CNY')} 💎`;
+    const target = platform === 'twitter'
+      ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`
+      : `https://service.weibo.com/share/share.php?url=${encodeURIComponent(url)}&title=${encodeURIComponent(text)}`;
+    window.open(target, '_blank', 'noopener,noreferrer');
+  };
+
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6 print:py-2">
@@ -149,9 +206,15 @@ export default function PortfolioValuation() {
           </p>
         </div>
         {rows.length > 0 && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button variant="outline" size="sm" onClick={copyShare}>
               <Copy className="w-4 h-4 mr-1.5" /> 复制分享链接
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => shareToSocial('twitter')}>
+              <Twitter className="w-4 h-4 mr-1.5" /> Twitter
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => shareToSocial('weibo')}>
+              <Share2 className="w-4 h-4 mr-1.5" /> 微博
             </Button>
             <Button size="sm" onClick={() => window.print()}>
               <Printer className="w-4 h-4 mr-1.5" /> 导出 PDF
@@ -159,6 +222,39 @@ export default function PortfolioValuation() {
           </div>
         )}
       </div>
+
+      {/* Social share card preview */}
+      {rows.length > 0 && (
+        <Card className="overflow-hidden border-0 shadow-lg print:shadow-none print:border portfolio-share-card">
+          <div className="relative bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-6 md:p-8">
+            <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_20%_20%,white,transparent_40%),radial-gradient(circle_at_80%_60%,white,transparent_40%)]" />
+            <div className="relative flex flex-col md:flex-row md:items-end justify-between gap-4">
+              <div>
+                <div className="text-xs tracking-[0.3em] uppercase opacity-70">Portfolio Valuation</div>
+                <div className="text-2xl md:text-3xl font-semibold mt-2">域名组合估值报告</div>
+                <div className="text-xs opacity-60 mt-1 font-mono">#{shareId} · {new Date().toLocaleDateString('zh-CN')}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-xs uppercase tracking-widest opacity-60">中位总估值</div>
+                <div className="text-3xl md:text-4xl font-bold tabular-nums mt-1">{formatPrice(totals.mid, 'CNY')}</div>
+                <div className="text-[11px] opacity-70 tabular-nums mt-0.5">
+                  {formatPrice(totals.low, 'CNY')} – {formatPrice(totals.high, 'CNY')}
+                </div>
+              </div>
+            </div>
+            <div className="relative mt-6 flex flex-wrap gap-1.5">
+              {rows.slice(0, 8).map((r) => (
+                <span key={r.name} className="px-2.5 py-1 rounded-full bg-white/10 border border-white/15 backdrop-blur text-[11px] font-mono uppercase">
+                  {r.name}
+                </span>
+              ))}
+              {rows.length > 8 && (
+                <span className="px-2.5 py-1 rounded-full bg-white/5 text-[11px] opacity-70">+{rows.length - 8}</span>
+              )}
+            </div>
+          </div>
+        </Card>
+      )}
 
       <Card className="print:hidden">
         <CardHeader>

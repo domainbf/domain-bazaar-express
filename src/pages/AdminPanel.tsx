@@ -32,6 +32,7 @@ import { MergeStrategyManager } from '@/components/admin/MergeStrategyManager';
 import { AdminLogoManagement } from '@/components/admin/AdminLogoManagement';
 import { AdminTelemetry } from '@/components/admin/AdminTelemetry';
 import { AdminOrderOperations } from '@/components/admin/AdminOrderOperations';
+import { AdminKycReview } from '@/components/admin/AdminKycReview';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -140,6 +141,7 @@ export const AdminPanel = () => {
       title: '用户管理',
       items: [
         { id: 'users', label: '全部用户', icon: Users },
+        { id: 'kyc', label: '实名与提现审核', icon: Shield },
       ]
     },
     {
@@ -263,6 +265,7 @@ export const AdminPanel = () => {
       case 'commission': return <CommissionSettings />;
       case 'reviews': return <AdminReviewManagement />;
       case 'users': return <UserManagement />;
+      case 'kyc': return <AdminKycReview />;
       case 'homepage': return <HomeContentManagement />;
       case 'content': return <ContentManagement />;
       case 'legal': return <AdminLegalPagesManager />;

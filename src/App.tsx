@@ -61,6 +61,7 @@ const MaintenancePage = lazy(lazyRetry(() => import('./pages/MaintenancePage')))
 const NotificationsCenter = lazy(lazyRetry(() => import('./pages/NotificationsCenter')));
 const SellerEarnings = lazy(lazyRetry(() => import('./pages/SellerEarnings')));
 const PortfolioValuation = lazy(lazyRetry(() => import('./pages/PortfolioValuation')));
+const MyOffers = lazy(lazyRetry(() => import('./pages/MyOffers')));
 
 
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
@@ -318,6 +319,7 @@ const AnimatedRoutes = memo(() => {
         <Route path="/notifications" element={<ProtectedRoute><NotificationsCenter /></ProtectedRoute>} />
         <Route path="/seller/earnings" element={<ProtectedRoute><SellerEarnings /></ProtectedRoute>} />
         <Route path="/tools/portfolio-valuation" element={<PortfolioValuation />} />
+        <Route path="/my-offers" element={<ProtectedRoute><MyOffers /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
 
       </Routes>
