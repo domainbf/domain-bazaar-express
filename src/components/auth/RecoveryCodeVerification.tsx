@@ -30,16 +30,13 @@ export const RecoveryCodeVerification = ({
     setError('');
 
     try {
-      // In a real implementation, this would verify the recovery code with the server
-      // For now, we'll simulate the verification
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // This is a placeholder - actual implementation would verify against stored recovery codes
-      toast.success('恢复码验证成功！');
-      onSuccess();
+      // 恢复码功能尚未在后端启用。为避免绕过 MFA，此处默认失败关闭。
+      // 请使用验证器 App 生成的 6 位 TOTP 验证码完成登录，或联系客服重置 MFA。
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      throw new Error('recovery_disabled');
     } catch (error: any) {
       console.error('Recovery code verification error:', error);
-      setError('恢复码无效或已使用');
+      setError('恢复码验证暂未开放，请使用验证器 App 中的 6 位验证码，或联系客服协助重置 MFA。');
       setRecoveryCode('');
     } finally {
       setIsVerifying(false);
