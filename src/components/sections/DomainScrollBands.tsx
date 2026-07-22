@@ -52,7 +52,6 @@ interface LogoCardProps {
 }
 
 function LogoCard({ item, onClick, index, onPrefetch }: LogoCardProps & { onPrefetch: () => void }) {
-  const hasLogo = !!item.logoUrl;
   return (
     <button
       onClick={onClick}
@@ -63,32 +62,13 @@ function LogoCard({ item, onClick, index, onPrefetch }: LogoCardProps & { onPref
       data-testid={`logo-card-${item.id}-${index}`}
       className="group relative inline-flex flex-col items-center justify-center mx-1.5 shrink-0
         w-[120px] sm:w-[132px] h-[62px] rounded-lg border border-border bg-card
-        hover:border-foreground/40 hover:bg-muted/40 transition-all duration-200
+        hover:border-foreground/40 hover:bg-muted/30 transition-all duration-200
         overflow-hidden cursor-pointer"
     >
-      {hasLogo ? (
-        <>
-          <img
-            src={item.logoUrl}
-            alt={item.name}
-            loading="lazy"
-            decoding="async"
-            className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
-            style={{ filter: 'grayscale(100%) contrast(1.05)' }}
-            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/85 via-background/40 to-transparent" />
-          <div className="relative z-10 flex items-center justify-center w-full px-1.5 mt-auto mb-1">
-            <DomainWordmark name={item.name} className="max-w-[116px] sm:max-w-[128px]" />
-          </div>
-        </>
-      ) : (
-        <div className="relative z-10 flex items-center justify-center w-full px-1.5">
-          <DomainWordmark name={item.name} className="max-w-[116px] sm:max-w-[128px]" />
-        </div>
-      )}
-
-      <span className="absolute bottom-1 right-1.5 text-[9px] text-muted-foreground/80 font-mono tabular-nums z-10 bg-background/60 px-1 rounded">
+      <div className="flex items-center justify-center w-full px-2">
+        <DomainWordmark name={item.name} className="max-w-[112px] sm:max-w-[124px]" />
+      </div>
+      <span className="absolute bottom-1 right-1.5 text-[9px] text-muted-foreground/70 font-mono tabular-nums">
         {item.bandType === 'sold' ? '已售' : formatPriceCompact(item.price, item.currency)}
       </span>
     </button>
