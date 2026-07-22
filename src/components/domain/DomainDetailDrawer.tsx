@@ -460,10 +460,10 @@ export function DomainDetailDrawer({
                 {/* CONNECTIONS */}
                 <TabsContent value="connections" className="mt-0 space-y-2">
                   {[
-                    { name: 'Vercel', desc: '一键部署前端项目到该域名', connected: false },
-                    { name: 'Cloudflare', desc: '接管 DNS 与 CDN 加速', connected: false },
-                    { name: 'GitHub Pages', desc: '将静态站点绑定到该域名', connected: false },
-                    { name: 'Google Workspace', desc: '配置企业邮箱与协作套件', connected: false },
+                    { name: 'Vercel', desc: '一键部署前端项目到该域名', url: `https://vercel.com/new/domain?domain=${domain.name}` },
+                    { name: 'Cloudflare', desc: '接管 DNS 与 CDN 加速', url: `https://dash.cloudflare.com/?to=/:account/add-site&name=${domain.name}` },
+                    { name: 'GitHub Pages', desc: '将静态站点绑定到该域名', url: `https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site` },
+                    { name: 'Google Workspace', desc: '配置企业邮箱与协作套件', url: `https://workspace.google.com/business/signup/welcome?domain=${domain.name}` },
                   ].map((c) => (
                     <div key={c.name} className="flex items-center gap-3 p-3.5 rounded-xl border border-border">
                       <div className="w-9 h-9 rounded-lg bg-muted grid place-items-center text-muted-foreground shrink-0">
@@ -473,14 +473,14 @@ export function DomainDetailDrawer({
                         <div className="text-sm font-medium">{c.name}</div>
                         <div className="text-xs text-muted-foreground truncate">{c.desc}</div>
                       </div>
-                      <Button size="sm" variant={c.connected ? 'outline' : 'default'} onClick={() => toast(`即将开放：${c.name} 连接`)}>
-                        {c.connected ? '已连接' : '连接'}
+                      <Button size="sm" variant="default" onClick={() => window.open(c.url, '_blank', 'noopener,noreferrer')}>
+                        前往配置
                       </Button>
                     </div>
                   ))}
                   <div className="pt-2 text-[11px] text-muted-foreground flex items-center gap-1.5">
                     <Sparkles className="w-3 h-3" />
-                    更多集成即将上线
+                    集成通过官方控制台完成，配置后请在 DNS 面板同步记录
                   </div>
                 </TabsContent>
               </div>
