@@ -140,6 +140,7 @@ export const AdminPanel = () => {
       title: '用户管理',
       items: [
         { id: 'users', label: '全部用户', icon: Users },
+        { id: 'kyc', label: '实名与提现审核', icon: Shield },
       ]
     },
     {
