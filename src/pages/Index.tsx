@@ -156,6 +156,7 @@ const Index = () => {
       
       <div className={isMobile ? 'pb-20' : ''}>
         <HeroSection />
+        <TrustBar />
         <PremiumShowcase />
 
 
