@@ -18,6 +18,8 @@ import { Navbar } from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { OrderProgressTracker } from '@/components/order/OrderProgressTracker';
 
 interface Order {
   orderId: string;
@@ -32,12 +34,25 @@ interface Order {
   when: string;
 }
 
-const fmt = (v: number) => `¥${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+interface RealOrder {
+  id: string;
+  order_number: string | null;
+  amount: number;
+  currency: string;
+  payment_method: string | null;
+  progress_stage: string;
+  stage_history: Record<string, string>;
+}
+
+const symOf = (c: string) => (c === 'USD' ? '$' : c === 'EUR' ? '€' : c === 'GBP' ? '£' : '¥');
+const fmt = (v: number, c = 'CNY') =>
+  `${symOf(c)}${Number(v || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 
 export default function CheckoutSuccessPage() {
   const [params] = useSearchParams();
-  const orderId = params.get('order') ?? '';
+  const orderId = params.get('order') ?? params.get('id') ?? '';
   const [order, setOrder] = useState<Order | null>(null);
+  const [real, setReal] = useState<RealOrder | null>(null);
 
   useEffect(() => {
     try {
@@ -46,8 +61,21 @@ export default function CheckoutSuccessPage() {
     } catch {}
   }, [orderId]);
 
+  useEffect(() => {
+    if (!orderId) return;
+    (async () => {
+      const { data } = await supabase
+        .from('transactions')
+        .select('id, order_number, amount, currency, payment_method, progress_stage, stage_history')
+        .or(`id.eq.${orderId},order_number.eq.${orderId}`)
+        .maybeSingle();
+      if (data) setReal(data as any);
+    })();
+  }, [orderId]);
+
+  const displayOrderNo = real?.order_number || orderId || '—';
   const copy = () => {
-    navigator.clipboard.writeText(orderId).then(() => toast.success('订单号已复制'));
+    navigator.clipboard.writeText(displayOrderNo).then(() => toast.success('订单号已复制'));
   };
 
   return (
