@@ -187,26 +187,40 @@ export const MultiCurrencyPayment: React.FC<MultiCurrencyPaymentProps> = ({
 
     setIsLoading(true);
     try {
-      // 模拟支付处理
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const paymentData = {
-        domain_id: domain.id,
-        amount: calculateTotal(),
-        currency: selectedCurrency,
-        payment_method: selectedPaymentMethod,
-        exchange_rate: exchangeRates[selectedCurrency] || getCurrentCurrency().rate,
-        original_amount: domain.price,
-        original_currency: 'CNY'
+      // Map UI ids to gateway keys expected by process-payment
+      const gatewayMap: Record<string, string> = {
+        alipay: 'alipay',
+        wechat_pay: 'wechat',
+        paypal: 'paypal',
+        stripe: 'stripe',
+        bank_transfer: 'bank',
+        crypto: 'crypto',
       };
-      
-      console.log('Processing multi-currency payment:', paymentData);
-      
-      toast.success(`支付成功！已使用${getCurrentCurrency().name}完成交易`);
+      const gateway = gatewayMap[selectedPaymentMethod] || selectedPaymentMethod;
+      const returnUrl = `${window.location.origin}/order/${domain.id}`;
+
+      const { data, error } = await supabase.functions.invoke('process-payment', {
+        body: {
+          gateway,
+          amount: Number(total.toFixed(2)),
+          currency: selectedCurrency,
+          domain_id: domain.id,
+          domain_name: domain.name,
+          return_url: returnUrl,
+        },
+      });
+      if (error) throw error;
+
+      if (data?.payment_url) {
+        toast.success('正在跳转到支付页面...');
+        window.location.href = data.payment_url;
+        return;
+      }
+      toast.success(`已创建订单，请按提示完成支付`);
       onPaymentSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Payment failed:', error);
-      toast.error('支付失败，请重试');
+      toast.error(error?.message || '支付失败，请重试');
     } finally {
       setIsLoading(false);
     }
