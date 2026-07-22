@@ -3,6 +3,8 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { DomainActions } from './DomainActions';
 import { DomainFilters } from './domain/DomainFilters';
 import { DomainTable } from './domain/DomainTable';
+import { DomainAdvancedTable } from './domain/DomainAdvancedTable';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { EmptyDomainState } from './domain/EmptyDomainState';
 import { useDomainsData } from './domain/useDomainsData';
 import { Button } from "@/components/ui/button";
