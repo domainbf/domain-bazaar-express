@@ -308,7 +308,9 @@ const AnimatedRoutes = memo(() => {
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/disclaimer" element={<DisclaimerPage />} />
+        <Route path="/notifications" element={<ProtectedRoute><NotificationsCenter /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
+
       </Routes>
       </ErrorBoundary>
       </SiteGuard>
