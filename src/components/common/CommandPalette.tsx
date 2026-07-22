@@ -72,9 +72,12 @@ export function CommandPalette() {
   const [results, setResults] = useState<DomainHit[]>([]);
   const [loading, setLoading] = useState(false);
   const [recent, setRecent] = useState<DomainHit[]>([]);
+  const [aiSuggestions, setAiSuggestions] = useState<AiSuggestion[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
   const debounceRef = useRef<number | null>(null);
+  const aiDebounceRef = useRef<number | null>(null);
 
   // Global shortcut ⌘K / Ctrl+K
   useEffect(() => {
