@@ -207,13 +207,15 @@ export default function SellerEarnings() {
             </div>
             <Button
               className="w-full"
-              disabled={submitting || stats.available <= 0}
+              disabled={submitting || stats.available <= 0 || !kycApproved}
               onClick={submitWithdrawal}
             >
-              {submitting ? '提交中…' : '提交提现申请'}
+              {!kycApproved && <Lock className="w-4 h-4 mr-1.5" />}
+              {submitting ? '提交中…' : !kycApproved ? '需先通过实名审核' : '提交提现申请'}
             </Button>
           </CardContent>
         </Card>
+
 
         <Card>
           <CardHeader>
