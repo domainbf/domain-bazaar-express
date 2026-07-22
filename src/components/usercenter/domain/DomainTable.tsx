@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { getDomainDetailPath } from '@/lib/domainRouting';
+import { formatPrice } from '@/lib/currency';
 
 interface Domain {
   id: string;
