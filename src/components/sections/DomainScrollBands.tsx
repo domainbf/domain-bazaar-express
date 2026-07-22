@@ -166,6 +166,7 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: homeData } = useHomeData();
+  const badge = useLogoBadgeConfig();
 
   // 组件挂载后立即空闲预热详情 chunk，避免用户首次点击时才开始下载
   useEffect(() => {
