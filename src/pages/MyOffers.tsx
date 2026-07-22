@@ -182,19 +182,54 @@ export default function MyOffers() {
                       </div>
                     )}
                   </div>
-                  <div className="text-right shrink-0">
+                  <div className="text-right shrink-0 space-y-1">
                     <div className="tabular-nums text-sm font-semibold">
                       {formatPrice(Number(r.amount), (r.currency || 'CNY') as any)}
                     </div>
-                    {r.transaction_id ? (
-                      <Link to={`/order/${r.transaction_id}`} className="text-[11px] underline inline-flex items-center gap-0.5">
-                        查看订单 <ArrowRight className="w-3 h-3" />
-                      </Link>
-                    ) : r.domain_name ? (
-                      <Link to={`/domain/${r.domain_name}`} className="text-[11px] text-muted-foreground hover:underline">
-                        查看域名
-                      </Link>
-                    ) : null}
+                    <div className="flex items-center gap-2 justify-end">
+                      {r.transaction_id ? (
+                        <Link to={`/order/${r.transaction_id}`} className="text-[11px] underline inline-flex items-center gap-0.5">
+                          查看订单 <ArrowRight className="w-3 h-3" />
+                        </Link>
+                      ) : r.domain_name ? (
+                        <Link to={`/domain/${r.domain_name}`} className="text-[11px] text-muted-foreground hover:underline">
+                          查看域名
+                        </Link>
+                      ) : null}
+                    </div>
+                    {['pending', 'sent', 'viewed', 'countered'].includes(r.status) && (
+                      <div className="flex items-center gap-1 justify-end">
+                        <button
+                          type="button"
+                          className="text-[11px] text-muted-foreground hover:text-foreground underline"
+                          onClick={async () => {
+                            try {
+                              const { error } = await (supabase as any)
+                                .from('domain_offers')
+                                .update({ status: 'withdrawn' })
+                                .eq('id', r.id);
+                              if (error) throw error;
+                              toast.success('已撤回报价');
+                              load();
+                            } catch (e: any) { toast.error(e.message || '撤回失败'); }
+                          }}
+                        >撤回</button>
+                        <span className="text-[11px] text-muted-foreground">·</span>
+                        <button
+                          type="button"
+                          className="text-[11px] text-muted-foreground hover:text-foreground underline"
+                          onClick={async () => {
+                            try {
+                              const { error } = await supabase.functions.invoke('send-offer-notification', {
+                                body: { offerId: r.id, resend: true },
+                              });
+                              if (error) throw error;
+                              toast.success('已重新发送邮件');
+                            } catch (e: any) { toast.error(e.message || '重发失败'); }
+                          }}
+                        >重发邮件</button>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
