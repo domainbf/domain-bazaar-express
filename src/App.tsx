@@ -13,6 +13,7 @@ import { GlobalBottomNav } from './components/mobile/GlobalBottomNav';
 import { FeedbackButton } from './components/common/FeedbackButton';
 import { CommandPalette } from './components/common/CommandPalette';
 import { lazyRetry, reportRoute } from '@/lib/routeTelemetry';
+import { ComponentErrorBoundary } from '@/components/common/ComponentErrorBoundary';
 
 // Route-based code splitting
 // All lazy imports are wrapped with lazyRetry so a transient chunk load
