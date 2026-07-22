@@ -12,6 +12,7 @@ import {
   Inbox, Globe2,
 } from 'lucide-react';
 import SellerAnalytics from '@/components/seller/SellerAnalytics';
+import AiPricingSuggestions from '@/components/seller/AiPricingSuggestions';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserStats } from '@/hooks/useUserStats';
 import { supabase } from '@/integrations/supabase/client';
