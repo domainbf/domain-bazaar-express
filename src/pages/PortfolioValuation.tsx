@@ -174,9 +174,15 @@ export default function PortfolioValuation() {
           </p>
         </div>
         {rows.length > 0 && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button variant="outline" size="sm" onClick={copyShare}>
               <Copy className="w-4 h-4 mr-1.5" /> 复制分享链接
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => shareToSocial('twitter')}>
+              <Twitter className="w-4 h-4 mr-1.5" /> Twitter
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => shareToSocial('weibo')}>
+              <Share2 className="w-4 h-4 mr-1.5" /> 微博
             </Button>
             <Button size="sm" onClick={() => window.print()}>
               <Printer className="w-4 h-4 mr-1.5" /> 导出 PDF
@@ -184,6 +190,39 @@ export default function PortfolioValuation() {
           </div>
         )}
       </div>
+
+      {/* Social share card preview */}
+      {rows.length > 0 && (
+        <Card className="overflow-hidden border-0 shadow-lg print:shadow-none print:border">
+          <div className="relative bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-6 md:p-8">
+            <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_20%_20%,white,transparent_40%),radial-gradient(circle_at_80%_60%,white,transparent_40%)]" />
+            <div className="relative flex flex-col md:flex-row md:items-end justify-between gap-4">
+              <div>
+                <div className="text-xs tracking-[0.3em] uppercase opacity-70">Portfolio Valuation</div>
+                <div className="text-2xl md:text-3xl font-semibold mt-2">域名组合估值报告</div>
+                <div className="text-xs opacity-60 mt-1 font-mono">#{shareId} · {new Date().toLocaleDateString('zh-CN')}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-xs uppercase tracking-widest opacity-60">中位总估值</div>
+                <div className="text-3xl md:text-4xl font-bold tabular-nums mt-1">{formatPrice(totals.mid, 'CNY')}</div>
+                <div className="text-[11px] opacity-70 tabular-nums mt-0.5">
+                  {formatPrice(totals.low, 'CNY')} – {formatPrice(totals.high, 'CNY')}
+                </div>
+              </div>
+            </div>
+            <div className="relative mt-6 flex flex-wrap gap-1.5">
+              {rows.slice(0, 8).map((r) => (
+                <span key={r.name} className="px-2.5 py-1 rounded-full bg-white/10 border border-white/15 backdrop-blur text-[11px] font-mono uppercase">
+                  {r.name}
+                </span>
+              ))}
+              {rows.length > 8 && (
+                <span className="px-2.5 py-1 rounded-full bg-white/5 text-[11px] opacity-70">+{rows.length - 8}</span>
+              )}
+            </div>
+          </div>
+        </Card>
+      )}
 
       <Card className="print:hidden">
         <CardHeader>
