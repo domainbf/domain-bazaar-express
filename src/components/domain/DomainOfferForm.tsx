@@ -267,6 +267,7 @@ export const DomainOfferForm = ({
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">{symbol}</span>
             <Input
               type="number"
+              inputMode="decimal"
               placeholder="1000"
               value={offer}
               onChange={(e) => { if (!isBuyNow) { setOffer(e.target.value); setError(null); } }}
@@ -274,7 +275,7 @@ export const DomainOfferForm = ({
               required
               min="1"
               step="any"
-              className={`pl-8 ${isBuyNow ? 'bg-muted cursor-default' : ''}`}
+              className={`pl-8 h-11 text-base ${isBuyNow ? 'bg-muted cursor-default' : ''}`}
             />
           </div>
           <Select value={currency} onValueChange={(v) => !isBuyNow && setCurrency(v)} disabled={isBuyNow}>
@@ -290,6 +291,27 @@ export const DomainOfferForm = ({
             </SelectContent>
           </Select>
         </div>
+
+        {/* 快速金额芯片：基于挂牌价的百分比，移动端一键填入 */}
+        {!isBuyNow && listingPrice && listingPrice > 0 && (
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {[0.5, 0.7, 0.85, 1].map((pct) => {
+              const amountInListing = listingPrice * pct;
+              const amountInCurrent = convertCurrency(amountInListing, listingCurrency, currency);
+              const rounded = Math.round(amountInCurrent);
+              return (
+                <button
+                  key={pct}
+                  type="button"
+                  onClick={() => { setOffer(String(rounded)); setError(null); }}
+                  className="px-2.5 py-1 text-xs rounded-full border border-border bg-background hover:bg-accent transition-colors tabular-nums"
+                >
+                  {Math.round(pct * 100)}% · {formatPrice(rounded, currency)}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* 价格预览 — 防止用户混淆币种 */}
         <div className={`rounded-md border px-3 py-2 text-xs space-y-1 ${
