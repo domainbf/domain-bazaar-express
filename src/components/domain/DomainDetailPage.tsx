@@ -90,6 +90,7 @@ export const DomainDetailPage = () => {
   const { analytics, trends, isFavorited, recordView, toggleFavorite } = useDomainAnalytics(domain?.id || '');
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const [isBuyNow, setIsBuyNow] = useState(false);
+  const [isContactOpen, setIsContactOpen] = useState(false);
   const [activeAuction, setActiveAuction] = useState<AuctionType | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
