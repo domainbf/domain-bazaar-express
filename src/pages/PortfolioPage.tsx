@@ -477,7 +477,7 @@ export default function PortfolioPage() {
               </SheetHeader>
 
               {/* Price hero */}
-              <div className="mt-4 p-5 rounded-2xl bg-gradient-primary/5 border border-primary/20">
+              <div className="mt-4 p-5 rounded-2xl bg-primary/5 border border-primary/20">
                 <div className="text-xs uppercase tracking-wider text-muted-foreground">当前价格</div>
                 <div className="mt-1 text-3xl font-bold gradient-text tabular-nums">
                   {activeDomain.currency === 'USD' ? '$' : '¥'}
