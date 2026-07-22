@@ -92,6 +92,7 @@ export default function SellerEarnings() {
   }, [items, withdrawals]);
 
   const submitWithdrawal = async () => {
+    if (!kycApproved) return toast.error('请先完成实名认证与收款资料审核');
     const n = Number(amount);
     if (!Number.isFinite(n) || n <= 0) return toast.error('请输入有效金额');
     if (n > stats.available) return toast.error('超出可提现余额');
