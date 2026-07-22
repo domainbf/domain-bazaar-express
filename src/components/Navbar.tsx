@@ -175,13 +175,13 @@ export const Navbar = ({ unreadCount = 0, unreadMessages: unreadMessagesProp = 0
   );
 
   return (
-    <nav className="w-full bg-background/95 backdrop-blur-md shadow-sm border-b border-border sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
-          <img 
-            src={logoSrc} 
-            alt={siteConfig.site_name || '域见•你'} 
-            className="h-10 w-auto" 
+    <nav className="w-full bg-background/70 backdrop-blur-xl border-b border-border/60 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <img
+            src={logoSrc}
+            alt={siteConfig.site_name || '域见•你'}
+            className="h-9 w-auto"
             onError={(e) => {
               const target = e.currentTarget;
               const nextElement = target.nextElementSibling as HTMLElement;
@@ -189,10 +189,11 @@ export const Navbar = ({ unreadCount = 0, unreadMessages: unreadMessagesProp = 0
               if (nextElement) nextElement.style.display = 'block';
             }}
           />
-          <span className="text-2xl font-bold text-foreground" style={{ display: 'none' }}>
+          <span className="text-xl font-semibold tracking-tight gradient-text" style={{ display: 'none' }}>
             {siteConfig.site_name || '域见•你'}
           </span>
         </Link>
+
 
         {/* Desktop Center Nav Links */}
         <div className="hidden md:flex items-center gap-1">
