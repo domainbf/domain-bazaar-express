@@ -127,6 +127,7 @@ export const AdminPanel = () => {
       title: '交易管理',
       items: [
         { id: 'transactions', label: '全部交易', icon: DollarSign },
+        { id: 'order-ops', label: '订单运维', icon: RefreshCw },
         { id: 'offers', label: '报价管理', icon: MessageSquare, badge: pendingOffers },
         { id: 'merge-strategy', label: '重复合并策略', icon: GitMerge },
         { id: 'escrow', label: '资金托管', icon: Shield },
@@ -255,6 +256,7 @@ export const AdminPanel = () => {
       case 'bulk': return <BulkDomainOperations />;
       case 'logos': return <AdminLogoManagement />;
       case 'transactions': return <AdminTransactionManagement />;
+      case 'order-ops': return <AdminOrderOperations />;
       case 'offers': return <OffersManagement />;
       case 'escrow': return <EscrowService isAdmin={true} />;
       case 'disputes': return <DisputeCenter isAdmin={true} />;

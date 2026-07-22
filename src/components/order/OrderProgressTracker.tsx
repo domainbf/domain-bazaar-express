@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CheckCircle2, CircleDot, Circle, RefreshCw, Bell } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 const STAGES = [
   { key: 'submitted', label: '订单提交', desc: '订单已创建，等待支付' },
