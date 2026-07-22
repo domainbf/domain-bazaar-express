@@ -52,7 +52,14 @@ interface LogoCardProps {
   index: number;
 }
 
-function LogoCard({ item, onClick, index, onPrefetch }: LogoCardProps & { onPrefetch: () => void }) {
+function LogoCard({ item, onClick, index, onPrefetch, badge }: LogoCardProps & { onPrefetch: () => void; badge: LogoBadgeConfig }) {
+  const showLogo = badge.enabled && !!item.logoUrl;
+  const logoSrc = showLogo && item.logoUrl
+    ? (badge.version > 0
+        ? `${item.logoUrl}${item.logoUrl.includes('?') ? '&' : '?'}v=${badge.version}`
+        : item.logoUrl)
+    : undefined;
+
   return (
     <button
       onClick={onClick}
@@ -66,10 +73,33 @@ function LogoCard({ item, onClick, index, onPrefetch }: LogoCardProps & { onPref
         hover:border-foreground/40 hover:bg-muted/30 transition-all duration-200
         overflow-hidden cursor-pointer"
     >
-      <div className="flex items-center justify-center w-full px-2">
+      {logoSrc && (
+        <>
+          <img
+            src={logoSrc}
+            alt=""
+            aria-hidden
+            loading="lazy"
+            decoding="async"
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+            style={{
+              filter: `grayscale(${badge.grayscale}%)`,
+              opacity: badge.opacity / 100,
+            }}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+          />
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: `linear-gradient(to top, hsl(var(--background) / ${badge.overlay / 100}) 0%, hsl(var(--background) / ${Math.min(1, badge.overlay / 100 * 0.5)}) 55%, transparent 100%)`,
+            }}
+          />
+        </>
+      )}
+      <div className={`relative z-10 flex items-center justify-center w-full px-2 ${logoSrc ? 'mt-auto mb-1' : ''}`}>
         <DomainWordmark name={item.name} className="max-w-[112px] sm:max-w-[124px]" />
       </div>
-      <span className="absolute bottom-1 right-1.5 text-[9px] text-muted-foreground/70 font-mono tabular-nums">
+      <span className={`absolute bottom-1 right-1.5 text-[9px] font-mono tabular-nums z-10 ${logoSrc ? 'text-foreground/80 bg-background/60 px-1 rounded' : 'text-muted-foreground/70'}`}>
         {item.bandType === 'sold' ? '已售' : formatPriceCompact(item.price, item.currency)}
       </span>
     </button>
