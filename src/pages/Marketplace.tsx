@@ -148,15 +148,16 @@ export const Marketplace = () => {
       }
     });
     return result;
-  }, [allDomains, tldFilter, searchQuery, priceChip, verifiedOnly, favoritesOnly, favoriteSet, sortBy]);
+  }, [allDomains, tldFilter, searchQuery, priceChip, verifiedOnly, favoritesOnly, favoriteSet, sortBy, lengthChip]);
 
   const hasActiveFilters =
     tldFilter !== 'all' || priceChip !== 'all' || verifiedOnly || favoritesOnly ||
-    sortBy !== 'newest' || !!searchQuery.trim();
+    sortBy !== 'newest' || !!searchQuery.trim() || lengthChip !== 'all';
 
   const clearAll = () => {
     setTldFilter('all'); setPriceChip('all'); setSortBy('newest');
     setVerifiedOnly(false); setFavoritesOnly(false); setSearchQuery('');
+    setLengthChip('all');
   };
 
   const handleRefresh = () => {
