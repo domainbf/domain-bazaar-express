@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { Navbar } from '@/components/Navbar';
+import { useNotifications } from '@/hooks/useNotifications';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatPrice } from '@/lib/currency';
-import { Inbox, Mail, Clock, CheckCircle2, XCircle, MessageSquare, RefreshCw, ArrowRight } from 'lucide-react';
+import { Inbox, Mail, Clock, CheckCircle2, XCircle, MessageSquare, RefreshCw, ArrowRight, ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface OfferRow {
@@ -41,6 +44,9 @@ function statusMeta(s: string) {
 
 export default function MyOffers() {
   const { user } = useAuth();
+  const { unreadCount } = useNotifications();
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [rows, setRows] = useState<OfferRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<string>('all');
@@ -105,26 +111,40 @@ export default function MyOffers() {
 
   if (!user) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-16 text-center">
-        <p className="text-muted-foreground">请先登录查看您的报价记录。</p>
-        <Link to="/auth" className="underline mt-2 inline-block">前往登录</Link>
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navbar unreadCount={unreadCount} />
+        <div className="max-w-3xl mx-auto px-4 py-16 text-center">
+          <p className="text-muted-foreground">请先登录查看您的报价记录。</p>
+          <Link to="/auth" className="underline mt-2 inline-block">前往登录</Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-semibold flex items-center gap-2">
-            <Inbox className="w-5 h-5" /> 我的报价
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">追踪您提交的每一笔报价，实时同步邮件送达、卖家回复及成交进度。</p>
+    <div className="min-h-screen bg-background flex flex-col">
+      <Navbar unreadCount={unreadCount} />
+      <div className={`flex-1 max-w-5xl mx-auto w-full px-4 py-6 space-y-6 ${isMobile ? 'pb-24' : ''}`}>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1 text-muted-foreground hover:text-foreground"
+            onClick={() => navigate(-1)}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            返回
+          </Button>
+          <div className="h-4 w-px bg-border" />
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <Inbox className="h-5 w-5 text-foreground shrink-0" />
+            <h1 className="text-xl font-bold text-foreground truncate">我的报价</h1>
+          </div>
+          <Button variant="outline" size="sm" onClick={load}>
+            <RefreshCw className="w-4 h-4 mr-1.5" /> 刷新
+          </Button>
         </div>
-        <Button variant="outline" size="sm" onClick={load}>
-          <RefreshCw className="w-4 h-4 mr-1.5" /> 刷新
-        </Button>
-      </div>
+        <p className="text-sm text-muted-foreground -mt-2">追踪您提交的每一笔报价，实时同步邮件送达、卖家回复及成交进度。</p>
 
       <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
         <Stat label="累计报价" value={String(stats.total)} />
@@ -237,6 +257,7 @@ export default function MyOffers() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
