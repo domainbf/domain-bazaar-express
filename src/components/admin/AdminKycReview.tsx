@@ -173,6 +173,29 @@ export function AdminKycReview() {
                 <Row label="户名" value={selected.payout_account_name || '—'} />
                 {selected.bank_name && <Row label="开户行" value={selected.bank_name} />}
                 <div className="border-t pt-2" />
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    ['id_front_url', '正面'],
+                    ['id_back_url', '反面'],
+                    ['id_selfie_url', '自拍'],
+                  ] as const).map(([k, label]) => {
+                    const path = (selected as any)[k] as string | null | undefined;
+                    const url = path ? docUrls[path] : null;
+                    return (
+                      <div key={k} className="border rounded overflow-hidden">
+                        <div className="text-[11px] text-muted-foreground px-1.5 py-1 bg-muted/40">{label}</div>
+                        {url ? (
+                          <a href={url} target="_blank" rel="noreferrer">
+                            <img src={url} alt={label} className="w-full h-24 object-cover" />
+                          </a>
+                        ) : (
+                          <div className="w-full h-24 flex items-center justify-center text-[11px] text-muted-foreground">未提交</div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="border-t pt-2" />
                 <Row label="状态" value={<Badge variant={STATUS[selected.status]?.tone}>{STATUS[selected.status]?.label}</Badge>} />
                 {selected.reviewed_at && (
                   <Row label="审核时间" value={new Date(selected.reviewed_at).toLocaleString('zh-CN')} />
