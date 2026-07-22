@@ -31,6 +31,7 @@ import { AdminAuditLogs } from '@/components/admin/AdminAuditLogs';
 import { MergeStrategyManager } from '@/components/admin/MergeStrategyManager';
 import { AdminLogoManagement } from '@/components/admin/AdminLogoManagement';
 import { AdminTelemetry } from '@/components/admin/AdminTelemetry';
+import { AdminOrderOperations } from '@/components/admin/AdminOrderOperations';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
