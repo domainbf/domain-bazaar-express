@@ -212,6 +212,8 @@ const SellerDashboard = ({ userId }: { userId: string }) => {
       {/* 30-day analytics */}
       <SellerAnalytics userId={userId} />
 
+      <AiPricingSuggestions userId={userId} />
+
       <div className="grid lg:grid-cols-3 gap-6">
 
         {/* Active listings */}
