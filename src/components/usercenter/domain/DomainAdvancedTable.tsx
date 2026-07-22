@@ -96,8 +96,8 @@ export const DomainAdvancedTable = ({ domains, onDomainUpdate }: Props) => {
         </Button>
       ),
       cell: ({ row }) => {
-        const symbol = row.original.currency === 'CNY' ? '¥' : '$';
-        return <span className="font-semibold">{symbol}{Number(row.original.price || 0).toLocaleString()}</span>;
+        const { formatPrice } = require('@/lib/currency');
+        return <span className="font-semibold">{formatPrice(Number(row.original.price || 0), row.original.currency)}</span>;
       },
     },
     {
