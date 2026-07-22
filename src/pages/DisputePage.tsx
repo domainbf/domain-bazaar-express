@@ -34,16 +34,22 @@ const PROCESS_STEPS = [
 export default function DisputePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const orderId = searchParams.get('order') || '';
   const { config } = useSiteSettings();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({
-    transaction_id: '',
+    transaction_id: orderId,
     dispute_type: '',
     opponent_email: '',
     amount: '',
     description: '',
   });
+
+  useEffect(() => {
+    if (orderId) setForm(f => ({ ...f, transaction_id: orderId }));
+  }, [orderId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
