@@ -127,25 +127,24 @@ export const MultiCurrencyPayment: React.FC<MultiCurrencyPaymentProps> = ({
   const loadExchangeRates = async () => {
     setLoadingRates(true);
     try {
-      // 模拟汇率API调用
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // 模拟实时汇率数据
-      const rates = {
-        CNY: 1,
-        USD: 0.14 + (Math.random() - 0.5) * 0.01,
-        EUR: 0.13 + (Math.random() - 0.5) * 0.01,
-        JPY: 20.8 + (Math.random() - 0.5) * 1,
-        GBP: 0.11 + (Math.random() - 0.5) * 0.01,
-        HKD: 1.09 + (Math.random() - 0.5) * 0.05,
-        SGD: 0.19 + (Math.random() - 0.5) * 0.01,
-        AUD: 0.21 + (Math.random() - 0.5) * 0.01
-      };
-      
+      // ExchangeRate-API (open endpoint, base CNY)
+      const res = await fetch('https://open.er-api.com/v6/latest/CNY');
+      if (!res.ok) throw new Error('rate fetch failed');
+      const json = await res.json();
+      const raw = json?.rates || {};
+      const rates: { [k: string]: number } = { CNY: 1 };
+      currencies.forEach((c) => {
+        if (c.code === 'CNY') return;
+        rates[c.code] = typeof raw[c.code] === 'number' ? raw[c.code] : c.rate;
+      });
       setExchangeRates(rates);
     } catch (error) {
       console.error('Error loading exchange rates:', error);
-      toast.error('汇率加载失败，使用默认汇率');
+      // Fallback to hardcoded rates
+      const rates: { [k: string]: number } = {};
+      currencies.forEach((c) => { rates[c.code] = c.rate; });
+      setExchangeRates(rates);
+      toast.warning('汇率加载失败，使用参考汇率');
     } finally {
       setLoadingRates(false);
     }
