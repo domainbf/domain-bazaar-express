@@ -9,6 +9,7 @@ import { formatPriceCompact } from '@/lib/currency';
 import { supabase } from '@/integrations/supabase/client';
 import { isUuidLike } from '@/lib/domainRouting';
 import { reportRoute } from '@/lib/routeTelemetry';
+import { useLogoBadgeConfig, type LogoBadgeConfig } from '@/hooks/useLogoBadgeConfig';
 
 // 预加载详情页 chunk，避免点击后长时间白屏
 let detailChunkPromise: Promise<unknown> | null = null;
