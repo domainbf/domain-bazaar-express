@@ -261,6 +261,22 @@ export const Marketplace = () => {
                 </button>
               ))}
             </div>
+            {/* Row 1b: Length chips */}
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-2 border-b border-border/50">
+              {LENGTH_CHIPS.map(chip => (
+                <button
+                  key={chip.id}
+                  data-testid={`filter-length-${chip.id}`}
+                  onClick={() => setLengthChip(chip.id)}
+                  className={`px-3 py-1 rounded-full text-xs whitespace-nowrap transition-colors shrink-0 ${
+                    lengthChip === chip.id
+                      ? 'bg-foreground text-background font-semibold'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {chip.label}
+                </button>
+              ))}
             {/* Row 2: Sort options */}
             <div className="flex items-center gap-1 py-2 overflow-x-auto scrollbar-hide">
               {SORT_OPTIONS.map(opt => {
