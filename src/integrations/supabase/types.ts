@@ -1149,6 +1149,48 @@ export type Database = {
         }
         Relationships: []
       }
+      order_operations_log: {
+        Row: {
+          created_at: string
+          error: string | null
+          from_stage: string | null
+          id: string
+          metadata: Json
+          operation: string
+          operator_email: string | null
+          operator_id: string | null
+          status: string
+          to_stage: string | null
+          transaction_id: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          from_stage?: string | null
+          id?: string
+          metadata?: Json
+          operation: string
+          operator_email?: string | null
+          operator_id?: string | null
+          status?: string
+          to_stage?: string | null
+          transaction_id: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          from_stage?: string | null
+          id?: string
+          metadata?: Json
+          operation?: string
+          operator_email?: string | null
+          operator_id?: string | null
+          status?: string
+          to_stage?: string | null
+          transaction_id?: string
+        }
+        Relationships: []
+      }
       pages: {
         Row: {
           content: string | null
@@ -1371,6 +1413,42 @@ export type Database = {
           username?: string | null
           verification_documents?: Json | null
           verification_status?: string | null
+        }
+        Relationships: []
+      }
+      receipt_delivery_log: {
+        Row: {
+          attempt: number
+          created_at: string
+          duration_ms: number | null
+          error: string | null
+          id: string
+          recipient: string | null
+          status: string
+          transaction_id: string
+          triggered_by: string | null
+        }
+        Insert: {
+          attempt?: number
+          created_at?: string
+          duration_ms?: number | null
+          error?: string | null
+          id?: string
+          recipient?: string | null
+          status: string
+          transaction_id: string
+          triggered_by?: string | null
+        }
+        Update: {
+          attempt?: number
+          created_at?: string
+          duration_ms?: number | null
+          error?: string | null
+          id?: string
+          recipient?: string | null
+          status?: string
+          transaction_id?: string
+          triggered_by?: string | null
         }
         Relationships: []
       }

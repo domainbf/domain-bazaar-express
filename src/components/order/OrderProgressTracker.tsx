@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CheckCircle2, CircleDot, Circle, RefreshCw, Bell } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 const STAGES = [
   { key: 'submitted', label: '订单提交', desc: '订单已创建，等待支付' },
@@ -24,6 +25,7 @@ export function OrderProgressTracker({ orderId, initialStage = 'submitted', init
   const [stage, setStage] = useState<StageKey>(initialStage);
   const [history, setHistory] = useState<Record<string, string>>(initialHistory);
   const [refreshing, setRefreshing] = useState(false);
+  const prevStageRef = useRef<StageKey>(initialStage);
 
   const load = async () => {
     setRefreshing(true);
@@ -48,11 +50,28 @@ export function OrderProgressTracker({ orderId, initialStage = 'submitted', init
         { event: 'UPDATE', schema: 'public', table: 'transactions', filter: `id=eq.${orderId}` },
         (payload) => {
           const n: any = payload.new;
-          if (n?.progress_stage) setStage(n.progress_stage);
+          if (n?.progress_stage && n.progress_stage !== prevStageRef.current) {
+            const stageMeta = STAGES.find((s) => s.key === n.progress_stage);
+            if (stageMeta) {
+              toast.success(`订单进入：${stageMeta.label}`, { description: stageMeta.desc });
+              // Browser push notification if permitted
+              if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+                try {
+                  new Notification('订单进度更新', { body: stageMeta.label + ' · ' + stageMeta.desc });
+                } catch {}
+              }
+            }
+            prevStageRef.current = n.progress_stage;
+            setStage(n.progress_stage);
+          }
           if (n?.stage_history) setHistory(n.stage_history);
         }
       )
       .subscribe();
+    // Request notification permission once on mount
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().catch(() => {});
+    }
     return () => {
       supabase.removeChannel(ch);
     };

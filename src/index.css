@@ -503,3 +503,16 @@ html {
   }
   .reveal { opacity: 1; transform: none; }
 }
+
+/* ── Print / PDF export ── */
+@media print {
+  @page { size: A4; margin: 14mm; }
+  html, body { background: #fff !important; color: #000 !important; }
+  nav, header, footer, .no-print, [data-no-print] { display: none !important; }
+  .print-container { max-width: 100% !important; padding: 0 !important; }
+  .print-avoid-break { break-inside: avoid; page-break-inside: avoid; }
+  a { color: #000 !important; text-decoration: none !important; }
+  .shadow-elegant, .premium-surface { box-shadow: none !important; }
+  .bg-card, .bg-background, .bg-muted\/30, .bg-muted\/40 { background: #fff !important; }
+  .border, .border-border { border-color: #ddd !important; }
+}
