@@ -253,6 +253,12 @@ export function CommandPalette() {
               <CommandItem value="me-domains" onSelect={() => go('/my-domains')}>
                 <Package className="h-4 w-4" /> 我的域名
               </CommandItem>
+              <CommandItem value="me-offers" onSelect={() => go('/my-offers')}>
+                <Bell className="h-4 w-4" /> 我的报价
+              </CommandItem>
+              <CommandItem value="me-earnings" onSelect={() => go('/seller/earnings')}>
+                <Tag className="h-4 w-4" /> 卖家收入结算
+              </CommandItem>
               <CommandItem value="me-sell" onSelect={() => go('/sell')}>
                 <Tag className="h-4 w-4" /> 上架出售
               </CommandItem>
