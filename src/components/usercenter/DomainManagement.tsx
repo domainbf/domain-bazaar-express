@@ -3,6 +3,8 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { DomainActions } from './DomainActions';
 import { DomainFilters } from './domain/DomainFilters';
 import { DomainTable } from './domain/DomainTable';
+import { DomainAdvancedTable } from './domain/DomainAdvancedTable';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { EmptyDomainState } from './domain/EmptyDomainState';
 import { useDomainsData } from './domain/useDomainsData';
 import { Button } from "@/components/ui/button";
@@ -50,6 +52,7 @@ export const DomainManagement = () => {
   const { t } = useTranslation();
   const { user, isLoading: isAuthLoading } = useAuth();
   const { domains, isLoading, isRefreshing, lastUpdated, loadDomains, refreshDomains } = useDomainsData();
+  const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
@@ -217,11 +220,19 @@ export const DomainManagement = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <DomainTable 
-              domains={filteredDomains} 
-              onDomainUpdate={loadDomains}
-              currentUserId={user.id}
-            />
+            {isMobile ? (
+              <DomainTable
+                domains={filteredDomains}
+                onDomainUpdate={loadDomains}
+                currentUserId={user.id}
+              />
+            ) : (
+              <DomainAdvancedTable
+                domains={filteredDomains}
+                onDomainUpdate={loadDomains}
+                currentUserId={user.id}
+              />
+            )}
           </motion.div>
         )}
       </AnimatePresence>
