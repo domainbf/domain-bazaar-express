@@ -58,7 +58,7 @@ export const DomainAdvancedTable = ({ domains, onDomainUpdate }: Props) => {
       id: 'select',
       header: ({ table }) => (
         <Checkbox
-          checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+          checked={table.getIsAllPageRowsSelected() ? true : table.getIsSomePageRowsSelected() ? 'indeterminate' : false}
           onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
           aria-label="全选"
         />
