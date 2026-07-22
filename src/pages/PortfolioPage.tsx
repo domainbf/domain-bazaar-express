@@ -34,13 +34,8 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from '@/components/ui/sheet';
+import { DomainDetailDrawer } from '@/components/domain/DomainDetailDrawer';
+
 import { toast } from 'sonner';
 import { apiGet } from '@/lib/apiClient';
 import { supabase } from '@/integrations/supabase/client';
