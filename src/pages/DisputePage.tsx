@@ -65,6 +65,23 @@ export default function DisputePage() {
     const supportEmail = config.contact_email || `support@${siteDomain.replace(/^https?:\/\//, '')}`;
     try {
       const disputeLabel = DISPUTE_TYPES.find(d => d.value === form.dispute_type)?.label || form.dispute_type;
+
+      // 写入 disputes 表以便管理员在后台跟进
+      const { error: insertError } = await supabase.from('disputes').insert({
+        initiator_id: user.id,
+        transaction_id: form.transaction_id || null,
+        reason: form.dispute_type,
+        description: [
+          `类型: ${disputeLabel}`,
+          form.opponent_email ? `对方: ${form.opponent_email}` : null,
+          form.amount ? `涉及金额: ${form.amount}` : null,
+          '',
+          form.description,
+        ].filter(Boolean).join('\n'),
+        status: 'open',
+      });
+      if (insertError) throw insertError;
+
       const html = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
