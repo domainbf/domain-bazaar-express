@@ -193,7 +193,44 @@ export default function OrderDetailPage() {
           )}
         </motion.div>
 
-        <OrderProgressTracker orderId={txn.id} initialStage={txn.progress_stage as any} initialHistory={txn.stage_history || {}} />
+        <div className="print-avoid-break">
+          <OrderProgressTracker orderId={txn.id} initialStage={txn.progress_stage as any} initialHistory={txn.stage_history || {}} />
+        </div>
+
+        {deliveries.length > 0 && (
+          <div className="mt-5 rounded-2xl border border-border bg-card p-5 no-print">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">收据投递记录</div>
+              {deliveries[0]?.status === 'failed' && (
+                <Button size="sm" variant="outline" onClick={resend} disabled={sending}>
+                  {sending ? <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5 mr-1.5" />}
+                  重试发送
+                </Button>
+              )}
+            </div>
+            <div className="space-y-1.5 text-xs">
+              {deliveries.map((d) => (
+                <div key={d.id} className="flex items-center justify-between gap-2 py-1.5 border-b border-border last:border-0">
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant={d.status === 'success' ? 'default' : d.status === 'retrying' ? 'secondary' : 'destructive'}
+                      className="text-[10px]"
+                    >
+                      #{d.attempt} · {d.status === 'success' ? '成功' : d.status === 'retrying' ? '重试中' : '失败'}
+                    </Badge>
+                    <span className="text-muted-foreground tabular-nums">{new Date(d.created_at).toLocaleString('zh-CN')}</span>
+                    {d.duration_ms && <span className="text-muted-foreground">· {d.duration_ms}ms</span>}
+                  </div>
+                  {d.error && (
+                    <span className="text-destructive truncate max-w-[50%]" title={d.error}>
+                      {d.error}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {(dns.length > 0 || summary.email_forwarding || summary.url_redirect || summary.expires_at) && (
           <div className="mt-5 rounded-2xl border border-border bg-card p-5">
