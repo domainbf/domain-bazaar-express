@@ -44,6 +44,9 @@ function statusMeta(s: string) {
 
 export default function MyOffers() {
   const { user } = useAuth();
+  const { unreadCount } = useNotifications();
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [rows, setRows] = useState<OfferRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<string>('all');
