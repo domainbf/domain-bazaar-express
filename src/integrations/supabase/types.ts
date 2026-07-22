@@ -1506,7 +1506,10 @@ export type Database = {
           created_at: string
           full_name: string
           id: string
+          id_back_url: string | null
+          id_front_url: string | null
           id_number: string
+          id_selfie_url: string | null
           id_type: string
           notes: string | null
           payout_account: string
@@ -1526,7 +1529,10 @@ export type Database = {
           created_at?: string
           full_name: string
           id?: string
+          id_back_url?: string | null
+          id_front_url?: string | null
           id_number: string
+          id_selfie_url?: string | null
           id_type: string
           notes?: string | null
           payout_account: string
@@ -1546,7 +1552,10 @@ export type Database = {
           created_at?: string
           full_name?: string
           id?: string
+          id_back_url?: string | null
+          id_front_url?: string | null
           id_number?: string
+          id_selfie_url?: string | null
           id_type?: string
           notes?: string | null
           payout_account?: string
@@ -1956,8 +1965,10 @@ export type Database = {
         Row: {
           comment: string | null
           created_at: string | null
+          helpful_count: number
           id: string
           rating: number | null
+          reported: boolean
           reviewed_user_id: string | null
           reviewer_id: string | null
           transaction_id: string | null
@@ -1965,8 +1976,10 @@ export type Database = {
         Insert: {
           comment?: string | null
           created_at?: string | null
+          helpful_count?: number
           id?: string
           rating?: number | null
+          reported?: boolean
           reviewed_user_id?: string | null
           reviewer_id?: string | null
           transaction_id?: string | null
@@ -1974,8 +1987,10 @@ export type Database = {
         Update: {
           comment?: string | null
           created_at?: string | null
+          helpful_count?: number
           id?: string
           rating?: number | null
+          reported?: boolean
           reviewed_user_id?: string | null
           reviewer_id?: string | null
           transaction_id?: string | null
