@@ -277,6 +277,7 @@ export const Marketplace = () => {
                   {chip.label}
                 </button>
               ))}
+            </div>
             {/* Row 2: Sort options */}
             <div className="flex items-center gap-1 py-2 overflow-x-auto scrollbar-hide">
               {SORT_OPTIONS.map(opt => {
