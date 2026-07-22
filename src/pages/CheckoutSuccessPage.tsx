@@ -121,7 +121,10 @@ export default function CheckoutSuccessPage() {
           <div className="px-6 py-5 border-b border-border flex items-center justify-between gap-3">
             <div>
               <div className="text-[11px] uppercase tracking-wider text-muted-foreground">订单号</div>
-              <div className="font-mono font-semibold mt-0.5">{orderId || '—'}</div>
+              <div className="font-mono font-semibold mt-0.5">{displayOrderNo}</div>
+              {real?.payment_method && (
+                <div className="text-[11px] text-muted-foreground mt-0.5">支付方式：{real.payment_method}</div>
+              )}
             </div>
             <div className="flex gap-2">
               <Button variant="ghost" size="sm" onClick={copy}>
@@ -133,7 +136,16 @@ export default function CheckoutSuccessPage() {
             </div>
           </div>
 
-          {order ? (
+          {real ? (
+            <div className="px-6 py-5 bg-muted/30 border-t border-border">
+              <div className="flex items-baseline justify-between">
+                <span className="text-sm text-muted-foreground">实付金额</span>
+                <span className="text-3xl font-bold gradient-text tabular-nums">
+                  {fmt(real.amount, real.currency)}
+                </span>
+              </div>
+            </div>
+          ) : order ? (
             <>
               <div className="p-6 space-y-2.5">
                 {order.items.map((i) => (
@@ -192,6 +204,22 @@ export default function CheckoutSuccessPage() {
             </div>
           )}
         </motion.div>
+
+        {/* Realtime order progress */}
+        {real?.id && (
+          <motion.div
+            initial={{ y: 16, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.25 }}
+            className="mt-5"
+          >
+            <OrderProgressTracker
+              orderId={real.id}
+              initialStage={real.progress_stage as any}
+              initialHistory={real.stage_history || {}}
+            />
+          </motion.div>
+        )}
 
         {/* Included */}
         <motion.div
