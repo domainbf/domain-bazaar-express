@@ -9,8 +9,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   Upload, CheckCircle2, TrendingUp, ShieldCheck, BarChart3, MessageSquare,
   Handshake, Star, DollarSign, Eye, Heart, Gavel, ArrowUpRight, Package,
-  Inbox,
+  Inbox, Globe2,
 } from 'lucide-react';
+import SellerAnalytics from '@/components/seller/SellerAnalytics';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserStats } from '@/hooks/useUserStats';
 import { supabase } from '@/integrations/supabase/client';
