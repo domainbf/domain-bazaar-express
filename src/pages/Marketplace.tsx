@@ -129,6 +129,10 @@ export const Marketplace = () => {
     }
     if (verifiedOnly) result = result.filter(d => d.is_verified);
     if (favoritesOnly) result = result.filter(d => favoriteSet.has(d.id));
+    const lc = LENGTH_CHIPS.find(l => l.id === lengthChip);
+    if (lc && lc.id !== 'all') {
+      result = result.filter(d => lc.test(domainBase(d.name).length));
+    }
 
     result.sort((a, b) => {
       switch (sortBy) {
