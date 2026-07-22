@@ -230,13 +230,17 @@ const Community: React.FC = () => {
             {/* 快速链接 */}
             <Card className="bg-primary/5">
               <CardContent className="pt-6 space-y-2">
-                <Button variant="default" className="w-full">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  发起新话题
+                <Button variant="default" className="w-full" asChild>
+                  <Link to="/support?type=community">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    发起新话题
+                  </Link>
                 </Button>
-                <Button variant="outline" className="w-full">
-                  <BookOpen className="h-4 w-4 mr-2" />
-                  社区规则
+                <Button variant="outline" className="w-full" asChild>
+                  <Link to="/faq">
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    社区规则
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
