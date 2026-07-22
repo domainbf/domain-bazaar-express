@@ -74,7 +74,9 @@ export const AdminPanel = () => {
   const [pendingDisputes, setPendingDisputes] = useState(0);
   const [pendingOffers, setPendingOffers] = useState(0);
   const [pendingTickets, setPendingTickets] = useState(0);
+  const [pendingKyc, setPendingKyc] = useState(0);
   const [newFeedback, setNewFeedback] = useState(0);
+  const [navQuery, setNavQuery] = useState('');
 
   // ProtectedRoute (adminOnly) already verified auth + admin status.
   // No need for a second is_admin RPC — just load badges immediately.
@@ -89,16 +91,18 @@ export const AdminPanel = () => {
 
   const loadBadges = async () => {
     try {
-      const [verRes, disputeRes, offerRes, ticketRes] = await Promise.all([
+      const [verRes, disputeRes, offerRes, ticketRes, kycRes] = await Promise.all([
         supabase.from('domain_verifications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('disputes').select('id', { count: 'exact', head: true }).eq('status', 'open'),
         supabase.from('domain_offers').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('support_tickets').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+        (supabase as any).from('seller_kyc').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       ]);
       setPendingVerifications(verRes.count ?? 0);
       setPendingDisputes(disputeRes.count ?? 0);
       setPendingOffers(offerRes.count ?? 0);
       setPendingTickets(ticketRes.count ?? 0);
+      setPendingKyc(kycRes?.count ?? 0);
       setNewFeedback(0);
     } catch {}
   };
