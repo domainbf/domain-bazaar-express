@@ -220,11 +220,19 @@ export const DomainManagement = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <DomainTable 
-              domains={filteredDomains} 
-              onDomainUpdate={loadDomains}
-              currentUserId={user.id}
-            />
+            {isMobile ? (
+              <DomainTable
+                domains={filteredDomains}
+                onDomainUpdate={loadDomains}
+                currentUserId={user.id}
+              />
+            ) : (
+              <DomainAdvancedTable
+                domains={filteredDomains}
+                onDomainUpdate={loadDomains}
+                currentUserId={user.id}
+              />
+            )}
           </motion.div>
         )}
       </AnimatePresence>
