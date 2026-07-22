@@ -402,6 +402,7 @@ function App() {
           the nav is always fixed to the viewport on mobile. */}
       <GlobalBottomNav />
       <FeedbackButton />
+      <CommandPalette />
     </ErrorBoundary>
   );
 }
