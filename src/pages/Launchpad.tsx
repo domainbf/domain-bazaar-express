@@ -357,18 +357,15 @@ export default function Launchpad() {
         </div>
 
         {activeModules.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-            {activeModules.map((m) => (
-              <motion.div
-                key={m.key}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <ModuleCard mod={m} />
-              </motion.div>
-            ))}
-          </div>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={activeModules.map((m) => m.key)} strategy={rectSortingStrategy}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+                {activeModules.map((m) => (
+                  <SortableModuleCard key={m.key} mod={m} />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         ) : (
           <div className="premium-surface p-10 text-center">
             <div className="text-muted-foreground">你还没有启用任何模块。点击右上角"自定义"添加。</div>
