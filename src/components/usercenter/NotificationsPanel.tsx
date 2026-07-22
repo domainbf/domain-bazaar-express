@@ -19,15 +19,58 @@ export const NotificationsPanel = () => {
   const { notifications, isLoading, markAsRead, markAllAsRead, unreadCount, refreshNotifications } = useNotifications();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [unreadOnly, setUnreadOnly] = useState(false);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
-  
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
   const filteredNotifications = notifications.filter(notification => {
-    const matchesSearch = 
-      notification.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const matchesSearch =
+      notification.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       notification.message.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = filterType === 'all' || notification.type === filterType;
-    return matchesSearch && matchesType;
+    const matchesRead = !unreadOnly || !notification.is_read;
+    return matchesSearch && matchesType && matchesRead;
   });
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+  const clearSelection = () => setSelectedIds(new Set());
+  const selectAllVisible = () => setSelectedIds(new Set(filteredNotifications.map(n => n.id)));
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    setDeletingIds(prev => new Set([...prev, ...ids]));
+    try {
+      const { error } = await supabase.from('notifications').delete().in('id', ids).eq('user_id', user?.id);
+      if (error) throw error;
+      toast.success(`已删除 ${ids.length} 条通知`);
+      clearSelection();
+      refreshNotifications();
+    } catch {
+      toast.error('批量删除失败');
+    } finally {
+      setDeletingIds(new Set());
+    }
+  };
+
+  const handleBulkMarkRead = async () => {
+    if (selectedIds.size === 0) return;
+    try {
+      const { error } = await supabase.from('notifications').update({ is_read: true }).in('id', Array.from(selectedIds)).eq('user_id', user?.id);
+      if (error) throw error;
+      toast.success('已标记为已读');
+      clearSelection();
+      refreshNotifications();
+    } catch {
+      toast.error('操作失败');
+    }
+  };
 
   // Group notifications by date
   const groupedNotifications: Record<string, Notification[]> = {};
