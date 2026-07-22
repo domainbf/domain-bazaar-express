@@ -1,164 +1,285 @@
-import { Search } from 'lucide-react';
+import { Search, Sparkles, ArrowRight, Zap, Shield, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
-import { motion } from 'framer-motion';
-import { DomainScrollBands } from './DomainScrollBands';
+import { useHomeData } from '@/hooks/useHomeData';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const ENTER = { hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0 } };
+const POPULAR_TLDS = ['.com', '.ai', '.io', '.co', '.app', '.dev', '.xyz', '.net'];
 
-const PARTICLES = [
-  { size: 5, top: '18%', left: '12%', delay: '0s', duration: '7s' },
-  { size: 3, top: '35%', left: '88%', delay: '1.2s', duration: '9s' },
-  { size: 4, top: '72%', left: '7%',  delay: '2.1s', duration: '8s' },
-  { size: 6, top: '55%', left: '78%', delay: '0.5s', duration: '11s' },
-  { size: 3, top: '82%', left: '55%', delay: '3s',   duration: '7.5s' },
-  { size: 4, top: '12%', left: '65%', delay: '1.8s', duration: '10s' },
-  { size: 2, top: '45%', left: '42%', delay: '4s',   duration: '6.5s' },
+const PRICE_RANGES = [
+  { key: 'any', label: '全部价格', min: 0, max: undefined },
+  { key: 'lt1k', label: '< ¥1,000', min: 0, max: 1000 },
+  { key: '1k5k', label: '¥1k – 5k', min: 1000, max: 5000 },
+  { key: '5k20k', label: '¥5k – 20k', min: 5000, max: 20000 },
+  { key: 'gt20k', label: '> ¥20,000', min: 20000, max: undefined },
 ];
 
 export const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTld, setSelectedTld] = useState<string>('');
+  const [priceRange, setPriceRange] = useState<string>('any');
+  const [focused, setFocused] = useState(false);
   const navigate = useNavigate();
   const { config } = useSiteSettings();
+  const { data: homeData } = useHomeData();
+  const wrapRef = useRef<HTMLDivElement>(null);
 
-  const handleSearch = () => {
-    if (searchQuery.trim()) {
-      navigate(`/marketplace?search=${encodeURIComponent(searchQuery.trim())}`);
-    } else {
-      navigate('/marketplace');
-    }
+  // close suggestions on outside click
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setFocused(false);
+    };
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, []);
+
+  // Instant suggestions
+  const suggestions = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    const pool = homeData?.hotDomains ?? [];
+    if (!q) return pool.slice(0, 5);
+    return pool
+      .filter((d) => d.name.toLowerCase().includes(q))
+      .slice(0, 6);
+  }, [searchQuery, homeData?.hotDomains]);
+
+  // Related domains (same base, different TLDs)
+  const relatedDomains = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q || q.includes('.')) return [];
+    return POPULAR_TLDS.slice(0, 5).map((tld) => `${q}${tld}`);
+  }, [searchQuery]);
+
+  const buildSearchUrl = (overrideQ?: string) => {
+    const params = new URLSearchParams();
+    const q = (overrideQ ?? searchQuery).trim();
+    if (q) params.set('search', q);
+    if (selectedTld) params.set('tld', selectedTld);
+    const range = PRICE_RANGES.find((r) => r.key === priceRange);
+    if (range?.min) params.set('minPrice', String(range.min));
+    if (range?.max) params.set('maxPrice', String(range.max));
+    return `/marketplace${params.toString() ? `?${params.toString()}` : ''}`;
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleSearch = (q?: string) => navigate(buildSearchUrl(q));
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleSearch();
+    if (e.key === 'Escape') setFocused(false);
   };
 
   return (
-    <section className="relative pt-12 md:pt-20 pb-10 md:pb-16 px-4 bg-background overflow-hidden">
+    <section className="relative overflow-hidden pt-16 md:pt-24 pb-16 md:pb-20 px-4">
+      {/* Ambient aurora */}
+      <div className="absolute inset-0 pointer-events-none select-none hero-aurora" />
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]"
+        style={{
+          backgroundImage:
+            'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
+          backgroundSize: '56px 56px',
+          maskImage: 'radial-gradient(ellipse at center, black 50%, transparent 85%)',
+        }}
+      />
 
-      {/* ── Subtle dark overlay only ── */}
-      <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
-
-        {/* subtle grid overlay */}
-        <div
-          className="absolute inset-0 opacity-[0.025] dark:opacity-[0.04]"
-          style={{
-            backgroundImage: 'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
-            backgroundSize: '48px 48px',
-          }}
-        />
-
-        {/* floating particles */}
-        {PARTICLES.map((p, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full animate-particle"
-            style={{
-              width: p.size,
-              height: p.size,
-              top: p.top,
-              left: p.left,
-              animationDelay: p.delay,
-              animationDuration: p.duration,
-              background: i % 3 === 0
-                ? 'rgba(99,102,241,0.5)'
-                : i % 3 === 1
-                  ? 'rgba(6,182,212,0.45)'
-                  : 'rgba(139,92,246,0.4)',
-            }}
-          />
-        ))}
-      </div>
-
-      <div className="relative max-w-6xl mx-auto text-center">
+      <div className="relative max-w-5xl mx-auto text-center">
         {/* Badge */}
         <motion.div
-          variants={ENTER}
-          initial="hidden"
-          animate="show"
-          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 rounded-full border border-border bg-card/50 dark:bg-white/5 text-muted-foreground text-sm font-medium"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 mb-6 rounded-full border border-primary/20 bg-primary/5 text-primary text-xs font-medium backdrop-blur-sm"
         >
-          <span className="inline-block w-1.5 h-1.5 rounded-full bg-foreground/50 animate-pulse" />
-          专业域名交易平台
+          <Sparkles className="w-3.5 h-3.5" />
+          精选域名 · AI 智能估值 · 安全托管交易
         </motion.div>
 
         <motion.h1
-          variants={ENTER}
-          initial="hidden"
-          animate="show"
-          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: 0.05 }}
-          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 leading-tight"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.05 }}
+          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-5 md:mb-6 leading-[1.05]"
         >
-          <span className="text-foreground">{config.hero_title || '寻找完美的域名'}</span>
+          <span className="text-foreground">{config.hero_title || '寻找完美的'}</span>{' '}
+          <span className="gradient-text">域名</span>
         </motion.h1>
 
         <motion.p
-          variants={ENTER}
-          initial="hidden"
-          animate="show"
-          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-          className="text-base md:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto mb-6 md:mb-8 px-2"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-10 md:mb-12"
         >
-          {config.hero_subtitle}
+          {config.hero_subtitle || '从数千个精选域名中发现下一个属于你的品牌。'}
         </motion.p>
 
+        {/* ── Massive search bar ── */}
         <motion.div
-          variants={ENTER}
-          initial="hidden"
-          animate="show"
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-          className="max-w-2xl mx-auto mb-8 md:mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.18 }}
+          className="max-w-3xl mx-auto"
+          ref={wrapRef}
         >
-          <div className="relative flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Input
-                type="text"
-                placeholder={config.hero_search_placeholder}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={handleKeyPress}
-                className="h-11 md:h-12 text-base md:text-lg px-4 md:px-6 pr-4 border-border transition-shadow duration-200 focus:shadow-[0_0_0_2px_rgba(99,102,241,0.2)] focus:border-indigo-400 dark:focus:border-indigo-600"
-                data-testid="input-hero-search"
-              />
-            </div>
+          <div
+            className={`relative flex items-center gap-2 p-2 rounded-2xl bg-card border transition-all duration-300 ${
+              focused
+                ? 'border-primary shadow-elegant ring-4 ring-primary/10'
+                : 'border-border shadow-card'
+            }`}
+          >
+            <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 md:w-6 md:h-6 text-muted-foreground pointer-events-none" />
+            <Input
+              type="text"
+              placeholder={config.hero_search_placeholder || '搜索域名，如 brand.com'}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setFocused(true)}
+              onKeyDown={handleKeyDown}
+              className="h-14 md:h-16 flex-1 pl-14 md:pl-16 pr-2 border-0 bg-transparent text-base md:text-lg font-medium shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+              data-testid="input-hero-search"
+              autoComplete="off"
+            />
             <Button
-              onClick={handleSearch}
-              className="h-11 md:h-12 px-6 md:px-8 whitespace-nowrap transition-all active:scale-[0.97] bg-foreground text-background hover:bg-foreground/90 border-0 shadow-md hover:shadow-lg"
+              onClick={() => handleSearch()}
+              className="h-12 md:h-14 px-6 md:px-8 rounded-xl bg-gradient-primary text-primary-foreground border-0 font-semibold text-sm md:text-base transition-all hover:shadow-elegant hover:-translate-y-0.5 active:scale-[0.98]"
               data-testid="button-hero-search"
             >
-              <Search className="w-4 h-4 md:w-5 md:h-5 mr-2" />
               搜索
+              <ArrowRight className="w-4 h-4 ml-1.5 hidden sm:inline" />
             </Button>
+
+            {/* Suggestions dropdown */}
+            <AnimatePresence>
+              {focused && (suggestions.length > 0 || relatedDomains.length > 0) && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.18 }}
+                  className="absolute top-full left-0 right-0 mt-3 rounded-2xl border border-border bg-popover shadow-elegant overflow-hidden z-30 text-left"
+                >
+                  {suggestions.length > 0 && (
+                    <div className="p-2">
+                      <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        即刻可购
+                      </div>
+                      {suggestions.map((d) => (
+                        <button
+                          key={d.id}
+                          onClick={() => navigate(`/domain/${encodeURIComponent(d.name)}`)}
+                          className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg hover:bg-accent transition-colors group"
+                        >
+                          <span className="font-medium text-foreground truncate">{d.name}</span>
+                          <span className="flex items-center gap-2 shrink-0">
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success font-medium">
+                              可售
+                            </span>
+                            <span className="text-sm font-semibold text-foreground tabular-nums">
+                              {d.currency === 'USD' ? '$' : '¥'}
+                              {d.price.toLocaleString()}
+                            </span>
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {relatedDomains.length > 0 && (
+                    <div className="p-2 border-t border-border">
+                      <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        相关建议
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 px-2 py-1">
+                        {relatedDomains.map((r) => (
+                          <button
+                            key={r}
+                            onClick={() => handleSearch(r)}
+                            className="text-xs font-mono font-medium px-2.5 py-1.5 rounded-md border border-border bg-background hover:border-primary/40 hover:bg-accent transition-colors"
+                          >
+                            {r}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* TLD quick filters */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-1.5">
+            <span className="text-xs text-muted-foreground mr-1">后缀:</span>
+            <button
+              onClick={() => setSelectedTld('')}
+              className={`text-xs font-mono font-semibold px-3 py-1.5 rounded-full border transition-all ${
+                selectedTld === ''
+                  ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                  : 'bg-card text-foreground border-border hover:border-primary/40'
+              }`}
+            >
+              全部
+            </button>
+            {POPULAR_TLDS.map((tld) => (
+              <button
+                key={tld}
+                onClick={() => setSelectedTld(selectedTld === tld ? '' : tld)}
+                className={`text-xs font-mono font-semibold px-3 py-1.5 rounded-full border transition-all ${
+                  selectedTld === tld
+                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                    : 'bg-card text-foreground border-border hover:border-primary/40'
+                }`}
+              >
+                {tld}
+              </button>
+            ))}
+          </div>
+
+          {/* Price range */}
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
+            <span className="text-xs text-muted-foreground mr-1">价格:</span>
+            {PRICE_RANGES.map((r) => (
+              <button
+                key={r.key}
+                onClick={() => setPriceRange(r.key)}
+                className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-all ${
+                  priceRange === r.key
+                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                    : 'bg-card text-foreground border-border hover:border-primary/40'
+                }`}
+              >
+                {r.label}
+              </button>
+            ))}
           </div>
         </motion.div>
 
-        <DomainScrollBands />
-
+        {/* Trust signals */}
         <motion.div
-          variants={ENTER}
-          initial="hidden"
-          animate="show"
-          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
-          className="flex flex-row gap-3 md:gap-4 justify-center px-2"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.35 }}
+          className="mt-10 md:mt-14 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs md:text-sm text-muted-foreground"
         >
-          <Button
-            onClick={() => navigate('/marketplace')}
-            className="flex-1 max-w-[180px] px-4 md:px-8 py-2.5 md:py-3 text-sm md:text-base bg-foreground text-background hover:bg-foreground/90 border-0 transition-all active:scale-[0.97]"
-            data-testid="button-hero-browse"
-          >
-            {config.hero_cta_primary}
-          </Button>
-          <Button
-            onClick={() => navigate('/sell')}
-            className="flex-1 max-w-[180px] px-4 md:px-8 py-2.5 md:py-3 text-sm md:text-base bg-foreground text-background hover:bg-foreground/90 border-0 transition-all active:scale-[0.97]"
-            data-testid="button-hero-sell"
-          >
-            {config.hero_cta_secondary}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Shield className="w-4 h-4 text-success" />
+            <span>担保交易</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Zap className="w-4 h-4 text-primary" />
+            <span>秒级过户</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-primary" />
+            <span>AI 智能估值</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span>多币种支持</span>
+          </div>
         </motion.div>
       </div>
     </section>
