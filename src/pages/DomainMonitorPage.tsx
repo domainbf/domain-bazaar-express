@@ -2,7 +2,8 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/sections/Footer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Eye, TrendingDown, Shield, Clock, Zap, CheckCircle2 } from 'lucide-react';
+import { Bell, Eye, TrendingDown, Shield, Zap } from 'lucide-react';
+import { DomainMonitor } from '@/components/tools/DomainMonitor';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
