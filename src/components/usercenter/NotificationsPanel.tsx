@@ -19,15 +19,58 @@ export const NotificationsPanel = () => {
   const { notifications, isLoading, markAsRead, markAllAsRead, unreadCount, refreshNotifications } = useNotifications();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [unreadOnly, setUnreadOnly] = useState(false);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
-  
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
   const filteredNotifications = notifications.filter(notification => {
-    const matchesSearch = 
-      notification.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const matchesSearch =
+      notification.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       notification.message.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = filterType === 'all' || notification.type === filterType;
-    return matchesSearch && matchesType;
+    const matchesRead = !unreadOnly || !notification.is_read;
+    return matchesSearch && matchesType && matchesRead;
   });
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+  const clearSelection = () => setSelectedIds(new Set());
+  const selectAllVisible = () => setSelectedIds(new Set(filteredNotifications.map(n => n.id)));
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    setDeletingIds(prev => new Set([...prev, ...ids]));
+    try {
+      const { error } = await supabase.from('notifications').delete().in('id', ids).eq('user_id', user?.id);
+      if (error) throw error;
+      toast.success(`已删除 ${ids.length} 条通知`);
+      clearSelection();
+      refreshNotifications();
+    } catch {
+      toast.error('批量删除失败');
+    } finally {
+      setDeletingIds(new Set());
+    }
+  };
+
+  const handleBulkMarkRead = async () => {
+    if (selectedIds.size === 0) return;
+    try {
+      const { error } = await supabase.from('notifications').update({ is_read: true }).in('id', Array.from(selectedIds)).eq('user_id', user?.id);
+      if (error) throw error;
+      toast.success('已标记为已读');
+      clearSelection();
+      refreshNotifications();
+    } catch {
+      toast.error('操作失败');
+    }
+  };
 
   // Group notifications by date
   const groupedNotifications: Record<string, Notification[]> = {};
@@ -145,23 +188,58 @@ export const NotificationsPanel = () => {
           />
         </div>
         
-        <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="w-full md:w-40">
-            <SelectValue placeholder="筛选类型" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部类型</SelectItem>
-            <SelectItem value="offer">报价通知</SelectItem>
-            <SelectItem value="transaction">交易通知</SelectItem>
-            <SelectItem value="message">站内消息</SelectItem>
-            <SelectItem value="escrow">托管通知</SelectItem>
-            <SelectItem value="dispute">纠纷通知</SelectItem>
-            <SelectItem value="auction">拍卖通知</SelectItem>
-            <SelectItem value="verification">认证通知</SelectItem>
-            <SelectItem value="system">系统通知</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <Button
+            variant={unreadOnly ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setUnreadOnly(v => !v)}
+            className="shrink-0"
+          >
+            仅未读
+          </Button>
+          <Select value={filterType} onValueChange={setFilterType}>
+            <SelectTrigger className="w-full md:w-40">
+              <SelectValue placeholder="筛选类型" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部类型</SelectItem>
+              <SelectItem value="offer">报价通知</SelectItem>
+              <SelectItem value="transaction">交易通知</SelectItem>
+              <SelectItem value="message">站内消息</SelectItem>
+              <SelectItem value="escrow">托管通知</SelectItem>
+              <SelectItem value="dispute">纠纷通知</SelectItem>
+              <SelectItem value="auction">拍卖通知</SelectItem>
+              <SelectItem value="verification">认证通知</SelectItem>
+              <SelectItem value="system">系统通知</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
+
+      {/* 批量操作栏 */}
+      {filteredNotifications.length > 0 && (
+        <div className="flex items-center justify-between gap-3 flex-wrap px-1 -mt-2">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <button
+              onClick={selectedIds.size === filteredNotifications.length ? clearSelection : selectAllVisible}
+              className="underline-offset-2 hover:underline"
+            >
+              {selectedIds.size === filteredNotifications.length ? '取消全选' : '全选当前列表'}
+            </button>
+            {selectedIds.size > 0 && <span>已选 {selectedIds.size}</span>}
+          </div>
+          {selectedIds.size > 0 && (
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" onClick={handleBulkMarkRead}>
+                <CheckCheck className="h-3.5 w-3.5 mr-1" />标为已读
+              </Button>
+              <Button size="sm" variant="outline" className="text-destructive hover:text-destructive" onClick={handleBulkDelete}>
+                <Trash2 className="h-3.5 w-3.5 mr-1" />删除所选
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
 
       {notifications.length === 0 ? (
         <Card>
@@ -190,9 +268,16 @@ export const NotificationsPanel = () => {
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(notification.id)}
+                          onChange={() => toggleSelect(notification.id)}
+                          className="mt-1.5 h-4 w-4 rounded border-border shrink-0 cursor-pointer accent-primary"
+                          aria-label="选择通知"
+                        />
                         <div className="flex-1 min-w-0">
-                          <Link 
-                            to={notification.action_url || '#'} 
+                          <Link
+                            to={notification.action_url || '#'}
                             className="block"
                             onClick={() => {
                               if (!notification.is_read) {

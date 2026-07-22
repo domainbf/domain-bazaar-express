@@ -74,7 +74,9 @@ export const AdminPanel = () => {
   const [pendingDisputes, setPendingDisputes] = useState(0);
   const [pendingOffers, setPendingOffers] = useState(0);
   const [pendingTickets, setPendingTickets] = useState(0);
+  const [pendingKyc, setPendingKyc] = useState(0);
   const [newFeedback, setNewFeedback] = useState(0);
+  const [navQuery, setNavQuery] = useState('');
 
   // ProtectedRoute (adminOnly) already verified auth + admin status.
   // No need for a second is_admin RPC — just load badges immediately.
@@ -89,16 +91,18 @@ export const AdminPanel = () => {
 
   const loadBadges = async () => {
     try {
-      const [verRes, disputeRes, offerRes, ticketRes] = await Promise.all([
+      const [verRes, disputeRes, offerRes, ticketRes, kycRes] = await Promise.all([
         supabase.from('domain_verifications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('disputes').select('id', { count: 'exact', head: true }).eq('status', 'open'),
         supabase.from('domain_offers').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('support_tickets').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+        (supabase as any).from('seller_kyc').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       ]);
       setPendingVerifications(verRes.count ?? 0);
       setPendingDisputes(disputeRes.count ?? 0);
       setPendingOffers(offerRes.count ?? 0);
       setPendingTickets(ticketRes.count ?? 0);
+      setPendingKyc(kycRes?.count ?? 0);
       setNewFeedback(0);
     } catch {}
   };
@@ -141,7 +145,7 @@ export const AdminPanel = () => {
       title: '用户管理',
       items: [
         { id: 'users', label: '全部用户', icon: Users },
-        { id: 'kyc', label: '实名与提现审核', icon: Shield },
+        { id: 'kyc', label: '实名与提现审核', icon: Shield, badge: pendingKyc },
       ]
     },
     {
@@ -181,6 +185,8 @@ export const AdminPanel = () => {
 
   const activeItem = navGroups.flatMap(g => g.items).find(i => i.id === activeTab);
 
+  const totalPending = pendingVerifications + pendingDisputes + pendingOffers + pendingTickets + pendingKyc;
+
   const SidebarContent = () => (
     <ScrollArea className="h-full">
       <div className="p-4 space-y-1">
@@ -193,11 +199,34 @@ export const AdminPanel = () => {
             <p className="text-sm font-semibold truncate">管理员后台</p>
             <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
           </div>
+          {totalPending > 0 && (
+            <Badge variant="destructive" className="h-5 text-[10px]">{totalPending}</Badge>
+          )}
+        </div>
+
+        {/* 侧边栏搜索 */}
+        <div className="relative mb-2 px-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+          <input
+            value={navQuery}
+            onChange={(e) => setNavQuery(e.target.value)}
+            placeholder="搜索菜单..."
+            className="w-full h-8 pl-8 pr-2 rounded-md border border-border bg-background text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+          />
         </div>
 
         <Separator className="mb-3" />
 
-        {navGroups.map(group => (
+        {navGroups
+          .map(group => ({
+            ...group,
+            items: group.items.filter(i =>
+              !navQuery.trim() ||
+              i.label.toLowerCase().includes(navQuery.trim().toLowerCase())
+            ),
+          }))
+          .filter(g => g.items.length > 0)
+          .map(group => (
           <div key={group.title} className="mb-4">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-1.5">
               {group.title}
