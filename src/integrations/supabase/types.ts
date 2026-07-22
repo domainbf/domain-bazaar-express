@@ -2010,6 +2010,10 @@ export type Database = {
         Args: { p_new_password: string; p_user_email: string }
         Returns: Json
       }
+      call_notify_status_change: {
+        Args: { _new: Json; _old: Json; _type: string }
+        Returns: undefined
+      }
       cleanup_expired_valuations: { Args: never; Returns: undefined }
       get_user_notifications: {
         Args: { user_id_param: string }
