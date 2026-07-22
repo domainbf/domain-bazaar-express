@@ -170,8 +170,10 @@ export default function SellerEarnings() {
         <StatCard label="可提现余额" value={formatPrice(stats.available, 'CNY')} highlight sub="申请后 1-3 个工作日" />
       </div>
 
+      <KycForm onStatusChange={setKycStatus} />
+
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+        <Card className={!kycApproved ? 'opacity-70' : ''}>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <ArrowUpRight className="w-4 h-4" /> 申请提现
