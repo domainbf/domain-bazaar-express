@@ -249,7 +249,7 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
             <Gavel className="h-3.5 w-3.5 text-foreground/50" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">拍卖域名</span>
           </div>
-          <MarqueeRow items={pad(auctionDomains)} direction="ltr" onChipClick={handleChipClick} onPrefetch={handlePrefetch} onVisible={() => handleRowVisible(auctionDomains)} />
+          <MarqueeRow items={pad(auctionDomains)} direction="ltr" onChipClick={handleChipClick} onPrefetch={handlePrefetch} onVisible={() => handleRowVisible(auctionDomains)} badge={badge} />
         </div>
       )}
 
@@ -259,7 +259,7 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
             <Flame className="h-3.5 w-3.5 text-foreground/50" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">热门域名</span>
           </div>
-          <MarqueeRow items={pad(hotDomains)} direction="rtl" onChipClick={handleChipClick} onPrefetch={handlePrefetch} onVisible={() => handleRowVisible(hotDomains)} />
+          <MarqueeRow items={pad(hotDomains)} direction="rtl" onChipClick={handleChipClick} onPrefetch={handlePrefetch} onVisible={() => handleRowVisible(hotDomains)} badge={badge} />
         </div>
       )}
 
@@ -269,7 +269,7 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
             <CheckCircle className="h-3.5 w-3.5 text-foreground/50" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">成交案例</span>
           </div>
-          <MarqueeRow items={pad(soldDomains)} direction="ltr" onChipClick={handleChipClick} onPrefetch={handlePrefetch} onVisible={() => handleRowVisible(soldDomains)} />
+          <MarqueeRow items={pad(soldDomains)} direction="ltr" onChipClick={handleChipClick} onPrefetch={handlePrefetch} onVisible={() => handleRowVisible(soldDomains)} badge={badge} />
         </div>
       )}
     </div>
