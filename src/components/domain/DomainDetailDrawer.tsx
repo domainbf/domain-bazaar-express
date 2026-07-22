@@ -452,8 +452,12 @@ export function DomainDetailDrawer({
                       </p>
                     )}
                   </div>
-                  <Button variant="outline" className="w-full" disabled={toggles.transferLock}>
-                    {toggles.transferLock ? '已锁定 · 请先关闭过户锁' : '开始转出流程'}
+                  <Button variant="outline" className="w-full" disabled={toggles.transferLock} asChild={!toggles.transferLock}>
+                    {toggles.transferLock ? (
+                      <span>已锁定 · 请先关闭过户锁</span>
+                    ) : (
+                      <Link to={`/support?type=transfer&domain=${encodeURIComponent(domain.name)}`}>开始转出流程</Link>
+                    )}
                   </Button>
                 </TabsContent>
 
