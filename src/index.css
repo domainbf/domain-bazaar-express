@@ -516,3 +516,16 @@ html {
   .bg-card, .bg-background, .bg-muted\/30, .bg-muted\/40 { background: #fff !important; }
   .border, .border-border { border-color: #ddd !important; }
 }
+
+/* ── Portfolio valuation PDF polish ── */
+@media print {
+  .portfolio-share-card {
+    background: linear-gradient(135deg, #0f172a, #1e1b4b, #0f172a) !important;
+    color: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .portfolio-share-card * { color: #fff !important; }
+  .print-page-break { page-break-before: always; }
+  table, .print-avoid-break, [data-print-row] { break-inside: avoid; }
+}
