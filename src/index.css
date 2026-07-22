@@ -363,6 +363,22 @@ html {
   0%   { background-position: -400px 0; }
   100% { background-position: 400px 0; }
 }
+@layer utilities {
+  .shimmer-overlay {
+    background-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--foreground) / 0.06) 45%,
+      hsl(var(--foreground) / 0.12) 50%,
+      hsl(var(--foreground) / 0.06) 55%,
+      transparent 100%
+    );
+    background-size: 400px 100%;
+    background-repeat: no-repeat;
+    animation: shimmer 1.4s ease-in-out infinite;
+    pointer-events: none;
+  }
+}
 @keyframes progressBar {
   0%   { width: 0%; opacity: 1; }
   60%  { width: 80%; }
