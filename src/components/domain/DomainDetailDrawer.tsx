@@ -115,6 +115,7 @@ export function DomainDetailDrawer({
   const [dnsLoading, setDnsLoading] = useState(false);
   const [fwdEmail, setFwdEmail] = useState('');
   const [redirectUrl, setRedirectUrl] = useState('');
+  const [eppCode, setEppCode] = useState<string>('');
 
   useEffect(() => {
     if (domain) {
