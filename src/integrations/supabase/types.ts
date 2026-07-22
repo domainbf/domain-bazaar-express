@@ -1612,16 +1612,25 @@ export type Database = {
           commission_rate: number | null
           completed_at: string | null
           created_at: string
+          currency: string
           domain_id: string
           id: string
           notes: string | null
           offer_id: string | null
+          order_number: string | null
           payment_id: string | null
           payment_method: string
+          progress_stage: string
+          receipt_sent_at: string | null
+          receipt_summary: Json | null
           seller_amount: number | null
           seller_confirmed_at: string | null
           seller_id: string | null
+          stage_history: Json
           status: string
+          stripe_checkout_url: string | null
+          stripe_payment_intent: string | null
+          stripe_session_id: string | null
           transfer_confirmed_buyer: boolean | null
           transfer_confirmed_seller: boolean | null
           updated_at: string
@@ -1634,16 +1643,25 @@ export type Database = {
           commission_rate?: number | null
           completed_at?: string | null
           created_at?: string
+          currency?: string
           domain_id: string
           id?: string
           notes?: string | null
           offer_id?: string | null
+          order_number?: string | null
           payment_id?: string | null
           payment_method: string
+          progress_stage?: string
+          receipt_sent_at?: string | null
+          receipt_summary?: Json | null
           seller_amount?: number | null
           seller_confirmed_at?: string | null
           seller_id?: string | null
+          stage_history?: Json
           status?: string
+          stripe_checkout_url?: string | null
+          stripe_payment_intent?: string | null
+          stripe_session_id?: string | null
           transfer_confirmed_buyer?: boolean | null
           transfer_confirmed_seller?: boolean | null
           updated_at?: string
@@ -1656,16 +1674,25 @@ export type Database = {
           commission_rate?: number | null
           completed_at?: string | null
           created_at?: string
+          currency?: string
           domain_id?: string
           id?: string
           notes?: string | null
           offer_id?: string | null
+          order_number?: string | null
           payment_id?: string | null
           payment_method?: string
+          progress_stage?: string
+          receipt_sent_at?: string | null
+          receipt_summary?: Json | null
           seller_amount?: number | null
           seller_confirmed_at?: string | null
           seller_id?: string | null
+          stage_history?: Json
           status?: string
+          stripe_checkout_url?: string | null
+          stripe_payment_intent?: string | null
+          stripe_session_id?: string | null
           transfer_confirmed_buyer?: boolean | null
           transfer_confirmed_seller?: boolean | null
           updated_at?: string
