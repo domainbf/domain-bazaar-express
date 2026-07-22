@@ -33,6 +33,8 @@ export default function SellerEarnings() {
   const [amount, setAmount] = useState('');
   const [account, setAccount] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [kycStatus, setKycStatus] = useState<string>('none');
+  const kycApproved = kycStatus === 'approved';
 
   const load = async () => {
     if (!user) return;
