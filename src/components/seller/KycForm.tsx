@@ -62,7 +62,30 @@ export default function KycForm({ onStatusChange, compact }: Props) {
     payout_account_name: '',
     bank_name: '',
     notes: '',
+    id_front_url: '',
+    id_back_url: '',
+    id_selfie_url: '',
   });
+  const [uploading, setUploading] = useState<string | null>(null);
+
+  const uploadDoc = async (field: 'id_front_url' | 'id_back_url' | 'id_selfie_url', file: File) => {
+    if (!user) return;
+    if (file.size > 5 * 1024 * 1024) return toast.error('图片不能超过 5MB');
+    if (!file.type.startsWith('image/')) return toast.error('请上传图片文件');
+    setUploading(field);
+    try {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `${user.id}/${field}_${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('kyc-documents').upload(path, file, { upsert: true });
+      if (error) throw error;
+      setForm((f) => ({ ...f, [field]: path }));
+      toast.success('已上传');
+    } catch (e: any) {
+      toast.error(e.message || '上传失败');
+    } finally {
+      setUploading(null);
+    }
+  };
 
   const load = async () => {
     if (!user) return;
