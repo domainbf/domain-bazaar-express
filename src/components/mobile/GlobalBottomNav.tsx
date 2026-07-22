@@ -15,7 +15,7 @@ export const GlobalBottomNav = () => {
   const { unreadMessages } = useUnreadMessages();
 
   if (!isMobile) return null;
-  if (!user) return null;
+  // Show for guests too — clicking auth-required tabs routes to /auth.
 
   if (HIDDEN_PATHS.some(p => location.pathname === p || location.pathname.startsWith(p + '/'))) {
     return null;
