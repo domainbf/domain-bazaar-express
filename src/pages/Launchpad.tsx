@@ -150,6 +150,49 @@ const ModuleCard = ({ mod }: { mod: ModuleDef }) => {
   );
 };
 
+// ── Sortable module card ─────────────────────────────────────
+const SortableModuleCard = ({ mod }: { mod: ModuleDef }) => {
+  const Icon = mod.icon;
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: mod.key });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 30 : undefined,
+    opacity: isDragging ? 0.85 : 1,
+  };
+  return (
+    <div ref={setNodeRef} style={style} className="relative">
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        aria-label="拖拽排序"
+        className="absolute top-3 right-3 z-10 w-7 h-7 rounded-md grid place-items-center text-muted-foreground/70 hover:text-foreground hover:bg-accent cursor-grab active:cursor-grabbing touch-none"
+        onClick={(e) => e.preventDefault()}
+      >
+        <GripVertical className="w-4 h-4" />
+      </button>
+      <Link
+        to={mod.href}
+        className="group relative flex flex-col justify-between p-5 md:p-6 rounded-2xl bg-card border border-border hover:border-primary/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-elegant overflow-hidden h-full"
+      >
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-primary/[0.06] to-transparent pointer-events-none" />
+        <div className="relative">
+          <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary grid place-items-center mb-4">
+            <Icon className="w-5 h-5" />
+          </div>
+          <div className="text-base md:text-lg font-semibold text-foreground">{mod.title}</div>
+          <div className="mt-1 text-sm text-muted-foreground">{mod.desc}</div>
+        </div>
+        <div className="relative mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-primary">
+          {mod.cta}
+          <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+        </div>
+      </Link>
+    </div>
+  );
+};
+
 // ── Main page ────────────────────────────────────────────────
 export default function Launchpad() {
   const { user } = useAuth();
@@ -160,12 +203,32 @@ export default function Launchpad() {
   const [enabled, setEnabled] = useState<ModuleKey[]>(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) return JSON.parse(raw) as ModuleKey[];
+      if (raw) {
+        const parsed = JSON.parse(raw) as ModuleKey[];
+        if (Array.isArray(parsed)) return parsed;
+      }
     } catch {
       /* ignore */
     }
     return DEFAULT_ENABLED;
   });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setEnabled((prev) => {
+      const oldIndex = prev.indexOf(active.id as ModuleKey);
+      const newIndex = prev.indexOf(over.id as ModuleKey);
+      if (oldIndex < 0 || newIndex < 0) return prev;
+      return arrayMove(prev, oldIndex, newIndex);
+    });
+  };
+
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(enabled));
