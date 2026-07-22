@@ -153,6 +153,16 @@ export const DomainDetailPage = () => {
     }
   };
 
+  const handleContactSeller = () => {
+    if (isOwner) return;
+    if (!user) {
+      navigate(`/auth?redirect=/domain/${domain.name}`);
+      return;
+    }
+    if (!domain.owner_id) return;
+    setIsContactOpen(true);
+  };
+
   return (
     <AnimatePresence mode="wait">
       <motion.div 
