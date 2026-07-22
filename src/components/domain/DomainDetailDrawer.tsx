@@ -115,6 +115,7 @@ export function DomainDetailDrawer({
   const [dnsLoading, setDnsLoading] = useState(false);
   const [fwdEmail, setFwdEmail] = useState('');
   const [redirectUrl, setRedirectUrl] = useState('');
+  const [eppCode, setEppCode] = useState<string>('');
 
   useEffect(() => {
     if (domain) {
@@ -321,8 +322,14 @@ export function DomainDetailDrawer({
                       ['续费周期', '1 年'],
                     ]}
                   />
-                  <Button className="w-full mt-2" variant="outline" onClick={() => toast('即将开放：续费流程')}>
-                    立即续费
+                  <Button
+                    className="w-full mt-2"
+                    variant="outline"
+                    asChild
+                  >
+                    <Link to={`/checkout?domain=${encodeURIComponent(domain.name)}&mode=renew`}>
+                      立即续费
+                    </Link>
                   </Button>
                 </TabsContent>
 
@@ -416,12 +423,41 @@ export function DomainDetailDrawer({
                   <div>
                     <div className="text-xs font-medium text-muted-foreground mb-1.5">授权码 (EPP)</div>
                     <div className="flex gap-2">
-                      <Input readOnly value="•••• •••• •••• ••••" className="font-mono" />
-                      <Button variant="outline" onClick={() => toast('已生成新的授权码')}>生成</Button>
+                      <Input
+                        readOnly
+                        value={eppCode || '•••• •••• •••• ••••'}
+                        className="font-mono"
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          const bytes = new Uint8Array(12);
+                          (window.crypto || (window as any).msCrypto).getRandomValues(bytes);
+                          const code = Array.from(bytes)
+                            .map((b) => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b % 32])
+                            .join('')
+                            .replace(/(.{4})/g, '$1-')
+                            .replace(/-$/, '');
+                          setEppCode(code);
+                          navigator.clipboard?.writeText(code).catch(() => {});
+                          toast.success('已生成并复制新的授权码，请立即安全保存');
+                        }}
+                      >
+                        生成
+                      </Button>
                     </div>
+                    {eppCode && (
+                      <p className="text-[11px] text-muted-foreground mt-1.5">
+                        授权码仅在本次窗口显示，关闭后不可再次查看。请立即复制并妥善保存。
+                      </p>
+                    )}
                   </div>
-                  <Button variant="outline" className="w-full" disabled={toggles.transferLock}>
-                    {toggles.transferLock ? '已锁定 · 请先关闭过户锁' : '开始转出流程'}
+                  <Button variant="outline" className="w-full" disabled={toggles.transferLock} asChild={!toggles.transferLock}>
+                    {toggles.transferLock ? (
+                      <span>已锁定 · 请先关闭过户锁</span>
+                    ) : (
+                      <Link to={`/support?type=transfer&domain=${encodeURIComponent(domain.name)}`}>开始转出流程</Link>
+                    )}
                   </Button>
                 </TabsContent>
 
