@@ -60,6 +60,8 @@ export function AdminKycReview() {
   };
 
   useEffect(() => { if (selected) signDocs(selected); }, [selected?.id]);
+
+  const load = async () => {
     setLoading(true);
     const { data, error } = await (supabase as any)
       .from('seller_kyc')
