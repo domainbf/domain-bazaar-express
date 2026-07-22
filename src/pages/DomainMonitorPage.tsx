@@ -100,7 +100,7 @@ export default function DomainMonitorPage() {
           <div className="max-w-3xl mx-auto">
             <h2 className="text-xl font-semibold text-center mb-8">三步开启监控</h2>
             <div className="space-y-4">
-              {HOW_IT_WORKS.map((s, i) => (
+              {HOW_IT_WORKS.map((s) => (
                 <div key={s.step} className="flex gap-4 items-start bg-card rounded-xl border border-border p-5">
                   <div className="h-9 w-9 rounded-full bg-foreground text-background flex items-center justify-center text-sm font-bold shrink-0">
                     {s.step}
@@ -117,10 +117,10 @@ export default function DomainMonitorPage() {
               <div className="flex items-start gap-3">
                 <Zap className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                 <div>
-                  <h3 className="font-semibold mb-1">当前版本</h3>
-                  <p className="text-sm text-muted-foreground">域名收藏和站内通知已全面上线。高级价格预警和邮件推送功能正在迭代中，敬请期待。</p>
+                  <h3 className="font-semibold mb-1">当前能力</h3>
+                  <p className="text-sm text-muted-foreground">支持通过 DNS 实时检测域名注册/可注册状态、手动逐个或一键全量刷新、状态变更历史记录、站内通知开关。高级价格预警和邮件推送正在迭代中。</p>
                   <div className="flex flex-wrap gap-2 mt-3">
-                    {['收藏监控 ✓', '站内通知 ✓', '价格预警 (即将)', '邮件推送 (即将)'].map((t) => (
+                    {['DNS 状态检测 ✓','状态变更历史 ✓','站内通知 ✓','价格预警 (迭代中)','邮件推送 (迭代中)'].map((t) => (
                       <span key={t} className="text-xs bg-muted px-2 py-0.5 rounded-full text-muted-foreground">{t}</span>
                     ))}
                   </div>
@@ -128,6 +128,10 @@ export default function DomainMonitorPage() {
               </div>
             </div>
           </div>
+        </section>
+
+        <section id="monitor-list" className="py-12 px-4 border-t border-border/50">
+          <DomainMonitor />
         </section>
       </main>
       <Footer />
