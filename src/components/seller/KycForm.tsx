@@ -108,6 +108,9 @@ export default function KycForm({ onStatusChange, compact }: Props) {
         payout_account_name: data.payout_account_name || '',
         bank_name: data.bank_name || '',
         notes: data.notes || '',
+        id_front_url: data.id_front_url || '',
+        id_back_url: data.id_back_url || '',
+        id_selfie_url: data.id_selfie_url || '',
       });
       onStatusChange?.(data.status);
     } else {
