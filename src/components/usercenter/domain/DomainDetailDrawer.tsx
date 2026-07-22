@@ -31,7 +31,8 @@ export const DomainDetailDrawer = ({ domain, open, onOpenChange, onUpdate }: Dom
   if (!domain) return null;
 
   const status = statusMap[domain.status || 'available'] || statusMap.available;
-  const symbol = domain.currency === 'CNY' ? '¥' : '$';
+  const priceLabel = formatPrice(Number(domain.price || 0), domain.currency);
+
 
   const copyName = () => {
     navigator.clipboard.writeText(domain.name);
