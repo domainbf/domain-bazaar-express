@@ -264,6 +264,7 @@ export const AdminPanel = () => {
       case 'commission': return <CommissionSettings />;
       case 'reviews': return <AdminReviewManagement />;
       case 'users': return <UserManagement />;
+      case 'kyc': return <AdminKycReview />;
       case 'homepage': return <HomeContentManagement />;
       case 'content': return <ContentManagement />;
       case 'legal': return <AdminLegalPagesManager />;
