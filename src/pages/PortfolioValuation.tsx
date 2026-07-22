@@ -193,7 +193,7 @@ export default function PortfolioValuation() {
 
       {/* Social share card preview */}
       {rows.length > 0 && (
-        <Card className="overflow-hidden border-0 shadow-lg print:shadow-none print:border">
+        <Card className="overflow-hidden border-0 shadow-lg print:shadow-none print:border portfolio-share-card">
           <div className="relative bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-6 md:p-8">
             <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_20%_20%,white,transparent_40%),radial-gradient(circle_at_80%_60%,white,transparent_40%)]" />
             <div className="relative flex flex-col md:flex-row md:items-end justify-between gap-4">
