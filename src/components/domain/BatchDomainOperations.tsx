@@ -115,27 +115,35 @@ export const BatchDomainOperations: React.FC<BatchDomainOperationsProps> = ({
   };
 
   const updateBatchPrices = async (newPrice: number) => {
-    // 模拟批量更新价格
-    console.log('Updating prices for domains:', selectedDomains, 'to:', newPrice);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const { error } = await supabase
+      .from('domains')
+      .update({ price: newPrice })
+      .in('id', selectedDomains);
+    if (error) throw error;
   };
 
   const updateBatchCategories = async (newCategory: string) => {
-    // 模拟批量更新分类
-    console.log('Updating categories for domains:', selectedDomains, 'to:', newCategory);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const { error } = await supabase
+      .from('domains')
+      .update({ category: newCategory })
+      .in('id', selectedDomains);
+    if (error) throw error;
   };
 
   const updateBatchStatus = async (status: string) => {
-    // 模拟批量更新状态
-    console.log('Updating status for domains:', selectedDomains, 'to:', status);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const { error } = await supabase
+      .from('domains')
+      .update({ status })
+      .in('id', selectedDomains);
+    if (error) throw error;
   };
 
   const deleteBatchDomains = async () => {
-    // 模拟批量删除
-    console.log('Deleting domains:', selectedDomains);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const { error } = await supabase
+      .from('domains')
+      .delete()
+      .in('id', selectedDomains);
+    if (error) throw error;
   };
 
   const exportSelectedDomains = () => {
