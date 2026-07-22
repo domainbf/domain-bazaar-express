@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/sections/Footer';
+import { SellDomainQuickListForm } from '@/components/sell/SellDomainQuickListForm';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
