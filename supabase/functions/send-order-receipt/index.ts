@@ -11,15 +11,25 @@ const fmtMoney = (v: number, cur = 'CNY') => {
   return `${sym}${Number(v || 0).toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
 };
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  );
+
+  let transaction_id = '';
+  let force = false;
+  let triggered_by = 'system';
+
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
-    const { transaction_id, force = false } = await req.json();
+    const body = await req.json();
+    transaction_id = body.transaction_id;
+    force = !!body.force;
+    triggered_by = body.triggered_by || 'system';
     if (!transaction_id) throw new Error('transaction_id 必填');
 
     const { data: txn, error: txnErr } = await supabase
@@ -34,7 +44,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Domain info
     const { data: domain } = await supabase
       .from('domains')
       .select('id, name, expires_at, registrar')
@@ -42,7 +51,6 @@ Deno.serve(async (req) => {
       .maybeSingle();
     const domainName: string = domain?.name || '域名';
 
-    // Buyer email
     const { data: buyerProfile } = await supabase
       .from('profiles')
       .select('email, username, full_name')
@@ -56,14 +64,12 @@ Deno.serve(async (req) => {
     }
     if (!buyerEmail) throw new Error('未找到买家邮箱');
 
-    // DNS records summary
     const { data: dns } = await supabase
       .from('dns_records')
       .select('type, name, value, ttl')
       .eq('domain_id', txn.domain_id)
       .limit(20);
 
-    // Sale settings (email forwarding / redirect if stored there)
     const { data: sale } = await supabase
       .from('domain_sale_settings')
       .select('*')
@@ -100,7 +106,6 @@ Deno.serve(async (req) => {
     <h1 style="margin:8px 0 0;font-size:22px">支付成功，感谢您的购买</h1>
     <p style="margin:8px 0 0;color:#555;font-size:14px">您的域名 <b>${domainName}</b> 已在我们这里安全登记。以下是本次订单的完整明细。</p>
   </div>
-
   <div style="padding:24px 28px;border-bottom:1px solid #eee">
     <table style="width:100%;font-size:14px;border-collapse:collapse">
       <tr><td style="padding:4px 0;color:#888">订单号</td><td style="padding:4px 0;text-align:right;font-family:monospace">${orderNo}</td></tr>
@@ -110,7 +115,6 @@ Deno.serve(async (req) => {
       <tr><td style="padding:10px 0 0;color:#000;font-weight:600">实付金额</td><td style="padding:10px 0 0;text-align:right;font-size:20px;font-weight:700">${fmtMoney(txn.amount, cur)}</td></tr>
     </table>
   </div>
-
   <div style="padding:24px 28px;border-bottom:1px solid #eee">
     <div style="font-size:12px;letter-spacing:.1em;color:#888;text-transform:uppercase;margin-bottom:10px">DNS 当前配置</div>
     <table style="width:100%;font-size:13px;border-collapse:collapse;border:1px solid #eee">
@@ -118,7 +122,6 @@ Deno.serve(async (req) => {
       <tbody>${dnsRows}</tbody>
     </table>
   </div>
-
   <div style="padding:20px 28px;border-bottom:1px solid #eee;display:flex;gap:16px;flex-wrap:wrap">
     <div style="flex:1;min-width:220px">
       <div style="font-size:12px;letter-spacing:.1em;color:#888;text-transform:uppercase;margin-bottom:6px">邮箱转发</div>
@@ -133,7 +136,6 @@ Deno.serve(async (req) => {
       <div style="font-size:13px;color:#333">过户预计 ${new Date(summary.transfer_eta).toLocaleDateString('zh-CN')}<br/>${summary.expires_at ? '到期日 ' + new Date(summary.expires_at).toLocaleDateString('zh-CN') : '到期日待激活后确定'}</div>
     </div>
   </div>
-
   <div style="padding:24px 28px">
     <a href="${(Deno.env.get('SITE_URL') || 'https://nic.rw')}/order/${txn.id}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:12px 22px;border-radius:10px;font-size:14px;font-weight:600">查看订单进度</a>
     <p style="margin:16px 0 0;font-size:12px;color:#999">如对本次订单有任何疑问，请回复此邮件或联系客服。请妥善保存本收据作为付款凭证。</p>
@@ -141,25 +143,66 @@ Deno.serve(async (req) => {
 </div>
 </body></html>`;
 
-    await sendMailWithResend(
-      buyerEmail,
-      `【收据】${domainName} 订单 ${orderNo} 已完成支付`,
-      html
-    );
-
-    await supabase
-      .from('transactions')
-      .update({ receipt_sent_at: new Date().toISOString(), receipt_summary: summary })
-      .eq('id', txn.id);
-
-    return new Response(JSON.stringify({ ok: true }), {
+    // Retry loop: up to 3 attempts with exponential backoff
+    const MAX = 3;
+    let lastErr: any = null;
+    for (let attempt = 1; attempt <= MAX; attempt++) {
+      const started = Date.now();
+      try {
+        await sendMailWithResend(
+          buyerEmail,
+          `【收据】${domainName} 订单 ${orderNo} 已完成支付`,
+          html
+        );
+        const duration = Date.now() - started;
+        await supabase.from('receipt_delivery_log').insert({
+          transaction_id: txn.id,
+          attempt,
+          status: 'success',
+          recipient: buyerEmail,
+          duration_ms: duration,
+          triggered_by,
+        });
+        await supabase
+          .from('transactions')
+          .update({ receipt_sent_at: new Date().toISOString(), receipt_summary: summary })
+          .eq('id', txn.id);
+        return new Response(JSON.stringify({ ok: true, attempts: attempt }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      } catch (e) {
+        lastErr = e;
+        const duration = Date.now() - started;
+        const msg = e instanceof Error ? e.message : String(e);
+        await supabase.from('receipt_delivery_log').insert({
+          transaction_id: txn.id,
+          attempt,
+          status: attempt < MAX ? 'retrying' : 'failed',
+          error: msg,
+          recipient: buyerEmail,
+          duration_ms: duration,
+          triggered_by,
+        });
+        if (attempt < MAX) await sleep(500 * attempt);
+      }
+    }
+    throw lastErr || new Error('收据发送失败');
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error('send-order-receipt error', msg);
+    // Best-effort compensation log for failures without a txn attempt (early failures)
+    if (transaction_id) {
+      await supabase.from('receipt_delivery_log').insert({
+        transaction_id,
+        attempt: 0,
+        status: 'failed',
+        error: msg,
+        triggered_by,
+      }).catch(() => {});
+    }
+    return new Response(JSON.stringify({ error: msg, transaction_id }), {
+      status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (e) {
-    console.error('send-order-receipt error', e);
-    return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : String(e) }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
   }
 });
