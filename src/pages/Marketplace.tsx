@@ -85,6 +85,11 @@ export const Marketplace = () => {
   const [sortBy, setSortBy] = useState<string>('newest');
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [lengthChip, setLengthChip] = useState<string>('all');
+  const [view, setView] = useState<'grid' | 'list'>(() => {
+    try { return (localStorage.getItem('marketplace-view') as 'grid' | 'list') || 'grid'; } catch { return 'grid'; }
+  });
+  useEffect(() => { try { localStorage.setItem('marketplace-view', view); } catch {} }, [view]);
   // Layout kept for backwards compat; hero row is enabled by default via 'magazine'.
   const layout: MarketplaceLayout = 'magazine';
 
