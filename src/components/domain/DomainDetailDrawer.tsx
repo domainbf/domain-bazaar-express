@@ -321,8 +321,14 @@ export function DomainDetailDrawer({
                       ['续费周期', '1 年'],
                     ]}
                   />
-                  <Button className="w-full mt-2" variant="outline" onClick={() => toast('即将开放：续费流程')}>
-                    立即续费
+                  <Button
+                    className="w-full mt-2"
+                    variant="outline"
+                    asChild
+                  >
+                    <Link to={`/checkout?domain=${encodeURIComponent(domain.name)}&mode=renew`}>
+                      立即续费
+                    </Link>
                   </Button>
                 </TabsContent>
 
