@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast"
-import { LogOut, Settings, User, Bell, Menu, X, MessageSquare, Globe, Tag, Gavel } from "lucide-react";
+import { LogOut, Settings, User, Bell, Menu, X, MessageSquare, Globe, Tag, Gavel, Inbox } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from '@/hooks/useSiteSettings';
@@ -260,6 +260,17 @@ export const Navbar = ({ unreadCount = 0, unreadMessages: unreadMessagesProp = 0
                 <div className="border-t border-border my-2" />
                 <Button variant="ghost" className="w-full justify-start" onClick={() => handleNavigation('/user-center')}>
                   <User className="h-4 w-4 mr-2" />用户中心
+                </Button>
+                <Button variant="ghost" className="w-full justify-start" onClick={() => handleNavigation('/my-offers')}>
+                  <Inbox className="h-4 w-4 mr-2" />我的报价
+                </Button>
+                <Button variant="ghost" className="w-full justify-start" onClick={() => handleNavigation('/user-center?tab=messages')}>
+                  <MessageSquare className="h-4 w-4 mr-2" />消息
+                  {unreadMessages > 0 && (
+                    <Badge className="ml-auto bg-destructive text-destructive-foreground">
+                      {unreadMessages > 99 ? '99+' : unreadMessages}
+                    </Badge>
+                  )}
                 </Button>
                 <Button variant="ghost" className="w-full justify-start" onClick={() => handleNavigation('/user-center?tab=notifications')}>
                   <Bell className="h-4 w-4 mr-2" />通知
