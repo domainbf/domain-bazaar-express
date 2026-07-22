@@ -7,6 +7,7 @@ import { ExternalLink, Eye, Shield, Star, Calendar, Tag, DollarSign, Copy } from
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { getDomainDetailPath } from '@/lib/domainRouting';
+import { formatPrice } from '@/lib/currency';
 import { DomainActions } from '../DomainActions';
 import { DomainStatusManager } from '../DomainStatusManager';
 import { CreateAuctionDialog } from '@/components/auction/CreateAuctionDialog';
