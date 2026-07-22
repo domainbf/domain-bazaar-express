@@ -8,6 +8,7 @@ import { Eye, ExternalLink, DollarSign, Tag, Shield, Star, Calendar } from 'luci
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { getDomainDetailPath } from '@/lib/domainRouting';
+import { formatPrice } from '@/lib/currency';
 
 const categoryMap: Record<string, string> = {
   premium: '精品',
