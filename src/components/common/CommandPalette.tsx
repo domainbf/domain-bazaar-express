@@ -125,6 +125,32 @@ export function CommandPalette() {
     };
   }, [query]);
 
+  // AI suggestions (slower debounce, only for meaningful queries)
+  useEffect(() => {
+    if (aiDebounceRef.current) window.clearTimeout(aiDebounceRef.current);
+    const q = query.trim();
+    if (q.length < 2) {
+      setAiSuggestions([]);
+      setAiLoading(false);
+      return;
+    }
+    setAiLoading(true);
+    aiDebounceRef.current = window.setTimeout(async () => {
+      try {
+        const { data } = await supabase.functions.invoke('cmdk-suggest', { body: { query: q } });
+        const list = (data as any)?.suggestions;
+        setAiSuggestions(Array.isArray(list) ? list : []);
+      } catch {
+        setAiSuggestions([]);
+      } finally {
+        setAiLoading(false);
+      }
+    }, 600);
+    return () => {
+      if (aiDebounceRef.current) window.clearTimeout(aiDebounceRef.current);
+    };
+  }, [query]);
+
   const go = useCallback(
     (path: string) => {
       setOpen(false);
