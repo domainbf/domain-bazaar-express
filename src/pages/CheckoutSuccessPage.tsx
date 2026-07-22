@@ -18,6 +18,8 @@ import { Navbar } from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { OrderProgressTracker } from '@/components/order/OrderProgressTracker';
 
 interface Order {
   orderId: string;
@@ -32,12 +34,25 @@ interface Order {
   when: string;
 }
 
-const fmt = (v: number) => `¥${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+interface RealOrder {
+  id: string;
+  order_number: string | null;
+  amount: number;
+  currency: string;
+  payment_method: string | null;
+  progress_stage: string;
+  stage_history: Record<string, string>;
+}
+
+const symOf = (c: string) => (c === 'USD' ? '$' : c === 'EUR' ? '€' : c === 'GBP' ? '£' : '¥');
+const fmt = (v: number, c = 'CNY') =>
+  `${symOf(c)}${Number(v || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 
 export default function CheckoutSuccessPage() {
   const [params] = useSearchParams();
-  const orderId = params.get('order') ?? '';
+  const orderId = params.get('order') ?? params.get('id') ?? '';
   const [order, setOrder] = useState<Order | null>(null);
+  const [real, setReal] = useState<RealOrder | null>(null);
 
   useEffect(() => {
     try {
@@ -46,8 +61,21 @@ export default function CheckoutSuccessPage() {
     } catch {}
   }, [orderId]);
 
+  useEffect(() => {
+    if (!orderId) return;
+    (async () => {
+      const { data } = await supabase
+        .from('transactions')
+        .select('id, order_number, amount, currency, payment_method, progress_stage, stage_history')
+        .or(`id.eq.${orderId},order_number.eq.${orderId}`)
+        .maybeSingle();
+      if (data) setReal(data as any);
+    })();
+  }, [orderId]);
+
+  const displayOrderNo = real?.order_number || orderId || '—';
   const copy = () => {
-    navigator.clipboard.writeText(orderId).then(() => toast.success('订单号已复制'));
+    navigator.clipboard.writeText(displayOrderNo).then(() => toast.success('订单号已复制'));
   };
 
   return (
@@ -93,7 +121,10 @@ export default function CheckoutSuccessPage() {
           <div className="px-6 py-5 border-b border-border flex items-center justify-between gap-3">
             <div>
               <div className="text-[11px] uppercase tracking-wider text-muted-foreground">订单号</div>
-              <div className="font-mono font-semibold mt-0.5">{orderId || '—'}</div>
+              <div className="font-mono font-semibold mt-0.5">{displayOrderNo}</div>
+              {real?.payment_method && (
+                <div className="text-[11px] text-muted-foreground mt-0.5">支付方式：{real.payment_method}</div>
+              )}
             </div>
             <div className="flex gap-2">
               <Button variant="ghost" size="sm" onClick={copy}>
@@ -105,7 +136,16 @@ export default function CheckoutSuccessPage() {
             </div>
           </div>
 
-          {order ? (
+          {real ? (
+            <div className="px-6 py-5 bg-muted/30 border-t border-border">
+              <div className="flex items-baseline justify-between">
+                <span className="text-sm text-muted-foreground">实付金额</span>
+                <span className="text-3xl font-bold gradient-text tabular-nums">
+                  {fmt(real.amount, real.currency)}
+                </span>
+              </div>
+            </div>
+          ) : order ? (
             <>
               <div className="p-6 space-y-2.5">
                 {order.items.map((i) => (
@@ -164,6 +204,22 @@ export default function CheckoutSuccessPage() {
             </div>
           )}
         </motion.div>
+
+        {/* Realtime order progress */}
+        {real?.id && (
+          <motion.div
+            initial={{ y: 16, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.25 }}
+            className="mt-5"
+          >
+            <OrderProgressTracker
+              orderId={real.id}
+              initialStage={real.progress_stage as any}
+              initialHistory={real.stage_history || {}}
+            />
+          </motion.div>
+        )}
 
         {/* Included */}
         <motion.div

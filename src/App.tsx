@@ -25,6 +25,7 @@ const Launchpad = lazy(lazyRetry(() => import('./pages/Launchpad')));
 const PortfolioPage = lazy(lazyRetry(() => import('./pages/PortfolioPage')));
 const CheckoutPage = lazy(lazyRetry(() => import('./pages/CheckoutPage')));
 const CheckoutSuccessPage = lazy(lazyRetry(() => import('./pages/CheckoutSuccessPage')));
+const OrderDetailPage = lazy(lazyRetry(() => import('./pages/OrderDetailPage')));
 
 const AdminPanel = lazy(lazyRetry(() => import('./pages/AdminPanel').then(m => ({ default: m.AdminPanel }))));
 const DomainVerification = lazy(lazyRetry(() => import('./pages/DomainVerification').then(m => ({ default: m.DomainVerification }))));
@@ -273,6 +274,7 @@ const AnimatedRoutes = memo(() => {
         <Route path="/portfolio" element={<ProtectedRoute><PortfolioPage /></ProtectedRoute>} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
+        <Route path="/order/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
 
 
         <Route path="/user-center" element={<ProtectedRoute><UserCenter /></ProtectedRoute>} />
