@@ -29,7 +29,13 @@ import {
   User,
   ArrowRight,
   Tag,
+  Wand2,
 } from 'lucide-react';
+
+interface AiSuggestion {
+  name: string;
+  reason?: string;
+}
 
 interface DomainHit {
   id: string;
@@ -66,9 +72,12 @@ export function CommandPalette() {
   const [results, setResults] = useState<DomainHit[]>([]);
   const [loading, setLoading] = useState(false);
   const [recent, setRecent] = useState<DomainHit[]>([]);
+  const [aiSuggestions, setAiSuggestions] = useState<AiSuggestion[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
   const debounceRef = useRef<number | null>(null);
+  const aiDebounceRef = useRef<number | null>(null);
 
   // Global shortcut ⌘K / Ctrl+K
   useEffect(() => {
@@ -113,6 +122,32 @@ export function CommandPalette() {
     }, 180);
     return () => {
       if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    };
+  }, [query]);
+
+  // AI suggestions (slower debounce, only for meaningful queries)
+  useEffect(() => {
+    if (aiDebounceRef.current) window.clearTimeout(aiDebounceRef.current);
+    const q = query.trim();
+    if (q.length < 2) {
+      setAiSuggestions([]);
+      setAiLoading(false);
+      return;
+    }
+    setAiLoading(true);
+    aiDebounceRef.current = window.setTimeout(async () => {
+      try {
+        const { data } = await supabase.functions.invoke('cmdk-suggest', { body: { query: q } });
+        const list = (data as any)?.suggestions;
+        setAiSuggestions(Array.isArray(list) ? list : []);
+      } catch {
+        setAiSuggestions([]);
+      } finally {
+        setAiLoading(false);
+      }
+    }, 600);
+    return () => {
+      if (aiDebounceRef.current) window.clearTimeout(aiDebounceRef.current);
     };
   }, [query]);
 
@@ -241,6 +276,32 @@ export function CommandPalette() {
           )}
         </CommandGroup>
 
+        {query.trim().length >= 2 && (aiLoading || aiSuggestions.length > 0) && (
+          <>
+            <CommandSeparator />
+            <CommandGroup heading={aiLoading ? 'AI 联想（生成中…）' : 'AI 灵感建议'}>
+              {aiSuggestions.map((s, i) => (
+                <CommandItem
+                  key={`ai-${i}-${s.name}`}
+                  value={`ai-${s.name}`}
+                  onSelect={() => go(`/marketplace?q=${encodeURIComponent(s.name)}`)}
+                  className="flex items-center justify-between gap-3"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Wand2 className="h-4 w-4 shrink-0 text-primary" />
+                    <span className="font-mono lowercase truncate">{s.name}</span>
+                  </div>
+                  {s.reason && (
+                    <span className="text-[11px] text-muted-foreground shrink-0 truncate max-w-[45%]">
+                      {s.reason}
+                    </span>
+                  )}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </>
+        )}
+
         {query && (
           <>
             <CommandSeparator />
@@ -250,6 +311,12 @@ export function CommandPalette() {
                 onSelect={() => go(`/marketplace?q=${encodeURIComponent(query)}`)}
               >
                 <Search className="h-4 w-4" /> 在市场中搜索 "{query}"
+              </CommandItem>
+              <CommandItem
+                value="action-portfolio-valuation"
+                onSelect={() => go('/tools/portfolio-valuation')}
+              >
+                <Sparkles className="h-4 w-4" /> 打开组合估值报告
               </CommandItem>
             </CommandGroup>
           </>

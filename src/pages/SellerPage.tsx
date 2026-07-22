@@ -185,6 +185,7 @@ const SellerDashboard = ({ userId }: { userId: string }) => {
             <Upload className="h-4 w-4 mr-1.5" />上架新域名
           </Button>
           <Button variant="outline" onClick={() => navigate('/bulk-listing')}>批量上架</Button>
+          <Button variant="outline" onClick={() => navigate('/seller/earnings')}>收入结算</Button>
           <Button variant="outline" onClick={() => navigate('/dns')}>
             <Globe2 className="h-4 w-4 mr-1.5" />DNS 管理
           </Button>
