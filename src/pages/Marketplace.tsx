@@ -384,7 +384,7 @@ export const Marketplace = () => {
               <Button onClick={() => refetch()} variant="outline" size="sm">重新加载</Button>
             </div>
           ) : isLoading ? (
-            <DomainListings isLoading domains={[]} isMobile={isMobile} layout={layout} />
+            <DomainListings isLoading domains={[]} isMobile={isMobile} layout={layout} view={view} />
           ) : filteredDomains.length === 0 && allDomains.length === 0 ? (
             <div className="text-center py-20">
               <div className="text-5xl mb-4">🔍</div>
@@ -405,6 +405,7 @@ export const Marketplace = () => {
               domains={filteredDomains}
               isMobile={isMobile}
               layout={layout}
+              view={view}
             />
           )}
         </div>
