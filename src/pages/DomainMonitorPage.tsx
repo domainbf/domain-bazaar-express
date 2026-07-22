@@ -58,7 +58,10 @@ export default function DomainMonitorPage() {
             <div className="flex flex-wrap gap-3 justify-center">
               <Button
                 size="lg"
-                onClick={() => user ? navigate('/user-center?tab=notifications') : navigate('/auth')}
+                onClick={() => {
+                  if (!user) { navigate('/auth'); return; }
+                  document.getElementById('monitor-list')?.scrollIntoView({ behavior: 'smooth' });
+                }}
                 data-testid="button-monitor-start"
               >
                 <Bell className="h-4 w-4 mr-2" />
