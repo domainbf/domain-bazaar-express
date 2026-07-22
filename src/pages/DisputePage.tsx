@@ -219,8 +219,8 @@ export default function DisputePage() {
                     <CheckCircle2 className="h-14 w-14 text-green-500 mx-auto mb-4" />
                     <h3 className="text-xl font-bold mb-2">申诉已提交</h3>
                     <p className="text-muted-foreground text-sm mb-4">平台将在工作日 24 小时内联系你，请留意邮箱通知。</p>
-                    <Button variant="outline" onClick={() => navigate('/user-center?tab=transactions')} data-testid="button-dispute-transactions">
-                      查看我的交易
+                    <Button variant="outline" onClick={() => navigate('/user-center?tab=disputes')} data-testid="button-dispute-transactions">
+                      查看我的申诉
                     </Button>
                   </CardContent>
                 </Card>
