@@ -76,7 +76,39 @@ export default function PortfolioValuation() {
   const [rows, setRows] = useState<Row[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiNarrative, setAiNarrative] = useState<string>('');
-  const [shareId] = useState(() => Math.random().toString(36).slice(2, 10));
+  const [shareId, setShareId] = useState(() => Math.random().toString(36).slice(2, 10));
+
+  // Snapshot from ?snap= (social share preview / SEO)
+  useEffect(() => {
+    const snap = new URLSearchParams(window.location.search).get('snap');
+    if (!snap) return;
+    try {
+      const decoded = JSON.parse(decodeURIComponent(escape(atob(snap))));
+      if (decoded?.top?.length) {
+        const restored = decoded.top.map(evaluateOne).filter(Boolean) as Row[];
+        if (restored.length) {
+          setRows(restored);
+          if (decoded.id) setShareId(decoded.id);
+          // Update document metadata for social crawlers landing on this URL
+          const title = `域名组合估值报告 · ${restored.length} 个域名 · ${decoded.mid ? '¥' + Math.round(decoded.mid).toLocaleString('zh-CN') : ''}`;
+          document.title = title;
+          const desc = `头部资产 ${restored.slice(0, 3).map(r => r.name).join('、')} · 中位估值 ¥${Math.round(decoded.mid || 0).toLocaleString('zh-CN')}`;
+          const setMeta = (attr: 'name' | 'property', key: string, val: string) => {
+            let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
+            if (!el) { el = document.createElement('meta'); el.setAttribute(attr, key); document.head.appendChild(el); }
+            el.setAttribute('content', val);
+          };
+          setMeta('name', 'description', desc);
+          setMeta('property', 'og:title', title);
+          setMeta('property', 'og:description', desc);
+          setMeta('property', 'og:type', 'article');
+          setMeta('name', 'twitter:card', 'summary_large_image');
+          setMeta('name', 'twitter:title', title);
+          setMeta('name', 'twitter:description', desc);
+        }
+      }
+    } catch (e) { console.warn('invalid snapshot', e); }
+  }, []);
 
   const totals = useMemo(() => {
     const mid = rows.reduce((s, r) => s + r.mid, 0);
