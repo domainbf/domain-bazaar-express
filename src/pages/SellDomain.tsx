@@ -126,6 +126,9 @@ export const SellDomainPage = () => {
         </div>
       </section>
 
+      {/* Quick List Form (with preview + AI suggestion) */}
+      <SellDomainQuickListForm />
+
       {/* How It Works */}
       <section className="py-16 md:py-20 bg-card">
         <div className="max-w-5xl mx-auto px-6">
