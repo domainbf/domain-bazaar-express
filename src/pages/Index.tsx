@@ -23,6 +23,7 @@ import { Footer } from '@/components/sections/Footer';
 import { HowItWorksSection } from '@/components/sections/HowItWorksSection';
 import { DealsShowcaseSection } from '@/components/sections/DealsShowcaseSection';
 import { PremiumShowcase } from '@/components/sections/PremiumShowcase';
+import { TrustBar } from '@/components/trust/TrustBar';
 
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
