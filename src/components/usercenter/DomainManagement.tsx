@@ -52,6 +52,7 @@ export const DomainManagement = () => {
   const { t } = useTranslation();
   const { user, isLoading: isAuthLoading } = useAuth();
   const { domains, isLoading, isRefreshing, lastUpdated, loadDomains, refreshDomains } = useDomainsData();
+  const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
