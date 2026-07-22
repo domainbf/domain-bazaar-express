@@ -53,6 +53,7 @@ const DomainValuationReport = lazy(() => import("./DomainValuationReport").then(
 const PriceHistoryChart = lazy(() => import("./PriceHistoryChart").then(m => ({ default: m.PriceHistoryChart })));
 const DomainAnalytics = lazy(() => import("./DomainAnalytics").then(m => ({ default: m.DomainAnalytics })));
 const DomainValuationTool = lazy(() => import("./DomainValuationTool").then(m => ({ default: m.DomainValuationTool })));
+const LazyMessageCenter = lazy(() => import("@/components/messages/MessageCenter").then(m => ({ default: m.MessageCenter })));
 
 // 页面过渡动画配置
 const pageVariants = {
