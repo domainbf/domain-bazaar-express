@@ -61,6 +61,7 @@ const MaintenancePage = lazy(lazyRetry(() => import('./pages/MaintenancePage')))
 const NotificationsCenter = lazy(lazyRetry(() => import('./pages/NotificationsCenter')));
 const SellerEarnings = lazy(lazyRetry(() => import('./pages/SellerEarnings')));
 const PortfolioValuation = lazy(lazyRetry(() => import('./pages/PortfolioValuation')));
+const MyOffers = lazy(lazyRetry(() => import('./pages/MyOffers')));
 
 
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
