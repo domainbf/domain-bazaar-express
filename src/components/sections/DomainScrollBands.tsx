@@ -107,12 +107,13 @@ function LogoCard({ item, onClick, index, onPrefetch, badge }: LogoCardProps & {
 }
 
 
-function MarqueeRow({ items, direction, onChipClick, onPrefetch, onVisible }: {
+function MarqueeRow({ items, direction, onChipClick, onPrefetch, onVisible, badge }: {
   items: DomainChip[];
   direction: 'ltr' | 'rtl';
   onChipClick: (domainName: string) => void;
   onPrefetch: (item: DomainChip) => void;
   onVisible: () => void;
+  badge: LogoBadgeConfig;
 }) {
   const rowRef = useRef<HTMLDivElement | null>(null);
 
