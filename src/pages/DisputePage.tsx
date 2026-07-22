@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/sections/Footer';
 import { Button } from '@/components/ui/button';
@@ -11,9 +11,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle, Shield, Clock, CheckCircle2, MessageSquare, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiGet, apiPost, apiPatch } from '@/lib/apiClient';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { supabase } from '@/integrations/supabase/client';
 
 const DISPUTE_TYPES = [
   { value: 'no_transfer', label: '域名未转移 - 付款后卖家未完成域名转移' },
