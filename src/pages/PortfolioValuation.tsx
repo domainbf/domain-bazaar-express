@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { formatPrice } from '@/lib/currency';
 import { supabase } from '@/integrations/supabase/client';
-import { Sparkles, Printer, Copy, Loader2, TrendingUp } from 'lucide-react';
+import { Sparkles, Printer, Copy, Loader2, TrendingUp, Share2, Twitter } from 'lucide-react';
 
 interface Row {
   name: string;
