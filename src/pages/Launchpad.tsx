@@ -80,7 +80,7 @@ const MODULES: ModuleDef[] = [
 ];
 
 const DEFAULT_ENABLED: ModuleKey[] = ['portfolio', 'offers', 'auctions', 'transactions', 'valuation', 'watchlist'];
-const STORAGE_KEY = 'launchpad.modules.v1';
+const STORAGE_KEY = 'launchpad.modules.v2';
 
 // ── Summary card ─────────────────────────────────────────────
 const StatCard = ({
