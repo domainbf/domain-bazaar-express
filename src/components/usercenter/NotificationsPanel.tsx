@@ -188,23 +188,58 @@ export const NotificationsPanel = () => {
           />
         </div>
         
-        <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="w-full md:w-40">
-            <SelectValue placeholder="筛选类型" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部类型</SelectItem>
-            <SelectItem value="offer">报价通知</SelectItem>
-            <SelectItem value="transaction">交易通知</SelectItem>
-            <SelectItem value="message">站内消息</SelectItem>
-            <SelectItem value="escrow">托管通知</SelectItem>
-            <SelectItem value="dispute">纠纷通知</SelectItem>
-            <SelectItem value="auction">拍卖通知</SelectItem>
-            <SelectItem value="verification">认证通知</SelectItem>
-            <SelectItem value="system">系统通知</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <Button
+            variant={unreadOnly ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setUnreadOnly(v => !v)}
+            className="shrink-0"
+          >
+            仅未读
+          </Button>
+          <Select value={filterType} onValueChange={setFilterType}>
+            <SelectTrigger className="w-full md:w-40">
+              <SelectValue placeholder="筛选类型" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部类型</SelectItem>
+              <SelectItem value="offer">报价通知</SelectItem>
+              <SelectItem value="transaction">交易通知</SelectItem>
+              <SelectItem value="message">站内消息</SelectItem>
+              <SelectItem value="escrow">托管通知</SelectItem>
+              <SelectItem value="dispute">纠纷通知</SelectItem>
+              <SelectItem value="auction">拍卖通知</SelectItem>
+              <SelectItem value="verification">认证通知</SelectItem>
+              <SelectItem value="system">系统通知</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
+
+      {/* 批量操作栏 */}
+      {filteredNotifications.length > 0 && (
+        <div className="flex items-center justify-between gap-3 flex-wrap px-1 -mt-2">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <button
+              onClick={selectedIds.size === filteredNotifications.length ? clearSelection : selectAllVisible}
+              className="underline-offset-2 hover:underline"
+            >
+              {selectedIds.size === filteredNotifications.length ? '取消全选' : '全选当前列表'}
+            </button>
+            {selectedIds.size > 0 && <span>已选 {selectedIds.size}</span>}
+          </div>
+          {selectedIds.size > 0 && (
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" onClick={handleBulkMarkRead}>
+                <CheckCheck className="h-3.5 w-3.5 mr-1" />标为已读
+              </Button>
+              <Button size="sm" variant="outline" className="text-destructive hover:text-destructive" onClick={handleBulkDelete}>
+                <Trash2 className="h-3.5 w-3.5 mr-1" />删除所选
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
 
       {notifications.length === 0 ? (
         <Card>
