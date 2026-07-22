@@ -56,6 +56,8 @@ const TermsPage = lazy(lazyRetry(() => import('./pages/TermsPage')));
 const PrivacyPage = lazy(lazyRetry(() => import('./pages/PrivacyPage')));
 const DisclaimerPage = lazy(lazyRetry(() => import('./pages/DisclaimerPage')));
 const MaintenancePage = lazy(lazyRetry(() => import('./pages/MaintenancePage')));
+const NotificationsCenter = lazy(lazyRetry(() => import('./pages/NotificationsCenter')));
+
 
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
   const reported = useRef(false);
