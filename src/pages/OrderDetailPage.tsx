@@ -94,11 +94,15 @@ export default function OrderDetailPage() {
     if (!txn) return;
     setSending(true);
     try {
-      const { error } = await supabase.functions.invoke('send-order-receipt', {
-        body: { transaction_id: txn.id, force: true },
+      const { data, error } = await supabase.functions.invoke('send-order-receipt', {
+        body: { transaction_id: txn.id, force: true, triggered_by: 'user:self' },
       });
       if (error) throw error;
-      toast.success('电子收据已重新发送');
+      if ((data as any)?.deduped) {
+        toast.info('已忽略重复请求：' + ((data as any).reason || '30 秒内已发送'));
+      } else {
+        toast.success('电子收据已重新发送');
+      }
       load();
     } catch (e: any) {
       toast.error('发送失败：' + (e?.message || '未知错误'));
@@ -106,6 +110,7 @@ export default function OrderDetailPage() {
       setSending(false);
     }
   };
+
 
   if (loading) {
     return (

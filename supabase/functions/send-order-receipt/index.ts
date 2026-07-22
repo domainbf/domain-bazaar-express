@@ -44,6 +44,25 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Idempotency guard: if a successful send already happened in the last 30 seconds,
+    // skip regardless of `force` so double-clicks on the client can never spam mailboxes.
+    {
+      const cutoff = new Date(Date.now() - 30_000).toISOString();
+      const { data: recent } = await supabase
+        .from('receipt_delivery_log')
+        .select('id, created_at')
+        .eq('transaction_id', transaction_id)
+        .eq('status', 'success')
+        .gte('created_at', cutoff)
+        .limit(1);
+      if (recent && recent.length > 0) {
+        return new Response(JSON.stringify({ ok: true, deduped: true, reason: '30 秒内已成功发送' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
+
     const { data: domain } = await supabase
       .from('domains')
       .select('id, name, expires_at, registrar')
@@ -186,7 +205,20 @@ Deno.serve(async (req) => {
         if (attempt < MAX) await sleep(500 * attempt);
       }
     }
+    // All attempts failed — push an in-app notification to the buyer so it
+    // surfaces in the notification center with a retry entry point.
+    if (txn.buyer_id) {
+      await supabase.from('notifications').insert({
+        user_id: txn.buyer_id,
+        title: '收据发送失败',
+        message: `订单 ${txn.order_number || txn.id} 的电子收据发送失败，请到订单详情页手动重试。原因：${lastErr instanceof Error ? lastErr.message : String(lastErr)}`,
+        type: 'transaction',
+        related_id: txn.id,
+        action_url: `/order/${txn.id}`,
+      }).catch(() => {});
+    }
     throw lastErr || new Error('收据发送失败');
+
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error('send-order-receipt error', msg);

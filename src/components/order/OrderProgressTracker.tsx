@@ -93,7 +93,7 @@ export function OrderProgressTracker({ orderId, initialStage = 'submitted', init
           <Button variant="ghost" size="sm" onClick={load} disabled={refreshing}>
             <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${refreshing ? 'animate-spin' : ''}`} /> 刷新
           </Button>
-          <Link to="/user-center?tab=notifications">
+          <Link to="/notifications">
             <Button variant="ghost" size="sm">
               <Bell className="w-3.5 h-3.5 mr-1.5" /> 通知
             </Button>
