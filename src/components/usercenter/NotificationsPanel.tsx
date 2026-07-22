@@ -268,10 +268,14 @@ export const NotificationsPanel = () => {
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(notification.id)}
+                          onChange={() => toggleSelect(notification.id)}
+                          className="mt-1.5 h-4 w-4 rounded border-border shrink-0 cursor-pointer accent-primary"
+                          aria-label="选择通知"
+                        />
                         <div className="flex-1 min-w-0">
-                          <Link 
-                            to={notification.action_url || '#'} 
-                            className="block"
                             onClick={() => {
                               if (!notification.is_read) {
                                 markAsRead(notification.id);
