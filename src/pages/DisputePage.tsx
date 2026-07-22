@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/sections/Footer';
 import { Button } from '@/components/ui/button';
@@ -11,9 +11,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle, Shield, Clock, CheckCircle2, MessageSquare, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiGet, apiPost, apiPatch } from '@/lib/apiClient';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { supabase } from '@/integrations/supabase/client';
 
 const DISPUTE_TYPES = [
   { value: 'no_transfer', label: '域名未转移 - 付款后卖家未完成域名转移' },
@@ -33,16 +34,22 @@ const PROCESS_STEPS = [
 export default function DisputePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const orderId = searchParams.get('order') || '';
   const { config } = useSiteSettings();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({
-    transaction_id: '',
+    transaction_id: orderId,
     dispute_type: '',
     opponent_email: '',
     amount: '',
     description: '',
   });
+
+  useEffect(() => {
+    if (orderId) setForm(f => ({ ...f, transaction_id: orderId }));
+  }, [orderId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +65,23 @@ export default function DisputePage() {
     const supportEmail = config.contact_email || `support@${siteDomain.replace(/^https?:\/\//, '')}`;
     try {
       const disputeLabel = DISPUTE_TYPES.find(d => d.value === form.dispute_type)?.label || form.dispute_type;
+
+      // 写入 disputes 表以便管理员在后台跟进
+      const { error: insertError } = await supabase.from('disputes').insert({
+        initiator_id: user.id,
+        transaction_id: form.transaction_id || null,
+        reason: form.dispute_type,
+        description: [
+          `类型: ${disputeLabel}`,
+          form.opponent_email ? `对方: ${form.opponent_email}` : null,
+          form.amount ? `涉及金额: ${form.amount}` : null,
+          '',
+          form.description,
+        ].filter(Boolean).join('\n'),
+        status: 'open',
+      });
+      if (insertError) throw insertError;
+
       const html = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
