@@ -255,7 +255,9 @@ export default function Launchpad() {
     setEnabled((prev) => (prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k]));
   };
 
-  const activeModules = MODULES.filter((m) => enabled.includes(m.key));
+  const activeModules = enabled
+    .map((k) => MODULES.find((m) => m.key === k))
+    .filter((m): m is ModuleDef => Boolean(m));
 
   return (
     <div className="min-h-screen bg-background">
