@@ -128,7 +128,7 @@ export const DomainTable = ({ domains, onDomainUpdate, currentUserId }: DomainTa
               </td>
               <td className="py-3 px-4">
                 <span className="font-semibold text-foreground">
-                  {domain.currency === 'CNY' ? '¥' : '$'}{domain.price.toLocaleString()}
+                  {formatPrice(domain.price, domain.currency)}
                 </span>
               </td>
               <td className="py-3 px-4">
