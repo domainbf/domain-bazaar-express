@@ -22,6 +22,8 @@ import { SkeletonCardGrid } from '@/components/common/SkeletonCard';
 import { Footer } from '@/components/sections/Footer';
 import { HowItWorksSection } from '@/components/sections/HowItWorksSection';
 import { DealsShowcaseSection } from '@/components/sections/DealsShowcaseSection';
+import { PremiumShowcase } from '@/components/sections/PremiumShowcase';
+
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
