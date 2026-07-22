@@ -7,6 +7,7 @@ import { ExternalLink, Eye, Shield, Star, Calendar, Tag, DollarSign, Copy } from
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { getDomainDetailPath } from '@/lib/domainRouting';
+import { formatPrice } from '@/lib/currency';
 import { DomainActions } from '../DomainActions';
 import { DomainStatusManager } from '../DomainStatusManager';
 import { CreateAuctionDialog } from '@/components/auction/CreateAuctionDialog';
@@ -30,7 +31,8 @@ export const DomainDetailDrawer = ({ domain, open, onOpenChange, onUpdate }: Dom
   if (!domain) return null;
 
   const status = statusMap[domain.status || 'available'] || statusMap.available;
-  const symbol = domain.currency === 'CNY' ? '¥' : '$';
+  const priceLabel = formatPrice(Number(domain.price || 0), domain.currency);
+
 
   const copyName = () => {
     navigator.clipboard.writeText(domain.name);
@@ -61,7 +63,7 @@ export const DomainDetailDrawer = ({ domain, open, onOpenChange, onUpdate }: Dom
               <DollarSign className="w-3 h-3" /> 报价
             </div>
             <div className="text-3xl font-bold">
-              {symbol}{Number(domain.price || 0).toLocaleString()}
+              {priceLabel}
             </div>
           </div>
 

@@ -10,6 +10,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { ArrowUpDown, ChevronLeft, ChevronRight, Eye, Shield, Star, Settings2, Trash2 } from 'lucide-react';
+import { formatPrice } from '@/lib/currency';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -95,10 +96,9 @@ export const DomainAdvancedTable = ({ domains, onDomainUpdate }: Props) => {
           价格 <ArrowUpDown className="ml-1 h-3 w-3" />
         </Button>
       ),
-      cell: ({ row }) => {
-        const symbol = row.original.currency === 'CNY' ? '¥' : '$';
-        return <span className="font-semibold">{symbol}{Number(row.original.price || 0).toLocaleString()}</span>;
-      },
+      cell: ({ row }) => (
+        <span className="font-semibold">{formatPrice(Number(row.original.price || 0), row.original.currency)}</span>
+      ),
     },
     {
       accessorKey: 'status',

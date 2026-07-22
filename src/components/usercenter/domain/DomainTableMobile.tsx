@@ -8,6 +8,7 @@ import { Eye, ExternalLink, DollarSign, Tag, Shield, Star, Calendar } from 'luci
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { getDomainDetailPath } from '@/lib/domainRouting';
+import { formatPrice } from '@/lib/currency';
 
 const categoryMap: Record<string, string> = {
   premium: '精品',
@@ -92,7 +93,7 @@ export const DomainTableMobile = ({ domains, onDomainUpdate }: DomainTableMobile
               <div className="flex items-center text-foreground">
                 <DollarSign className="w-4 h-4 mr-1.5 text-muted-foreground" />
                 <span className="font-semibold">
-                  {domain.currency === 'CNY' ? '¥' : '$'}{domain.price.toLocaleString()}
+                  {formatPrice(domain.price, domain.currency)}
                 </span>
               </div>
               

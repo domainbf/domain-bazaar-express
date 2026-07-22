@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { getDomainDetailPath } from '@/lib/domainRouting';
+import { formatPrice } from '@/lib/currency';
 
 interface Domain {
   id: string;
@@ -127,7 +128,7 @@ export const DomainTable = ({ domains, onDomainUpdate, currentUserId }: DomainTa
               </td>
               <td className="py-3 px-4">
                 <span className="font-semibold text-foreground">
-                  {domain.currency === 'CNY' ? '¥' : '$'}{domain.price.toLocaleString()}
+                  {formatPrice(domain.price, domain.currency)}
                 </span>
               </td>
               <td className="py-3 px-4">
