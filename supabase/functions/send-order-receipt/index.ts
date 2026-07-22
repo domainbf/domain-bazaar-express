@@ -205,7 +205,20 @@ Deno.serve(async (req) => {
         if (attempt < MAX) await sleep(500 * attempt);
       }
     }
+    // All attempts failed — push an in-app notification to the buyer so it
+    // surfaces in the notification center with a retry entry point.
+    if (txn.buyer_id) {
+      await supabase.from('notifications').insert({
+        user_id: txn.buyer_id,
+        title: '收据发送失败',
+        message: `订单 ${txn.order_number || txn.id} 的电子收据发送失败，请到订单详情页手动重试。原因：${lastErr instanceof Error ? lastErr.message : String(lastErr)}`,
+        type: 'transaction',
+        related_id: txn.id,
+        action_url: `/order/${txn.id}`,
+      }).catch(() => {});
+    }
     throw lastErr || new Error('收据发送失败');
+
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error('send-order-receipt error', msg);
