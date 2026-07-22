@@ -96,10 +96,9 @@ export const DomainAdvancedTable = ({ domains, onDomainUpdate }: Props) => {
           价格 <ArrowUpDown className="ml-1 h-3 w-3" />
         </Button>
       ),
-      cell: ({ row }) => {
-        const { formatPrice } = require('@/lib/currency');
-        return <span className="font-semibold">{formatPrice(Number(row.original.price || 0), row.original.currency)}</span>;
-      },
+      cell: ({ row }) => (
+        <span className="font-semibold">{formatPrice(Number(row.original.price || 0), row.original.currency)}</span>
+      ),
     },
     {
       accessorKey: 'status',
