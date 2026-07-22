@@ -164,7 +164,7 @@ export const DomainDetailPage = () => {
         <DomainSeoHead domain={domain} analytics={analytics} />
         <Navbar />
         
-        <main className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <main className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8 pb-32 sm:pb-8">
           {/* 返回导航 */}
           <motion.div
             variants={itemVariants}
@@ -498,7 +498,31 @@ export const DomainDetailPage = () => {
             <DomainValuationTool />
           </Suspense>
         </motion.section>
-      </main>
+        </main>
+
+        {/* 移动端底部固定操作栏 */}
+        {!isOwner && domain.status === 'available' && (
+          <div
+            className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t border-border shadow-[0_-4px_20px_-8px_rgba(0,0,0,0.15)]"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+          >
+            <div className="flex items-center gap-2 p-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] text-muted-foreground leading-tight">一口价</p>
+                <p className="text-lg font-black tabular-nums text-foreground truncate">
+                  {currency}{domain.price.toLocaleString()}
+                </p>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleOffer} className="h-11 px-3">
+                <MessageSquare className="h-4 w-4 mr-1" />报价
+              </Button>
+              <Button size="sm" onClick={handlePurchase} className="h-11 px-4 font-bold">
+                <DollarSign className="h-4 w-4 mr-1" />立即购买
+              </Button>
+            </div>
+          </div>
+        )}
+
 
       {/* 报价对话框 */}
       {!isOwner && (
