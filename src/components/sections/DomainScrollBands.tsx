@@ -9,6 +9,7 @@ import { formatPriceCompact } from '@/lib/currency';
 import { supabase } from '@/integrations/supabase/client';
 import { isUuidLike } from '@/lib/domainRouting';
 import { reportRoute } from '@/lib/routeTelemetry';
+import { useLogoBadgeConfig, type LogoBadgeConfig } from '@/hooks/useLogoBadgeConfig';
 
 // 预加载详情页 chunk，避免点击后长时间白屏
 let detailChunkPromise: Promise<unknown> | null = null;
@@ -51,7 +52,14 @@ interface LogoCardProps {
   index: number;
 }
 
-function LogoCard({ item, onClick, index, onPrefetch }: LogoCardProps & { onPrefetch: () => void }) {
+function LogoCard({ item, onClick, index, onPrefetch, badge }: LogoCardProps & { onPrefetch: () => void; badge: LogoBadgeConfig }) {
+  const showLogo = badge.enabled && !!item.logoUrl;
+  const logoSrc = showLogo && item.logoUrl
+    ? (badge.version > 0
+        ? `${item.logoUrl}${item.logoUrl.includes('?') ? '&' : '?'}v=${badge.version}`
+        : item.logoUrl)
+    : undefined;
+
   return (
     <button
       onClick={onClick}
@@ -65,10 +73,33 @@ function LogoCard({ item, onClick, index, onPrefetch }: LogoCardProps & { onPref
         hover:border-foreground/40 hover:bg-muted/30 transition-all duration-200
         overflow-hidden cursor-pointer"
     >
-      <div className="flex items-center justify-center w-full px-2">
+      {logoSrc && (
+        <>
+          <img
+            src={logoSrc}
+            alt=""
+            aria-hidden
+            loading="lazy"
+            decoding="async"
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+            style={{
+              filter: `grayscale(${badge.grayscale}%)`,
+              opacity: badge.opacity / 100,
+            }}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+          />
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: `linear-gradient(to top, hsl(var(--background) / ${badge.overlay / 100}) 0%, hsl(var(--background) / ${Math.min(1, badge.overlay / 100 * 0.5)}) 55%, transparent 100%)`,
+            }}
+          />
+        </>
+      )}
+      <div className={`relative z-10 flex items-center justify-center w-full px-2 ${logoSrc ? 'mt-auto mb-1' : ''}`}>
         <DomainWordmark name={item.name} className="max-w-[112px] sm:max-w-[124px]" />
       </div>
-      <span className="absolute bottom-1 right-1.5 text-[9px] text-muted-foreground/70 font-mono tabular-nums">
+      <span className={`absolute bottom-1 right-1.5 text-[9px] font-mono tabular-nums z-10 ${logoSrc ? 'text-foreground/80 bg-background/60 px-1 rounded' : 'text-muted-foreground/70'}`}>
         {item.bandType === 'sold' ? '已售' : formatPriceCompact(item.price, item.currency)}
       </span>
     </button>
@@ -76,12 +107,13 @@ function LogoCard({ item, onClick, index, onPrefetch }: LogoCardProps & { onPref
 }
 
 
-function MarqueeRow({ items, direction, onChipClick, onPrefetch, onVisible }: {
+function MarqueeRow({ items, direction, onChipClick, onPrefetch, onVisible, badge }: {
   items: DomainChip[];
   direction: 'ltr' | 'rtl';
   onChipClick: (domainName: string) => void;
   onPrefetch: (item: DomainChip) => void;
   onVisible: () => void;
+  badge: LogoBadgeConfig;
 }) {
   const rowRef = useRef<HTMLDivElement | null>(null);
 
@@ -122,6 +154,7 @@ function MarqueeRow({ items, direction, onChipClick, onPrefetch, onVisible }: {
             onClick={() => onChipClick(item.name)}
             onPrefetch={() => onPrefetch(item)}
             index={i}
+            badge={badge}
           />
         ))}
       </div>
@@ -133,6 +166,7 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: homeData } = useHomeData();
+  const badge = useLogoBadgeConfig();
 
   // 组件挂载后立即空闲预热详情 chunk，避免用户首次点击时才开始下载
   useEffect(() => {
@@ -215,7 +249,7 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
             <Gavel className="h-3.5 w-3.5 text-foreground/50" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">拍卖域名</span>
           </div>
-          <MarqueeRow items={pad(auctionDomains)} direction="ltr" onChipClick={handleChipClick} onPrefetch={handlePrefetch} onVisible={() => handleRowVisible(auctionDomains)} />
+          <MarqueeRow items={pad(auctionDomains)} direction="ltr" onChipClick={handleChipClick} onPrefetch={handlePrefetch} onVisible={() => handleRowVisible(auctionDomains)} badge={badge} />
         </div>
       )}
 
@@ -225,7 +259,7 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
             <Flame className="h-3.5 w-3.5 text-foreground/50" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">热门域名</span>
           </div>
-          <MarqueeRow items={pad(hotDomains)} direction="rtl" onChipClick={handleChipClick} onPrefetch={handlePrefetch} onVisible={() => handleRowVisible(hotDomains)} />
+          <MarqueeRow items={pad(hotDomains)} direction="rtl" onChipClick={handleChipClick} onPrefetch={handlePrefetch} onVisible={() => handleRowVisible(hotDomains)} badge={badge} />
         </div>
       )}
 
@@ -235,7 +269,7 @@ export function DomainScrollBands({ showSold = false }: { showSold?: boolean }) 
             <CheckCircle className="h-3.5 w-3.5 text-foreground/50" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">成交案例</span>
           </div>
-          <MarqueeRow items={pad(soldDomains)} direction="ltr" onChipClick={handleChipClick} onPrefetch={handlePrefetch} onVisible={() => handleRowVisible(soldDomains)} />
+          <MarqueeRow items={pad(soldDomains)} direction="ltr" onChipClick={handleChipClick} onPrefetch={handlePrefetch} onVisible={() => handleRowVisible(soldDomains)} badge={badge} />
         </div>
       )}
     </div>
