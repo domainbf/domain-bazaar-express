@@ -55,11 +55,23 @@ export const useDomainAnalytics = (domainId: string, initialData?: InitialData) 
     const sessionKey = `domain_viewed_${domainId}`;
     if (sessionStorage.getItem(sessionKey)) return;
     try {
-      const { error } = await supabase.rpc('increment_domain_views', { p_domain_id: domainId });
+      // Fingerprint substitute for IP (browser can't read IP). Server dedupes
+      // by domain_id + ip_hash within 30 minutes to prevent view inflation.
+      const fp = `${navigator.userAgent}|${navigator.language}|${screen.width}x${screen.height}`;
+      let hash = 0;
+      for (let i = 0; i < fp.length; i++) hash = ((hash << 5) - hash + fp.charCodeAt(i)) | 0;
+      const ipHash = `fp_${Math.abs(hash).toString(36)}`;
+
+      const { data, error } = await supabase.rpc('increment_domain_views_throttled', {
+        p_domain_id: domainId,
+        p_ip_hash: ipHash,
+      });
       if (error) throw error;
 
       sessionStorage.setItem(sessionKey, 'true');
-      setAnalytics(prev => prev ? { ...prev, views: (prev.views || 0) + 1 } : null);
+      if (data === true) {
+        setAnalytics(prev => prev ? { ...prev, views: (prev.views || 0) + 1 } : null);
+      }
     } catch (err) {
       console.error('Error recording view:', err);
     }
