@@ -22,6 +22,8 @@ interface Txn {
   receipt_sent_at: string | null;
   receipt_summary: any;
   domain_id: string | null;
+  buyer_id: string | null;
+  seller_id: string | null;
   created_at: string;
 }
 
