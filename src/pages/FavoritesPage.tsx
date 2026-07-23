@@ -7,7 +7,7 @@ import { Navbar } from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Heart, ArrowLeft, ExternalLink } from 'lucide-react';
-import { formatDomainPrice } from '@/lib/currency';
+import { formatPrice } from '@/lib/currency';
 
 interface DomainRow {
   id: string;
@@ -75,7 +75,7 @@ export default function FavoritesPage() {
                   <Link to={`/domain/${d.name}`} className="min-w-0 flex-1">
                     <div className="font-mono text-lg font-semibold uppercase truncate group-hover:text-primary">{d.name}</div>
                     <div className="text-sm text-muted-foreground mt-1">
-                      {d.price != null ? formatDomainPrice(d.price, d.currency || 'CNY') : '面议'}
+                      {d.price != null ? formatPrice(d.price, d.currency || 'CNY') : '面议'}
                     </div>
                   </Link>
                   <button
