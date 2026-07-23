@@ -55,6 +55,8 @@ export const AdminAuditLogs = () => {
   const [search, setSearch] = useState('');
   const [eventFilter, setEventFilter] = useState('all');
   const [selected, setSelected] = useState<AuditLog | null>(null);
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
 
   const load = async () => {
     setLoading(true);
@@ -76,6 +78,8 @@ export const AdminAuditLogs = () => {
   useEffect(() => { load(); }, []);
 
   const filtered = useMemo(() => {
+    const fromTs = dateFrom ? new Date(dateFrom).getTime() : 0;
+    const toTs = dateTo ? new Date(dateTo).getTime() + 86400000 : Infinity;
     return logs.filter(l => {
       const matchEvent = eventFilter === 'all' || l.event_type === eventFilter;
       const kw = search.trim().toLowerCase();
@@ -83,9 +87,11 @@ export const AdminAuditLogs = () => {
         (l.contact_email || '').toLowerCase().includes(kw) ||
         (l.idempotency_key || '').toLowerCase().includes(kw) ||
         (l.offer_id || '').toLowerCase().includes(kw);
-      return matchEvent && matchKw;
+      const ts = new Date(l.created_at).getTime();
+      const matchDate = ts >= fromTs && ts <= toTs;
+      return matchEvent && matchKw && matchDate;
     });
-  }, [logs, search, eventFilter]);
+  }, [logs, search, eventFilter, dateFrom, dateTo]);
 
   const stats = useMemo(() => ({
     total: logs.length,
@@ -148,10 +154,12 @@ export const AdminAuditLogs = () => {
           <div className="flex gap-2 flex-wrap">
             <div className="flex-1 min-w-[240px] flex gap-2 items-center">
               <Search className="h-4 w-4 text-muted-foreground" />
-              <Input placeholder="邮箱/幂等键/报价ID" value={search} onChange={e => setSearch(e.target.value)} />
+              <Input placeholder="邮箱/幂等键/报价ID" value={search} onChange={e => setSearch(e.target.value)} aria-label="搜索日志" />
             </div>
+            <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-40" aria-label="起始日期" />
+            <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-40" aria-label="结束日期" />
             <Select value={eventFilter} onValueChange={setEventFilter}>
-              <SelectTrigger className="w-40"><SelectValue placeholder="事件类型" /></SelectTrigger>
+              <SelectTrigger className="w-40" aria-label="事件筛选"><SelectValue placeholder="事件类型" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">全部事件</SelectItem>
                 {Object.entries(EVENT_LABELS).map(([k, v]) => (
@@ -159,6 +167,9 @@ export const AdminAuditLogs = () => {
                 ))}
               </SelectContent>
             </Select>
+            {(dateFrom || dateTo) && (
+              <Button variant="ghost" size="sm" onClick={() => { setDateFrom(''); setDateTo(''); }}>清除日期</Button>
+            )}
           </div>
 
           <div className="overflow-x-auto rounded-lg border">
