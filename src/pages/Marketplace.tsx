@@ -15,6 +15,7 @@ import {
   LayoutGrid, List as ListIcon,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { SavedSearches } from '@/components/marketplace/SavedSearches';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
@@ -352,6 +353,21 @@ export const Marketplace = () => {
                   </span>
                 )}
               </p>
+              <div className="flex-1 min-w-0">
+                <SavedSearches
+                  currentQuery={searchQuery}
+                  currentFilters={{ tld: tldFilter, price: priceChip, length: lengthChip, verifiedOnly, favoritesOnly, sortBy }}
+                  onApply={(q, f) => {
+                    setSearchQuery(q || '');
+                    if (f.tld) setTldFilter(f.tld);
+                    if (f.price) setPriceChip(f.price);
+                    if (f.length) setLengthChip(f.length);
+                    if (typeof f.verifiedOnly === 'boolean') setVerifiedOnly(f.verifiedOnly);
+                    if (typeof f.favoritesOnly === 'boolean') setFavoritesOnly(f.favoritesOnly);
+                    if (f.sortBy) setSortBy(f.sortBy);
+                  }}
+                />
+              </div>
               <div className="flex items-center gap-2">
                 <button
                   data-testid="toggle-verified-only"
