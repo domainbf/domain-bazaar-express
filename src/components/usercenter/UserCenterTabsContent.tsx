@@ -3,6 +3,7 @@ import { DomainManagement } from "@/components/usercenter/DomainManagement";
 import { TransactionHistory } from "@/components/usercenter/TransactionHistory";
 import { MyTransactions } from "@/components/usercenter/MyTransactions";
 import { NotificationsPanel } from "@/components/usercenter/NotificationsPanel";
+import { NotificationSettings } from "@/components/usercenter/NotificationSettings";
 import { ProfileSettings } from "@/components/usercenter/ProfileSettings";
 import { AccountSecurity } from "@/components/usercenter/AccountSecurity";
 import { FavoriteDomains } from "@/components/usercenter/FavoriteDomains";
@@ -161,7 +162,10 @@ export const UserCenterTabsContent = () => {
       {/* ── Notifications ────────────────────────────────────────── */}
       <TabsContent value="notifications" className="mt-0">
         <ComponentErrorBoundary fallbackMessage="通知模块加载出错，请重试">
-          <NotificationsPanel />
+          <div className="space-y-6">
+            <NotificationsPanel />
+            <NotificationSettings />
+          </div>
         </ComponentErrorBoundary>
       </TabsContent>
 
