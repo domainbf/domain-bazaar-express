@@ -308,6 +308,7 @@ export default function SellerEarnings() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
