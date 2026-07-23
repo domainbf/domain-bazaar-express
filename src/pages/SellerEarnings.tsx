@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { Navbar } from '@/components/Navbar';
+import { useNotifications } from '@/hooks/useNotifications';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { formatPrice } from '@/lib/currency';
-import { Wallet, TrendingUp, ArrowUpRight, RefreshCw, Download, Lock } from 'lucide-react';
+import { Wallet, TrendingUp, ArrowUpRight, RefreshCw, Download, Lock, ChevronLeft } from 'lucide-react';
 import KycForm from '@/components/seller/KycForm';
 
 interface Settlement {
@@ -27,6 +30,9 @@ const PLATFORM_FEE_RATE = 0.05; // 5% 平台费率
 
 export default function SellerEarnings() {
   const { user } = useAuth();
+  const { unreadCount } = useNotifications();
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [items, setItems] = useState<Settlement[]>([]);
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -143,25 +149,38 @@ export default function SellerEarnings() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-semibold flex items-center gap-2">
-            <Wallet className="w-5 h-5" /> 卖家收入结算
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            平台费率 {(PLATFORM_FEE_RATE * 100).toFixed(0)}% · 结算币种 CNY
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={load}>
-            <RefreshCw className="w-4 h-4 mr-1.5" /> 刷新
+    <div className="min-h-screen bg-background flex flex-col">
+      <Navbar unreadCount={unreadCount} />
+      <div className={`flex-1 max-w-5xl mx-auto w-full px-4 py-6 space-y-6 ${isMobile ? 'pb-24' : ''}`}>
+        <div className="flex items-center gap-3 flex-wrap">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1 text-muted-foreground hover:text-foreground"
+            onClick={() => navigate(-1)}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            返回
           </Button>
-          <Button variant="outline" size="sm" onClick={exportCsv} disabled={items.length === 0}>
-            <Download className="w-4 h-4 mr-1.5" /> 导出 CSV
-          </Button>
+          <div className="h-4 w-px bg-border" />
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <Wallet className="h-5 w-5 text-foreground shrink-0" />
+            <div className="min-w-0">
+              <h1 className="text-xl font-bold text-foreground truncate">卖家收入结算</h1>
+              <p className="text-[11px] text-muted-foreground">
+                平台费率 {(PLATFORM_FEE_RATE * 100).toFixed(0)}% · 结算币种 CNY
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={load}>
+              <RefreshCw className="w-4 h-4 mr-1.5" /> 刷新
+            </Button>
+            <Button variant="outline" size="sm" onClick={exportCsv} disabled={items.length === 0}>
+              <Download className="w-4 h-4 mr-1.5" /> 导出 CSV
+            </Button>
+          </div>
         </div>
-      </div>
 
       <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
         <StatCard label="累计成交" value={formatPrice(stats.gross, 'CNY')} sub={`${stats.count} 笔`} />
@@ -289,6 +308,7 @@ export default function SellerEarnings() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
