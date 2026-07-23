@@ -30,6 +30,9 @@ const PLATFORM_FEE_RATE = 0.05; // 5% 平台费率
 
 export default function SellerEarnings() {
   const { user } = useAuth();
+  const { unreadCount } = useNotifications();
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [items, setItems] = useState<Settlement[]>([]);
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
