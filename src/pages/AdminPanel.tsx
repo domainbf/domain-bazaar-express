@@ -33,6 +33,7 @@ import { AdminLogoManagement } from '@/components/admin/AdminLogoManagement';
 import { AdminTelemetry } from '@/components/admin/AdminTelemetry';
 import { AdminOrderOperations } from '@/components/admin/AdminOrderOperations';
 import { AdminKycReview } from '@/components/admin/AdminKycReview';
+import { AdminWithdrawals } from '@/components/admin/AdminWithdrawals';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -46,7 +47,7 @@ import {
   Users, Star, Home, BookOpen, Search, Sliders, CreditCard,
   Settings, Activity, Menu, ChevronRight, LogOut, RefreshCw,
   MessageSquare, Package, Scale, Bell, Mail, Headphones, Inbox,
-  ScrollText, GitMerge, SearchCode, ImageIcon
+  ScrollText, GitMerge, SearchCode, ImageIcon, Wallet,
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -146,6 +147,7 @@ export const AdminPanel = () => {
       items: [
         { id: 'users', label: '全部用户', icon: Users },
         { id: 'kyc', label: '实名与提现审核', icon: Shield, badge: pendingKyc },
+        { id: 'withdrawals', label: '提现审核', icon: Wallet },
       ]
     },
     {
@@ -295,6 +297,7 @@ export const AdminPanel = () => {
       case 'reviews': return <AdminReviewManagement />;
       case 'users': return <UserManagement />;
       case 'kyc': return <AdminKycReview />;
+      case 'withdrawals': return <AdminWithdrawals />;
       case 'homepage': return <HomeContentManagement />;
       case 'content': return <ContentManagement />;
       case 'legal': return <AdminLegalPagesManager />;
