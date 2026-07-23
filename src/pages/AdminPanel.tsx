@@ -48,6 +48,7 @@ import {
   Settings, Activity, Menu, ChevronRight, LogOut, RefreshCw,
   MessageSquare, Package, Scale, Bell, Mail, Headphones, Inbox,
   ScrollText, GitMerge, SearchCode, ImageIcon
+  Wallet,
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
