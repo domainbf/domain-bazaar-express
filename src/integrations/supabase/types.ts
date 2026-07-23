@@ -785,6 +785,27 @@ export type Database = {
           },
         ]
       }
+      domain_view_events: {
+        Row: {
+          created_at: string
+          domain_id: string
+          id: number
+          ip_hash: string
+        }
+        Insert: {
+          created_at?: string
+          domain_id: string
+          id?: number
+          ip_hash: string
+        }
+        Update: {
+          created_at?: string
+          domain_id?: string
+          id?: number
+          ip_hash?: string
+        }
+        Relationships: []
+      }
       domains: {
         Row: {
           buy_now_price: number | null
@@ -1375,6 +1396,7 @@ export type Database = {
           full_name: string | null
           id: string
           is_seller: boolean | null
+          notification_prefs: Json
           payment_info: Json | null
           preferred_payment_methods: string[] | null
           seller_rating: number | null
@@ -1397,6 +1419,7 @@ export type Database = {
           full_name?: string | null
           id: string
           is_seller?: boolean | null
+          notification_prefs?: Json
           payment_info?: Json | null
           preferred_payment_methods?: string[] | null
           seller_rating?: number | null
@@ -1419,6 +1442,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_seller?: boolean | null
+          notification_prefs?: Json
           payment_info?: Json | null
           preferred_payment_methods?: string[] | null
           seller_rating?: number | null
@@ -1510,6 +1534,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      saved_searches: {
+        Row: {
+          created_at: string
+          filters: Json
+          id: string
+          name: string
+          notify_new: boolean
+          query: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          filters?: Json
+          id?: string
+          name: string
+          notify_new?: boolean
+          query?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          filters?: Json
+          id?: string
+          name?: string
+          notify_new?: boolean
+          query?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       seller_kyc: {
         Row: {
@@ -2082,6 +2139,10 @@ export type Database = {
       increment_domain_views: {
         Args: { p_domain_id: string }
         Returns: undefined
+      }
+      increment_domain_views_throttled: {
+        Args: { p_domain_id: string; p_ip_hash: string }
+        Returns: boolean
       }
       is_admin: { Args: { user_id: string }; Returns: boolean }
       mark_all_notifications_as_read: {
