@@ -1,44 +1,106 @@
-你列了很多点，我把它们分成四个可执行的迭代，每个迭代都能独立发布，避免一次改动过大失控。你确认后，我会按顺序推进；也可以指定「只做某几个模块」。
+# 补全清单（1、3、4、5、6）
 
-## 迭代 1 · 搜索与首页（高优先级）
-- 首页 Hero 搜索框：放大到 h-16、圆角胶囊、内置 TLD 快切、加载中骨架。
-- 智能建议：输入时下拉展示「精确匹配 / 同名多后缀 / AI 拼写纠正 / 相关关键词」，命中已上架域名直接标价。
-- 批量检查：支持一次粘贴多个域名（换行/逗号分隔），走 `check-domain-availability` 边缘函数并列出可购/已售/不可注册状态。
-- 价格对比条：搜索结果卡片右侧显示「本站 vs 参考市价」，参考价来自 `domain_valuations`。
+按依赖关系分组并行推进。所有变更只碰对应模块，不动无关代码。
 
-## 迭代 2 · 域名仪表盘（Launchpad + 强表格）
-- `MyDomainsPage` 换成 TanStack Table：列可拖拽显示/隐藏、状态/后缀/价格过滤、批量选择工具条（改价、下架、发起拍卖、导出 CSV）。
-- 右侧详情抽屉：点击行不跳转，直接抽屉里展示价格历史、报价、访问统计、DNS 摘要、快速编辑。
-- Launchpad 首屏可自定义模块：已有的 Launchpad 增加「拖拽排序 + 显示/隐藏」的持久化到 `profiles.launchpad_layout`（新增 JSONB 列）。
+---
 
-## 迭代 3 · 信任与结账
-- 信任模块：首页与详情页加入「安全托管 / SSL / 平台评价 / 交易量」条带，评价来源 `user_reviews`，加平均分与最新 3 条。
-- 透明定价：详情页价格块下方列出「域名价 + 平台费 + 托管费 + 合计」。
-- 结账向导重构：4 步（确认 → 支付方式 → 支付 → 完成）用 stepper 组件，右侧一直显示订单摘要，移动端改为底部粘性摘要 + 全屏步骤。
-- 订单确认页加二次确认 dialog（金额、买卖双方、域名）。
+## 1. 支付回调签名校验 (Payment Callback Security)
 
-## 迭代 4 · DNS / 卖家中心 / 估值 / 移动端
-- DNS 编辑器：`dns_records` 表基础上做行内编辑、类型下拉 (A/AAAA/CNAME/MX/TXT/NS)、TTL 校验、传播检查（调 DoH 多节点）。
-- 卖家中心：新增销售统计图（30/90 天成交额、转化率、Top 询盘域名）+ 消息中心侧栏未读徽标。
-- 估值工具：`domain-enhanced-evaluation` 输出加 AI 建议区块（定价建议、可选后缀、目标买家画像）。
-- 移动端结账：粘性 CTA、单列步骤、大按钮 h-14。
+**文件：** `supabase/functions/payment-callback/index.ts`
 
-## 技术细节
-- 新建/改动主要文件：
-  - `src/components/search/HeroSearch.tsx`、`src/components/search/BulkCheck.tsx`、`src/components/search/PriceCompare.tsx`
-  - `src/pages/MyDomainsPage.tsx`（TanStack Table + Drawer）
-  - `src/components/dashboard/DomainDetailDrawer.tsx`
-  - `src/components/launchpad/LaunchpadGrid.tsx`（dnd-kit 已在项目里）
-  - `src/components/trust/TrustBar.tsx`、`src/components/checkout/CheckoutWizard.tsx`
-  - `src/components/dns/DnsEditor.tsx`、`src/components/dns/PropagationCheck.tsx`
-  - `src/components/seller/SalesAnalytics.tsx`
-- 数据库迁移：`profiles.launchpad_layout jsonb`、（若无）`user_reviews` 展示视图，不改现有结构。
-- 复用现有：`useFavorites`、`useEnhancedSearch`、`routeTelemetry`、`OrderProgressTracker`。
-- 全部走既有 shadcn tokens，不引入新色。
+- 按 `gateway` 分派验签：
+  - **PayPal**：调用 `https://api-m.paypal.com/v1/notifications/verify-webhook-signature`，需要 `PAYPAL_WEBHOOK_ID`（新 secret）。
+  - **Alipay / WeChat**：读取 `payment_gateway_settings` 中已存的公钥/APIv3 密钥，做 RSA2 / AES-GCM 校验。
+  - **Manual / test**：仅当调用者带 `x-internal-secret`（新 secret `INTERNAL_CALLBACK_SECRET`）时放行。
+- 未通过验签直接 401，并写入 `order_operations_log`。
+- 需要新增 secret：`PAYPAL_WEBHOOK_ID`、`INTERNAL_CALLBACK_SECRET`（`generate_secret`）。
 
-## 我需要你确认
-1. 是否按 迭代 1 → 4 的顺序执行？还是想先做某一块（例如先做 DNS 编辑器 / 先做结账）？
-2. 「批量检查」是否需要接第三方 WHOIS 判断可注册？还是只判断本站库内状态？
-3. Launchpad 布局是否要保留「重置为默认」按钮和管理员统一模板？
+---
 
-回复后我立即开工。
+## 3. KYC 证件上传 (Seller KYC)
+
+**文件：** `src/components/seller/KycForm.tsx`
+
+- 新增三个上传槽位：证件正面 / 反面 / 手持自拍。
+- 上传到私有 bucket `kyc-documents`，路径 `${user.id}/${uuid}-${type}.jpg`。
+- 表单提交时写入 `seller_kyc.id_front_url` / `id_back_url` / `id_selfie_url`（列已存在）。
+- 状态回显：`rejected` 时展示审核意见 + 允许重新提交（更新原记录而非新建）。
+- 校验：文件≤5MB、仅 image/*。
+
+**DB：** 无需迁移（列已存在）。仅需确认 `kyc-documents` bucket 的 RLS —— 用户仅能读写自己 `user_id` 前缀路径，管理员可读全部（已在 AdminKycReview 里用 signedUrl）。
+
+---
+
+## 4. 争议中心 (Dispute Center)
+
+**文件：**
+- `src/pages/DisputePage.tsx`（重构）
+- `src/components/disputes/DisputeDetailDialog.tsx`（新建）
+- `supabase/functions/dispute-actions/index.ts`（新建，用于管理员裁决 + 通知）
+
+功能：
+- **买家**：创建争议时上传证据（复用 `uploadEvidence`），列表查看进度。
+- **卖家**：收到争议 → 应答（文本 + 附件）→ 状态 `responded`。
+- **管理员**：`AdminDisputes.tsx` 中裁决 `resolved_buyer` / `resolved_seller`，触发退款或释放资金记录到 `order_operations_log` + 通知双方。
+- 实时订阅 `disputes` 表更新。
+
+**DB migration：** `disputes` 表增列
+- `evidence_urls text[] default '{}'`
+- `seller_response text`
+- `seller_response_at timestamptz`
+- `resolution text`
+- `resolved_at timestamptz`
+- `resolved_by uuid`
+
+RLS：买家/卖家/管理员可 SELECT 自己相关；买家 INSERT；卖家 UPDATE 应答字段；管理员 UPDATE 全部。
+
+---
+
+## 5. 消息中心实时化 (Message Center)
+
+**文件：** `src/components/messages/MessageCenter.tsx`
+
+- 使用 `useRealtimeSubscription(['messages'], ...)` 订阅新消息，接收方即时插入到当前会话或列表未读数 +1。
+- 打开会话时批量 `update messages set is_read=true where sender_id=peer and receiver_id=me`。
+- 未读徽章接入 `useUnreadMessages`（已存在）。
+- 发送后本地乐观插入，失败回滚 + toast。
+
+无需 DB 变更。仅需确保 `messages` 表已加入 `supabase_realtime` publication（若未加，migration 里 `ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;`）。
+
+---
+
+## 6. 交割闭环 (Order Handover)
+
+**文件：**
+- `src/pages/OrderDetailPage.tsx`（补交付确认按钮）
+- `src/components/order/OrderProgressTracker.tsx`（阶段可点击提示）
+- `supabase/functions/order-progress/index.ts`（新建）
+
+流程：
+- `paid → activated → transferred → completed`
+- 卖家在 `activated` 阶段点击"我已推送过户"→ `transferred`。
+- 买家在 `transferred` 阶段点击"确认收到"→ `completed`，触发 `domains.owner_id = buyer_id`（payment-callback 已做一部分，这里保证冪等），并给卖家结算入账 `payment_transactions`（type=`payout_credit`）。
+- 每步写 `order_operations_log`，双向通知。
+- 逾时保护：72h 未确认自动完成（放到 `keepalive` cron，本次仅埋 SQL 函数占位）。
+
+**DB migration：**
+- `transactions` 增列 `buyer_confirmed_at`, `seller_pushed_at`
+- 创建 `public.credit_seller_on_completion(_txn_id uuid)` security definer 函数
+
+---
+
+## 执行顺序
+
+1. 一次性 migration：`disputes` 扩列 + `transactions` 扩列 + `messages` realtime + `credit_seller` 函数。
+2. 三个边缘函数并行创建：`dispute-actions`、`order-progress`、以及改造 `payment-callback`。
+3. 前端 5 处改造并行：KycForm、DisputePage + Dialog、MessageCenter、OrderDetailPage、AdminDisputes。
+4. 添加 2 个 secrets（`PAYPAL_WEBHOOK_ID` 让用户输入，`INTERNAL_CALLBACK_SECRET` 自动生成）。
+
+## 说明（技术细节）
+
+- 所有边缘函数复用现有 `getClaims()` 鉴权模板，管理员操作用 `is_admin` RPC 二次校验。
+- 争议附件复用 `uploads` blob（已有 `apiFetch('/upload')`），无需新建 bucket。
+- 消息实时通过现有 `realtimeClient` 抽象，不新建 channel。
+- 支付验签失败一律返回 401 + 不改数据库状态，避免绕过。
+
+预计变更：~10 文件新增/修改，1 migration，2 secrets。完成后 1/3/4/5/6 全部闭环。
