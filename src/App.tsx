@@ -58,6 +58,7 @@ const HelpPage = lazy(lazyRetry(() => import('./pages/HelpPage')));
 const TermsPage = lazy(lazyRetry(() => import('./pages/TermsPage')));
 const PrivacyPage = lazy(lazyRetry(() => import('./pages/PrivacyPage')));
 const DisclaimerPage = lazy(lazyRetry(() => import('./pages/DisclaimerPage')));
+const FavoritesPage = lazy(lazyRetry(() => import('./pages/FavoritesPage')));
 const MaintenancePage = lazy(lazyRetry(() => import('./pages/MaintenancePage')));
 const NotificationsCenter = lazy(lazyRetry(() => import('./pages/NotificationsCenter')));
 const SellerEarnings = lazy(lazyRetry(() => import('./pages/SellerEarnings')));
@@ -275,6 +276,7 @@ const AnimatedRoutes = memo(() => {
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/auth/*" element={<AuthPage />} />
         <Route path="/marketplace" element={<Marketplace />} />
+        <Route path="/favorites" element={<FavoritesPage />} />
         <Route path="/domain/:domainName" element={<DomainDetailPage />} />
         <Route path="/domains/:domainName" element={<DomainDetailPage />} />
         <Route path="/dashboard" element={<ProtectedRoute><ComponentErrorBoundary componentName="Launchpad"><Launchpad /></ComponentErrorBoundary></ProtectedRoute>} />
