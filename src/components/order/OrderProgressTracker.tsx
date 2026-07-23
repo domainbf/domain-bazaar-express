@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { CheckCircle2, CircleDot, Circle, RefreshCw, Bell, ShieldAlert } from 'lucide-react';
+import { CheckCircle2, CircleDot, Circle, RefreshCw, Bell, ShieldAlert, PackageCheck, Handshake } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+
 
 const STAGES = [
   { key: 'submitted', label: '订单提交', desc: '订单已创建，等待支付' },
@@ -19,13 +21,18 @@ interface Props {
   orderId: string;
   initialStage?: StageKey;
   initialHistory?: Record<string, string>;
+  buyerId?: string | null;
+  sellerId?: string | null;
 }
 
-export function OrderProgressTracker({ orderId, initialStage = 'submitted', initialHistory = {} }: Props) {
+export function OrderProgressTracker({ orderId, initialStage = 'submitted', initialHistory = {}, buyerId, sellerId }: Props) {
+  const { user } = useAuth();
   const [stage, setStage] = useState<StageKey>(initialStage);
   const [history, setHistory] = useState<Record<string, string>>(initialHistory);
   const [refreshing, setRefreshing] = useState(false);
+  const [acting, setActing] = useState(false);
   const prevStageRef = useRef<StageKey>(initialStage);
+
 
   const load = async () => {
     setRefreshing(true);
@@ -151,6 +158,41 @@ export function OrderProgressTracker({ orderId, initialStage = 'submitted', init
           );
         })}
       </ol>
+
+      {(() => {
+        const isSeller = !!user && sellerId && user.id === sellerId;
+        const isBuyer = !!user && buyerId && user.id === buyerId;
+        const canPushTransfer = isSeller && stage === 'activated';
+        const canConfirmReceipt = isBuyer && stage === 'transferred';
+        if (!canPushTransfer && !canConfirmReceipt) return null;
+        const invoke = async (action: 'push_transfer' | 'confirm_receipt') => {
+          setActing(true);
+          try {
+            const { error } = await supabase.functions.invoke('order-progress', { body: { action, order_id: orderId } });
+            if (error) throw error;
+            toast.success(action === 'push_transfer' ? '已标记为过户完成' : '已确认收货，款项将结算给卖家');
+            load();
+          } catch (e: any) {
+            toast.error(e.message || '操作失败');
+          } finally {
+            setActing(false);
+          }
+        };
+        return (
+          <div className="mt-5 pt-5 border-t flex flex-wrap gap-2">
+            {canPushTransfer && (
+              <Button size="sm" onClick={() => invoke('push_transfer')} disabled={acting}>
+                <PackageCheck className="w-3.5 h-3.5 mr-1.5" /> 标记为过户完成
+              </Button>
+            )}
+            {canConfirmReceipt && (
+              <Button size="sm" onClick={() => invoke('confirm_receipt')} disabled={acting}>
+                <Handshake className="w-3.5 h-3.5 mr-1.5" /> 确认收货并结算
+              </Button>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }

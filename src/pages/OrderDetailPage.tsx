@@ -22,6 +22,8 @@ interface Txn {
   receipt_sent_at: string | null;
   receipt_summary: any;
   domain_id: string | null;
+  buyer_id: string | null;
+  seller_id: string | null;
   created_at: string;
 }
 
@@ -199,7 +201,7 @@ export default function OrderDetailPage() {
         </motion.div>
 
         <div className="print-avoid-break">
-          <OrderProgressTracker orderId={txn.id} initialStage={txn.progress_stage as any} initialHistory={txn.stage_history || {}} />
+          <OrderProgressTracker orderId={txn.id} initialStage={txn.progress_stage as any} initialHistory={txn.stage_history || {}} buyerId={txn.buyer_id} sellerId={txn.seller_id} />
         </div>
 
         {deliveries.length > 0 && (

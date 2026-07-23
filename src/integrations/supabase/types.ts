@@ -86,9 +86,13 @@ export type Database = {
           id: string
           initiator_id: string | null
           reason: string
+          resolution: string | null
           resolved_at: string | null
           resolved_by: string | null
           respondent_id: string | null
+          seller_evidence_urls: string[]
+          seller_response: string | null
+          seller_response_at: string | null
           status: string | null
           transaction_id: string | null
           updated_at: string | null
@@ -102,9 +106,13 @@ export type Database = {
           id?: string
           initiator_id?: string | null
           reason: string
+          resolution?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
           respondent_id?: string | null
+          seller_evidence_urls?: string[]
+          seller_response?: string | null
+          seller_response_at?: string | null
           status?: string | null
           transaction_id?: string | null
           updated_at?: string | null
@@ -118,9 +126,13 @@ export type Database = {
           id?: string
           initiator_id?: string | null
           reason?: string
+          resolution?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
           respondent_id?: string | null
+          seller_evidence_urls?: string[]
+          seller_response?: string | null
+          seller_response_at?: string | null
           status?: string | null
           transaction_id?: string | null
           updated_at?: string | null
@@ -2030,6 +2042,10 @@ export type Database = {
         Returns: undefined
       }
       cleanup_expired_valuations: { Args: never; Returns: undefined }
+      complete_order_and_credit_seller: {
+        Args: { _actor: string; _txn_id: string }
+        Returns: Json
+      }
       get_user_notifications: {
         Args: { user_id_param: string }
         Returns: {
@@ -2075,6 +2091,10 @@ export type Database = {
       mark_notification_as_read: {
         Args: { notification_id_param: string }
         Returns: undefined
+      }
+      mark_order_transferred: {
+        Args: { _actor: string; _txn_id: string }
+        Returns: Json
       }
       transfer_domain_ownership: {
         Args: { _domain_id: string; _new_owner_id: string }
