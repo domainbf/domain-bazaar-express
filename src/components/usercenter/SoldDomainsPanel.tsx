@@ -12,7 +12,7 @@ import {
   Globe, Package, User as UserIcon, Mail
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { formatCurrencyAmount } from '@/lib/currency';
+import { formatPrice } from '@/lib/currency';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN, enUS } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
