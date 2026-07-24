@@ -2,6 +2,7 @@ import { TabsContent } from "@/components/ui/tabs";
 import { DomainManagement } from "@/components/usercenter/DomainManagement";
 import { TransactionHistory } from "@/components/usercenter/TransactionHistory";
 import { MyTransactions } from "@/components/usercenter/MyTransactions";
+import { SoldDomainsPanel } from "@/components/usercenter/SoldDomainsPanel";
 import { NotificationsPanel } from "@/components/usercenter/NotificationsPanel";
 import { NotificationSettings } from "@/components/usercenter/NotificationSettings";
 import { ProfileSettings } from "@/components/usercenter/ProfileSettings";
@@ -15,7 +16,7 @@ import { MessagesPage } from "@/components/messages/MessageCenter";
 import { useState } from "react";
 import {
   User, Shield, Link as LinkIcon, ShoppingBag, FileText,
-  Wallet, Heart, AlertTriangle
+  Wallet, Heart, AlertTriangle, CheckCircle2
 } from "lucide-react";
 import { CustomUrlSettings } from "@/components/usercenter/CustomUrlSettings";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -27,6 +28,7 @@ import { ComponentErrorBoundary } from "@/components/common/ComponentErrorBounda
 ────────────────────────────────────────────────────────────────── */
 const TX_TABS = [
   { id: 'transactions', label: '我的交易', shortLabel: '交易', icon: ShoppingBag },
+  { id: 'sold',         label: '已售域名', shortLabel: '已售', icon: CheckCircle2 },
   { id: 'offers',       label: '交易报价', shortLabel: '报价', icon: FileText },
   { id: 'wallet',       label: '我的钱包', shortLabel: '钱包', icon: Wallet },
   { id: 'escrow',       label: '资金托管', shortLabel: '托管', icon: Shield },
@@ -44,6 +46,7 @@ function TxContent({ tab }: { tab: string }) {
   return (
     <div className="animate-in">
       {tab === 'transactions' && <MyTransactions />}
+      {tab === 'sold'         && <SoldDomainsPanel />}
       {tab === 'offers'       && <TransactionHistory />}
       {tab === 'escrow'       && <EscrowService />}
       {tab === 'disputes'     && <DisputeCenter />}
@@ -52,6 +55,7 @@ function TxContent({ tab }: { tab: string }) {
     </div>
   );
 }
+
 
 function ProfileContent({ tab }: { tab: string }) {
   return (
