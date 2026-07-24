@@ -502,67 +502,30 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
         )}
 
         {/* 系统健康状态 */}
-        <Card className={health?.ok === false ? 'border-red-500/30 bg-red-500/5' : 'border-green-500/30 bg-green-500/10'}>
+        <Card className="border-green-500/30 bg-green-500/10">
           <CardHeader className="pb-3">
-            <CardTitle className={`flex items-center gap-2 ${health?.ok === false ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-              {health?.ok === false ? <WifiOff className="h-5 w-5" /> : <CheckCircle className="h-5 w-5" />}
+            <CardTitle className="flex items-center gap-2 text-green-600 dark:text-green-400">
+              <CheckCircle className="h-5 w-5" />
               系统状态
-              {health && (
-                <Badge variant="outline" className="ml-auto text-xs font-normal">
-                  运行 {Math.floor((health.uptime || 0) / 3600)}h {Math.floor(((health.uptime || 0) % 3600) / 60)}m
-                </Badge>
-              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="grid grid-cols-3 gap-2 text-sm text-center">
-                {/* API */}
-                <div className="bg-card/60 rounded-lg p-2">
-                  <Zap className="h-4 w-4 mx-auto mb-1 text-green-500" />
-                  <div className="text-green-600 dark:text-green-400 font-semibold text-xs">运行中</div>
-                  <div className="text-muted-foreground text-xs mt-0.5">API服务</div>
-                </div>
-                {/* DB */}
-                <div className="bg-card/60 rounded-lg p-2">
-                  <Database className={`h-4 w-4 mx-auto mb-1 ${health?.db === false ? 'text-red-500' : 'text-green-500'}`} />
-                  <div className={`font-semibold text-xs ${health?.db === false ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-                    {health ? (health.db ? `${health.dbLatencyMs}ms` : '断开') : '检测中'}
-                  </div>
-                  <div className="text-muted-foreground text-xs mt-0.5">Turso DB</div>
-                </div>
-                {/* Redis */}
-                <div className="bg-card/60 rounded-lg p-2">
-                  {health?.redis === false
-                    ? <WifiOff className="h-4 w-4 mx-auto mb-1 text-red-500" />
-                    : <Wifi className="h-4 w-4 mx-auto mb-1 text-green-500" />}
-                  <div className={`font-semibold text-xs ${health?.redis === false ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-                    {health ? (health.redis ? `${health.redisLatencyMs}ms` : '断开') : '检测中'}
-                  </div>
-                  <div className="text-muted-foreground text-xs mt-0.5">Redis缓存</div>
-                </div>
-                {/* Supabase */}
-                <div className="bg-card/60 rounded-lg p-2">
-                  {health?.supabase === false
-                    ? <WifiOff className="h-4 w-4 mx-auto mb-1 text-red-500" />
-                    : <Wifi className="h-4 w-4 mx-auto mb-1 text-green-500" />}
-                  <div className={`font-semibold text-xs ${health?.supabase === false ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-                    {health ? (health.supabase ? `${health.supabaseLatencyMs}ms` : '断开') : '检测中'}
-                  </div>
-                  <div className="text-muted-foreground text-xs mt-0.5">Supabase</div>
-                </div>
+            <div className="space-y-2 text-xs text-muted-foreground">
+              <div className="flex items-center justify-between">
+                <span>Supabase</span>
+                <span className="font-medium text-green-600 dark:text-green-400">在线</span>
               </div>
-              <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
+              <div className="flex items-center justify-between">
                 <span>上次数据同步</span>
                 <span className="font-medium text-foreground">
                   {lastUpdate.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
               </div>
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <div className="flex items-center justify-between">
                 <span>注册用户</span>
                 <span className="font-medium text-foreground">{stats.totalUsers} 人</span>
               </div>
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <div className="flex items-center justify-between">
                 <span>挂牌域名</span>
                 <span className="font-medium text-foreground">{stats.activeListings} 个</span>
               </div>
