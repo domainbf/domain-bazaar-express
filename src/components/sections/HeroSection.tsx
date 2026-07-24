@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { useHomeData } from '@/hooks/useHomeData';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,13 +11,13 @@ import { BulkCheckDialog } from '@/components/search/BulkCheckDialog';
 
 const POPULAR_TLDS = ['.com', '.ai', '.io', '.co', '.app', '.dev', '.xyz', '.net'];
 
-const PRICE_RANGES = [
-  { key: 'any', label: '全部价格', min: 0, max: undefined },
-  { key: 'lt1k', label: '< ¥1,000', min: 0, max: 1000 },
-  { key: '1k5k', label: '¥1k – 5k', min: 1000, max: 5000 },
-  { key: '5k20k', label: '¥5k – 20k', min: 5000, max: 20000 },
-  { key: 'gt20k', label: '> ¥20,000', min: 20000, max: undefined },
-];
+const PRICE_RANGE_KEYS = [
+  { key: 'any', min: 0, max: undefined },
+  { key: 'lt1k', min: 0, max: 1000 },
+  { key: 'k1k5', min: 1000, max: 5000 },
+  { key: 'k5k20', min: 5000, max: 20000 },
+  { key: 'gt20k', min: 20000, max: undefined },
+] as const;
 
 export const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState('');
