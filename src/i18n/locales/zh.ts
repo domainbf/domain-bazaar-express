@@ -86,12 +86,43 @@ export const zh = {
     footer: '© ' + new Date().getFullYear() + ' 域见•你 域名交易平台。保留所有权利。',
     hotDomains: '热门域名', latestAuctions: '最新拍卖', soldShowcase: '成交展示',
     searchPlaceholder: '搜索域名或关键词...',
+    tabs: { marketplace: '域名市场', estimator: '价值评估', monitor: '域名监控' },
+    sort: {
+      hot: '🔥 热门', latestOffer: '🆕 最新报价',
+      priceAsc: '↑ 价格从低', priceDesc: '↓ 价格从高',
+    },
+    allSuffixes: '全部后缀',
+    empty: '暂无域名', emptyHint: '看起来还没有域名添加到平台中',
+    resultsCount: '显示 {{shown}} / {{total}} 个域名',
+    loadMore: '加载更多 ({{count}})',
+    goMarketplace: '前往完整市场 →',
+  },
+
+  hero: {
+    badge: '精选域名 · AI 智能估值 · 安全托管交易',
+    titleFallback: '寻找完美的', titleAccent: '域名',
+    subtitleFallback: '从数千个精选域名中发现下一个属于你的品牌。',
+    searchPlaceholder: '搜索域名，如 brand.com',
+    searchBtn: '搜索',
+    suggestionsAvailable: '即刻可购', suggestionsRelated: '相关建议',
+    tldLabel: '后缀:', priceLabel: '价格:', all: '全部',
+    priceRanges: {
+      any: '全部价格', lt1k: '< ¥1,000', k1k5: '¥1k – 5k',
+      k5k20: '¥5k – 20k', gt20k: '> ¥20,000',
+    },
+    bulkCheck: '批量检查多个域名',
+    available: '可售',
+    trust: {
+      escrow: '担保交易', fastTransfer: '秒级过户',
+      aiValuation: 'AI 智能估值', multiCurrency: '多币种支持',
+    },
   },
 
   marketplace: {
     title: '域名市场', subtitle: '浏览和购买优质域名',
     searchPlaceholder: '搜索域名...', loadError: '加载域名失败',
     noDomainsFound: '未找到域名', resultsFound: '找到 {{count}} 个结果',
+    heroBadge: '精选域名交易市场',
     sortBy: '排序', sort: {
       newest: '最新', priceAsc: '价格↑', priceDesc: '价格↓',
       lengthAsc: '长度↑', popular: '热门', alpha: '字母顺序',
