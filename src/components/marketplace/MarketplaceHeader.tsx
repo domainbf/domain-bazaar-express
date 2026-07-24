@@ -31,7 +31,7 @@ export const MarketplaceHeader = ({ searchQuery, setSearchQuery, isMobile = fals
           {!isMobile && (
             <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-5 rounded-full border border-indigo-400/30 bg-indigo-500/10 text-indigo-200 text-sm font-medium">
               <Globe2 className="w-3.5 h-3.5" />
-              精选域名交易市场
+              {t('marketplace.heroBadge')}
               <Sparkles className="w-3.5 h-3.5" />
             </div>
           )}

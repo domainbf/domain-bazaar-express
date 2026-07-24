@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { useHomeData } from '@/hooks/useHomeData';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,15 +11,16 @@ import { BulkCheckDialog } from '@/components/search/BulkCheckDialog';
 
 const POPULAR_TLDS = ['.com', '.ai', '.io', '.co', '.app', '.dev', '.xyz', '.net'];
 
-const PRICE_RANGES = [
-  { key: 'any', label: '全部价格', min: 0, max: undefined },
-  { key: 'lt1k', label: '< ¥1,000', min: 0, max: 1000 },
-  { key: '1k5k', label: '¥1k – 5k', min: 1000, max: 5000 },
-  { key: '5k20k', label: '¥5k – 20k', min: 5000, max: 20000 },
-  { key: 'gt20k', label: '> ¥20,000', min: 20000, max: undefined },
-];
+const PRICE_RANGE_KEYS = [
+  { key: 'any', min: 0, max: undefined },
+  { key: 'lt1k', min: 0, max: 1000 },
+  { key: 'k1k5', min: 1000, max: 5000 },
+  { key: 'k5k20', min: 5000, max: 20000 },
+  { key: 'gt20k', min: 20000, max: undefined },
+] as const;
 
 export const HeroSection = () => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTld, setSelectedTld] = useState<string>('');
   const [priceRange, setPriceRange] = useState<string>('any');
@@ -27,6 +29,10 @@ export const HeroSection = () => {
   const { config } = useSiteSettings();
   const { data: homeData } = useHomeData();
   const wrapRef = useRef<HTMLDivElement>(null);
+
+  const PRICE_RANGES = PRICE_RANGE_KEYS.map(r => ({
+    ...r, label: t(`hero.priceRanges.${r.key}`),
+  }));
 
   // close suggestions on outside click
   useEffect(() => {
@@ -94,7 +100,7 @@ export const HeroSection = () => {
           className="inline-flex items-center gap-2 px-3.5 py-1.5 mb-6 rounded-full border border-primary/20 bg-primary/5 text-primary text-xs font-medium backdrop-blur-sm"
         >
           <Sparkles className="w-3.5 h-3.5" />
-          精选域名 · AI 智能估值 · 安全托管交易
+          {t('hero.badge')}
         </motion.div>
 
         <motion.h1
@@ -103,8 +109,8 @@ export const HeroSection = () => {
           transition={{ duration: 0.6, delay: 0.05 }}
           className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-5 md:mb-6 leading-[1.05]"
         >
-          <span className="text-foreground">{config.hero_title || '寻找完美的'}</span>{' '}
-          <span className="gradient-text">域名</span>
+          <span className="text-foreground">{config.hero_title || t('hero.titleFallback')}</span>{' '}
+          <span className="gradient-text">{t('hero.titleAccent')}</span>
         </motion.h1>
 
         <motion.p
@@ -113,7 +119,7 @@ export const HeroSection = () => {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-10 md:mb-12"
         >
-          {config.hero_subtitle || '从数千个精选域名中发现下一个属于你的品牌。'}
+          {config.hero_subtitle || t('hero.subtitleFallback')}
         </motion.p>
 
         {/* ── Massive search bar ── */}
@@ -134,7 +140,7 @@ export const HeroSection = () => {
             <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 md:w-6 md:h-6 text-muted-foreground pointer-events-none" />
             <Input
               type="text"
-              placeholder={config.hero_search_placeholder || '搜索域名，如 brand.com'}
+              placeholder={config.hero_search_placeholder || t('hero.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setFocused(true)}
@@ -148,7 +154,7 @@ export const HeroSection = () => {
               className="h-12 md:h-14 px-6 md:px-8 rounded-xl bg-gradient-primary text-primary-foreground border-0 font-semibold text-sm md:text-base transition-all hover:shadow-elegant hover:-translate-y-0.5 active:scale-[0.98]"
               data-testid="button-hero-search"
             >
-              搜索
+              {t('hero.searchBtn')}
               <ArrowRight className="w-4 h-4 ml-1.5 hidden sm:inline" />
             </Button>
 
@@ -165,7 +171,7 @@ export const HeroSection = () => {
                   {suggestions.length > 0 && (
                     <div className="p-2">
                       <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                        即刻可购
+                        {t('hero.suggestionsAvailable')}
                       </div>
                       {suggestions.map((d) => (
                         <button
@@ -176,7 +182,7 @@ export const HeroSection = () => {
                           <span className="font-medium text-foreground truncate">{d.name}</span>
                           <span className="flex items-center gap-2 shrink-0">
                             <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success font-medium">
-                              可售
+                              {t('hero.available')}
                             </span>
                             <span className="text-sm font-semibold text-foreground tabular-nums">
                               {d.currency === 'USD' ? '$' : '¥'}
@@ -191,7 +197,7 @@ export const HeroSection = () => {
                   {relatedDomains.length > 0 && (
                     <div className="p-2 border-t border-border">
                       <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                        相关建议
+                        {t('hero.suggestionsRelated')}
                       </div>
                       <div className="flex flex-wrap gap-1.5 px-2 py-1">
                         {relatedDomains.map((r) => (
@@ -213,7 +219,7 @@ export const HeroSection = () => {
 
           {/* TLD quick filters */}
           <div className="mt-6 flex flex-wrap items-center justify-center gap-1.5">
-            <span className="text-xs text-muted-foreground mr-1">后缀:</span>
+            <span className="text-xs text-muted-foreground mr-1">{t('hero.tldLabel')}</span>
             <button
               onClick={() => setSelectedTld('')}
               className={`text-xs font-mono font-semibold px-3 py-1.5 rounded-full border transition-all ${
@@ -222,7 +228,7 @@ export const HeroSection = () => {
                   : 'bg-card text-foreground border-border hover:border-primary/40'
               }`}
             >
-              全部
+              {t('hero.all')}
             </button>
             {POPULAR_TLDS.map((tld) => (
               <button
@@ -241,7 +247,7 @@ export const HeroSection = () => {
 
           {/* Price range */}
           <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
-            <span className="text-xs text-muted-foreground mr-1">价格:</span>
+            <span className="text-xs text-muted-foreground mr-1">{t('hero.priceLabel')}</span>
             {PRICE_RANGES.map((r) => (
               <button
                 key={r.key}
@@ -263,7 +269,7 @@ export const HeroSection = () => {
               trigger={
                 <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-foreground">
                   <ListChecks className="w-3.5 h-3.5" />
-                  批量检查多个域名
+                  {t('hero.bulkCheck')}
                 </Button>
               }
             />
@@ -279,19 +285,19 @@ export const HeroSection = () => {
         >
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4 text-success" />
-            <span>担保交易</span>
+            <span>{t('hero.trust.escrow')}</span>
           </div>
           <div className="flex items-center gap-2">
             <Zap className="w-4 h-4 text-primary" />
-            <span>秒级过户</span>
+            <span>{t('hero.trust.fastTransfer')}</span>
           </div>
           <div className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-primary" />
-            <span>AI 智能估值</span>
+            <span>{t('hero.trust.aiValuation')}</span>
           </div>
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-primary" />
-            <span>多币种支持</span>
+            <span>{t('hero.trust.multiCurrency')}</span>
           </div>
         </motion.div>
       </div>
