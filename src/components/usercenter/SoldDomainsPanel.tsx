@@ -189,7 +189,7 @@ export const SoldDomainsPanel = () => {
           <div>
             <p className="text-xs text-muted-foreground">累计成交额</p>
             <p className="text-2xl font-bold text-green-600">
-              {formatCurrencyAmount(totalRevenue, (rows[0]?.currency || 'CNY') as any)}
+              {formatPrice(totalRevenue, rows[0]?.currency || "CNY")}
             </p>
           </div>
         </div>
@@ -262,7 +262,7 @@ export const SoldDomainsPanel = () => {
                       <div>
                         <p className="text-muted-foreground mb-0.5">成交金额</p>
                         <p className="font-semibold text-green-600">
-                          {formatCurrencyAmount(r.amount, (r.currency || 'CNY') as any)}
+                          {formatPrice(r.amount, r.currency || "CNY")}
                         </p>
                       </div>
                     </div>
