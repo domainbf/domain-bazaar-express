@@ -6,6 +6,7 @@ import {
   Users, Phone, FileText, AlertTriangle, BookOpen,
   MessageCircle
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { Separator } from '@/components/ui/separator';
 import { useTheme } from 'next-themes';
@@ -13,6 +14,7 @@ import logoLightImg from '@/assets/logo-light.png';
 import logoDarkImg from '@/assets/logo-dark.png';
 
 export const Footer = () => {
+  const { t } = useTranslation();
   const { config } = useSiteSettings();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
@@ -20,42 +22,41 @@ export const Footer = () => {
 
   const links = {
     marketplace: [
-      { label: '域名市场', to: '/marketplace', icon: ShoppingBag },
-      { label: '价值评估', to: '/valuation', icon: BarChart2 },
-      { label: '域名监控', to: '/domain-monitor', icon: Bell },
-      { label: '拍卖列表', to: '/auctions', icon: Gavel },
-      { label: '平台服务', to: '/platform-services', icon: Layers },
+      { label: t('footer.links.marketplace'), to: '/marketplace', icon: ShoppingBag },
+      { label: t('footer.links.valuation'), to: '/valuation', icon: BarChart2 },
+      { label: t('footer.links.monitor'), to: '/domain-monitor', icon: Bell },
+      { label: t('footer.links.auctions'), to: '/auctions', icon: Gavel },
+      { label: t('footer.links.platformServices'), to: '/platform-services', icon: Layers },
     ],
     services: [
-      { label: '资金托管', to: '/escrow', icon: Lock },
-      { label: '卖家入驻', to: '/seller', icon: UserPlus },
-      { label: '批量上架', to: '/bulk-listing', icon: Upload },
-      { label: '纠纷申诉', to: '/dispute', icon: Scale },
-      { label: '帮助支持', to: '/help', icon: HelpCircle },
+      { label: t('footer.links.escrow'), to: '/escrow', icon: Lock },
+      { label: t('footer.links.seller'), to: '/seller', icon: UserPlus },
+      { label: t('footer.links.bulkListing'), to: '/bulk-listing', icon: Upload },
+      { label: t('footer.links.dispute'), to: '/dispute', icon: Scale },
+      { label: t('footer.links.help'), to: '/help', icon: HelpCircle },
     ],
     support: [
-      { label: '常见问题', to: '/faq', icon: MessageSquare },
-      { label: '联系我们', to: '/contact', icon: Phone },
-      { label: '社区', to: '/community', icon: Users },
-      { label: '安全中心', to: '/security-center', icon: Shield },
+      { label: t('footer.links.faq'), to: '/faq', icon: MessageSquare },
+      { label: t('footer.links.contact'), to: '/contact', icon: Phone },
+      { label: t('footer.links.community'), to: '/community', icon: Users },
+      { label: t('footer.links.security'), to: '/security-center', icon: Shield },
     ],
     legal: [
-      { label: '服务协议', to: '/terms', icon: FileText },
-      { label: '隐私政策', to: '/privacy', icon: BookOpen },
-      { label: '免责声明', to: '/disclaimer', icon: AlertTriangle },
+      { label: t('footer.links.terms'), to: '/terms', icon: FileText },
+      { label: t('footer.links.privacy'), to: '/privacy', icon: BookOpen },
+      { label: t('footer.links.disclaimer'), to: '/disclaimer', icon: AlertTriangle },
     ],
   };
 
   const stats = [
-    { label: '在售域名', value: '1,000+' },
-    { label: '注册用户', value: '5,000+' },
-    { label: '成功交易', value: '200+' },
-    { label: '平均评分', value: '4.9★' },
+    { label: t('footer.stats.listings'), value: '1,000+' },
+    { label: t('footer.stats.users'), value: '5,000+' },
+    { label: t('footer.stats.deals'), value: '200+' },
+    { label: t('footer.stats.rating'), value: '4.9★' },
   ];
 
   return (
     <footer className="bg-card border-t border-border">
-      {/* 统计栏 */}
       <div className="border-b border-border/50">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
@@ -69,14 +70,11 @@ export const Footer = () => {
         </div>
       </div>
 
-      {/* 主要链接区域 */}
       <div className="max-w-6xl mx-auto px-4 py-10">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
-
-          {/* 域名交易 */}
           <div>
             <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-              <Globe className="h-4 w-4 text-primary" />域名交易
+              <Globe className="h-4 w-4 text-primary" />{t('footer.marketplace')}
             </h4>
             <ul className="space-y-2">
               {links.marketplace.map(l => (
@@ -90,10 +88,9 @@ export const Footer = () => {
             </ul>
           </div>
 
-          {/* 平台服务 */}
           <div>
             <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-              <Shield className="h-4 w-4 text-primary" />平台服务
+              <Shield className="h-4 w-4 text-primary" />{t('footer.services')}
             </h4>
             <ul className="space-y-2">
               {links.services.map(l => (
@@ -107,10 +104,9 @@ export const Footer = () => {
             </ul>
           </div>
 
-          {/* 帮助支持 */}
           <div>
             <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-primary" />帮助支持
+              <MessageSquare className="h-4 w-4 text-primary" />{t('footer.support')}
             </h4>
             <ul className="space-y-2">
               {links.support.map(l => (
@@ -124,10 +120,9 @@ export const Footer = () => {
             </ul>
           </div>
 
-          {/* 法律条款 */}
           <div>
             <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-              <FileText className="h-4 w-4 text-primary" />法律条款
+              <FileText className="h-4 w-4 text-primary" />{t('footer.legal')}
             </h4>
             <ul className="space-y-2">
               {links.legal.map(l => (
@@ -141,7 +136,6 @@ export const Footer = () => {
             </ul>
           </div>
 
-          {/* 品牌介绍 — 移至最右列 */}
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-3">
               <img
@@ -156,31 +150,31 @@ export const Footer = () => {
               <p className="text-xs text-primary/70 mb-2">{config.site_subtitle}</p>
             )}
             <p className="text-sm text-muted-foreground leading-relaxed">
-              专业域名交易平台，提供安全可靠的买卖撮合、资金托管和纠纷调解服务。
+              {t('footer.tagline')}
             </p>
             <div className="flex gap-3 mt-4 flex-wrap">
               {config?.contact_email && (
-                <a href={`mailto:${config.contact_email}`} title="邮件联系" className="text-muted-foreground hover:text-primary transition-colors">
+                <a href={`mailto:${config.contact_email}`} title={t('footer.socialTitles.email')} aria-label={t('footer.socialTitles.email')} className="text-muted-foreground hover:text-primary transition-colors">
                   <Mail className="h-5 w-5" />
                 </a>
               )}
               {config?.social_github && (
-                <a href={config.social_github} target="_blank" rel="noopener noreferrer" title="GitHub" className="text-muted-foreground hover:text-primary transition-colors">
+                <a href={config.social_github} target="_blank" rel="noopener noreferrer" title={t('footer.socialTitles.github')} aria-label={t('footer.socialTitles.github')} className="text-muted-foreground hover:text-primary transition-colors">
                   <Github className="h-5 w-5" />
                 </a>
               )}
               {config?.social_twitter && (
-                <a href={config.social_twitter} target="_blank" rel="noopener noreferrer" title="Twitter / X" className="text-muted-foreground hover:text-primary transition-colors">
+                <a href={config.social_twitter} target="_blank" rel="noopener noreferrer" title={t('footer.socialTitles.twitter')} aria-label={t('footer.socialTitles.twitter')} className="text-muted-foreground hover:text-primary transition-colors">
                   <Twitter className="h-5 w-5" />
                 </a>
               )}
               {config?.social_weibo && (
-                <a href={config.social_weibo} target="_blank" rel="noopener noreferrer" title="微博" className="text-muted-foreground hover:text-primary transition-colors">
+                <a href={config.social_weibo} target="_blank" rel="noopener noreferrer" title={t('footer.socialTitles.weibo')} aria-label={t('footer.socialTitles.weibo')} className="text-muted-foreground hover:text-primary transition-colors">
                   <MessageCircle className="h-5 w-5" />
                 </a>
               )}
               {config?.contact_phone && (
-                <a href={`tel:${config.contact_phone}`} title="电话" className="text-muted-foreground hover:text-primary transition-colors">
+                <a href={`tel:${config.contact_phone}`} title={t('footer.socialTitles.phone')} aria-label={t('footer.socialTitles.phone')} className="text-muted-foreground hover:text-primary transition-colors">
                   <Phone className="h-5 w-5" />
                 </a>
               )}
@@ -191,11 +185,10 @@ export const Footer = () => {
 
       <Separator />
 
-      {/* 底部版权 */}
       <div className="max-w-6xl mx-auto px-4 py-4 pb-20 md:pb-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
           <div className="flex flex-col sm:flex-row items-center gap-3">
-            <p>© {year} {config?.footer_text ?? `${config?.site_name ?? 'NIC.RW'} 版权所有`}</p>
+            <p>© {year} {config?.footer_text ?? `${config?.site_name ?? 'NIC.RW'} ${t('footer.copyrightSuffix')}`}</p>
             {config?.icp_number && (
               <a
                 href="https://beian.miit.gov.cn/"
@@ -210,9 +203,9 @@ export const Footer = () => {
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
               <Shield className="h-3.5 w-3.5 text-green-500" />
-              安全 · 可信 · 高效
+              {t('footer.slogan')}
             </span>
-            <span>资金托管保障交易安全</span>
+            <span>{t('footer.escrowNote')}</span>
           </div>
         </div>
       </div>

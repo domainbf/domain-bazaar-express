@@ -1,196 +1,194 @@
 
 export const zh = {
-  // 通用翻译
   common: {
-    all: '全部',
-    refresh: '刷新',
-    actions: '操作',
-    unknown: '未知',
-    search: '搜索',
-    filter: '筛选',
-    save: '保存',
-    cancel: '取消',
-    confirm: '确认',
-    delete: '删除',
-    edit: '编辑',
-    add: '添加',
-    close: '关闭',
-    loading: '加载中...',
-    error: '错误',
-    success: '成功',
-    warning: '警告',
-    info: '信息',
-    yes: '是',
-    no: '否',
-    next: '下一步',
-    previous: '上一步',
-    submit: '提交',
-    reset: '重置',
-    back: '返回',
-    continue: '继续',
-    finish: '完成',
-    backToHome: '返回首页',
-    changingLanguage: '正在切换语言...',
-    languageChangeFailed: '语言切换失败',
-    languageChanged: '语言切换成功',
-    more: '更多',
-    less: '收起',
-    view: '查看',
-    contact: '联系我们',
-    email: '邮箱',
-    phone: '电话',
-    name: '姓名',
-    description: '描述',
-    status: '状态',
-    type: '类型',
-    date: '日期',
-    time: '时间',
-    viewAll: '查看全部',
-    copySuccess: '已复制到剪贴板',
-    copyFailed: '复制失败',
-    starting: '正在启动',
-    platformDescription: '域名交易与评估平台',
+    all: '全部', refresh: '刷新', actions: '操作', unknown: '未知', search: '搜索',
+    filter: '筛选', save: '保存', cancel: '取消', confirm: '确认', delete: '删除',
+    edit: '编辑', add: '添加', close: '关闭', loading: '加载中...', error: '错误',
+    success: '成功', warning: '警告', info: '信息', yes: '是', no: '否',
+    next: '下一步', previous: '上一步', submit: '提交', reset: '重置', back: '返回',
+    continue: '继续', finish: '完成', backToHome: '返回首页',
+    changingLanguage: '正在切换语言...', languageChangeFailed: '语言切换失败',
+    languageChanged: '语言切换成功', more: '更多', less: '收起', view: '查看',
+    contact: '联系我们', email: '邮箱', phone: '电话', name: '姓名',
+    description: '描述', status: '状态', type: '类型', date: '日期', time: '时间',
+    viewAll: '查看全部', copySuccess: '已复制到剪贴板', copyFailed: '复制失败',
+    starting: '正在启动', platformDescription: '域名交易与评估平台',
+    retry: '重试', export: '导出', import: '导入', upload: '上传', download: '下载',
+    approve: '通过', reject: '驳回', pending: '待处理', processing: '处理中',
+    completed: '已完成', failed: '失败', expired: '已过期', total: '合计',
+    currency: '币种', amount: '金额', notes: '备注', operation: '操作', detail: '详情',
+    yesConfirm: '确定', noThanks: '暂不',
   },
-  
-  // 认证
+
   auth: {
     welcome: '欢迎使用 域见•你',
+    login: '登录', register: '注册', logout: '退出登录',
+    email: '邮箱', password: '密码', confirmPassword: '确认密码',
+    forgotPassword: '忘记密码？', rememberMe: '记住我',
+    loginTitle: '登录账户', registerTitle: '创建账户',
+    loginSubmit: '登录', registerSubmit: '注册',
+    noAccount: '没有账号？', hasAccount: '已有账号？',
+    orContinueWith: '或使用以下方式',
+    loginSuccess: '登录成功', registerSuccess: '注册成功',
+    loginFailed: '登录失败', registerFailed: '注册失败',
+    emailRequired: '请输入邮箱', passwordRequired: '请输入密码',
+    passwordTooShort: '密码至少 6 位', passwordMismatch: '两次输入的密码不一致',
+    resetPassword: '重置密码', sendResetLink: '发送重置链接',
+    resetEmailSent: '重置邮件已发送',
+    verifyEmail: '请验证邮箱', verifyEmailSent: '验证邮件已发送',
   },
 
-  // 导航
   nav: {
-    home: '首页',
-    marketplace: '域名市场',
-    dashboard: '仪表盘',
-    profile: '个人资料',
-    admin: '管理员',
-    login: '登录',
-    register: '注册',
-    logout: '退出登录',
-    userCenter: '用户中心'
+    home: '首页', marketplace: '域名市场', dashboard: '仪表盘', profile: '个人资料',
+    admin: '管理员', login: '登录', register: '注册', logout: '退出登录',
+    userCenter: '用户中心', favorites: '我的收藏', offers: '我的报价',
+    notifications: '通知', messages: '消息', valuation: '价值评估',
+    auctions: '拍卖', sell: '出售域名', help: '帮助中心',
   },
 
-  // 首页
+  footer: {
+    marketplace: '域名交易', services: '平台服务', support: '帮助支持', legal: '法律条款',
+    links: {
+      marketplace: '域名市场', valuation: '价值评估', monitor: '域名监控',
+      auctions: '拍卖列表', platformServices: '平台服务',
+      escrow: '资金托管', seller: '卖家入驻', bulkListing: '批量上架',
+      dispute: '纠纷申诉', help: '帮助支持',
+      faq: '常见问题', contact: '联系我们', community: '社区', security: '安全中心',
+      terms: '服务协议', privacy: '隐私政策', disclaimer: '免责声明',
+    },
+    stats: { listings: '在售域名', users: '注册用户', deals: '成功交易', rating: '平均评分' },
+    tagline: '专业域名交易平台，提供安全可靠的买卖撮合、资金托管和纠纷调解服务。',
+    copyrightSuffix: '版权所有',
+    slogan: '安全 · 可信 · 高效',
+    escrowNote: '资金托管保障交易安全',
+    socialTitles: { email: '邮件联系', github: 'GitHub', twitter: 'Twitter / X', weibo: '微博', phone: '电话' },
+  },
+
   homePage: {
     title: '寻找您的完美域名',
     subtitle: '探索、发现并获取您下一个伟大想法的完美域名',
-    browseDomains: '浏览域名市场',
-    sellDomains: '出售您的域名',
-    userDashboard: '您的域名控制台',
-    activeDomains: '活跃域名',
-    manageDomains: '管理域名',
-    unreadMessages: '未读消息',
-    viewNotifications: '查看通知',
-    defaultUser: '用户',
-    basicUser: '基础用户',
-    editProfile: '编辑资料',
-    fullDashboard: '进入完整控制台',
-    featuredDomains: '精选域名',
-    tryAdjustingFilters: '尝试调整您的筛选条件或添加您自己的域名',
+    browseDomains: '浏览域名市场', sellDomains: '出售您的域名',
+    userDashboard: '您的域名控制台', activeDomains: '活跃域名', manageDomains: '管理域名',
+    unreadMessages: '未读消息', viewNotifications: '查看通知',
+    defaultUser: '用户', basicUser: '基础用户',
+    editProfile: '编辑资料', fullDashboard: '进入完整控制台',
+    featuredDomains: '精选域名', tryAdjustingFilters: '尝试调整您的筛选条件或添加您自己的域名',
     addYourDomain: '添加您的域名',
     howItWorks: '工作原理',
-    step1Title: '创建账户',
-    step1Description: '免费注册以购买或出售域名',
-    step2Title: '列表或浏览',
-    step2Description: '列出您的域名或浏览市场',
-    step3Title: '达成交易',
-    step3Description: '安全地完成交易',
-    platformStats: '平台统计',
-    activeUsers: '活跃用户',
-    countries: '国家/地区',
-    transactionVolume: '交易量',
-    customerSupport: '客户支持',
+    step1Title: '创建账户', step1Description: '免费注册以购买或出售域名',
+    step2Title: '列表或浏览', step2Description: '列出您的域名或浏览市场',
+    step3Title: '达成交易', step3Description: '安全地完成交易',
+    platformStats: '平台统计', activeUsers: '活跃用户', countries: '国家/地区',
+    transactionVolume: '交易量', customerSupport: '客户支持',
     ctaTitle: '准备购买或出售域名？',
     ctaDescription: '立即加入我们的平台，轻松开始域名交易',
-    visitUserCenter: '访问用户中心',
-    registerLogin: '注册/登录',
-    footer: '© ' + new Date().getFullYear() + ' 域见•你 域名交易平台。保留所有权利。'
+    visitUserCenter: '访问用户中心', registerLogin: '注册/登录',
+    footer: '© ' + new Date().getFullYear() + ' 域见•你 域名交易平台。保留所有权利。',
+    hotDomains: '热门域名', latestAuctions: '最新拍卖', soldShowcase: '成交展示',
+    searchPlaceholder: '搜索域名或关键词...',
   },
 
-  // 域名市场
   marketplace: {
-    title: '域名市场',
-    subtitle: '浏览和购买优质域名',
-    searchPlaceholder: '搜索域名...',
-    loadError: '加载域名失败',
-    noDomainsFound: '未找到域名',
-    resultsFound: '找到 {{count}} 个结果',
+    title: '域名市场', subtitle: '浏览和购买优质域名',
+    searchPlaceholder: '搜索域名...', loadError: '加载域名失败',
+    noDomainsFound: '未找到域名', resultsFound: '找到 {{count}} 个结果',
+    sortBy: '排序', sort: {
+      newest: '最新', priceAsc: '价格↑', priceDesc: '价格↓',
+      lengthAsc: '长度↑', popular: '热门', alpha: '字母顺序',
+    },
+    favoriteOnly: '仅显示收藏', loadMore: '加载更多',
     filters: {
-      all: '全部',
-      premium: '精品',
-      short: '短域名',
-      business: '商业',
-      tech: '技术',
-      dev: '开发',
-      finance: '金融',
-      education: '教育',
-      health: '健康',
-      entertainment: '娱乐',
-      verifiedOnly: '仅显示已验证'
+      all: '全部', premium: '精品', short: '短域名', business: '商业',
+      tech: '技术', dev: '开发', finance: '金融', education: '教育',
+      health: '健康', entertainment: '娱乐', verifiedOnly: '仅显示已验证'
     },
     price: {
-      minLabel: '最低价格 ($)',
-      maxLabel: '最高价格 ($)',
-      minPlaceholder: '最低',
-      maxPlaceholder: '最高',
-      reset: '重置'
+      minLabel: '最低价格 ($)', maxLabel: '最高价格 ($)',
+      minPlaceholder: '最低', maxPlaceholder: '最高', reset: '重置'
     }
   },
 
-  // 域名相关
   domains: {
-    name: '域名',
-    price: '价格',
-    owner: '所有者',
-    category: '分类',
-    domainStatus: '状态',
-    domainVerification: '验证',
-    domainStats: '统计',
-    created: '创建时间',
-    updated: '更新时间',
+    name: '域名', price: '价格', owner: '所有者', category: '分类',
+    domainStatus: '状态', domainVerification: '验证', domainStats: '统计',
+    created: '创建时间', updated: '更新时间',
+    length: '长度', suffix: '后缀', views: '浏览量',
     categories: {
-      business: '商业',
-      tech: '技术',
-      finance: '金融',
-      education: '教育',
-      health: '健康',
-      entertainment: '娱乐',
-      standard: '标准',
-      premium: '精品',
-      short: '短域名',
-      brandable: '品牌化'
-    }
+      business: '商业', tech: '技术', finance: '金融', education: '教育',
+      health: '健康', entertainment: '娱乐', standard: '标准',
+      premium: '精品', short: '短域名', brandable: '品牌化'
+    },
+    detail: {
+      makeOffer: '提交报价', buyNow: '立即购买', favorite: '收藏',
+      unfavorite: '取消收藏', share: '分享', copy: '复制',
+      contactSeller: '联系卖家', whois: 'WHOIS 信息', aiValuation: 'AI 估价',
+      offerHistory: '报价历史', similarDomains: '相似域名',
+      status: { available: '可购买', sold: '已售出', reserved: '已预订', pending: '审核中' },
+    },
   },
 
-  // 管理员面板
+  offer: {
+    title: '提交报价', amount: '报价金额', currency: '币种',
+    message: '留言（可选）', contactEmail: '联系邮箱', contactPhone: '联系电话',
+    submit: '提交报价', submitting: '提交中...',
+    minAmount: '最低报价 {{min}}', maxAmount: '最高报价 {{max}}',
+    priceInvalid: '请输入有效的报价金额',
+    preview: '预览', pricePreview: '折合约 {{value}}',
+    success: '报价已提交，等待卖家回复',
+    failed: '报价提交失败', duplicate: '请勿重复提交',
+    status: { pending: '待回复', accepted: '已接受', rejected: '已拒绝', countered: '已还价', withdrawn: '已撤回' },
+    withdraw: '撤回报价', resend: '重新发送',
+  },
+
   admin: {
-    title: '管理员控制面板',
-    accessDenied: '您没有管理员权限',
-    accessDeniedTitle: '访问被拒绝',
-    accessDeniedMessage: '您没有权限访问此页面',
-    verifyingPermissions: '正在验证管理员权限...'
+    title: '管理员控制面板', accessDenied: '您没有管理员权限',
+    accessDeniedTitle: '访问被拒绝', accessDeniedMessage: '您没有权限访问此页面',
+    verifyingPermissions: '正在验证管理员权限...',
+    nav: {
+      dashboard: '总览', users: '用户', domains: '域名', orders: '订单',
+      offers: '报价', withdrawals: '提现', disputes: '纠纷',
+      audit: '审计日志', logos: 'Logo 管理', settings: '站点设置',
+      telemetry: '路由遥测', kyc: 'KYC 审核', payments: '支付配置',
+      tickets: '工单', content: '内容管理',
+    },
+    orders: {
+      title: '订单管理', advance: '推进阶段', resendReceipt: '重发收据',
+      exportPdf: '导出 PDF', markPaid: '标记已支付', markTransferred: '标记已过户',
+    },
+    withdrawals: {
+      title: '提现审核', approve: '通过', reject: '驳回', markPaid: '标记到账',
+      pendingCount: '待审核 {{count}}',
+    },
+    disputes: {
+      title: '纠纷管理', ruling: '仲裁裁决', rulingBuyer: '判定买家胜诉',
+      rulingSeller: '判定卖家胜诉', closeDispute: '关闭纠纷',
+    },
+    audit: {
+      title: '审计日志', dateFrom: '起始日期', dateTo: '结束日期',
+      exportCsv: '导出 CSV', userFilter: '按用户筛选',
+    },
+    settings: {
+      title: '站点设置', general: '常规', branding: '品牌', social: '社交',
+      seo: 'SEO', legal: '法律', save: '保存设置', saved: '设置已保存',
+    },
+    logos: {
+      title: 'Logo 管理', regenerate: '重新生成', viewLogs: '查看日志',
+      styleClassic: '克立样式', styleMinimal: '简洁样式',
+    },
   },
 
-  // 验证
   verification: {
     title: '域名验证',
-    methods: {
-      dns: 'DNS验证',
-      html: 'HTML文件验证',
-      email: '邮箱验证'
-    },
+    methods: { dns: 'DNS验证', html: 'HTML文件验证', email: '邮箱验证' },
     status: {
-      pending: '待处理',
-      verified: '已验证域名',
-      failed: '失败',
+      pending: '待处理', verified: '已验证域名', failed: '失败',
       verifiedDescription: '此域名已成功验证并在我们的市场中标记为可信域名。',
       pendingDescription: '请完成以下验证步骤，以验证此域名的所有权。',
       unverified: '未验证域名',
       unverifiedDescription: '经过验证的域名在我们的市场中会获得更高的曝光率和信任度。',
     },
     success: {
-      title: '域名已验证',
-      description: '您的域名已成功验证为真实域名',
+      title: '域名已验证', description: '您的域名已成功验证为真实域名',
       message: '您的域名 {{domainName}} 现已验证，并享有以下权益：',
       benefits: {
         visibility: '在市场搜索中获得更高的曝光率',
@@ -202,60 +200,50 @@ export const zh = {
     },
   },
 
-  // 通知
   notifications: {
-    title: '通知',
-    markAllRead: '标记全部已读',
-    noNotifications: '暂无通知'
-  },
-
-  // 用户中心
-  userCenter: {
-    title: '用户中心',
-    welcome: '欢迎回来',
-    myDomains: '我的域名',
-    transactions: '交易记录',
-    profile: '个人资料',
-    settings: '设置',
-    notifications: '通知',
-    favorites: '我的收藏',
-    offers: '我的报价',
-    dashboard: '仪表盘'
-  },
-
-  // 表单和输入
-  forms: {
-    required: '此字段为必填项',
-    invalid: '输入格式无效',
-    tooShort: '输入过短',
-    tooLong: '输入过长',
-    passwordMismatch: '密码不匹配',
-    emailInvalid: '邮箱格式无效',
-    domainInvalid: '域名格式无效',
-    priceInvalid: '价格格式无效'
-  },
-
-  // 错误和成功消息
-  messages: {
-    success: {
-      saved: '保存成功',
-      updated: '更新成功',
-      deleted: '删除成功',
-      sent: '发送成功',
-      uploaded: '上传成功'
+    title: '通知', markAllRead: '标记全部已读', noNotifications: '暂无通知',
+    settings: '通知设置', channels: { email: '邮件', inApp: '站内' },
+    types: {
+      offer: '报价通知', order: '订单通知', dispute: '纠纷通知',
+      kyc: 'KYC 审核', system: '系统消息',
     },
-    error: {
-      general: '操作失败，请重试',
-      network: '网络连接错误',
-      unauthorized: '未授权访问',
-      notFound: '内容未找到',
-      serverError: '服务器错误'
-    }
   },
-  
+
+  userCenter: {
+    title: '用户中心', welcome: '欢迎回来',
+    myDomains: '我的域名', transactions: '交易记录',
+    profile: '个人资料', settings: '设置', notifications: '通知',
+    favorites: '我的收藏', offers: '我的报价', dashboard: '仪表盘',
+    wallet: '钱包', kyc: '实名认证', security: '账户安全', messages: '消息',
+    wallet_: {
+      balance: '余额', withdraw: '提现', recharge: '充值',
+      records: '资金记录', withdrawAmount: '提现金额',
+      bankAccount: '收款账户', submitWithdraw: '提交提现',
+      pending: '审核中', paid: '已到账',
+    },
+    kyc_: {
+      title: '实名认证', realName: '真实姓名', idNumber: '证件号',
+      idType: '证件类型', idFront: '证件正面', idBack: '证件反面',
+      selfie: '手持证件照', submit: '提交审核', status: '审核状态',
+      approved: '已通过', rejected: '已驳回', pending: '审核中',
+    },
+    favorites_: { empty: '暂无收藏', remove: '取消收藏' },
+    offers_: { received: '收到的报价', sent: '发出的报价', empty: '暂无报价' },
+  },
+
+  forms: {
+    required: '此字段为必填项', invalid: '输入格式无效',
+    tooShort: '输入过短', tooLong: '输入过长',
+    passwordMismatch: '密码不匹配', emailInvalid: '邮箱格式无效',
+    domainInvalid: '域名格式无效', priceInvalid: '价格格式无效',
+  },
+
+  messages: {
+    success: { saved: '保存成功', updated: '更新成功', deleted: '删除成功', sent: '发送成功', uploaded: '上传成功' },
+    error: { general: '操作失败，请重试', network: '网络连接错误', unauthorized: '未授权访问', notFound: '内容未找到', serverError: '服务器错误' }
+  },
+
   soldDomains: {
-    title: '成功交易案例',
-    soldFor: '成交价',
-    subtitle: '以上域名已成功交易完成'
-  }
+    title: '成功交易案例', soldFor: '成交价', subtitle: '以上域名已成功交易完成'
+  },
 };
