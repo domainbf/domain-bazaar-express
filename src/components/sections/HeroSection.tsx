@@ -20,6 +20,7 @@ const PRICE_RANGE_KEYS = [
 ] as const;
 
 export const HeroSection = () => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTld, setSelectedTld] = useState<string>('');
   const [priceRange, setPriceRange] = useState<string>('any');
@@ -28,6 +29,10 @@ export const HeroSection = () => {
   const { config } = useSiteSettings();
   const { data: homeData } = useHomeData();
   const wrapRef = useRef<HTMLDivElement>(null);
+
+  const PRICE_RANGES = PRICE_RANGE_KEYS.map(r => ({
+    ...r, label: t(`hero.priceRanges.${r.key}`),
+  }));
 
   // close suggestions on outside click
   useEffect(() => {
