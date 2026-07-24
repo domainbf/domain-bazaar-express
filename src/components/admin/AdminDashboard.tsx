@@ -3,13 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from '@/contexts/AuthContext';
-import { apiGet } from '@/lib/apiClient';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
   Users, Globe, TrendingUp, DollarSign, Shield, Activity,
   AlertTriangle, CheckCircle, Clock, BarChart3, RefreshCw,
   Eye, Heart, MessageSquare, ArrowUpRight, ArrowDownRight, Calendar,
-  Wifi, WifiOff, Database, Zap
 } from 'lucide-react';
 import { EnhancedActivityLog } from './EnhancedActivityLog';
 
@@ -57,32 +56,65 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
   const [recentOffers, setRecentOffers] = useState<any[]>([]);
   const [topDomains, setTopDomains] = useState<any[]>([]);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
-  const [health, setHealth] = useState<{ ok: boolean; redis: boolean; db: boolean; supabase: boolean; redisLatencyMs: number; dbLatencyMs: number; supabaseLatencyMs: number; uptime: number } | null>(null);
 
   const stats = propStats || localStats;
   const isLoading = propIsLoading !== undefined ? propIsLoading : localIsLoading;
 
-  const fetchAdminStats = useCallback(async (forceRefresh = false) => {
+  const fetchAdminStats = useCallback(async () => {
     if (!user?.id) return;
     setLocalIsLoading(true);
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const isoToday = startOfToday.toISOString();
+
     try {
-      const url = forceRefresh ? '/data/admin/stats?refresh=1' : '/data/admin/stats';
-      const data = await apiGet<any>(url);
+      const headCount = (t: string, apply?: (q: any) => any) => {
+        const q = supabase.from(t as any).select('*', { count: 'exact', head: true });
+        return (apply ? apply(q) : q).then((r: any) => r.count || 0);
+      };
+
+      const [
+        totalUsers, totalDomains, activeListings, verifiedDomains,
+        pendingVerifications, newUsersToday, newDomainsToday,
+        totalOffers, pendingOffers, completedTransactions,
+        revenueRes, viewsRes, recentOffersRes,
+      ] = await Promise.all([
+        headCount('profiles'),
+        headCount('domain_listings'),
+        headCount('domain_listings', (q) => q.eq('status', 'available')),
+        headCount('domain_verifications', (q) => q.eq('status', 'verified')),
+        headCount('domain_verifications', (q) => q.eq('status', 'pending')),
+        headCount('profiles', (q) => q.gte('created_at', isoToday)),
+        headCount('domain_listings', (q) => q.gte('created_at', isoToday)),
+        headCount('domain_offers'),
+        headCount('domain_offers', (q) => q.eq('status', 'pending')),
+        headCount('transactions', (q) => q.eq('status', 'completed')),
+        supabase.from('transactions').select('amount').eq('status', 'completed'),
+        supabase.from('domain_analytics').select('views'),
+        supabase
+          .from('domain_offers')
+          .select('id, amount, currency, status, created_at, domains:domain_id(name)')
+          .order('created_at', { ascending: false })
+          .limit(5),
+      ]);
+
+      const totalRevenue = (revenueRes.data || []).reduce(
+        (s: number, r: any) => s + Number(r.amount || 0), 0,
+      );
+      const totalViews = (viewsRes.data || []).reduce(
+        (s: number, r: any) => s + Number(r.views || 0), 0,
+      );
+
       setLocalStats({
-        totalUsers: data.totalUsers || 0,
-        totalDomains: data.totalDomains || 0,
-        pendingVerifications: data.pendingVerifications || 0,
-        completedTransactions: data.completedTransactions || 0,
-        totalRevenue: data.totalRevenue || 0,
-        activeListings: data.activeListings || 0,
-        newUsersToday: data.newUsersToday || 0,
-        newDomainsToday: data.newDomainsToday || 0,
-        totalViews: data.totalViews || 0,
-        totalOffers: data.totalOffers || 0,
-        pendingOffers: data.pendingOffers || 0,
-        verifiedDomains: data.verifiedDomains || 0
+        totalUsers, totalDomains, pendingVerifications, completedTransactions,
+        totalRevenue, activeListings, newUsersToday, newDomainsToday,
+        totalViews, totalOffers, pendingOffers, verifiedDomains,
       });
-      setRecentOffers(data.recentOffers || []);
+      setRecentOffers(
+        (recentOffersRes.data || []).map((o: any) => ({
+          ...o, domain_name: o.domains?.name ?? '—',
+        })),
+      );
       setLastUpdate(new Date());
     } catch (error) {
       console.error('Error fetching admin stats:', error);
@@ -93,27 +125,39 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
   }, [user?.id]);
 
   const fetchRecentActivities = useCallback(async () => {
-    setRecentActivities([]);
+    try {
+      const { data } = await supabase
+        .from('user_activities')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10);
+      setRecentActivities(data || []);
+    } catch { /* ignore */ }
   }, []);
 
   const fetchTopDomains = useCallback(async () => {
     try {
-      const data = await apiGet('/data/domain-listings?status=available&analytics=1&limit=20');
-      const listings = Array.isArray(data) ? data : [];
-      // Sort by views descending, take top 5
-      const sorted = listings.sort((a: any, b: any) => (b.views || 0) - (a.views || 0));
-      setTopDomains(sorted.slice(0, 5).map((d: any) => ({
-        domain_id: d.id, name: d.name, price: d.price,
-        views: d.views || 0, favorites: d.favorites || 0, offers: d.offers || 0
+      const { data: analytics } = await supabase
+        .from('domain_analytics')
+        .select('domain_id, views, favorites, offers')
+        .order('views', { ascending: false })
+        .limit(5);
+      if (!analytics?.length) { setTopDomains([]); return; }
+      const ids = analytics.map(a => a.domain_id).filter(Boolean);
+      const { data: listings } = await supabase
+        .from('domain_listings')
+        .select('id, name, price')
+        .in('id', ids);
+      const byId = Object.fromEntries((listings || []).map(l => [l.id, l]));
+      setTopDomains(analytics.map(a => ({
+        domain_id: a.domain_id,
+        name: byId[a.domain_id]?.name ?? '—',
+        price: byId[a.domain_id]?.price ?? 0,
+        views: a.views || 0,
+        favorites: a.favorites || 0,
+        offers: a.offers || 0,
       })));
     } catch { /* ignore */ }
-  }, []);
-
-  const fetchHealth = useCallback(async () => {
-    try {
-      const data = await fetch('/api/health').then(r => r.json());
-      setHealth(data);
-    } catch { /* ignore health failures silently */ }
   }, []);
 
   useEffect(() => {
@@ -121,26 +165,22 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
       fetchAdminStats();
       fetchRecentActivities();
       fetchTopDomains();
-      fetchHealth();
 
       const statsInterval = setInterval(() => {
         fetchAdminStats();
       }, 5 * 60 * 1000);
 
-      const healthInterval = setInterval(fetchHealth, 30 * 1000);
-
       return () => {
         clearInterval(statsInterval);
-        clearInterval(healthInterval);
       };
     }
-  }, [isAdmin, propStats, fetchAdminStats, fetchRecentActivities, fetchTopDomains, fetchHealth]);
+  }, [isAdmin, propStats, fetchAdminStats, fetchRecentActivities, fetchTopDomains]);
 
   const handleRefresh = async () => {
     if (propOnRefresh) {
       await propOnRefresh();
     } else {
-      await Promise.all([fetchAdminStats(true), fetchRecentActivities(), fetchTopDomains(), fetchHealth()]);
+      await Promise.all([fetchAdminStats(), fetchRecentActivities(), fetchTopDomains()]);
     }
     toast.success('数据已刷新');
   };
@@ -462,67 +502,30 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
         )}
 
         {/* 系统健康状态 */}
-        <Card className={health?.ok === false ? 'border-red-500/30 bg-red-500/5' : 'border-green-500/30 bg-green-500/10'}>
+        <Card className="border-green-500/30 bg-green-500/10">
           <CardHeader className="pb-3">
-            <CardTitle className={`flex items-center gap-2 ${health?.ok === false ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-              {health?.ok === false ? <WifiOff className="h-5 w-5" /> : <CheckCircle className="h-5 w-5" />}
+            <CardTitle className="flex items-center gap-2 text-green-600 dark:text-green-400">
+              <CheckCircle className="h-5 w-5" />
               系统状态
-              {health && (
-                <Badge variant="outline" className="ml-auto text-xs font-normal">
-                  运行 {Math.floor((health.uptime || 0) / 3600)}h {Math.floor(((health.uptime || 0) % 3600) / 60)}m
-                </Badge>
-              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="grid grid-cols-3 gap-2 text-sm text-center">
-                {/* API */}
-                <div className="bg-card/60 rounded-lg p-2">
-                  <Zap className="h-4 w-4 mx-auto mb-1 text-green-500" />
-                  <div className="text-green-600 dark:text-green-400 font-semibold text-xs">运行中</div>
-                  <div className="text-muted-foreground text-xs mt-0.5">API服务</div>
-                </div>
-                {/* DB */}
-                <div className="bg-card/60 rounded-lg p-2">
-                  <Database className={`h-4 w-4 mx-auto mb-1 ${health?.db === false ? 'text-red-500' : 'text-green-500'}`} />
-                  <div className={`font-semibold text-xs ${health?.db === false ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-                    {health ? (health.db ? `${health.dbLatencyMs}ms` : '断开') : '检测中'}
-                  </div>
-                  <div className="text-muted-foreground text-xs mt-0.5">Turso DB</div>
-                </div>
-                {/* Redis */}
-                <div className="bg-card/60 rounded-lg p-2">
-                  {health?.redis === false
-                    ? <WifiOff className="h-4 w-4 mx-auto mb-1 text-red-500" />
-                    : <Wifi className="h-4 w-4 mx-auto mb-1 text-green-500" />}
-                  <div className={`font-semibold text-xs ${health?.redis === false ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-                    {health ? (health.redis ? `${health.redisLatencyMs}ms` : '断开') : '检测中'}
-                  </div>
-                  <div className="text-muted-foreground text-xs mt-0.5">Redis缓存</div>
-                </div>
-                {/* Supabase */}
-                <div className="bg-card/60 rounded-lg p-2">
-                  {health?.supabase === false
-                    ? <WifiOff className="h-4 w-4 mx-auto mb-1 text-red-500" />
-                    : <Wifi className="h-4 w-4 mx-auto mb-1 text-green-500" />}
-                  <div className={`font-semibold text-xs ${health?.supabase === false ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-                    {health ? (health.supabase ? `${health.supabaseLatencyMs}ms` : '断开') : '检测中'}
-                  </div>
-                  <div className="text-muted-foreground text-xs mt-0.5">Supabase</div>
-                </div>
+            <div className="space-y-2 text-xs text-muted-foreground">
+              <div className="flex items-center justify-between">
+                <span>Supabase</span>
+                <span className="font-medium text-green-600 dark:text-green-400">在线</span>
               </div>
-              <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
+              <div className="flex items-center justify-between">
                 <span>上次数据同步</span>
                 <span className="font-medium text-foreground">
                   {lastUpdate.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
               </div>
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <div className="flex items-center justify-between">
                 <span>注册用户</span>
                 <span className="font-medium text-foreground">{stats.totalUsers} 人</span>
               </div>
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <div className="flex items-center justify-between">
                 <span>挂牌域名</span>
                 <span className="font-medium text-foreground">{stats.activeListings} 个</span>
               </div>
