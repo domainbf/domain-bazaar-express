@@ -290,17 +290,18 @@ export const FavoriteDomains = () => {
                         aria-label={`选择 ${favorite.domain.name}`}
                       />
                       <div>
-
-                      <h3 className="font-semibold text-lg">{favorite.domain.name}</h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge className={categoryInfo.className}>
-                          {categoryInfo.label}
-                        </Badge>
-                        {favorite.domain.is_verified && (
-                          <Badge className="bg-green-500/10 text-green-700 dark:text-green-400">已验证</Badge>
-                        )}
+                        <h3 className="font-semibold text-lg break-all">{favorite.domain.name}</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge className={categoryInfo.className}>
+                            {categoryInfo.label}
+                          </Badge>
+                          {favorite.domain.is_verified && (
+                            <Badge className="bg-green-500/10 text-green-700 dark:text-green-400">已验证</Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
+
                     <Button
                       variant="ghost"
                       size="icon"
