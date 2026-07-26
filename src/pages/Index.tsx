@@ -250,7 +250,7 @@ const Index = () => {
                             : 'bg-background text-foreground border-border hover:border-foreground/50'
                         }`}
                       >
-                        全部后缀
+                        {t('homePage.allSuffixes')}
                       </button>
                       {availableExtensions.map(ext => {
                         const isActive = extFilter === ext;
