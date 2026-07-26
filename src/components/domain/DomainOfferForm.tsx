@@ -80,10 +80,11 @@ export const DomainOfferForm = ({
 
   const rangeError = useMemo(() => {
     if (!numericOffer || !limits) return null;
-    if (numericOffer < limits.min) return `报价过低，建议不低于 ${formatPrice(limits.min, currency)}`;
-    if (numericOffer > limits.max) return `报价过高，建议不超过 ${formatPrice(limits.max, currency)}`;
+    if (numericOffer < limits.min) return t('offer.form.rangeLow', { min: formatPrice(limits.min, currency) });
+    if (numericOffer > limits.max) return t('offer.form.rangeHigh', { max: formatPrice(limits.max, currency) });
     return null;
-  }, [numericOffer, limits, currency]);
+  }, [numericOffer, limits, currency, t]);
+
 
   const setErr = (message: string, type: typeof error extends { type: infer T } ? T : never = 'unknown' as any, reason?: string) => {
     setError({ message, type: type as any, reason });
