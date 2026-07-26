@@ -220,6 +220,20 @@ export default function KycForm({ onStatusChange, compact }: Props) {
         )}
       </CardHeader>
       <CardContent className="space-y-3">
+        {status === 'rejected' && (
+          <Alert variant="destructive">
+            <XCircle className="h-4 w-4" />
+            <AlertTitle className="text-sm">审核未通过</AlertTitle>
+            <AlertDescription className="text-xs space-y-1">
+              <p>{record?.review_note?.trim() || '审核员未填写具体原因，请核对证件信息与收款账户后重新提交。'}</p>
+              {record?.reviewed_at && (
+                <p className="opacity-80">审核时间：{new Date(record.reviewed_at).toLocaleString('zh-CN')}</p>
+              )}
+              <p className="opacity-80">修改以下资料后点击「重新提交审核」即可再次进入审核队列。</p>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="grid gap-3 md:grid-cols-2">
           <Field label="真实姓名" required>
             <Input value={form.full_name} disabled={locked} onChange={(e) => setForm({ ...form, full_name: e.target.value })} placeholder="与证件一致" />
