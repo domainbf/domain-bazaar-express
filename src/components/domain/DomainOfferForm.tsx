@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/contexts/AuthContext';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { CURRENCIES, formatPrice, getCurrencySymbol, convertCurrency } from '@/lib/currency';
+import { useTranslation } from 'react-i18next';
+
 
 interface DomainOfferFormProps {
   domain: string;
