@@ -5,10 +5,12 @@ import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { Heart, ExternalLink, Trash2, RefreshCw, ShoppingCart } from 'lucide-react';
+import { Heart, ExternalLink, Trash2, RefreshCw, ShoppingCart, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getDomainDetailPath } from '@/lib/domainRouting';
+
 
 interface FavoriteDomain {
   id: string;
