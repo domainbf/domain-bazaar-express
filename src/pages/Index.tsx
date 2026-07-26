@@ -229,10 +229,11 @@ const Index = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="hot">🔥 热门</SelectItem>
-                      <SelectItem value="latest_offer">🆕 最新报价</SelectItem>
-                      <SelectItem value="price_asc">↑ 价格从低</SelectItem>
-                      <SelectItem value="price_desc">↓ 价格从高</SelectItem>
+                      <SelectItem value="hot">{t('homePage.sort.hot')}</SelectItem>
+                      <SelectItem value="latest_offer">{t('homePage.sort.latestOffer')}</SelectItem>
+                      <SelectItem value="price_asc">{t('homePage.sort.priceAsc')}</SelectItem>
+                      <SelectItem value="price_desc">{t('homePage.sort.priceDesc')}</SelectItem>
+
                     </SelectContent>
                   </Select>
                 </div>
