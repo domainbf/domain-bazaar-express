@@ -208,10 +208,8 @@ export default function KycForm({ onStatusChange, compact }: Props) {
             </Badge>
           )}
         </CardTitle>
-        {status === 'rejected' && record?.review_note && (
-          <p className="text-xs text-destructive mt-1">审核意见：{record.review_note}</p>
-        )}
         {status === 'approved' && (
+
           <p className="text-xs text-muted-foreground mt-1">审核已通过 · {record?.reviewed_at ? new Date(record.reviewed_at).toLocaleString('zh-CN') : ''}</p>
         )}
         {status === 'pending' && (
