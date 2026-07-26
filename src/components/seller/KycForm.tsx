@@ -67,25 +67,59 @@ export default function KycForm({ onStatusChange, compact }: Props) {
     id_selfie_url: '',
   });
   const [uploading, setUploading] = useState<string | null>(null);
+  const [progress, setProgress] = useState<Record<string, number>>({});
 
   const uploadDoc = async (field: 'id_front_url' | 'id_back_url' | 'id_selfie_url', file: File) => {
     if (!user) return;
     if (file.size > 5 * 1024 * 1024) return toast.error('图片不能超过 5MB');
     if (!file.type.startsWith('image/')) return toast.error('请上传图片文件');
     setUploading(field);
+    setProgress((p) => ({ ...p, [field]: 0 }));
     try {
       const ext = file.name.split('.').pop() || 'jpg';
       const path = `${user.id}/${field}_${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from('kyc-documents').upload(path, file, { upsert: true });
-      if (error) throw error;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) throw new Error('登录状态已失效，请重新登录');
+
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open(
+          'POST',
+          `${SUPABASE_URL}/storage/v1/object/kyc-documents/${encodeURI(path)}`,
+          true
+        );
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+        xhr.setRequestHeader('x-upsert', 'true');
+        xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+        xhr.upload.onprogress = (evt) => {
+          if (evt.lengthComputable) {
+            setProgress((p) => ({ ...p, [field]: Math.round((evt.loaded / evt.total) * 100) }));
+          }
+        };
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) resolve();
+          else {
+            let msg = `上传失败 (${xhr.status})`;
+            try { msg = JSON.parse(xhr.responseText)?.message || msg; } catch { /* ignore */ }
+            reject(new Error(msg));
+          }
+        };
+        xhr.onerror = () => reject(new Error('网络错误，上传失败'));
+        xhr.send(file);
+      });
+
+      setProgress((p) => ({ ...p, [field]: 100 }));
       setForm((f) => ({ ...f, [field]: path }));
       toast.success('已上传');
     } catch (e: any) {
+      setProgress((p) => ({ ...p, [field]: 0 }));
       toast.error(e.message || '上传失败');
     } finally {
       setUploading(null);
     }
   };
+
 
   const load = async () => {
     if (!user) return;
