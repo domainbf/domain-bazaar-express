@@ -9,7 +9,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { ShieldCheck, Clock, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, Clock, CheckCircle2, XCircle, AlertTriangle, UploadCloud } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+const SUPABASE_URL = 'https://trqxaizkwuizuhlfmdup.supabase.co';
+
 
 export interface KycRecord {
   id: string;
