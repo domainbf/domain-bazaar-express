@@ -101,17 +101,18 @@ export const DomainOfferForm = ({
 
     if (isLoading || inflightRef.current) return;
 
-    if (!captchaToken) { setErr('请完成人机验证', 'validation'); toast.error('请完成人机验证'); return; }
-    if (!numericOffer) { setErr('请输入有效的报价金额', 'validation'); toast.error('请输入有效的报价金额'); return; }
+    if (!captchaToken) { setErr(t('offer.form.captchaHint'), 'validation'); toast.error(t('offer.form.captchaHint')); return; }
+    if (!numericOffer) { setErr(t('offer.form.invalidAmount'), 'validation'); toast.error(t('offer.form.invalidAmount')); return; }
     if (!isBuyNow && rangeError) { setErr(rangeError, 'validation'); toast.error(rangeError); return; }
-    if (!email || !email.includes('@')) { setErr('请输入有效的邮箱地址', 'validation'); toast.error('请输入有效的邮箱地址'); return; }
+    if (!email || !email.includes('@')) { setErr(t('offer.form.emailInvalid'), 'validation'); toast.error(t('offer.form.emailInvalid')); return; }
 
     const idemKey = `${domain}|${(session?.user?.id || email).toLowerCase()}|${numericOffer}|${currency}`;
     if (submittedKeysRef.current.has(idemKey)) {
-      setErr('该报价已提交，无需重复提交', 'duplicate', '本次会话已成功提交过相同金额的报价');
-      toast.info('该报价已提交');
+      setErr(t('offer.form.duplicateSubmitted'), 'duplicate', t('offer.form.duplicateReason'));
+      toast.info(t('offer.form.duplicateToast'));
       return;
     }
+
     inflightRef.current = idemKey;
     setIsLoading(true);
 
