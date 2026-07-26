@@ -39,7 +39,9 @@ export const DomainOfferForm = ({
   listingCurrency = 'CNY',
   onSubmitted,
 }: DomainOfferFormProps) => {
+  const { t } = useTranslation();
   const { session } = useAuth();
+
   const [offer, setOffer] = useState(initialOffer ? String(initialOffer) : '');
   const [currency, setCurrency] = useState((initialCurrency || 'CNY').toUpperCase());
   const [email, setEmail] = useState('');
