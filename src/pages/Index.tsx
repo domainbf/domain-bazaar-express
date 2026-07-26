@@ -170,14 +170,15 @@ const Index = () => {
               <div className="flex justify-center mb-8">
                 <TabsList className="grid grid-cols-3 w-full max-w-md">
                   <TabsTrigger value="marketplace" className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 tab-icon" />域名市场
+                    <TrendingUp className="w-4 h-4 tab-icon" />{t('homePage.tabs.marketplace')}
                   </TabsTrigger>
                   <TabsTrigger value="estimator" className="flex items-center gap-2">
-                    <Calculator className="w-4 h-4 tab-icon" />价值评估
+                    <Calculator className="w-4 h-4 tab-icon" />{t('homePage.tabs.estimator')}
                   </TabsTrigger>
                   <TabsTrigger value="monitor" className="flex items-center gap-2">
-                    <Eye className="w-4 h-4 tab-icon" />域名监控
+                    <Eye className="w-4 h-4 tab-icon" />{t('homePage.tabs.monitor')}
                   </TabsTrigger>
+
                 </TabsList>
               </div>
 
