@@ -170,14 +170,15 @@ const Index = () => {
               <div className="flex justify-center mb-8">
                 <TabsList className="grid grid-cols-3 w-full max-w-md">
                   <TabsTrigger value="marketplace" className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 tab-icon" />域名市场
+                    <TrendingUp className="w-4 h-4 tab-icon" />{t('homePage.tabs.marketplace')}
                   </TabsTrigger>
                   <TabsTrigger value="estimator" className="flex items-center gap-2">
-                    <Calculator className="w-4 h-4 tab-icon" />价值评估
+                    <Calculator className="w-4 h-4 tab-icon" />{t('homePage.tabs.estimator')}
                   </TabsTrigger>
                   <TabsTrigger value="monitor" className="flex items-center gap-2">
-                    <Eye className="w-4 h-4 tab-icon" />域名监控
+                    <Eye className="w-4 h-4 tab-icon" />{t('homePage.tabs.monitor')}
                   </TabsTrigger>
+
                 </TabsList>
               </div>
 
@@ -228,10 +229,11 @@ const Index = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="hot">🔥 热门</SelectItem>
-                      <SelectItem value="latest_offer">🆕 最新报价</SelectItem>
-                      <SelectItem value="price_asc">↑ 价格从低</SelectItem>
-                      <SelectItem value="price_desc">↓ 价格从高</SelectItem>
+                      <SelectItem value="hot">{t('homePage.sort.hot')}</SelectItem>
+                      <SelectItem value="latest_offer">{t('homePage.sort.latestOffer')}</SelectItem>
+                      <SelectItem value="price_asc">{t('homePage.sort.priceAsc')}</SelectItem>
+                      <SelectItem value="price_desc">{t('homePage.sort.priceDesc')}</SelectItem>
+
                     </SelectContent>
                   </Select>
                 </div>
@@ -248,7 +250,7 @@ const Index = () => {
                             : 'bg-background text-foreground border-border hover:border-foreground/50'
                         }`}
                       >
-                        全部后缀
+                        {t('homePage.allSuffixes')}
                       </button>
                       {availableExtensions.map(ext => {
                         const isActive = extFilter === ext;
@@ -305,7 +307,7 @@ const Index = () => {
                     </div>
                     <div className="text-center space-y-3">
                       <div className="text-xs text-muted-foreground">
-                        显示 <span className="font-bold text-foreground tabular-nums">{filteredDomains.length}</span> / {sortedDomains.length} 个域名
+                        {t('homePage.resultsCount', { shown: filteredDomains.length, total: sortedDomains.length })}
                       </div>
                       <div className="flex justify-center gap-3 flex-wrap">
                         {visibleCount < sortedDomains.length && (
@@ -314,11 +316,11 @@ const Index = () => {
                             variant="outline"
                             className="px-6 py-2 font-bold"
                           >
-                            加载更多 ({sortedDomains.length - visibleCount})
+                            {t('homePage.loadMore', { count: sortedDomains.length - visibleCount })}
                           </Button>
                         )}
                         <Link to="/marketplace">
-                          <Button className="px-6 py-2">前往完整市场 →</Button>
+                          <Button className="px-6 py-2">{t('homePage.goMarketplace')}</Button>
                         </Link>
                       </div>
                     </div>
@@ -326,11 +328,12 @@ const Index = () => {
                 ) : (
                   <div className="text-center py-16 bg-muted rounded-lg border border-border mb-12">
                     <h3 className="text-2xl font-medium text-muted-foreground mb-4">
-                      {domains.length === 0 ? '暂无域名' : t('marketplace.noDomainsFound')}
+                      {domains.length === 0 ? t('homePage.empty') : t('marketplace.noDomainsFound')}
                     </h3>
                     <p className="text-muted-foreground mb-4">
-                      {domains.length === 0 ? '看起来还没有域名添加到平台中' : t('homePage.tryAdjustingFilters')}
+                      {domains.length === 0 ? t('homePage.emptyHint') : t('homePage.tryAdjustingFilters')}
                     </p>
+
                     <Button onClick={handleSellDomains}>{t('homePage.addYourDomain')}</Button>
                   </div>
                 )}

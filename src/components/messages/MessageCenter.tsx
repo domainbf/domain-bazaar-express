@@ -1,12 +1,11 @@
 import { supabase } from '@/integrations/supabase/client';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
-import { useState, useEffect, useRef } from 'react';
-import { apiGet, apiPost, apiPatch } from '@/lib/apiClient';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { Send, User } from 'lucide-react';
+import { Send, User, Check, CheckCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
@@ -31,9 +30,10 @@ interface MessageCenterProps {
   transactionId?: string;
   domainId?: string;
   offerId?: string;
+  onReadReceipt?: () => void;
 }
 
-export const MessageCenter = ({ otherUserId, transactionId, domainId, offerId }: MessageCenterProps) => {
+export const MessageCenter = ({ otherUserId, transactionId, domainId, offerId, onReadReceipt }: MessageCenterProps) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -42,53 +42,79 @@ export const MessageCenter = ({ otherUserId, transactionId, domainId, offerId }:
   const [otherUser, setOtherUser] = useState<OtherUserProfile | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!user || !otherUserId) return;
-    loadMessages();
-    loadOtherUser();
-  }, [user, otherUserId]);
-
-  useRealtimeSubscription(
-    ["messages"],
-    (_event) => { loadMessages(); },
-    !!user && !!otherUserId
-  );
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const loadMessages = async () => {
-    setIsLoading(true);
+  const markThreadAsRead = useCallback(async (ids: string[]) => {
+    if (!ids.length) return;
     try {
-      const data = await apiGet('/data/messages');
-      const all: Message[] = Array.isArray(data) ? data : [];
-      const filtered = all
-        .filter((m: Message) =>
-          (m.sender_id === user?.id && m.receiver_id === otherUserId) ||
-          (m.sender_id === otherUserId && m.receiver_id === user?.id)
+      await supabase.from('messages').update({ is_read: true }).in('id', ids);
+      onReadReceipt?.();
+    } catch { /* ignore */ }
+  }, [onReadReceipt]);
+
+  const loadMessages = useCallback(async () => {
+    if (!user || !otherUserId) return;
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('id, sender_id, receiver_id, content, is_read, created_at')
+        .or(
+          `and(sender_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${user.id})`
         )
-        .sort((a: Message, b: Message) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-      setMessages(filtered);
-      const unread = filtered.filter((m: Message) => m.receiver_id === user?.id && !m.is_read);
-      unread.forEach((m: Message) => markAsRead(m.id));
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      const list = (data ?? []) as Message[];
+      setMessages(list);
+      const unreadIds = list.filter(m => m.receiver_id === user.id && !m.is_read).map(m => m.id);
+      if (unreadIds.length) {
+        setMessages(prev => prev.map(m => (unreadIds.includes(m.id) ? { ...m, is_read: true } : m)));
+        void markThreadAsRead(unreadIds);
+      }
     } catch {
       toast.error('加载消息失败');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, otherUserId, markThreadAsRead]);
 
-  const loadOtherUser = async () => {
-    try {
-      const data = await apiGet<any>(`/data/profiles/${otherUserId}`);
-      if (data?.profile) setOtherUser({ full_name: data.profile.full_name, username: data.profile.username });
-    } catch { /* ignore */ }
-  };
+  const loadOtherUser = useCallback(async () => {
+    if (!otherUserId) return;
+    const { data } = await supabase
+      .from('profiles')
+      .select('full_name, username')
+      .eq('id', otherUserId)
+      .maybeSingle();
+    if (data) setOtherUser({ full_name: data.full_name, username: data.username });
+  }, [otherUserId]);
 
-  const markAsRead = async (messageId: string) => {
-    try { await apiPatch(`/data/messages/${messageId}/read`, {}); } catch { /* ignore */ }
-  };
+  useEffect(() => {
+    if (!user || !otherUserId) return;
+    setIsLoading(true);
+    loadMessages();
+    loadOtherUser();
+  }, [user, otherUserId, loadMessages, loadOtherUser]);
+
+  useEffect(() => {
+    if (!user || !otherUserId) return;
+    const channel = supabase
+      .channel(`thread-${user.id}-${otherUserId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'messages' },
+        (payload) => {
+          const row = (payload.new ?? payload.old) as Partial<Message> | undefined;
+          if (!row) return;
+          const inThread =
+            (row.sender_id === user.id && row.receiver_id === otherUserId) ||
+            (row.sender_id === otherUserId && row.receiver_id === user.id);
+          if (inThread) loadMessages();
+        }
+      )
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [user, otherUserId, loadMessages]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !user || isSending) return;
@@ -96,22 +122,16 @@ export const MessageCenter = ({ otherUserId, transactionId, domainId, offerId }:
     const content = newMessage.trim();
     setNewMessage('');
     try {
-      await apiPost('/data/messages', {
+      const { error } = await supabase.from('messages').insert({
+        sender_id: user.id,
         receiver_id: otherUserId,
         content,
         transaction_id: transactionId ?? null,
         domain_id: domainId ?? null,
         offer_id: offerId ?? null,
       });
-      const tempMsg: Message = {
-        id: `temp-${Date.now()}`,
-        sender_id: user.id,
-        receiver_id: otherUserId,
-        content,
-        is_read: false,
-        created_at: new Date().toISOString(),
-      };
-      setMessages(prev => [...prev, tempMsg]);
+      if (error) throw error;
+      await loadMessages();
     } catch {
       toast.error('发送失败，请重试');
       setNewMessage(content);
@@ -149,8 +169,13 @@ export const MessageCenter = ({ otherUserId, transactionId, domainId, offerId }:
                   }`}>
                     {msg.content}
                   </div>
-                  <span className="text-xs text-muted-foreground mt-1 px-1">
+                  <span className="text-xs text-muted-foreground mt-1 px-1 flex items-center gap-1">
                     {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true, locale: zhCN })}
+                    {isMine && (
+                      msg.is_read
+                        ? <CheckCheck className="w-3 h-3 text-primary" aria-label="已读" />
+                        : <Check className="w-3 h-3 opacity-60" aria-label="已送达" />
+                    )}
                   </span>
                 </div>
               </div>
@@ -169,8 +194,9 @@ export const MessageCenter = ({ otherUserId, transactionId, domainId, offerId }:
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
           data-testid="input-message"
           className="flex-1"
+          aria-label="消息内容"
         />
-        <Button onClick={sendMessage} disabled={!newMessage.trim() || isSending} size="icon" data-testid="button-send-message">
+        <Button onClick={sendMessage} disabled={!newMessage.trim() || isSending} size="icon" data-testid="button-send-message" aria-label="发送消息">
           {isSending ? <LoadingSpinner size="sm" /> : <Send className="w-4 h-4" />}
         </Button>
       </div>
@@ -191,66 +217,75 @@ export const MessagesPage = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) loadConversations();
-  }, [user]);
-
-  const loadConversations = async () => {
-    setIsLoading(true);
+  const loadConversations = useCallback(async () => {
+    if (!user) return;
     try {
       const { data: msgs } = await supabase
         .from('messages')
         .select('*')
-        .or(`sender_id.eq.${user?.id},receiver_id.eq.${user?.id}`)
+        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
 
-      if (!msgs) return;
+      if (!msgs) { setConversations([]); return; }
 
       const convMap = new Map<string, { lastMessage: string; lastTime: string; unread: number }>();
       msgs.forEach((m: Message) => {
-        const otherId = m.sender_id === user?.id ? m.receiver_id : m.sender_id;
+        const otherId = m.sender_id === user.id ? m.receiver_id : m.sender_id;
+        const isUnread = !m.is_read && m.receiver_id === user.id;
         if (!convMap.has(otherId)) {
           convMap.set(otherId, {
             lastMessage: m.content,
             lastTime: m.created_at,
-            unread: !m.is_read && m.receiver_id === user?.id ? 1 : 0,
+            unread: isUnread ? 1 : 0,
           });
-        } else if (!m.is_read && m.receiver_id === user?.id) {
+        } else if (isUnread) {
           const existing = convMap.get(otherId)!;
           convMap.set(otherId, { ...existing, unread: existing.unread + 1 });
         }
       });
 
       const userIds = Array.from(convMap.keys());
-      if (userIds.length === 0) { setIsLoading(false); return; }
+      if (userIds.length === 0) { setConversations([]); return; }
 
       const { data: profiles } = await supabase
         .from('profiles')
         .select('id, full_name, username')
         .in('id', userIds);
 
-      const convList = userIds.map(uid => {
+      setConversations(userIds.map(uid => {
         const profile = profiles?.find(p => p.id === uid);
-        const conv = convMap.get(uid)!;
         return {
           userId: uid,
           userName: profile?.full_name ?? profile?.username ?? '未知用户',
-          ...conv,
+          ...convMap.get(uid)!,
         };
-      });
-
-      setConversations(convList);
+      }));
     } catch {
       toast.error('加载会话失败');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) loadConversations();
+  }, [user, loadConversations]);
+
+  useRealtimeSubscription(['messages'], () => { loadConversations(); }, !!user);
+
+  const totalUnread = conversations.reduce((s, c) => s + c.unread, 0);
 
   const list = (
     <div className="flex flex-col h-full">
       <div className="p-4 border-b flex items-center justify-between">
-        <p className="font-semibold text-sm">消息</p>
+        <p className="font-semibold text-sm flex items-center gap-2">
+          消息
+          {totalUnread > 0 && (
+            <span className="bg-destructive text-destructive-foreground text-[10px] rounded-full min-w-4 h-4 px-1 flex items-center justify-center">
+              {totalUnread > 99 ? '99+' : totalUnread}
+            </span>
+          )}
+        </p>
         {conversations.length > 0 && (
           <span className="text-xs text-muted-foreground">{conversations.length} 个会话</span>
         )}
@@ -273,14 +308,14 @@ export const MessagesPage = () => {
               data-testid={`conversation-${conv.userId}`}
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="font-medium text-sm truncate">{conv.userName}</span>
+                <span className={`text-sm truncate ${conv.unread > 0 ? 'font-semibold' : 'font-medium'}`}>{conv.userName}</span>
                 {conv.unread > 0 && (
-                  <span className="bg-foreground text-background text-xs rounded-full min-w-5 h-5 px-1.5 flex items-center justify-center shrink-0">
-                    {conv.unread}
+                  <span className="bg-destructive text-destructive-foreground text-xs rounded-full min-w-5 h-5 px-1.5 flex items-center justify-center shrink-0">
+                    {conv.unread > 99 ? '99+' : conv.unread}
                   </span>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground truncate mt-0.5">{conv.lastMessage}</p>
+              <p className={`text-xs truncate mt-0.5 ${conv.unread > 0 ? 'text-foreground' : 'text-muted-foreground'}`}>{conv.lastMessage}</p>
               <p className="text-[10px] text-muted-foreground/70 mt-0.5">
                 {formatDistanceToNow(new Date(conv.lastTime), { addSuffix: true, locale: zhCN })}
               </p>
@@ -299,7 +334,7 @@ export const MessagesPage = () => {
         </Button>
       </div>
       <div className="flex-1 min-h-0">
-        <MessageCenter otherUserId={selectedUserId} />
+        <MessageCenter otherUserId={selectedUserId} onReadReceipt={loadConversations} />
       </div>
     </div>
   ) : (

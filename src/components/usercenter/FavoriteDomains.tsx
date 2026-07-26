@@ -5,10 +5,12 @@ import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { Heart, ExternalLink, Trash2, RefreshCw, ShoppingCart } from 'lucide-react';
+import { Heart, ExternalLink, Trash2, RefreshCw, ShoppingCart, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getDomainDetailPath } from '@/lib/domainRouting';
+
 
 interface FavoriteDomain {
   id: string;
@@ -29,6 +31,9 @@ export const FavoriteDomains = () => {
   const [favorites, setFavorites] = useState<FavoriteDomain[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+
 
   const loadFavorites = useCallback(async () => {
     if (!user) return;
@@ -148,6 +153,38 @@ export const FavoriteDomains = () => {
     }
   };
 
+  const toggleSelect = (id: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    setSelected(prev => (prev.size === favorites.length ? new Set() : new Set(favorites.map(f => f.id))));
+  };
+
+  const handleBulkDelete = async () => {
+    if (selected.size === 0) return;
+    const ids = Array.from(selected);
+    setIsBulkDeleting(true);
+    try {
+      const { error } = await supabase.from('user_favorites').delete().in('id', ids);
+      if (error) throw error;
+      setFavorites(prev => prev.filter(f => !selected.has(f.id)));
+      setSelected(new Set());
+      toast.success(`已取消收藏 ${ids.length} 个域名`);
+    } catch (error: any) {
+      console.error('Error bulk removing favorites:', error);
+      toast.error('批量取消收藏失败');
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
+
+
   const getCategoryBadge = (category: string) => {
     const categoryMap: Record<string, { label: string; className: string }> = {
       premium: { label: '高级', className: 'bg-purple-500/10 text-purple-700 dark:text-purple-400' },
@@ -186,41 +223,85 @@ export const FavoriteDomains = () => {
         </Button>
       </div>
 
+      {favorites.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-muted/30 px-3 py-2">
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <Checkbox
+              checked={selected.size > 0 && selected.size === favorites.length}
+              onCheckedChange={toggleSelectAll}
+              aria-label="全选收藏"
+            />
+            全选
+          </label>
+          <span className="text-xs text-muted-foreground">已选 {selected.size} / {favorites.length}</span>
+          <Button
+            variant="destructive"
+            size="sm"
+            className="ml-auto"
+            disabled={selected.size === 0 || isBulkDeleting}
+            onClick={handleBulkDelete}
+          >
+            <Trash2 className="h-4 w-4 mr-1.5" />
+            {isBulkDeleting ? '删除中…' : `批量取消收藏${selected.size ? ` (${selected.size})` : ''}`}
+          </Button>
+        </div>
+      )}
+
       {favorites.length === 0 ? (
-        <Card>
+        <Card className="border-dashed">
           <CardContent className="py-16 text-center">
-            <Heart className="h-16 w-16 mx-auto mb-4 text-muted-foreground/30" />
-            <h3 className="text-lg font-semibold mb-2">暂无收藏</h3>
-            <p className="text-muted-foreground mb-4">
-              浏览市场，收藏您感兴趣的域名
+            <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-muted flex items-center justify-center">
+              <Heart className="h-8 w-8 text-muted-foreground/50" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">还没有收藏任何域名</h3>
+            <p className="text-muted-foreground mb-6 text-sm max-w-sm mx-auto">
+              在域名卡片或详情页点击 ♥ 即可加入收藏，方便随时比价与跟进报价进度。
             </p>
-            <Link to="/marketplace">
-              <Button>
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                浏览域名市场
-              </Button>
-            </Link>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <Link to="/marketplace">
+                <Button>
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  浏览域名市场
+                </Button>
+              </Link>
+              <Link to="/">
+                <Button variant="outline">
+                  <Search className="h-4 w-4 mr-2" />
+                  搜索心仪域名
+                </Button>
+              </Link>
+            </div>
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {favorites.map((favorite) => {
             const categoryInfo = getCategoryBadge(favorite.domain.category);
+            const isSelected = selected.has(favorite.id);
             return (
-              <Card key={favorite.id} className="hover:shadow-lg transition-shadow">
+              <Card key={favorite.id} className={`hover:shadow-lg transition-shadow ${isSelected ? 'ring-2 ring-primary' : ''}`}>
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h3 className="font-semibold text-lg">{favorite.domain.name}</h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge className={categoryInfo.className}>
-                          {categoryInfo.label}
-                        </Badge>
-                        {favorite.domain.is_verified && (
-                          <Badge className="bg-green-500/10 text-green-700 dark:text-green-400">已验证</Badge>
-                        )}
+                    <div className="flex items-start gap-2">
+                      <Checkbox
+                        className="mt-1.5"
+                        checked={isSelected}
+                        onCheckedChange={() => toggleSelect(favorite.id)}
+                        aria-label={`选择 ${favorite.domain.name}`}
+                      />
+                      <div>
+                        <h3 className="font-semibold text-lg break-all">{favorite.domain.name}</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge className={categoryInfo.className}>
+                            {categoryInfo.label}
+                          </Badge>
+                          {favorite.domain.is_verified && (
+                            <Badge className="bg-green-500/10 text-green-700 dark:text-green-400">已验证</Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
+
                     <Button
                       variant="ghost"
                       size="icon"

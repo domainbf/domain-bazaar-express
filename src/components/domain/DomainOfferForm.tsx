@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/contexts/AuthContext';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { CURRENCIES, formatPrice, getCurrencySymbol, convertCurrency } from '@/lib/currency';
+import { useTranslation } from 'react-i18next';
+
 
 interface DomainOfferFormProps {
   domain: string;
@@ -37,7 +39,9 @@ export const DomainOfferForm = ({
   listingCurrency = 'CNY',
   onSubmitted,
 }: DomainOfferFormProps) => {
+  const { t } = useTranslation();
   const { session } = useAuth();
+
   const [offer, setOffer] = useState(initialOffer ? String(initialOffer) : '');
   const [currency, setCurrency] = useState((initialCurrency || 'CNY').toUpperCase());
   const [email, setEmail] = useState('');
@@ -80,10 +84,11 @@ export const DomainOfferForm = ({
 
   const rangeError = useMemo(() => {
     if (!numericOffer || !limits) return null;
-    if (numericOffer < limits.min) return `报价过低，建议不低于 ${formatPrice(limits.min, currency)}`;
-    if (numericOffer > limits.max) return `报价过高，建议不超过 ${formatPrice(limits.max, currency)}`;
+    if (numericOffer < limits.min) return t('offer.form.rangeLow', { min: formatPrice(limits.min, currency) });
+    if (numericOffer > limits.max) return t('offer.form.rangeHigh', { max: formatPrice(limits.max, currency) });
     return null;
-  }, [numericOffer, limits, currency]);
+  }, [numericOffer, limits, currency, t]);
+
 
   const setErr = (message: string, type: typeof error extends { type: infer T } ? T : never = 'unknown' as any, reason?: string) => {
     setError({ message, type: type as any, reason });
@@ -96,17 +101,18 @@ export const DomainOfferForm = ({
 
     if (isLoading || inflightRef.current) return;
 
-    if (!captchaToken) { setErr('请完成人机验证', 'validation'); toast.error('请完成人机验证'); return; }
-    if (!numericOffer) { setErr('请输入有效的报价金额', 'validation'); toast.error('请输入有效的报价金额'); return; }
+    if (!captchaToken) { setErr(t('offer.form.captchaHint'), 'validation'); toast.error(t('offer.form.captchaHint')); return; }
+    if (!numericOffer) { setErr(t('offer.form.invalidAmount'), 'validation'); toast.error(t('offer.form.invalidAmount')); return; }
     if (!isBuyNow && rangeError) { setErr(rangeError, 'validation'); toast.error(rangeError); return; }
-    if (!email || !email.includes('@')) { setErr('请输入有效的邮箱地址', 'validation'); toast.error('请输入有效的邮箱地址'); return; }
+    if (!email || !email.includes('@')) { setErr(t('offer.form.emailInvalid'), 'validation'); toast.error(t('offer.form.emailInvalid')); return; }
 
     const idemKey = `${domain}|${(session?.user?.id || email).toLowerCase()}|${numericOffer}|${currency}`;
     if (submittedKeysRef.current.has(idemKey)) {
-      setErr('该报价已提交，无需重复提交', 'duplicate', '本次会话已成功提交过相同金额的报价');
-      toast.info('该报价已提交');
+      setErr(t('offer.form.duplicateSubmitted'), 'duplicate', t('offer.form.duplicateReason'));
+      toast.info(t('offer.form.duplicateToast'));
       return;
     }
+
     inflightRef.current = idemKey;
     setIsLoading(true);
 

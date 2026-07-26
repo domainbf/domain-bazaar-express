@@ -9,7 +9,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { ShieldCheck, Clock, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, Clock, CheckCircle2, XCircle, AlertTriangle, UploadCloud } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+const SUPABASE_URL = 'https://trqxaizkwuizuhlfmdup.supabase.co';
+
 
 export interface KycRecord {
   id: string;
@@ -67,25 +72,59 @@ export default function KycForm({ onStatusChange, compact }: Props) {
     id_selfie_url: '',
   });
   const [uploading, setUploading] = useState<string | null>(null);
+  const [progress, setProgress] = useState<Record<string, number>>({});
 
   const uploadDoc = async (field: 'id_front_url' | 'id_back_url' | 'id_selfie_url', file: File) => {
     if (!user) return;
     if (file.size > 5 * 1024 * 1024) return toast.error('图片不能超过 5MB');
     if (!file.type.startsWith('image/')) return toast.error('请上传图片文件');
     setUploading(field);
+    setProgress((p) => ({ ...p, [field]: 0 }));
     try {
       const ext = file.name.split('.').pop() || 'jpg';
       const path = `${user.id}/${field}_${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from('kyc-documents').upload(path, file, { upsert: true });
-      if (error) throw error;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) throw new Error('登录状态已失效，请重新登录');
+
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open(
+          'POST',
+          `${SUPABASE_URL}/storage/v1/object/kyc-documents/${encodeURI(path)}`,
+          true
+        );
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+        xhr.setRequestHeader('x-upsert', 'true');
+        xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+        xhr.upload.onprogress = (evt) => {
+          if (evt.lengthComputable) {
+            setProgress((p) => ({ ...p, [field]: Math.round((evt.loaded / evt.total) * 100) }));
+          }
+        };
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) resolve();
+          else {
+            let msg = `上传失败 (${xhr.status})`;
+            try { msg = JSON.parse(xhr.responseText)?.message || msg; } catch { /* ignore */ }
+            reject(new Error(msg));
+          }
+        };
+        xhr.onerror = () => reject(new Error('网络错误，上传失败'));
+        xhr.send(file);
+      });
+
+      setProgress((p) => ({ ...p, [field]: 100 }));
       setForm((f) => ({ ...f, [field]: path }));
       toast.success('已上传');
     } catch (e: any) {
+      setProgress((p) => ({ ...p, [field]: 0 }));
       toast.error(e.message || '上传失败');
     } finally {
       setUploading(null);
     }
   };
+
 
   const load = async () => {
     if (!user) return;
@@ -169,10 +208,8 @@ export default function KycForm({ onStatusChange, compact }: Props) {
             </Badge>
           )}
         </CardTitle>
-        {status === 'rejected' && record?.review_note && (
-          <p className="text-xs text-destructive mt-1">审核意见：{record.review_note}</p>
-        )}
         {status === 'approved' && (
+
           <p className="text-xs text-muted-foreground mt-1">审核已通过 · {record?.reviewed_at ? new Date(record.reviewed_at).toLocaleString('zh-CN') : ''}</p>
         )}
         {status === 'pending' && (
@@ -183,6 +220,20 @@ export default function KycForm({ onStatusChange, compact }: Props) {
         )}
       </CardHeader>
       <CardContent className="space-y-3">
+        {status === 'rejected' && (
+          <Alert variant="destructive">
+            <XCircle className="h-4 w-4" />
+            <AlertTitle className="text-sm">审核未通过</AlertTitle>
+            <AlertDescription className="text-xs space-y-1">
+              <p>{record?.review_note?.trim() || '审核员未填写具体原因，请核对证件信息与收款账户后重新提交。'}</p>
+              {record?.reviewed_at && (
+                <p className="opacity-80">审核时间：{new Date(record.reviewed_at).toLocaleString('zh-CN')}</p>
+              )}
+              <p className="opacity-80">修改以下资料后点击「重新提交审核」即可再次进入审核队列。</p>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="grid gap-3 md:grid-cols-2">
           <Field label="真实姓名" required>
             <Input value={form.full_name} disabled={locked} onChange={(e) => setForm({ ...form, full_name: e.target.value })} placeholder="与证件一致" />
@@ -241,9 +292,11 @@ export default function KycForm({ onStatusChange, compact }: Props) {
             ['id_selfie_url', '手持证件自拍'],
           ] as const).map(([field, label]) => (
             <div key={field} className="border rounded-lg p-3 space-y-2">
-              <Label className="text-xs text-muted-foreground">{label}</Label>
+              <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                <UploadCloud className="w-3 h-3" />{label}
+              </Label>
               {form[field] ? (
-                <div className="text-xs text-muted-foreground break-all">已上传 ✓</div>
+                <div className="text-xs text-green-600 dark:text-green-400 break-all">已上传 ✓</div>
               ) : (
                 <div className="text-xs text-muted-foreground">未上传</div>
               )}
@@ -253,9 +306,16 @@ export default function KycForm({ onStatusChange, compact }: Props) {
                 disabled={locked || uploading === field}
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadDoc(field, f); }}
                 className="text-xs w-full"
+                aria-label={`上传${label}`}
               />
-              {uploading === field && <div className="text-xs text-muted-foreground">上传中…</div>}
+              {uploading === field && (
+                <div className="space-y-1">
+                  <Progress value={progress[field] ?? 0} className="h-1.5" />
+                  <div className="text-[11px] text-muted-foreground">上传中… {progress[field] ?? 0}%</div>
+                </div>
+              )}
             </div>
+
           ))}
         </div>
         <div className="flex gap-2 flex-wrap pt-1">
