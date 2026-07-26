@@ -379,6 +379,88 @@ export const WalletPanel = () => {
         </Card>
       </div>
 
+      {/* 提现记录时间线 */}
+      <Card>
+        <CardHeader className={isMobile ? 'pb-3' : ''}>
+          <CardTitle className={`flex items-center gap-2 ${isMobile ? 'text-base' : ''}`}>
+            <ArrowUpRight className="h-4 w-4 md:h-5 md:w-5" />
+            提现记录
+            {withdrawals.length > 0 && (
+              <Badge variant="secondary" className="text-xs">{withdrawals.length}</Badge>
+            )}
+          </CardTitle>
+          <CardDescription className={isMobile ? 'text-xs' : ''}>
+            每笔提现的审核与打款进度，状态变更会实时同步
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {withdrawals.length === 0 ? (
+            <div className="text-center py-8">
+              <ArrowUpRight className="h-10 w-10 mx-auto mb-3 text-muted-foreground/30" />
+              <p className="text-sm text-muted-foreground">暂无提现记录</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">完成实名认证后即可发起提现申请</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {withdrawals.map((w) => {
+                const rejected = w.status === 'rejected' || w.status === 'failed' || w.status === 'cancelled';
+                const current = withdrawStepIndex(w.status);
+                return (
+                  <div key={w.id} className="border rounded-lg p-3 md:p-4">
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-sm md:text-base">
+                            ¥{w.amount.toLocaleString()}
+                          </span>
+                          {getStatusBadge(w.status)}
+                          {w.payment_method && (
+                            <Badge variant="outline" className="text-xs">{w.payment_method}</Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          单号 {w.id.slice(0, 8).toUpperCase()} · {new Date(w.created_at).toLocaleString('zh-CN')}
+                        </p>
+                      </div>
+                    </div>
+
+                    {rejected ? (
+                      <p className="mt-3 text-xs text-destructive">
+                        本次提现未完成（{w.status === 'cancelled' ? '已取消' : '已驳回 / 失败'}），资金已退回可用余额，如有疑问请联系客服。
+                      </p>
+                    ) : (
+                      <div className="mt-3 flex items-start">
+                        {WITHDRAW_STEPS.map((step, i) => {
+                          const done = i <= current;
+                          return (
+                            <div key={step} className="flex-1 flex flex-col items-center relative">
+                              {i > 0 && (
+                                <div
+                                  className={`absolute top-2 right-1/2 w-full h-0.5 ${i <= current ? 'bg-primary' : 'bg-border'}`}
+                                />
+                              )}
+                              <div
+                                className={`relative z-10 h-4 w-4 rounded-full border-2 ${
+                                  done ? 'bg-primary border-primary' : 'bg-background border-border'
+                                }`}
+                              />
+                              <span className={`mt-1.5 text-[10px] md:text-xs text-center ${done ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                {step}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+
       {/* 交易记录 */}
       <Card>
         <CardHeader className={isMobile ? 'pb-3' : ''}>
