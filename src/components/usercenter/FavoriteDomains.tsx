@@ -153,6 +153,38 @@ export const FavoriteDomains = () => {
     }
   };
 
+  const toggleSelect = (id: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    setSelected(prev => (prev.size === favorites.length ? new Set() : new Set(favorites.map(f => f.id))));
+  };
+
+  const handleBulkDelete = async () => {
+    if (selected.size === 0) return;
+    const ids = Array.from(selected);
+    setIsBulkDeleting(true);
+    try {
+      const { error } = await supabase.from('user_favorites').delete().in('id', ids);
+      if (error) throw error;
+      setFavorites(prev => prev.filter(f => !selected.has(f.id)));
+      setSelected(new Set());
+      toast.success(`已取消收藏 ${ids.length} 个域名`);
+    } catch (error: any) {
+      console.error('Error bulk removing favorites:', error);
+      toast.error('批量取消收藏失败');
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
+
+
   const getCategoryBadge = (category: string) => {
     const categoryMap: Record<string, { label: string; className: string }> = {
       premium: { label: '高级', className: 'bg-purple-500/10 text-purple-700 dark:text-purple-400' },
