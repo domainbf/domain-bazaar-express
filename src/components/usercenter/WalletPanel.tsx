@@ -210,16 +210,35 @@ export const WalletPanel = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed': return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 text-xs">已完成</Badge>;
-      case 'pending': return <Badge className="bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 text-xs">处理中</Badge>;
+      case 'approved': return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 text-xs">已批准</Badge>;
+      case 'processing': return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 text-xs">打款中</Badge>;
+      case 'pending': return <Badge className="bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 text-xs">审核中</Badge>;
+      case 'rejected': return <Badge className="bg-destructive/10 text-destructive text-xs">已驳回</Badge>;
+      case 'cancelled': return <Badge variant="secondary" className="text-xs">已取消</Badge>;
       case 'failed': return <Badge className="bg-destructive/10 text-destructive text-xs">失败</Badge>;
       default: return <Badge variant="secondary" className="text-xs">{status}</Badge>;
     }
   };
 
+  const WITHDRAW_STEPS = ['提交申请', '平台审核', '打款处理', '到账完成'] as const;
+
+  const withdrawStepIndex = (status: string) => {
+    switch (status) {
+      case 'pending': return 1;
+      case 'approved': return 2;
+      case 'processing': return 2;
+      case 'completed': return 3;
+      default: return 1;
+    }
+  };
+
+  const withdrawals = transactions.filter(t => t.type === 'withdrawal');
+
   const filteredTransactions = transactions.filter(t => {
     if (transactionFilter === 'all') return true;
     return t.type === transactionFilter;
   });
+
 
   if (isLoading) {
     return (
