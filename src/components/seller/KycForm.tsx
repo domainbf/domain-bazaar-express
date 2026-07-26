@@ -292,9 +292,11 @@ export default function KycForm({ onStatusChange, compact }: Props) {
             ['id_selfie_url', '手持证件自拍'],
           ] as const).map(([field, label]) => (
             <div key={field} className="border rounded-lg p-3 space-y-2">
-              <Label className="text-xs text-muted-foreground">{label}</Label>
+              <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                <UploadCloud className="w-3 h-3" />{label}
+              </Label>
               {form[field] ? (
-                <div className="text-xs text-muted-foreground break-all">已上传 ✓</div>
+                <div className="text-xs text-green-600 dark:text-green-400 break-all">已上传 ✓</div>
               ) : (
                 <div className="text-xs text-muted-foreground">未上传</div>
               )}
@@ -304,9 +306,16 @@ export default function KycForm({ onStatusChange, compact }: Props) {
                 disabled={locked || uploading === field}
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadDoc(field, f); }}
                 className="text-xs w-full"
+                aria-label={`上传${label}`}
               />
-              {uploading === field && <div className="text-xs text-muted-foreground">上传中…</div>}
+              {uploading === field && (
+                <div className="space-y-1">
+                  <Progress value={progress[field] ?? 0} className="h-1.5" />
+                  <div className="text-[11px] text-muted-foreground">上传中… {progress[field] ?? 0}%</div>
+                </div>
+              )}
             </div>
+
           ))}
         </div>
         <div className="flex gap-2 flex-wrap pt-1">
