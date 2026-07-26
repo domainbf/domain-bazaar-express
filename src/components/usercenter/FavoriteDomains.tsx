@@ -31,6 +31,9 @@ export const FavoriteDomains = () => {
   const [favorites, setFavorites] = useState<FavoriteDomain[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+
 
   const loadFavorites = useCallback(async () => {
     if (!user) return;
