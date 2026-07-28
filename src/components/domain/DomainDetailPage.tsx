@@ -6,6 +6,7 @@ import { useDomainAnalytics } from "@/hooks/useDomainAnalytics";
 import NotFound from "@/pages/NotFound";
 import { DomainDetailError } from "./DomainDetailError";
 import { useState, useEffect, lazy, Suspense } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
   Dialog,
@@ -87,6 +88,7 @@ const cardHoverVariants = {
 };
 
 export const DomainDetailPage = () => {
+  const { t } = useTranslation();
   const { domain, similarDomains, priceHistory, isLoading, error, reload } = useDomainDetail() as any;
   const { analytics, trends, isFavorited, recordView, toggleFavorite } = useDomainAnalytics(domain?.id || '');
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
@@ -130,11 +132,7 @@ export const DomainDetailPage = () => {
   const isOwner = user?.id === domain.owner_id;
   const currency = (domain as any).currency === 'CNY' ? '¥' : '$';
 
-  const CATEGORY_LABELS: Record<string, string> = {
-    premium: '精品', standard: '标准', short: '短域名',
-    brandable: '品牌', dev: '开发', numeric: '数字',
-    technology: '科技', business: '商业', general: '通用',
-  };
+  const categoryLabel = (c: string) => t(`domains.categories.${c}`, { defaultValue: c });
 
   const handleOffer = () => {
     if (isOwner) return;
@@ -188,7 +186,7 @@ export const DomainDetailPage = () => {
               className="hover:bg-accent -ml-2 transition-all duration-200 hover:scale-105"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              返回
+              {t('domains.detail.back')}
             </Button>
           </motion.div>
 
@@ -227,14 +225,14 @@ export const DomainDetailPage = () => {
                 {domain.is_verified && (
                   <Badge className="bg-green-500/10 text-green-600 border-green-500/30 animate-fade-in">
                     <Shield className="h-3 w-3 mr-1" />
-                    已验证
+                    {t('domains.detail.verified')}
                   </Badge>
                 )}
                 <Badge variant="outline">
-                  {CATEGORY_LABELS[domain.category] || domain.category}
+                  {categoryLabel(domain.category)}
                 </Badge>
                 <Badge variant={domain.status === "available" ? "default" : "secondary"}>
-                  {domain.status === "available" ? "可购买" : "不可用"}
+                  {domain.status === "available" ? t('domains.detail.availableLabel') : t('domains.detail.unavailableLabel')}
                 </Badge>
               </motion.div>
 
@@ -262,7 +260,7 @@ export const DomainDetailPage = () => {
 
           {/* 价格区域 */}
           <div className="py-6 border-y border-border mb-6 flex flex-col items-center">
-            <p className="text-sm text-muted-foreground mb-2">一口价</p>
+            <p className="text-sm text-muted-foreground mb-2">{t('domains.detail.askingPrice')}</p>
             <div className="text-4xl sm:text-5xl font-black text-foreground leading-none">
               {currency}{domain.price.toLocaleString()}
             </div>
@@ -285,7 +283,7 @@ export const DomainDetailPage = () => {
                   disabled={domain.status !== "available"}
                 >
                   <DollarSign className="h-5 w-5 mr-2" />
-                  立即购买 {currency}{domain.price.toLocaleString()}
+                  {t('domains.detail.buyNowPrice', { price: `${currency}${domain.price.toLocaleString()}` })}
                 </Button>
                 <div className="grid grid-cols-2 gap-3">
                   <Button
@@ -295,7 +293,7 @@ export const DomainDetailPage = () => {
                     disabled={domain.status !== "available"}
                   >
                     <DollarSign className="h-4 w-4 mr-2" />
-                    提交报价
+                    {t('domains.detail.makeOffer')}
                   </Button>
                   <Button
                     variant="outline"
@@ -303,7 +301,7 @@ export const DomainDetailPage = () => {
                     onClick={toggleFavorite}
                   >
                     <Heart className={`h-4 w-4 mr-2 ${isFavorited ? "fill-current" : ""}`} />
-                    {isFavorited ? "已收藏" : "收藏"}
+                    {isFavorited ? t('domains.detail.favorited') : t('domains.detail.favorite')}
                   </Button>
                 </div>
                 <Button
@@ -313,10 +311,10 @@ export const DomainDetailPage = () => {
                   disabled={!domain.owner_id}
                 >
                   <MessageSquare className="h-4 w-4 mr-2" />
-                  联系卖家
+                  {t('domains.detail.contactSeller')}
                 </Button>
                 <p className="text-xs text-center text-muted-foreground">
-                  所有交易都受到平台保护
+                  {t('domains.detail.protectedByPlatform')}
                 </p>
               </>
             ) : (
@@ -324,16 +322,16 @@ export const DomainDetailPage = () => {
                 {!domain.is_verified && domain.verification_status !== 'verified' && (
                   <Button className="w-full h-12 font-semibold" onClick={handleVerifyDomain}>
                     <ShieldCheck className="h-4 w-4 mr-2" />
-                    验证域名所有权
+                    {t('domains.detail.verifyOwnership')}
                   </Button>
                 )}
                 {domain.is_verified && (
                   <div className="text-center p-4 bg-green-500/10 rounded-xl border border-green-500/30">
                     <div className="flex items-center justify-center mb-1">
                       <ShieldCheck className="h-5 w-5 text-green-600 mr-2" />
-                      <span className="font-semibold text-green-600 dark:text-green-400">域名已验证</span>
+                      <span className="font-semibold text-green-600 dark:text-green-400">{t('domains.detail.verifiedTitle')}</span>
                     </div>
-                    <p className="text-sm text-green-600">您的域名所有权已通过验证</p>
+                    <p className="text-sm text-green-600">{t('domains.detail.verifiedDesc')}</p>
                   </div>
                 )}
                 {!activeAuction && (
@@ -347,11 +345,11 @@ export const DomainDetailPage = () => {
                 {activeAuction && (
                   <div className="flex items-center justify-center gap-2 py-2 text-sm text-amber-600">
                     <Gavel className="h-4 w-4" />
-                    此域名正在进行拍卖
+                    {t('domains.detail.auctionActive')}
                   </div>
                 )}
                 <p className="text-xs text-center text-muted-foreground">
-                  这是您的域名，您可以在用户中心管理更多设置
+                  {t('domains.detail.ownerHint')}
                 </p>
               </div>
             )}
@@ -371,7 +369,7 @@ export const DomainDetailPage = () => {
             transition={{ delay: 0.1 }}
             className="bg-card border rounded-xl p-6 mb-6 shadow-sm"
           >
-            <h2 className="text-lg font-bold mb-3 text-foreground">域名描述</h2>
+            <h2 className="text-lg font-bold mb-3 text-foreground">{t('domains.detail.sections.description')}</h2>
             <p className="text-muted-foreground leading-relaxed">
               {domain.description}
             </p>
@@ -403,7 +401,7 @@ export const DomainDetailPage = () => {
               <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-accent/50 [&[data-state=open]>svg]:rotate-180">
                 <span className="flex items-center gap-2 font-bold text-foreground">
                   <Shield className="h-5 w-5 text-primary" />
-                  WHOIS 信息
+                  {t('domains.detail.sections.whois')}
                 </span>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6">
@@ -416,7 +414,7 @@ export const DomainDetailPage = () => {
               <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-accent/50">
                 <span className="flex items-center gap-2 font-bold text-foreground">
                   <MessageSquare className="h-5 w-5 text-primary" />
-                  出价历史
+                  {t('domains.detail.sections.offerHistory')}
                 </span>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6">
@@ -429,7 +427,7 @@ export const DomainDetailPage = () => {
               <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-accent/50">
                 <span className="flex items-center gap-2 font-bold text-foreground">
                   <DollarSign className="h-5 w-5 text-primary" />
-                  域名估值报告
+                  {t('domains.detail.sections.valuation')}
                 </span>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6">
@@ -444,7 +442,7 @@ export const DomainDetailPage = () => {
               <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-accent/50">
                 <span className="flex items-center gap-2 font-bold text-foreground">
                   <ChevronDown className="h-5 w-5 text-primary rotate-0" />
-                  价格历史
+                  {t('domains.detail.sections.priceHistory')}
                 </span>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6">
@@ -459,7 +457,7 @@ export const DomainDetailPage = () => {
               <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-accent/50">
                 <span className="flex items-center gap-2 font-bold text-foreground">
                   <Eye className="h-5 w-5 text-primary" />
-                  域名分析
+                  {t('domains.detail.sections.analytics')}
                 </span>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6">
@@ -488,8 +486,8 @@ export const DomainDetailPage = () => {
           >
             <div className="flex items-center gap-2 mb-3">
               <Gavel className="h-5 w-5 text-primary" />
-              <h2 className="text-lg font-bold text-foreground">正在进行的拍卖</h2>
-              <Badge variant="default" className="bg-red-500 hover:bg-red-500 animate-pulse text-xs">拍卖中</Badge>
+              <h2 className="text-lg font-bold text-foreground">{t('domains.detail.sections.ongoingAuction')}</h2>
+              <Badge variant="default" className="bg-red-500 hover:bg-red-500 animate-pulse text-xs">{t('domains.detail.sections.auctionBadge')}</Badge>
             </div>
             <DomainAuction auction={activeAuction} onBidPlaced={() => loadActiveAuction(domain.id)} />
           </motion.section>
@@ -503,7 +501,7 @@ export const DomainDetailPage = () => {
             transition={{ delay: 0.25 }}
             className="bg-card border rounded-xl p-6 mb-6 shadow-sm"
           >
-            <h2 className="text-lg font-bold mb-4 text-foreground">相似域名推荐</h2>
+            <h2 className="text-lg font-bold mb-4 text-foreground">{t('domains.detail.sections.similarRecommendations')}</h2>
             <SimilarDomainsGrid domains={similarDomains} currentDomainName={domain.name} />
           </motion.section>
         )}
@@ -529,16 +527,16 @@ export const DomainDetailPage = () => {
           >
             <div className="flex items-center gap-2 p-3">
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] text-muted-foreground leading-tight">一口价</p>
+                <p className="text-[10px] text-muted-foreground leading-tight">{t('domains.detail.mobileBar.price')}</p>
                 <p className="text-lg font-black tabular-nums text-foreground truncate">
                   {currency}{domain.price.toLocaleString()}
                 </p>
               </div>
               <Button variant="outline" size="sm" onClick={handleOffer} className="h-11 px-3">
-                <MessageSquare className="h-4 w-4 mr-1" />报价
+                <MessageSquare className="h-4 w-4 mr-1" />{t('domains.detail.mobileBar.offer')}
               </Button>
               <Button size="sm" onClick={handlePurchase} className="h-11 px-4 font-bold">
-                <DollarSign className="h-4 w-4 mr-1" />立即购买
+                <DollarSign className="h-4 w-4 mr-1" />{t('domains.detail.mobileBar.buyNow')}
               </Button>
             </div>
           </div>
@@ -551,12 +549,14 @@ export const DomainDetailPage = () => {
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>
-                {isBuyNow ? `以 ${currency}${domain.price.toLocaleString()} 购买 ${domain.name}` : `为 ${domain.name} 提交报价`}
+                {isBuyNow
+                  ? t('domains.detail.offerDialog.buyTitle', { price: `${currency}${domain.price.toLocaleString()}`, name: domain.name })
+                  : t('domains.detail.offerDialog.offerTitle', { name: domain.name })}
               </DialogTitle>
               <DialogDescription>
                 {isBuyNow
-                  ? '以卖家标价提交购买意向，双方通过站内消息完成交割，平台全程保障安全。'
-                  : '您的报价将发送给域名所有者，双方通过站内消息沟通协商，平台全程提供安全保障。'}
+                  ? t('domains.detail.offerDialog.buyDesc')
+                  : t('domains.detail.offerDialog.offerDesc')}
               </DialogDescription>
             </DialogHeader>
             <DomainOfferForm
@@ -580,13 +580,13 @@ export const DomainDetailPage = () => {
         <Dialog open={isContactOpen} onOpenChange={setIsContactOpen}>
           <DialogContent className="sm:max-w-[560px] p-0 gap-0 h-[80vh] flex flex-col">
             <DialogHeader className="p-4 border-b">
-              <DialogTitle className="text-base">与卖家沟通 · {domain.name}</DialogTitle>
+              <DialogTitle className="text-base">{t('domains.detail.contactDialog.title', { name: domain.name })}</DialogTitle>
               <DialogDescription className="text-xs">
-                消息将在站内通知与邮件中同步给对方，请勿在此透露支付账号或私人联系方式。
+                {t('domains.detail.contactDialog.desc')}
               </DialogDescription>
             </DialogHeader>
             <div className="flex-1 min-h-0 overflow-hidden">
-              <Suspense fallback={<div className="p-8 text-center text-sm text-muted-foreground">加载对话中...</div>}>
+              <Suspense fallback={<div className="p-8 text-center text-sm text-muted-foreground">{t('domains.detail.contactDialog.loading')}</div>}>
                 <LazyMessageCenter otherUserId={domain.owner_id} domainId={domain.id} />
               </Suspense>
             </div>
