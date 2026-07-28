@@ -26,43 +26,72 @@ const getDomainExtension = (domain: string): string => {
 };
 
 const TLD_FILTERS = [
-  { id: 'all', label: '全部' },
-  { id: '.com', label: '.com' },
-  { id: '.net', label: '.net' },
-  { id: '.cn', label: '.cn' },
-  { id: '.io', label: '.io' },
-  { id: '.ai', label: '.ai' },
-  { id: '.app', label: '.app' },
-  { id: '.org', label: '.org' },
-  { id: '.co', label: '.co' },
-  { id: '.me', label: '.me' },
+  { id: 'all', labelKey: 'marketplace.ui.tldAll' },
+  { id: '.com', labelKey: null },
+  { id: '.net', labelKey: null },
+  { id: '.cn', labelKey: null },
+  { id: '.io', labelKey: null },
+  { id: '.ai', labelKey: null },
+  { id: '.app', labelKey: null },
+  { id: '.org', labelKey: null },
+  { id: '.co', labelKey: null },
+  { id: '.me', labelKey: null },
 ];
 
 const PRICE_CHIPS = [
-  { id: 'all', label: '不限价格', min: 0, max: Infinity },
-  { id: 'under5k', label: '5千以下', min: 0, max: 5000 },
-  { id: '5k-20k', label: '5千~2万', min: 5000, max: 20000 },
-  { id: '20k-100k', label: '2万~10万', min: 20000, max: 100000 },
-  { id: 'over100k', label: '10万以上', min: 100000, max: Infinity },
+  { id: 'all', labelKey: 'marketplace.ui.priceChips.all', min: 0, max: Infinity },
+  { id: 'under5k', labelKey: 'marketplace.ui.priceChips.under5k', min: 0, max: 5000 },
+  { id: '5k-20k', labelKey: 'marketplace.ui.priceChips.mid1', min: 5000, max: 20000 },
+  { id: '20k-100k', labelKey: 'marketplace.ui.priceChips.mid2', min: 20000, max: 100000 },
+  { id: 'over100k', labelKey: 'marketplace.ui.priceChips.over100k', min: 100000, max: Infinity },
 ];
 
 const LENGTH_CHIPS = [
-  { id: 'all',   label: '不限长度', test: (_n: number) => true },
-  { id: 'xs',    label: '超短 ≤3',  test: (n: number) => n <= 3 },
-  { id: 'sm',    label: '短 4-6',   test: (n: number) => n >= 4 && n <= 6 },
-  { id: 'md',    label: '中 7-10',  test: (n: number) => n >= 7 && n <= 10 },
-  { id: 'lg',    label: '长 >10',   test: (n: number) => n > 10 },
+  { id: 'all',   labelKey: 'marketplace.ui.lengthChips.all', test: (_n: number) => true },
+  { id: 'xs',    labelKey: 'marketplace.ui.lengthChips.xs',  test: (n: number) => n <= 3 },
+  { id: 'sm',    labelKey: 'marketplace.ui.lengthChips.sm',  test: (n: number) => n >= 4 && n <= 6 },
+  { id: 'md',    labelKey: 'marketplace.ui.lengthChips.md',  test: (n: number) => n >= 7 && n <= 10 },
+  { id: 'lg',    labelKey: 'marketplace.ui.lengthChips.lg',  test: (n: number) => n > 10 },
 ] as const;
 
 const SORT_OPTIONS = [
-  { id: 'newest',        label: '最新上架',    icon: null },
-  { id: 'price_asc',     label: '价格 ↑',       icon: null },
-  { id: 'price_desc',    label: '价格 ↓',       icon: null },
-  { id: 'length_asc',    label: '短域名优先',   icon: Ruler },
-  { id: 'alphanum',      label: '字母数字优先', icon: Hash },
-  { id: 'name_asc',      label: 'A-Z',         icon: ArrowDownAZ },
-  { id: 'views',         label: '最多浏览',     icon: null },
+  { id: 'newest',     labelKey: 'marketplace.ui.sortOptions.newest',    icon: null },
+  { id: 'price_asc',  labelKey: 'marketplace.ui.sortOptions.priceAsc',  icon: null },
+  { id: 'price_desc', labelKey: 'marketplace.ui.sortOptions.priceDesc', icon: null },
+  { id: 'length_asc', labelKey: 'marketplace.ui.sortOptions.lengthAsc', icon: Ruler },
+  { id: 'alphanum',   labelKey: 'marketplace.ui.sortOptions.alphanum',  icon: Hash },
+  { id: 'name_asc',   labelKey: 'marketplace.ui.sortOptions.nameAsc',   icon: ArrowDownAZ },
+  { id: 'views',      labelKey: 'marketplace.ui.sortOptions.views',     icon: null },
 ] as const;
+
+/** 筛选状态在会话内持久化 —— 语言切换 / 重挂载后不会回到默认筛选 */
+const FILTERS_STORAGE_KEY = 'marketplace-filters-v1';
+
+type PersistedFilters = {
+  searchQuery: string;
+  tldFilter: string;
+  priceChip: string;
+  sortBy: string;
+  verifiedOnly: boolean;
+  favoritesOnly: boolean;
+  lengthChip: string;
+};
+
+const DEFAULT_FILTERS: PersistedFilters = {
+  searchQuery: '', tldFilter: 'all', priceChip: 'all', sortBy: 'newest',
+  verifiedOnly: false, favoritesOnly: false, lengthChip: 'all',
+};
+
+const readPersistedFilters = (): PersistedFilters => {
+  try {
+    const raw = sessionStorage.getItem(FILTERS_STORAGE_KEY);
+    if (!raw) return DEFAULT_FILTERS;
+    return { ...DEFAULT_FILTERS, ...(JSON.parse(raw) as Partial<PersistedFilters>) };
+  } catch {
+    return DEFAULT_FILTERS;
+  }
+};
+
 
 // Basename before the TLD, e.g. "test.com" → "test"
 const domainBase = (name: string) => {
