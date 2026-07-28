@@ -136,8 +136,32 @@ export const en = {
     price: {
       minLabel: 'Min price ($)', maxLabel: 'Max price ($)',
       minPlaceholder: 'Min', maxPlaceholder: 'Max', reset: 'Reset'
+    },
+    ui: {
+      tldAll: 'All',
+      priceChips: {
+        all: 'Any price', under5k: 'Under 5k', mid1: '5k – 20k',
+        mid2: '20k – 100k', over100k: '100k+',
+      },
+      lengthChips: {
+        all: 'Any length', xs: 'Ultra short ≤3', sm: 'Short 4-6', md: 'Medium 7-10', lg: 'Long >10',
+      },
+      sortOptions: {
+        newest: 'Newest', priceAsc: 'Price ↑', priceDesc: 'Price ↓',
+        lengthAsc: 'Shortest first', alphanum: 'Alphanumeric first', nameAsc: 'A-Z', views: 'Most viewed',
+      },
+      myFavorites: 'Favorites', showAll: 'Show all', favoritesOnlyTitle: 'Show only my favorites',
+      loginToFilterFavorites: 'Please sign in to filter by favorites',
+      viewLabel: 'View', gridView: 'Grid view', listView: 'List view',
+      clearFilters: 'Clear filters',
+      countPrefix: '', countSuffix: 'domains',
+      favOnlyBadge: 'Favorites', verifiedOnlyShort: 'Verified only', refresh: 'Refresh',
+      loadErrorRetry: 'Failed to load domains, please retry', reload: 'Reload',
+      emptyTitle: 'No domains listed yet', emptyDesc: 'Be the first to list a domain on the marketplace', listDomain: 'List a domain',
+      noMatchTitle: 'No matching domains', noMatchDesc: 'Try adjusting your filters',
     }
   },
+
 
   domains: {
     name: 'Domain', price: 'Price', owner: 'Owner', category: 'Category',

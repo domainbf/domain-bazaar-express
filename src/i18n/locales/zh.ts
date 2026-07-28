@@ -136,8 +136,32 @@ export const zh = {
     price: {
       minLabel: '最低价格 ($)', maxLabel: '最高价格 ($)',
       minPlaceholder: '最低', maxPlaceholder: '最高', reset: '重置'
+    },
+    ui: {
+      tldAll: '全部',
+      priceChips: {
+        all: '不限价格', under5k: '5千以下', mid1: '5千~2万',
+        mid2: '2万~10万', over100k: '10万以上',
+      },
+      lengthChips: {
+        all: '不限长度', xs: '超短 ≤3', sm: '短 4-6', md: '中 7-10', lg: '长 >10',
+      },
+      sortOptions: {
+        newest: '最新上架', priceAsc: '价格 ↑', priceDesc: '价格 ↓',
+        lengthAsc: '短域名优先', alphanum: '字母数字优先', nameAsc: 'A-Z', views: '最多浏览',
+      },
+      myFavorites: '我的收藏', showAll: '显示全部', favoritesOnlyTitle: '仅显示我的收藏',
+      loginToFilterFavorites: '请先登录后再筛选收藏',
+      viewLabel: '视图', gridView: '网格视图', listView: '列表视图',
+      clearFilters: '清空筛选',
+      countPrefix: '共', countSuffix: '个域名',
+      favOnlyBadge: '仅收藏', verifiedOnlyShort: '仅已验证', refresh: '刷新',
+      loadErrorRetry: '加载域名失败，请重试', reload: '重新加载',
+      emptyTitle: '暂无在售域名', emptyDesc: '市场还没有域名，快来第一个上架吧', listDomain: '上架域名',
+      noMatchTitle: '没有找到匹配的域名', noMatchDesc: '请尝试调整筛选条件',
     }
   },
+
 
   domains: {
     name: '域名', price: '价格', owner: '所有者', category: '分类',
