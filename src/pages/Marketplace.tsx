@@ -1,4 +1,6 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+
 import { Navbar } from '@/components/Navbar';
 import { DomainListings, type MarketplaceLayout } from '@/components/marketplace/DomainListings';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -109,17 +111,28 @@ const alphanumScore = (name: string) => {
 };
 
 export const Marketplace = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [tldFilter, setTldFilter] = useState('all');
-  const [priceChip, setPriceChip] = useState('all');
-  const [sortBy, setSortBy] = useState<string>('newest');
-  const [verifiedOnly, setVerifiedOnly] = useState(false);
-  const [favoritesOnly, setFavoritesOnly] = useState(false);
-  const [lengthChip, setLengthChip] = useState<string>('all');
+  const { t } = useTranslation();
+  const persisted = useRef<PersistedFilters>(readPersistedFilters()).current;
+  const [searchQuery, setSearchQuery] = useState(persisted.searchQuery);
+  const [tldFilter, setTldFilter] = useState(persisted.tldFilter);
+  const [priceChip, setPriceChip] = useState(persisted.priceChip);
+  const [sortBy, setSortBy] = useState<string>(persisted.sortBy);
+  const [verifiedOnly, setVerifiedOnly] = useState(persisted.verifiedOnly);
+  const [favoritesOnly, setFavoritesOnly] = useState(persisted.favoritesOnly);
+  const [lengthChip, setLengthChip] = useState<string>(persisted.lengthChip);
   const [view, setView] = useState<'grid' | 'list'>(() => {
     try { return (localStorage.getItem('marketplace-view') as 'grid' | 'list') || 'grid'; } catch { return 'grid'; }
   });
   useEffect(() => { try { localStorage.setItem('marketplace-view', view); } catch {} }, [view]);
+
+  // 持久化筛选条件（会话级），语言切换或组件重挂载都能恢复
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify({
+        searchQuery, tldFilter, priceChip, sortBy, verifiedOnly, favoritesOnly, lengthChip,
+      }));
+    } catch {}
+  }, [searchQuery, tldFilter, priceChip, sortBy, verifiedOnly, favoritesOnly, lengthChip]);
   // Layout kept for backwards compat; hero row is enabled by default via 'magazine'.
   const layout: MarketplaceLayout = 'magazine';
 
@@ -137,6 +150,7 @@ export const Marketplace = () => {
     const fav = new URLSearchParams(window.location.search).get('fav');
     if (fav === '1') setFavoritesOnly(true);
   }, []);
+
 
   const filteredDomains = useMemo(() => {
     let result = [...allDomains];
