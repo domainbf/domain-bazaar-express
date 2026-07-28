@@ -1,4 +1,6 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+
 import { Navbar } from '@/components/Navbar';
 import { DomainListings, type MarketplaceLayout } from '@/components/marketplace/DomainListings';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -26,43 +28,72 @@ const getDomainExtension = (domain: string): string => {
 };
 
 const TLD_FILTERS = [
-  { id: 'all', label: '全部' },
-  { id: '.com', label: '.com' },
-  { id: '.net', label: '.net' },
-  { id: '.cn', label: '.cn' },
-  { id: '.io', label: '.io' },
-  { id: '.ai', label: '.ai' },
-  { id: '.app', label: '.app' },
-  { id: '.org', label: '.org' },
-  { id: '.co', label: '.co' },
-  { id: '.me', label: '.me' },
+  { id: 'all', labelKey: 'marketplace.ui.tldAll' },
+  { id: '.com', labelKey: null },
+  { id: '.net', labelKey: null },
+  { id: '.cn', labelKey: null },
+  { id: '.io', labelKey: null },
+  { id: '.ai', labelKey: null },
+  { id: '.app', labelKey: null },
+  { id: '.org', labelKey: null },
+  { id: '.co', labelKey: null },
+  { id: '.me', labelKey: null },
 ];
 
 const PRICE_CHIPS = [
-  { id: 'all', label: '不限价格', min: 0, max: Infinity },
-  { id: 'under5k', label: '5千以下', min: 0, max: 5000 },
-  { id: '5k-20k', label: '5千~2万', min: 5000, max: 20000 },
-  { id: '20k-100k', label: '2万~10万', min: 20000, max: 100000 },
-  { id: 'over100k', label: '10万以上', min: 100000, max: Infinity },
+  { id: 'all', labelKey: 'marketplace.ui.priceChips.all', min: 0, max: Infinity },
+  { id: 'under5k', labelKey: 'marketplace.ui.priceChips.under5k', min: 0, max: 5000 },
+  { id: '5k-20k', labelKey: 'marketplace.ui.priceChips.mid1', min: 5000, max: 20000 },
+  { id: '20k-100k', labelKey: 'marketplace.ui.priceChips.mid2', min: 20000, max: 100000 },
+  { id: 'over100k', labelKey: 'marketplace.ui.priceChips.over100k', min: 100000, max: Infinity },
 ];
 
 const LENGTH_CHIPS = [
-  { id: 'all',   label: '不限长度', test: (_n: number) => true },
-  { id: 'xs',    label: '超短 ≤3',  test: (n: number) => n <= 3 },
-  { id: 'sm',    label: '短 4-6',   test: (n: number) => n >= 4 && n <= 6 },
-  { id: 'md',    label: '中 7-10',  test: (n: number) => n >= 7 && n <= 10 },
-  { id: 'lg',    label: '长 >10',   test: (n: number) => n > 10 },
+  { id: 'all',   labelKey: 'marketplace.ui.lengthChips.all', test: (_n: number) => true },
+  { id: 'xs',    labelKey: 'marketplace.ui.lengthChips.xs',  test: (n: number) => n <= 3 },
+  { id: 'sm',    labelKey: 'marketplace.ui.lengthChips.sm',  test: (n: number) => n >= 4 && n <= 6 },
+  { id: 'md',    labelKey: 'marketplace.ui.lengthChips.md',  test: (n: number) => n >= 7 && n <= 10 },
+  { id: 'lg',    labelKey: 'marketplace.ui.lengthChips.lg',  test: (n: number) => n > 10 },
 ] as const;
 
 const SORT_OPTIONS = [
-  { id: 'newest',        label: '最新上架',    icon: null },
-  { id: 'price_asc',     label: '价格 ↑',       icon: null },
-  { id: 'price_desc',    label: '价格 ↓',       icon: null },
-  { id: 'length_asc',    label: '短域名优先',   icon: Ruler },
-  { id: 'alphanum',      label: '字母数字优先', icon: Hash },
-  { id: 'name_asc',      label: 'A-Z',         icon: ArrowDownAZ },
-  { id: 'views',         label: '最多浏览',     icon: null },
+  { id: 'newest',     labelKey: 'marketplace.ui.sortOptions.newest',    icon: null },
+  { id: 'price_asc',  labelKey: 'marketplace.ui.sortOptions.priceAsc',  icon: null },
+  { id: 'price_desc', labelKey: 'marketplace.ui.sortOptions.priceDesc', icon: null },
+  { id: 'length_asc', labelKey: 'marketplace.ui.sortOptions.lengthAsc', icon: Ruler },
+  { id: 'alphanum',   labelKey: 'marketplace.ui.sortOptions.alphanum',  icon: Hash },
+  { id: 'name_asc',   labelKey: 'marketplace.ui.sortOptions.nameAsc',   icon: ArrowDownAZ },
+  { id: 'views',      labelKey: 'marketplace.ui.sortOptions.views',     icon: null },
 ] as const;
+
+/** 筛选状态在会话内持久化 —— 语言切换 / 重挂载后不会回到默认筛选 */
+const FILTERS_STORAGE_KEY = 'marketplace-filters-v1';
+
+type PersistedFilters = {
+  searchQuery: string;
+  tldFilter: string;
+  priceChip: string;
+  sortBy: string;
+  verifiedOnly: boolean;
+  favoritesOnly: boolean;
+  lengthChip: string;
+};
+
+const DEFAULT_FILTERS: PersistedFilters = {
+  searchQuery: '', tldFilter: 'all', priceChip: 'all', sortBy: 'newest',
+  verifiedOnly: false, favoritesOnly: false, lengthChip: 'all',
+};
+
+const readPersistedFilters = (): PersistedFilters => {
+  try {
+    const raw = sessionStorage.getItem(FILTERS_STORAGE_KEY);
+    if (!raw) return DEFAULT_FILTERS;
+    return { ...DEFAULT_FILTERS, ...(JSON.parse(raw) as Partial<PersistedFilters>) };
+  } catch {
+    return DEFAULT_FILTERS;
+  }
+};
+
 
 // Basename before the TLD, e.g. "test.com" → "test"
 const domainBase = (name: string) => {
@@ -80,17 +111,28 @@ const alphanumScore = (name: string) => {
 };
 
 export const Marketplace = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [tldFilter, setTldFilter] = useState('all');
-  const [priceChip, setPriceChip] = useState('all');
-  const [sortBy, setSortBy] = useState<string>('newest');
-  const [verifiedOnly, setVerifiedOnly] = useState(false);
-  const [favoritesOnly, setFavoritesOnly] = useState(false);
-  const [lengthChip, setLengthChip] = useState<string>('all');
+  const { t } = useTranslation();
+  const persisted = useRef<PersistedFilters>(readPersistedFilters()).current;
+  const [searchQuery, setSearchQuery] = useState(persisted.searchQuery);
+  const [tldFilter, setTldFilter] = useState(persisted.tldFilter);
+  const [priceChip, setPriceChip] = useState(persisted.priceChip);
+  const [sortBy, setSortBy] = useState<string>(persisted.sortBy);
+  const [verifiedOnly, setVerifiedOnly] = useState(persisted.verifiedOnly);
+  const [favoritesOnly, setFavoritesOnly] = useState(persisted.favoritesOnly);
+  const [lengthChip, setLengthChip] = useState<string>(persisted.lengthChip);
   const [view, setView] = useState<'grid' | 'list'>(() => {
     try { return (localStorage.getItem('marketplace-view') as 'grid' | 'list') || 'grid'; } catch { return 'grid'; }
   });
   useEffect(() => { try { localStorage.setItem('marketplace-view', view); } catch {} }, [view]);
+
+  // 持久化筛选条件（会话级），语言切换或组件重挂载都能恢复
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify({
+        searchQuery, tldFilter, priceChip, sortBy, verifiedOnly, favoritesOnly, lengthChip,
+      }));
+    } catch {}
+  }, [searchQuery, tldFilter, priceChip, sortBy, verifiedOnly, favoritesOnly, lengthChip]);
   // Layout kept for backwards compat; hero row is enabled by default via 'magazine'.
   const layout: MarketplaceLayout = 'magazine';
 
@@ -108,6 +150,7 @@ export const Marketplace = () => {
     const fav = new URLSearchParams(window.location.search).get('fav');
     if (fav === '1') setFavoritesOnly(true);
   }, []);
+
 
   const filteredDomains = useMemo(() => {
     let result = [...allDomains];
@@ -166,7 +209,7 @@ export const Marketplace = () => {
   };
 
   const toggleFavoritesOnly = () => {
-    if (!user) { toast.error('请先登录后再筛选收藏'); return; }
+    if (!user) { toast.error(t('marketplace.ui.loginToFilterFavorites')); return; }
     setFavoritesOnly(v => !v);
   };
 
@@ -188,7 +231,7 @@ export const Marketplace = () => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder="搜索域名..."
+                  placeholder={t('marketplace.searchPlaceholder')}
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   className="h-10 pl-9 pr-9 bg-muted/40 border-border rounded-lg text-sm"
@@ -211,10 +254,10 @@ export const Marketplace = () => {
                     ? 'bg-red-500/10 text-red-500 border border-red-500/40'
                     : 'bg-muted/40 text-muted-foreground border border-border hover:text-foreground'
                 }`}
-                title={favoritesOnly ? '显示全部' : '仅显示我的收藏'}
+                title={favoritesOnly ? t('marketplace.ui.showAll') : t('marketplace.ui.favoritesOnlyTitle')}
               >
                 <Heart className={`h-3.5 w-3.5 ${favoritesOnly ? 'fill-current' : ''}`} />
-                {!isMobile && '我的收藏'}
+                {!isMobile && t('marketplace.ui.myFavorites')}
               </button>
             </div>
           </div>
@@ -235,7 +278,7 @@ export const Marketplace = () => {
                       : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
                   }`}
                 >
-                  {tld.label}
+                  {tld.labelKey ? t(tld.labelKey) : tld.id}
                 </button>
               ))}
             </div>
@@ -258,7 +301,7 @@ export const Marketplace = () => {
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  {chip.label}
+                  {t(chip.labelKey)}
                 </button>
               ))}
             </div>
@@ -275,7 +318,7 @@ export const Marketplace = () => {
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  {chip.label}
+                  {t(chip.labelKey)}
                 </button>
               ))}
             </div>
@@ -296,17 +339,17 @@ export const Marketplace = () => {
                     }`}
                   >
                     {Icon && <Icon className="h-3 w-3" />}
-                    {opt.label}
+                    {t(opt.labelKey)}
                   </button>
                 );
               })}
               <div className="ml-auto flex items-center gap-1 shrink-0">
-                <div className="inline-flex bg-muted/40 rounded-md p-0.5" role="tablist" aria-label="视图">
+                <div className="inline-flex bg-muted/40 rounded-md p-0.5" role="tablist" aria-label={t('marketplace.ui.viewLabel')}>
                   <button
                     type="button"
                     onClick={() => setView('grid')}
                     data-testid="view-grid"
-                    title="网格视图"
+                    title={t('marketplace.ui.gridView')}
                     className={`h-6 w-7 flex items-center justify-center rounded ${view === 'grid' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                   >
                     <LayoutGrid className="h-3.5 w-3.5" />
@@ -315,7 +358,7 @@ export const Marketplace = () => {
                     type="button"
                     onClick={() => setView('list')}
                     data-testid="view-list"
-                    title="列表视图"
+                    title={t('marketplace.ui.listView')}
                     className={`h-6 w-7 flex items-center justify-center rounded ${view === 'list' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                   >
                     <ListIcon className="h-3.5 w-3.5" />
@@ -326,7 +369,7 @@ export const Marketplace = () => {
                     onClick={clearAll}
                     className="p-1 text-muted-foreground hover:text-foreground rounded"
                     data-testid="button-clear-filters"
-                    title="清空筛选"
+                    title={t('marketplace.ui.clearFilters')}
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -343,13 +386,13 @@ export const Marketplace = () => {
           {!isLoading && (
             <div className="flex items-center justify-between py-3 gap-3 flex-wrap">
               <p className="text-sm text-muted-foreground" data-testid="text-domain-count">
-                共 <span className="font-semibold text-foreground">{filteredDomains.length}</span> 个域名
+                <span className="font-semibold text-foreground">{t('marketplace.ui.countLabel', { count: filteredDomains.length })}</span>
                 {filteredDomains.length !== allDomains.length && (
                   <span className="ml-1 text-xs text-muted-foreground/60">/ {allDomains.length}</span>
                 )}
                 {favoritesOnly && (
                   <span className="ml-2 inline-flex items-center gap-1 text-[10px] text-red-500 font-medium">
-                    <Heart className="h-2.5 w-2.5 fill-current" />仅收藏
+                    <Heart className="h-2.5 w-2.5 fill-current" />{t('marketplace.ui.favOnlyBadge')}
                   </span>
                 )}
               </p>
@@ -379,12 +422,12 @@ export const Marketplace = () => {
                   }`}
                 >
                   <TrendingUp className="h-3 w-3" />
-                  仅已验证
+                  {t('marketplace.ui.verifiedOnlyShort')}
                 </button>
                 <button
                   onClick={handleRefresh}
                   className="text-muted-foreground hover:text-foreground transition-colors p-1"
-                  title="刷新"
+                  title={t('marketplace.ui.refresh')}
                   data-testid="button-refresh-domains"
                 >
                   <RefreshCw className="h-3.5 w-3.5" />
@@ -396,24 +439,24 @@ export const Marketplace = () => {
           {/* Domain list */}
           {isError ? (
             <div className="text-center py-16">
-              <p className="text-muted-foreground mb-4">加载域名失败，请重试</p>
-              <Button onClick={() => refetch()} variant="outline" size="sm">重新加载</Button>
+              <p className="text-muted-foreground mb-4">{t('marketplace.ui.loadErrorRetry')}</p>
+              <Button onClick={() => refetch()} variant="outline" size="sm">{t('marketplace.ui.reload')}</Button>
             </div>
           ) : isLoading ? (
             <DomainListings isLoading domains={[]} isMobile={isMobile} layout={layout} view={view} />
           ) : filteredDomains.length === 0 && allDomains.length === 0 ? (
             <div className="text-center py-20">
               <div className="text-5xl mb-4">🔍</div>
-              <h3 className="text-lg font-semibold mb-2">暂无在售域名</h3>
-              <p className="text-muted-foreground text-sm mb-4">市场还没有域名，快来第一个上架吧</p>
-              <Button asChild size="sm"><Link to="/dashboard">上架域名</Link></Button>
+              <h3 className="text-lg font-semibold mb-2">{t('marketplace.ui.emptyTitle')}</h3>
+              <p className="text-muted-foreground text-sm mb-4">{t('marketplace.ui.emptyDesc')}</p>
+              <Button asChild size="sm"><Link to="/dashboard">{t('marketplace.ui.listDomain')}</Link></Button>
             </div>
           ) : filteredDomains.length === 0 ? (
             <div className="text-center py-20">
               <div className="text-5xl mb-4">🤔</div>
-              <h3 className="text-lg font-semibold mb-2">没有找到匹配的域名</h3>
-              <p className="text-muted-foreground text-sm mb-4">请尝试调整筛选条件</p>
-              <Button onClick={clearAll} variant="outline" size="sm">清空筛选</Button>
+              <h3 className="text-lg font-semibold mb-2">{t('marketplace.ui.noMatchTitle')}</h3>
+              <p className="text-muted-foreground text-sm mb-4">{t('marketplace.ui.noMatchDesc')}</p>
+              <Button onClick={clearAll} variant="outline" size="sm">{t('marketplace.ui.clearFilters')}</Button>
             </div>
           ) : (
             <DomainListings

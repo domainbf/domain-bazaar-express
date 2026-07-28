@@ -121,12 +121,12 @@ export const DomainOfferForm = ({
       if (!domainId || !sellerId) {
         const { data: domainData, error: domainError } = await supabase
           .from('domain_listings').select('id, owner_id').ilike('name', domain).maybeSingle();
-        if (domainError) throw Object.assign(new Error('查询域名信息时出错，请稍后重试'), { errType: 'network' });
-        if (!domainData) throw Object.assign(new Error('未找到该域名信息，请确认域名是否正确'), { errType: 'validation' });
+        if (domainError) throw Object.assign(new Error(t('offer.form.lookupError')), { errType: 'network' });
+        if (!domainData) throw Object.assign(new Error(t('offer.form.domainNotFound')), { errType: 'validation' });
         domainInfo = { domainId: domainData.id, sellerId: domainData.owner_id };
       }
       if (!domainInfo.domainId || !domainInfo.sellerId) {
-        throw Object.assign(new Error('域名信息不完整，无法提交报价'), { errType: 'validation' });
+        throw Object.assign(new Error(t('offer.form.domainIncomplete')), { errType: 'validation' });
       }
 
       setSubmitState({ status: 'submitted', amount: numericOffer, currency });
@@ -145,12 +145,12 @@ export const DomainOfferForm = ({
       });
 
       if (invokeError) {
-        throw Object.assign(new Error(invokeError.message || '网络异常，请检查网络后重试'), { errType: 'network' });
+        throw Object.assign(new Error(invokeError.message || t('offer.form.networkError')), { errType: 'network' });
       }
       if (invokeData && (invokeData as any).success === false) {
         const remoteType = (invokeData as any).errorType;
         throw Object.assign(
-          new Error((invokeData as any).error || '提交失败，请稍后重试'),
+          new Error((invokeData as any).error || t('offer.form.submitFailed')),
           { errType: remoteType || 'unknown', rolledBack: (invokeData as any).rolledBack }
         );
       }
@@ -158,9 +158,9 @@ export const DomainOfferForm = ({
       submittedKeysRef.current.add(idemKey);
 
       if ((invokeData as any)?.duplicate) {
-        toast.info('已检测到相同金额的报价，已自动归并');
+        toast.info(t('offer.form.autoMerged'));
       } else {
-        toast.success('您的报价已成功提交！');
+        toast.success(t('offer.form.submitSuccess'));
       }
 
       setSubmitState({ status: 'emailed', amount: numericOffer, currency });
@@ -168,15 +168,15 @@ export const DomainOfferForm = ({
       captchaRef.current?.resetCaptcha();
     } catch (err: any) {
       const type = err?.errType || 'unknown';
-      const msg = err?.message || '提交报价失败，请稍后重试';
+      const msg = err?.message || t('offer.form.submitGenericFail');
       const reason = type === 'email_failed'
-        ? '邮件网关返回失败，系统已自动回滚数据库记录，您可立即重新提交'
+        ? t('offer.form.reasons.emailFailed')
         : type === 'network'
-        ? '网络或服务暂时不可用，请检查连接后重试'
+        ? t('offer.form.reasons.network')
         : type === 'db_error'
-        ? '数据库写入失败，未发送邮件，您可重新提交'
+        ? t('offer.form.reasons.dbError')
         : type === 'duplicate'
-        ? '5 分钟内已存在相同金额的报价，已自动归并'
+        ? t('offer.form.reasons.duplicate')
         : undefined;
       setError({ message: msg, type, reason });
       toast.error(msg);
@@ -194,7 +194,7 @@ export const DomainOfferForm = ({
       {!isAuthenticated && (
         <div className="bg-yellow-500/10 border border-yellow-500/30 p-3 rounded-md mb-4">
           <p className="text-yellow-700 dark:text-yellow-400 text-sm">
-            您尚未登录。您的报价仍会发送给卖家，但创建账户可以让您跟踪报价状态。
+            {t('offer.form.guestNotice')}
           </p>
         </div>
       )}
@@ -206,11 +206,11 @@ export const DomainOfferForm = ({
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-destructive/20 text-destructive font-semibold">
-                  {error.type === 'network' ? '网络异常' :
-                   error.type === 'duplicate' ? '幂等命中' :
-                   error.type === 'email_failed' ? '邮件失败·已回滚' :
-                   error.type === 'db_error' ? '数据库错误' :
-                   error.type === 'validation' ? '校验失败' : '未知错误'}
+                  {error.type === 'network' ? t('offer.form.errorTypes.network') :
+                   error.type === 'duplicate' ? t('offer.form.errorTypes.duplicate') :
+                   error.type === 'email_failed' ? t('offer.form.errorTypes.emailFailed') :
+                   error.type === 'db_error' ? t('offer.form.errorTypes.dbError') :
+                   error.type === 'validation' ? t('offer.form.errorTypes.validation') : t('offer.form.errorTypes.unknown')}
                 </span>
               </div>
               <p className="text-destructive text-sm">{error.message}</p>
@@ -221,13 +221,13 @@ export const DomainOfferForm = ({
                 {error.reason && (
                   <button type="button" onClick={() => setShowReason(v => !v)}
                     className="text-xs text-destructive underline hover:no-underline">
-                    {showReason ? '隐藏原因' : '查看原因'}
+                    {showReason ? t('offer.form.hideReason') : t('offer.form.showReason')}
                   </button>
                 )}
                 {(error.type === 'network' || error.type === 'email_failed' || error.type === 'db_error') && (
                   <button type="button" onClick={() => { setError(null); }}
                     className="text-xs text-destructive underline hover:no-underline">
-                    重新提交
+                    {t('offer.form.resubmit')}
                   </button>
                 )}
               </div>
@@ -238,35 +238,35 @@ export const DomainOfferForm = ({
 
       {submitState && (
         <div className="rounded-md border border-border bg-muted/40 p-3 space-y-2 mb-2">
-          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">报价状态</div>
+          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('offer.form.statusHeading')}</div>
           <div className="space-y-1.5 text-sm">
             <div className="flex items-center gap-2 text-foreground">
               <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-              <span>已提交 · <span className="tabular-nums font-semibold">{formatPrice(submitState.amount, submitState.currency)}</span></span>
+              <span>{t('offer.form.submitted')} · <span className="tabular-nums font-semibold">{formatPrice(submitState.amount, submitState.currency)}</span></span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className={`w-4 h-4 ${submitState.status !== 'submitted' ? 'text-emerald-500' : 'text-muted-foreground animate-pulse'}`} />
               <span className={submitState.status !== 'submitted' ? 'text-foreground' : 'text-muted-foreground'}>
-                待卖家审核
+                {t('offer.form.awaitingReview')}
               </span>
             </div>
             <div className="flex items-center gap-2">
               {submitState.status === 'emailed' ? (
-                <><MailCheck className="w-4 h-4 text-emerald-500" /><span className="text-foreground">邮件通知已发送</span></>
+                <><MailCheck className="w-4 h-4 text-emerald-500" /><span className="text-foreground">{t('offer.form.emailSent')}</span></>
               ) : (
-                <><Mail className="w-4 h-4 text-muted-foreground animate-pulse" /><span className="text-muted-foreground">正在发送邮件通知…</span></>
+                <><Mail className="w-4 h-4 text-muted-foreground animate-pulse" /><span className="text-muted-foreground">{t('offer.form.emailSending')}</span></>
               )}
             </div>
           </div>
           <Button type="button" variant="outline" size="sm" className="w-full" onClick={onClose}>
-            完成
+            {t('offer.form.done')}
           </Button>
         </div>
       )}
 
       <div className="space-y-2">
         <label className="text-sm font-medium text-foreground">
-          {isBuyNow ? '购买金额（标价）' : '您的报价'}
+          {isBuyNow ? t('offer.form.buyAmountLabel') : t('offer.form.amountLabel')}
         </label>
         <div className="flex gap-2">
           <div className="relative flex-1">
@@ -274,7 +274,7 @@ export const DomainOfferForm = ({
             <Input
               type="number"
               inputMode="decimal"
-              placeholder="1000"
+              placeholder={t('offer.form.amountPlaceholder')}
               value={offer}
               onChange={(e) => { if (!isBuyNow) { setOffer(e.target.value); setError(null); } }}
               readOnly={isBuyNow}
@@ -324,17 +324,17 @@ export const DomainOfferForm = ({
           rangeError ? 'bg-destructive/10 border-destructive/30 text-destructive' : 'bg-muted/40 border-border text-muted-foreground'
         }`}>
           {previewText ? (
-            <div>提交后金额将记录为：<span className="font-semibold text-foreground tabular-nums">{previewText} {currency}</span>
+            <div>{t('offer.form.recordedAs')}<span className="font-semibold text-foreground tabular-nums">{previewText} {currency}</span>
               {convertedPreview && (
-                <span className="ml-2 text-muted-foreground">≈ <span className="font-semibold text-foreground tabular-nums">{convertedPreview}</span></span>
+                <span className="ml-2 text-muted-foreground">{t('offer.form.approx')} <span className="font-semibold text-foreground tabular-nums">{convertedPreview}</span></span>
               )}
             </div>
           ) : (
-            <div>请输入报价金额，将以 <span className="font-semibold text-foreground">{currency}</span> 提交</div>
+            <div>{t('offer.form.pleaseEnter', { code: currency })}</div>
           )}
           {limits && !isBuyNow && (
             <div className="text-[11px]">
-              建议范围：<span className="tabular-nums">{formatPrice(limits.min, currency)}</span> – <span className="tabular-nums">{formatPrice(limits.max, currency)}</span>
+              {t('offer.form.suggestedRange', { min: formatPrice(limits.min, currency), max: formatPrice(limits.max, currency) })}
             </div>
           )}
           {rangeError && <div className="font-medium">{rangeError}</div>}
@@ -342,7 +342,7 @@ export const DomainOfferForm = ({
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium text-foreground">联系邮箱</label>
+        <label className="text-sm font-medium text-foreground">{t('offer.form.emailLabel')}</label>
         <div className="relative">
           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
@@ -357,9 +357,9 @@ export const DomainOfferForm = ({
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium text-foreground">留言（可选）</label>
+        <label className="text-sm font-medium text-foreground">{t('offer.form.messageLabel')}</label>
         <textarea
-          placeholder="添加关于您报价的任何详细信息..."
+          placeholder={t('offer.form.messagePlaceholder')}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           className="w-full bg-background border border-input rounded-md p-2 text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring"
@@ -371,7 +371,7 @@ export const DomainOfferForm = ({
         <HCaptcha
           sitekey="10000000-ffff-ffff-ffff-000000000001"
           onVerify={(token) => { setCaptchaToken(token); setError(null); }}
-          onError={() => { setCaptchaToken(null); setErr('人机验证失败，请重试', 'validation'); }}
+          onError={() => { setCaptchaToken(null); setErr(t('offer.form.captchaFailed'), 'validation'); }}
           ref={captchaRef}
           size="normal"
         />
@@ -381,19 +381,19 @@ export const DomainOfferForm = ({
         {isLoading ? (
           <span className="flex items-center gap-2">
             <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
-            提交中...
+            {t('offer.form.submitting')}
           </span>
         ) : (
           <span className="flex items-center gap-2">
             {captchaToken ? (
               <>
                 <Send className="w-4 h-4" />
-                {isBuyNow ? '确认购买' : '提交报价'}{previewText ? ` · ${previewText}` : ''}
+                {isBuyNow ? t('offer.form.buyBtn') : t('offer.form.submitBtn')}{previewText ? ` · ${previewText}` : ''}
               </>
             ) : (
               <>
                 <ShieldCheck className="w-4 h-4" />
-                请完成人机验证
+                {t('offer.form.captchaHint')}
               </>
             )}
           </span>
