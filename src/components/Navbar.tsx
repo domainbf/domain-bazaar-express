@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useQueryClient } from '@tanstack/react-query';
 import { prefetchDomainListings } from '@/hooks/useDomainListings';
 import { useTheme } from 'next-themes';
@@ -79,6 +80,7 @@ export const Navbar = ({ unreadCount = 0, unreadMessages: unreadMessagesProp = 0
     <>
       {user ? (
         <div className="flex items-center space-x-1">
+          <LanguageSwitcher iconOnly />
           <ThemeToggle />
 
           <Tooltip>
@@ -162,6 +164,7 @@ export const Navbar = ({ unreadCount = 0, unreadMessages: unreadMessagesProp = 0
         </div>
       ) : (
         <div className="flex items-center space-x-2">
+          <LanguageSwitcher iconOnly />
           <ThemeToggle />
           <Button variant="outline" size="sm" onClick={() => handleNavigation('/auth')} className="px-5">
             登录
@@ -235,6 +238,7 @@ export const Navbar = ({ unreadCount = 0, unreadMessages: unreadMessagesProp = 0
 
         {/* Mobile Menu Button */}
         <div className="md:hidden flex items-center gap-1">
+          <LanguageSwitcher iconOnly />
           <ThemeToggle />
           <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="h-10 w-10">
             {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
