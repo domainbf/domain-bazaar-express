@@ -209,7 +209,7 @@ export const Marketplace = () => {
   };
 
   const toggleFavoritesOnly = () => {
-    if (!user) { toast.error('请先登录后再筛选收藏'); return; }
+    if (!user) { toast.error(t('marketplace.ui.loginToFilterFavorites')); return; }
     setFavoritesOnly(v => !v);
   };
 
@@ -231,7 +231,7 @@ export const Marketplace = () => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder="搜索域名..."
+                  placeholder={t('marketplace.searchPlaceholder')}
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   className="h-10 pl-9 pr-9 bg-muted/40 border-border rounded-lg text-sm"
@@ -254,10 +254,10 @@ export const Marketplace = () => {
                     ? 'bg-red-500/10 text-red-500 border border-red-500/40'
                     : 'bg-muted/40 text-muted-foreground border border-border hover:text-foreground'
                 }`}
-                title={favoritesOnly ? '显示全部' : '仅显示我的收藏'}
+                title={favoritesOnly ? t('marketplace.ui.showAll') : t('marketplace.ui.favoritesOnlyTitle')}
               >
                 <Heart className={`h-3.5 w-3.5 ${favoritesOnly ? 'fill-current' : ''}`} />
-                {!isMobile && '我的收藏'}
+                {!isMobile && t('marketplace.ui.myFavorites')}
               </button>
             </div>
           </div>
@@ -278,7 +278,7 @@ export const Marketplace = () => {
                       : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
                   }`}
                 >
-                  {tld.label}
+                  {tld.labelKey ? t(tld.labelKey) : tld.id}
                 </button>
               ))}
             </div>
@@ -301,7 +301,7 @@ export const Marketplace = () => {
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  {chip.label}
+                  {t(chip.labelKey)}
                 </button>
               ))}
             </div>
@@ -318,7 +318,7 @@ export const Marketplace = () => {
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  {chip.label}
+                  {t(chip.labelKey)}
                 </button>
               ))}
             </div>
@@ -339,17 +339,17 @@ export const Marketplace = () => {
                     }`}
                   >
                     {Icon && <Icon className="h-3 w-3" />}
-                    {opt.label}
+                    {t(opt.labelKey)}
                   </button>
                 );
               })}
               <div className="ml-auto flex items-center gap-1 shrink-0">
-                <div className="inline-flex bg-muted/40 rounded-md p-0.5" role="tablist" aria-label="视图">
+                <div className="inline-flex bg-muted/40 rounded-md p-0.5" role="tablist" aria-label={t('marketplace.ui.viewLabel')}>
                   <button
                     type="button"
                     onClick={() => setView('grid')}
                     data-testid="view-grid"
-                    title="网格视图"
+                    title={t('marketplace.ui.gridView')}
                     className={`h-6 w-7 flex items-center justify-center rounded ${view === 'grid' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                   >
                     <LayoutGrid className="h-3.5 w-3.5" />
@@ -358,7 +358,7 @@ export const Marketplace = () => {
                     type="button"
                     onClick={() => setView('list')}
                     data-testid="view-list"
-                    title="列表视图"
+                    title={t('marketplace.ui.listView')}
                     className={`h-6 w-7 flex items-center justify-center rounded ${view === 'list' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                   >
                     <ListIcon className="h-3.5 w-3.5" />
@@ -369,7 +369,7 @@ export const Marketplace = () => {
                     onClick={clearAll}
                     className="p-1 text-muted-foreground hover:text-foreground rounded"
                     data-testid="button-clear-filters"
-                    title="清空筛选"
+                    title={t('marketplace.ui.clearFilters')}
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -386,13 +386,13 @@ export const Marketplace = () => {
           {!isLoading && (
             <div className="flex items-center justify-between py-3 gap-3 flex-wrap">
               <p className="text-sm text-muted-foreground" data-testid="text-domain-count">
-                共 <span className="font-semibold text-foreground">{filteredDomains.length}</span> 个域名
+                {t('marketplace.ui.countPrefix')} <span className="font-semibold text-foreground">{filteredDomains.length}</span> {t('marketplace.ui.countSuffix')}
                 {filteredDomains.length !== allDomains.length && (
                   <span className="ml-1 text-xs text-muted-foreground/60">/ {allDomains.length}</span>
                 )}
                 {favoritesOnly && (
                   <span className="ml-2 inline-flex items-center gap-1 text-[10px] text-red-500 font-medium">
-                    <Heart className="h-2.5 w-2.5 fill-current" />仅收藏
+                    <Heart className="h-2.5 w-2.5 fill-current" />{t('marketplace.ui.favOnlyBadge')}
                   </span>
                 )}
               </p>
@@ -422,12 +422,12 @@ export const Marketplace = () => {
                   }`}
                 >
                   <TrendingUp className="h-3 w-3" />
-                  仅已验证
+                  {t('marketplace.ui.verifiedOnlyShort')}
                 </button>
                 <button
                   onClick={handleRefresh}
                   className="text-muted-foreground hover:text-foreground transition-colors p-1"
-                  title="刷新"
+                  title={t('marketplace.ui.refresh')}
                   data-testid="button-refresh-domains"
                 >
                   <RefreshCw className="h-3.5 w-3.5" />
@@ -439,24 +439,24 @@ export const Marketplace = () => {
           {/* Domain list */}
           {isError ? (
             <div className="text-center py-16">
-              <p className="text-muted-foreground mb-4">加载域名失败，请重试</p>
-              <Button onClick={() => refetch()} variant="outline" size="sm">重新加载</Button>
+              <p className="text-muted-foreground mb-4">{t('marketplace.ui.loadErrorRetry')}</p>
+              <Button onClick={() => refetch()} variant="outline" size="sm">{t('marketplace.ui.reload')}</Button>
             </div>
           ) : isLoading ? (
             <DomainListings isLoading domains={[]} isMobile={isMobile} layout={layout} view={view} />
           ) : filteredDomains.length === 0 && allDomains.length === 0 ? (
             <div className="text-center py-20">
               <div className="text-5xl mb-4">🔍</div>
-              <h3 className="text-lg font-semibold mb-2">暂无在售域名</h3>
-              <p className="text-muted-foreground text-sm mb-4">市场还没有域名，快来第一个上架吧</p>
-              <Button asChild size="sm"><Link to="/dashboard">上架域名</Link></Button>
+              <h3 className="text-lg font-semibold mb-2">{t('marketplace.ui.emptyTitle')}</h3>
+              <p className="text-muted-foreground text-sm mb-4">{t('marketplace.ui.emptyDesc')}</p>
+              <Button asChild size="sm"><Link to="/dashboard">{t('marketplace.ui.listDomain')}</Link></Button>
             </div>
           ) : filteredDomains.length === 0 ? (
             <div className="text-center py-20">
               <div className="text-5xl mb-4">🤔</div>
-              <h3 className="text-lg font-semibold mb-2">没有找到匹配的域名</h3>
-              <p className="text-muted-foreground text-sm mb-4">请尝试调整筛选条件</p>
-              <Button onClick={clearAll} variant="outline" size="sm">清空筛选</Button>
+              <h3 className="text-lg font-semibold mb-2">{t('marketplace.ui.noMatchTitle')}</h3>
+              <p className="text-muted-foreground text-sm mb-4">{t('marketplace.ui.noMatchDesc')}</p>
+              <Button onClick={clearAll} variant="outline" size="sm">{t('marketplace.ui.clearFilters')}</Button>
             </div>
           ) : (
             <DomainListings
