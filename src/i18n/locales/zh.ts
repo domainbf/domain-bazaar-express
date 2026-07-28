@@ -154,7 +154,7 @@ export const zh = {
       loginToFilterFavorites: '请先登录后再筛选收藏',
       viewLabel: '视图', gridView: '网格视图', listView: '列表视图',
       clearFilters: '清空筛选',
-      countPrefix: '共', countSuffix: '个域名',
+      countLabel: '共 {{count}} 个域名',
       favOnlyBadge: '仅收藏', verifiedOnlyShort: '仅已验证', refresh: '刷新',
       loadErrorRetry: '加载域名失败，请重试', reload: '重新加载',
       emptyTitle: '暂无在售域名', emptyDesc: '市场还没有域名，快来第一个上架吧', listDomain: '上架域名',

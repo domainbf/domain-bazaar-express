@@ -386,7 +386,7 @@ export const Marketplace = () => {
           {!isLoading && (
             <div className="flex items-center justify-between py-3 gap-3 flex-wrap">
               <p className="text-sm text-muted-foreground" data-testid="text-domain-count">
-                {t('marketplace.ui.countPrefix')} <span className="font-semibold text-foreground">{filteredDomains.length}</span> {t('marketplace.ui.countSuffix')}
+                <Trans i18nKey="marketplace.ui.countLabel" values={{ count: filteredDomains.length }} components={{ 1: <span className="font-semibold text-foreground" /> }}>{'{{count}}'}</Trans>
                 {filteredDomains.length !== allDomains.length && (
                   <span className="ml-1 text-xs text-muted-foreground/60">/ {allDomains.length}</span>
                 )}

@@ -154,7 +154,7 @@ export const en = {
       loginToFilterFavorites: 'Please sign in to filter by favorites',
       viewLabel: 'View', gridView: 'Grid view', listView: 'List view',
       clearFilters: 'Clear filters',
-      countPrefix: '', countSuffix: 'domains',
+      countLabel: '{{count}} domains',
       favOnlyBadge: 'Favorites', verifiedOnlyShort: 'Verified only', refresh: 'Refresh',
       loadErrorRetry: 'Failed to load domains, please retry', reload: 'Reload',
       emptyTitle: 'No domains listed yet', emptyDesc: 'Be the first to list a domain on the marketplace', listDomain: 'List a domain',
