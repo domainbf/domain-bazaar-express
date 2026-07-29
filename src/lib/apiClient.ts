@@ -116,6 +116,30 @@ async function tryRefresh(): Promise<boolean> {
 }
 
 export async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  // 优先走 Supabase 桥接（后台管理读写直连数据库，无需 Express 服务）
+  if (!(init.body instanceof FormData)) {
+    try {
+      const { handleViaSupabase, NOT_HANDLED } = await import('./supabaseApiBridge');
+      let parsedBody: unknown = undefined;
+      if (typeof init.body === 'string') {
+        try { parsedBody = JSON.parse(init.body); } catch { parsedBody = undefined; }
+      }
+      const bridged = await handleViaSupabase(path, init.method || 'GET', parsedBody);
+      if (bridged !== NOT_HANDLED && typeof bridged === 'object' && bridged !== null) {
+        const result = bridged as { status: number; data: unknown };
+        return new Response(JSON.stringify(result.data ?? {}), {
+          status: result.status,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+    } catch (e: any) {
+      return new Response(JSON.stringify({ error: e?.message || '请求失败' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  }
+
   loadTokens();
   const headers = new Headers(init.headers || {});
   if (!(init.body instanceof FormData)) {
@@ -134,6 +158,7 @@ export async function apiFetch(path: string, init: RequestInit = {}): Promise<Re
   }
   return res;
 }
+
 
 export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
   const res = await apiFetch(path, {
