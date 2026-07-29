@@ -125,9 +125,10 @@ export async function apiFetch(path: string, init: RequestInit = {}): Promise<Re
         try { parsedBody = JSON.parse(init.body); } catch { parsedBody = undefined; }
       }
       const bridged = await handleViaSupabase(path, init.method || 'GET', parsedBody);
-      if (bridged !== NOT_HANDLED) {
-        return new Response(JSON.stringify(bridged.data ?? {}), {
-          status: bridged.status,
+      if (bridged !== NOT_HANDLED && typeof bridged === 'object' && bridged !== null) {
+        const result = bridged as { status: number; data: unknown };
+        return new Response(JSON.stringify(result.data ?? {}), {
+          status: result.status,
           headers: { 'Content-Type': 'application/json' },
         });
       }
