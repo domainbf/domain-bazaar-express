@@ -31,6 +31,8 @@ import { AdminAuditLogs } from '@/components/admin/AdminAuditLogs';
 import { MergeStrategyManager } from '@/components/admin/MergeStrategyManager';
 import { AdminLogoManagement } from '@/components/admin/AdminLogoManagement';
 import { AdminTelemetry } from '@/components/admin/AdminTelemetry';
+import { AdminDiagnostics } from '@/components/admin/AdminDiagnostics';
+import { runBackendHealthCheck } from '@/lib/apiClient';
 import { AdminOrderOperations } from '@/components/admin/AdminOrderOperations';
 import { AdminKycReview } from '@/components/admin/AdminKycReview';
 import { AdminWithdrawals } from '@/components/admin/AdminWithdrawals';
@@ -117,6 +119,7 @@ export const AdminPanel = () => {
         { id: 'activity', label: '活动日志', icon: Activity },
         { id: 'audit-logs', label: '报价审计日志', icon: ScrollText },
         { id: 'telemetry', label: '路由遥测', icon: Activity },
+        { id: 'diagnostics', label: '后端诊断', icon: Activity },
       ]
     },
     {
@@ -282,6 +285,7 @@ export const AdminPanel = () => {
       case 'activity': return <AdminActivityLog />;
       case 'audit-logs': return <AdminAuditLogs />;
       case 'telemetry': return <AdminTelemetry />;
+      case 'diagnostics': return <AdminDiagnostics />;
       case 'merge-strategy': return <MergeStrategyManager />;
       case 'domains': return <AllDomainListings />;
       case 'verifications': return <PendingVerifications />;
