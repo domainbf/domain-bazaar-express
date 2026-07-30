@@ -1,10 +1,19 @@
 // In dev: Vite proxies /api → localhost:3001
 // In prod: VITE_API_URL points to deployed API server (e.g. https://api.nic.rw)
 // Must start with http:// or https:// — bare hostnames like "api.nic.rw" are rejected.
+import { recordApiRequest, summarize, checkBackendHealth, getHealthState } from './apiHealth';
+
 const _rawApiUrl = import.meta.env.VITE_API_URL as string | undefined;
-const BASE = (_rawApiUrl && /^https?:\/\//i.test(_rawApiUrl))
+export const BASE = (_rawApiUrl && /^https?:\/\//i.test(_rawApiUrl))
   ? `${_rawApiUrl}/api`
   : '/api';
+
+/** 后台启动时调用：探测 /api/data，不可用则切换到 Supabase 并提示 */
+export function runBackendHealthCheck() {
+  return checkBackendHealth(BASE);
+}
+export { getHealthState };
+
 
 let accessToken: string | null = null;
 let refreshToken: string | null = null;
