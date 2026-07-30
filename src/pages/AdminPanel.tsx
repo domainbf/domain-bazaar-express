@@ -87,6 +87,12 @@ export const AdminPanel = () => {
     if (user && isAdmin) loadBadges();
   }, [user, isAdmin]);
 
+  // 后台启动时探测 /api/data，不可用则自动切换到 Supabase 并提示
+  useEffect(() => {
+    runBackendHealthCheck();
+  }, []);
+
+
   useEffect(() => {
     const tab = searchParams.get('tab');
     if (tab && tab !== activeTab) setActiveTab(tab);
