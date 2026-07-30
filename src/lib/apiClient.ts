@@ -211,7 +211,7 @@ export async function apiFetch(path: string, init: RequestInit = {}): Promise<Re
 
   const finalRes = lastResponse ?? new Response(
     JSON.stringify({ error: (lastError as any)?.message || '网络错误' }),
-    { status: 0 === 0 ? 503 : 503, headers: { 'Content-Type': 'application/json' } },
+    { status: 503, headers: { 'Content-Type': 'application/json' } },
   );
 
   let summary = '';
