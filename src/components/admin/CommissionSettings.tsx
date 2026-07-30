@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { toast } from 'sonner';
+import { toastSaveSuccess, toastSaveError, type ClassifiedError } from '@/lib/adminErrors';
 import { Percent, Save, DollarSign, Info } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -32,6 +33,7 @@ export const CommissionSettings = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<ClassifiedError | null>(null);
   const [example, setExample] = useState({ amount: 10000, fee: 500, seller: 9500 });
 
   useEffect(() => { loadSettings(); }, []);
@@ -81,9 +83,11 @@ export const CommissionSettings = () => {
       const patchObj: Record<string, string> = {};
       for (const item of updates) { patchObj[item.key] = item.value; }
       await apiPatch('/data/site-settings', patchObj);
-      toast.success('手续费设置已保存');
-    } catch {
-      toast.error('保存失败');
+      toastSaveSuccess('手续费设置已保存');
+      setSaveError(null);
+      await loadSettings();
+    } catch (error) {
+      setSaveError(toastSaveError(error));
     } finally {
       setIsSaving(false);
     }
@@ -172,6 +176,14 @@ export const CommissionSettings = () => {
               </div>
             </AlertDescription>
           </Alert>
+
+          {saveError && (
+            <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm" data-testid="commission-save-error">
+              <p className="font-medium text-destructive">{saveError.title}</p>
+              <p className="text-muted-foreground mt-1">原因：{saveError.reason}</p>
+              <p className="text-muted-foreground">建议：{saveError.suggestion}</p>
+            </div>
+          )}
 
           <div className="flex items-center gap-3">
             <Button onClick={saveSettings} disabled={isSaving} data-testid="button-save-commission">

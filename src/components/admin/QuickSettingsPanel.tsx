@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { apiGet, apiPatch } from '@/lib/apiClient';
 import { toast } from "sonner";
+import { toastSaveSuccess, toastSaveError, type ClassifiedError } from '@/lib/adminErrors';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +48,7 @@ export const QuickSettingsPanel = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [saveError, setSaveError] = useState<ClassifiedError | null>(null);
 
   useEffect(() => {
     loadSettings();
@@ -84,10 +86,12 @@ export const QuickSettingsPanel = () => {
         updates[setting.key] = setting.value;
       }
       await apiPatch('/data/site-settings', updates);
-      toast.success('设置已保存');
+      toastSaveSuccess('设置已保存', '页面重新读取后将显示最新配置');
+      setSaveError(null);
       setHasChanges(false);
+      await loadSettings();
     } catch (error: any) {
-      toast.error('保存失败: ' + error.message);
+      setSaveError(toastSaveError(error));
     } finally {
       setIsSaving(false);
     }
@@ -184,7 +188,7 @@ export const QuickSettingsPanel = () => {
               未保存的更改
             </Badge>
           )}
-          <Button onClick={handleSave} disabled={isSaving || !hasChanges}>
+          <Button onClick={handleSave} disabled={isSaving || !hasChanges} data-testid="button-save-quick-settings">
             {isSaving ? (
               <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
             ) : (
@@ -194,6 +198,14 @@ export const QuickSettingsPanel = () => {
           </Button>
         </div>
       </div>
+
+      {saveError && (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm" data-testid="settings-save-error">
+          <p className="font-medium text-destructive">{saveError.title}</p>
+          <p className="text-muted-foreground mt-1">原因：{saveError.reason}</p>
+          <p className="text-muted-foreground">建议：{saveError.suggestion}</p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 常规设置 */}
