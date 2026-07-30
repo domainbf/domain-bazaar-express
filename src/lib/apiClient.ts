@@ -124,7 +124,14 @@ async function tryRefresh(): Promise<boolean> {
   return refreshPromise;
 }
 
-export async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
+const WRITE_METHODS = ['POST', 'PATCH', 'PUT', 'DELETE'];
+const MAX_ATTEMPTS = 3;
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+/** 5xx / 网络错误值得重试；4xx（权限、校验）不重试 */
+const isRetryableStatus = (status: number) => status === 0 || status === 408 || status === 429 || status >= 500;
+
+async function performRequest(path: string, init: RequestInit): Promise<{ res: Response; backend: 'supabase' | 'express' }> {
   // 优先走 Supabase 桥接（后台管理读写直连数据库，无需 Express 服务）
   if (!(init.body instanceof FormData)) {
     try {
@@ -136,16 +143,22 @@ export async function apiFetch(path: string, init: RequestInit = {}): Promise<Re
       const bridged = await handleViaSupabase(path, init.method || 'GET', parsedBody);
       if (bridged !== NOT_HANDLED && typeof bridged === 'object' && bridged !== null) {
         const result = bridged as { status: number; data: unknown };
-        return new Response(JSON.stringify(result.data ?? {}), {
-          status: result.status,
-          headers: { 'Content-Type': 'application/json' },
-        });
+        return {
+          backend: 'supabase',
+          res: new Response(JSON.stringify(result.data ?? {}), {
+            status: result.status,
+            headers: { 'Content-Type': 'application/json' },
+          }),
+        };
       }
     } catch (e: any) {
-      return new Response(JSON.stringify({ error: e?.message || '请求失败' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return {
+        backend: 'supabase',
+        res: new Response(JSON.stringify({ error: e?.message || '请求失败' }), {
+          status: /row-level security|permission/i.test(e?.message || '') ? 403 : 400,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      };
     }
   }
 
@@ -165,8 +178,72 @@ export async function apiFetch(path: string, init: RequestInit = {}): Promise<Re
       res = await fetch(`${BASE}${path}`, { ...init, headers });
     }
   }
-  return res;
+  return { res, backend: 'express' };
 }
+
+export async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  const method = (init.method || 'GET').toUpperCase();
+  const isWrite = WRITE_METHODS.includes(method);
+  const maxAttempts = isWrite ? MAX_ATTEMPTS : 1;
+  const started = Date.now();
+
+  let attempt = 0;
+  let lastResponse: Response | null = null;
+  let backend: 'supabase' | 'express' = 'supabase';
+  let lastError: unknown = null;
+
+  while (attempt < maxAttempts) {
+    attempt += 1;
+    try {
+      const out = await performRequest(path, init);
+      backend = out.backend;
+      lastResponse = out.res;
+      if (out.res.ok || !isRetryableStatus(out.res.status)) break;
+    } catch (e) {
+      lastError = e;
+      lastResponse = null;
+    }
+    if (attempt < maxAttempts) {
+      // 指数退避：300ms → 900ms
+      await sleep(300 * Math.pow(3, attempt - 1));
+    }
+  }
+
+  const finalRes = lastResponse ?? new Response(
+    JSON.stringify({ error: (lastError as any)?.message || '网络错误' }),
+    { status: 0 === 0 ? 503 : 503, headers: { 'Content-Type': 'application/json' } },
+  );
+
+  let summary = '';
+  try { summary = summarize(await finalRes.clone().text()); } catch { /* ignore */ }
+
+  recordApiRequest({
+    path,
+    method,
+    backend,
+    status: finalRes.status,
+    ok: finalRes.ok,
+    attempts: attempt,
+    durationMs: Date.now() - started,
+    summary,
+  });
+
+  if (isWrite && !finalRes.ok) {
+    // 多次重试仍失败：把请求参数打到日志便于排查
+    console.error('[admin-write-failed]', {
+      path,
+      method,
+      attempts: attempt,
+      status: finalRes.status,
+      backend,
+      body: typeof init.body === 'string' ? init.body : '[non-string body]',
+      response: summary,
+    });
+  }
+
+  return finalRes;
+}
+
 
 
 export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
