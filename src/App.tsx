@@ -7,6 +7,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { CustomScripts } from './components/common/CustomScripts';
+import { RouteSeo } from './components/common/RouteSeo';
+
 import { PWAInstallBanner } from './components/pwa/PWAInstallBanner';
 import { TopProgressBar } from './components/common/TopProgressBar';
 import { GlobalBottomNav } from './components/mobile/GlobalBottomNav';
@@ -261,7 +263,9 @@ const AnimatedRoutes = memo(() => {
 
   return (
     <>
+      <RouteSeo />
       <TopProgressBar />
+
       <div key={location.pathname} className="animate-in">
       <SiteGuard>
       <ErrorBoundary
