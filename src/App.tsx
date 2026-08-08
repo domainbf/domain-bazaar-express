@@ -261,7 +261,9 @@ const AnimatedRoutes = memo(() => {
 
   return (
     <>
+      <RouteSeo />
       <TopProgressBar />
+
       <div key={location.pathname} className="animate-in">
       <SiteGuard>
       <ErrorBoundary
