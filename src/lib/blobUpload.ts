@@ -53,7 +53,7 @@ export async function uploadToBlob(
 
 
 export async function uploadAvatar(file: File): Promise<string> {
-  const result = await uploadToBlob(file, { folder: 'avatars' });
+  const result = await uploadToBlob(file, { folder: 'avatars', bucket: 'avatars' });
   return result.url;
 }
 
