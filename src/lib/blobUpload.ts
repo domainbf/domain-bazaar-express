@@ -37,7 +37,8 @@ export async function uploadToBlob(
   if (!user) throw new Error('请先登录后再上传文件');
 
   const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-  const pathname = `${folder}/${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const prefix = folder ? `${folder}/` : '';
+  const pathname = `${prefix}${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
   onProgress?.(30);
   const { error } = await supabase.storage
