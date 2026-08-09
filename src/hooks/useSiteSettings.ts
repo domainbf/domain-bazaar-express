@@ -135,6 +135,11 @@ function resetSiteConfigCache() {
   fetchPromise = null;
 }
 
+function handleLocalDataChange() {
+  resetSiteConfigCache();
+  void fetchSiteConfig();
+}
+
 function ensureSiteSettingsSubscription() {
   if (siteSettingsChannel) return;
 
@@ -147,6 +152,7 @@ function ensureSiteSettingsSubscription() {
   channel.subscribe();
 
   siteSettingsChannel = channel;
+  window.addEventListener('app-data-changed', handleLocalDataChange);
 }
 
 function releaseSiteSettingsSubscription() {
