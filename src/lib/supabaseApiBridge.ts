@@ -404,6 +404,32 @@ export async function handleViaSupabase(
     return ok(data);
   }
 
+  // ---------- 品牌 Logo / Favicon 上传（直传 Supabase Storage） ----------
+  if (p[0] === 'admin' && p[1] === 'upload-logo' && m === 'POST') {
+    const dataUrl = String(payload.dataUrl || '');
+    const mode = String(payload.mode || 'light');
+    const match = /^data:([^;,]+);base64,(.+)$/.exec(dataUrl);
+    if (!match) return fail('图片数据格式无效');
+    const contentType = match[1];
+    const binary = atob(match[2]);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const ext = contentType.includes('png') ? 'png'
+      : contentType.includes('svg') ? 'svg'
+      : contentType.includes('webp') ? 'webp'
+      : contentType.includes('icon') ? 'ico' : 'jpg';
+    const path = `site/${mode}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage
+      .from('domain-logos')
+      .upload(path, bytes, { contentType, upsert: true, cacheControl: '31536000' });
+    if (error) return fail(error.message, 500);
+    const { data: pub } = supabase.storage.from('domain-logos').getPublicUrl(path);
+    const url = pub.publicUrl;
+    const key = mode === 'dark' ? 'logo_dark_url' : mode === 'favicon' ? 'favicon_url' : 'logo_url';
+    await supabase.from('site_settings').upsert([{ key, value: url }], { onConflict: 'key' });
+    return ok({ url, success: true });
+  }
+
   // ---------- 边缘函数代理 ----------
   if (p[0] === 'admin' && p[1] === 'change-password' && m === 'POST') {
     const { data, error } = await supabase.functions.invoke('admin-password', { body: payload });

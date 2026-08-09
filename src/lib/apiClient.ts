@@ -178,6 +178,21 @@ async function performRequest(path: string, init: RequestInit): Promise<{ res: R
       res = await fetch(`${BASE}${path}`, { ...init, headers });
     }
   }
+
+  // 后端未部署时会返回 index.html，直接 res.json() 会抛出难以理解的解析错误
+  const ct = res.headers.get('content-type') || '';
+  if (!ct.includes('application/json')) {
+    const text = await res.clone().text().catch(() => '');
+    if (/^\s*</.test(text)) {
+      return {
+        backend: 'express',
+        res: new Response(JSON.stringify({ error: '该接口暂不可用（后端服务未部署），请稍后重试' }), {
+          status: 503,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      };
+    }
+  }
   return { res, backend: 'express' };
 }
 
