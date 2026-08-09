@@ -161,6 +161,7 @@ function releaseSiteSettingsSubscription() {
   if (siteSettingsSubscriberCount === 0 && siteSettingsChannel) {
     void supabase.removeChannel(siteSettingsChannel);
     siteSettingsChannel = null;
+    window.removeEventListener('app-data-changed', handleLocalDataChange);
   }
 }
 
