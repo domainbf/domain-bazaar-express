@@ -143,6 +143,13 @@ async function performRequest(path: string, init: RequestInit): Promise<{ res: R
       const bridged = await handleViaSupabase(path, init.method || 'GET', parsedBody);
       if (bridged !== NOT_HANDLED && typeof bridged === 'object' && bridged !== null) {
         const result = bridged as { status: number; data: unknown };
+        // 写操作成功后立刻广播，前台缓存（站点设置等）即时失效并重新拉取
+        const method = (init.method || 'GET').toUpperCase();
+        if (method !== 'GET' && result.status >= 200 && result.status < 300) {
+          try {
+            window.dispatchEvent(new CustomEvent('app-data-changed', { detail: { path } }));
+          } catch { /* ignore */ }
+        }
         return {
           backend: 'supabase',
           res: new Response(JSON.stringify(result.data ?? {}), {
