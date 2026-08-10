@@ -312,7 +312,29 @@ export async function handleViaSupabase(
     }
   }
 
+  // 结算页/通用域名查询：返回 { data: [...] }
+  if (p[0] === 'domains' && p.length === 1 && m === 'GET') {
+    let q = supabase.from('domain_listings').select('*').order('created_at', { ascending: false });
+    const status = query.get('status');
+    const limit = query.get('limit');
+    if (status) q = q.eq('status', status);
+    if (limit) q = q.limit(Number(limit));
+    const { data, error } = await q;
+    throwIf(error);
+    return ok({ data: data ?? [] });
+  }
+
+  // 联系客服 / 纠纷申诉邮件
+  if (p[0] === 'contact-email' && m === 'POST') {
+    const { data, error } = await supabase.functions.invoke('send-email', {
+      body: { to: payload.to, subject: payload.subject, html: payload.html },
+    });
+    if (error) return fail(error.message, 500);
+    return ok(data ?? { success: true });
+  }
+
   if (p[0] === 'my-domains' && m === 'GET') {
+
     const { data: userData } = await supabase.auth.getUser();
     const uid = userData?.user?.id;
     if (!uid) return fail('未登录', 401);
