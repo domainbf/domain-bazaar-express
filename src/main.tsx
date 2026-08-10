@@ -11,6 +11,8 @@ import { AuthProvider } from './contexts/AuthContext.tsx'
 import { LoadingProvider } from './contexts/LoadingContext.tsx'
 import './i18n'
 import { HOME_DATA_KEY, fetchHomeData } from './hooks/useHomeData.ts'
+import { hydrateQueryCache, startQueryPersistence } from './lib/queryPersist.ts'
+
 
 // Only retry on network errors, not on 4xx/5xx API errors
 function shouldRetry(failureCount: number, error: unknown): boolean {
