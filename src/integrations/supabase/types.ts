@@ -2030,6 +2030,48 @@ export type Database = {
           },
         ]
       }
+      user_feedback: {
+        Row: {
+          admin_note: string | null
+          attachment_url: string | null
+          contact: string | null
+          content: string
+          created_at: string
+          id: string
+          page_url: string | null
+          status: string
+          type: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_note?: string | null
+          attachment_url?: string | null
+          contact?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          page_url?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_note?: string | null
+          attachment_url?: string | null
+          contact?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          page_url?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_reviews: {
         Row: {
           comment: string | null
