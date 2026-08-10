@@ -455,5 +455,53 @@ export async function handleViaSupabase(
     return ok(data ?? { success: true });
   }
 
+  // ---------- 用户反馈 ----------
+  if (p[0] === 'feedback' && p.length === 1 && m === 'POST') {
+    const screenshots = Array.isArray(payload.screenshots) ? payload.screenshots as string[] : [];
+    const subject = typeof payload.subject === 'string' && payload.subject ? `【${payload.subject}】\n` : '';
+    const { error } = await supabase.from('user_feedback').insert({
+      user_id: (payload.userId as string) || null,
+      type: (payload.type as string) || 'other',
+      content: `${subject}${payload.message ?? ''}`,
+      contact: (payload.userEmail as string) || null,
+      page_url: (payload.url as string) || null,
+      attachment_url: screenshots[0] || null,
+    });
+    throwIf(error);
+    return ok({ success: true });
+  }
+
+  if (p[0] === 'admin' && p[1] === 'feedback') {
+    if (m === 'GET' && p.length === 2) {
+      const limit = Number(query.get('limit') || 20);
+      const offset = Number(query.get('offset') || 0);
+      let q = supabase
+        .from('user_feedback')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+      const status = query.get('status');
+      const type = query.get('type');
+      if (status) q = q.eq('status', status);
+      if (type) q = q.eq('type', type);
+      const { data, error, count } = await q;
+      throwIf(error);
+      return ok({ items: data ?? [], total: count ?? 0 });
+    }
+    if (m === 'PATCH' && p.length === 3) {
+      const patch: Json = {};
+      if (payload.status !== undefined) patch.status = payload.status;
+      if (payload.admin_note !== undefined) patch.admin_note = payload.admin_note;
+      const { error } = await supabase.from('user_feedback').update(patch).eq('id', p[2]);
+      throwIf(error);
+      return ok({ success: true });
+    }
+    if (m === 'DELETE' && p.length === 3) {
+      const { error } = await supabase.from('user_feedback').delete().eq('id', p[2]);
+      throwIf(error);
+      return ok({ success: true });
+    }
+  }
+
   return NOT_HANDLED;
 }
