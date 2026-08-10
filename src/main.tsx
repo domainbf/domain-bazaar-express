@@ -41,6 +41,10 @@ const queryClient = new QueryClient({
   },
 });
 
+// ── Instant boot: hydrate persisted cache, then keep it in sync ────────────
+hydrateQueryCache(queryClient);
+startQueryPersistence(queryClient);
+
 // ── Prefetch critical homepage data immediately on script load ─────────────
 // Fires before React renders anything — so by the time HomePage mounts
 // the fetch is already in-flight (or resolved from cache).
@@ -49,6 +53,8 @@ queryClient.prefetchQuery({
   queryFn: fetchHomeData,
   staleTime: 5 * 60 * 1000,
 }).catch(() => {/* silent — useHomeData handles errors */});
+
+
 
 const handleGlobalError = (event: ErrorEvent) => {
   console.error("Global error caught:", event.error);
