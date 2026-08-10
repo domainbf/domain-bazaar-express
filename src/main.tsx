@@ -11,6 +11,8 @@ import { AuthProvider } from './contexts/AuthContext.tsx'
 import { LoadingProvider } from './contexts/LoadingContext.tsx'
 import './i18n'
 import { HOME_DATA_KEY, fetchHomeData } from './hooks/useHomeData.ts'
+import { hydrateQueryCache, startQueryPersistence } from './lib/queryPersist.ts'
+
 
 // Only retry on network errors, not on 4xx/5xx API errors
 function shouldRetry(failureCount: number, error: unknown): boolean {
@@ -39,6 +41,10 @@ const queryClient = new QueryClient({
   },
 });
 
+// ── Instant boot: hydrate persisted cache, then keep it in sync ────────────
+hydrateQueryCache(queryClient);
+startQueryPersistence(queryClient);
+
 // ── Prefetch critical homepage data immediately on script load ─────────────
 // Fires before React renders anything — so by the time HomePage mounts
 // the fetch is already in-flight (or resolved from cache).
@@ -47,6 +53,8 @@ queryClient.prefetchQuery({
   queryFn: fetchHomeData,
   staleTime: 5 * 60 * 1000,
 }).catch(() => {/* silent — useHomeData handles errors */});
+
+
 
 const handleGlobalError = (event: ErrorEvent) => {
   console.error("Global error caught:", event.error);

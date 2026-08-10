@@ -1,41 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Navbar } from '@/components/Navbar';
+import { useState, useEffect, lazy, Suspense, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { AdminDashboard } from '@/components/admin/AdminDashboard';
-import { PendingVerifications } from '@/components/admin/PendingVerifications';
-import { AllDomainListings } from '@/components/admin/AllDomainListings';
-import { UserManagement } from '@/components/admin/UserManagement';
-import { ContentManagement } from '@/components/admin/ContentManagement';
-import { SeoConfiguration } from '@/components/admin/SeoConfiguration';
-import { SiteSettings } from '@/components/admin/SiteSettings';
-import { HomeContentManagement } from '@/components/admin/HomeContentManagement';
-import { FrontendContentManager } from '@/components/admin/FrontendContentManager';
-import { BulkDomainOperations } from '@/components/admin/BulkDomainOperations';
-import { QuickSettingsPanel } from '@/components/admin/QuickSettingsPanel';
-import { AdminActivityLog } from '@/components/admin/AdminActivityLog';
-import { PaymentGatewaySettings } from '@/components/admin/PaymentGatewaySettings';
-import { OffersManagement } from '@/components/admin/OffersManagement';
-import { CommissionSettings } from '@/components/admin/CommissionSettings';
-import { DisputeCenter } from '@/components/disputes/DisputeCenter';
-import { EscrowService } from '@/components/escrow/EscrowService';
-import { AdminTransactionManagement } from '@/components/admin/AdminTransactionManagement';
-import { AdminAuctionManagement } from '@/components/admin/AdminAuctionManagement';
-import { AdminReviewManagement } from '@/components/admin/AdminReviewManagement';
-import { AdminLegalPagesManager } from '@/components/admin/AdminLegalPagesManager';
-import { AdminMessagesView } from '@/components/admin/AdminMessagesView';
-import { AdminTickets } from '@/components/admin/AdminTickets';
-import { AdminNotificationSender } from '@/components/admin/AdminNotificationSender';
-import { AdminFeedback } from '@/components/admin/AdminFeedback';
-import { AdminUnifiedSearch } from '@/components/admin/AdminUnifiedSearch';
-import { AdminAuditLogs } from '@/components/admin/AdminAuditLogs';
-import { MergeStrategyManager } from '@/components/admin/MergeStrategyManager';
-import { AdminLogoManagement } from '@/components/admin/AdminLogoManagement';
-import { AdminTelemetry } from '@/components/admin/AdminTelemetry';
-import { AdminDiagnostics } from '@/components/admin/AdminDiagnostics';
 import { runBackendHealthCheck } from '@/lib/apiClient';
-import { AdminOrderOperations } from '@/components/admin/AdminOrderOperations';
-import { AdminKycReview } from '@/components/admin/AdminKycReview';
-import { AdminWithdrawals } from '@/components/admin/AdminWithdrawals';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -43,27 +8,79 @@ import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   LayoutDashboard, Globe, CheckSquare, Layers, Gavel,
-  DollarSign, FileText, Shield, AlertTriangle, Percent,
+  DollarSign, Shield, AlertTriangle, Percent,
   Users, Star, Home, BookOpen, Search, Sliders, CreditCard,
-  Settings, Activity, Menu, ChevronRight, LogOut, RefreshCw,
-  MessageSquare, Package, Scale, Bell, Mail, Headphones, Inbox,
-  ScrollText, GitMerge, SearchCode, ImageIcon, Wallet,
+  Settings, Activity, Menu, ChevronRight, ChevronDown, LogOut, RefreshCw,
+  MessageSquare, Package, Scale, Bell, Headphones, Inbox,
+  ScrollText, GitMerge, SearchCode, ImageIcon, Wallet, Clock,
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+
+// ── Lazy-loaded admin sections: keeps the initial admin bundle small ───────
+const AdminDashboard = lazy(() => import('@/components/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+const PendingVerifications = lazy(() => import('@/components/admin/PendingVerifications').then(m => ({ default: m.PendingVerifications })));
+const AllDomainListings = lazy(() => import('@/components/admin/AllDomainListings').then(m => ({ default: m.AllDomainListings })));
+const UserManagement = lazy(() => import('@/components/admin/UserManagement').then(m => ({ default: m.UserManagement })));
+const ContentManagement = lazy(() => import('@/components/admin/ContentManagement').then(m => ({ default: m.ContentManagement })));
+const SeoConfiguration = lazy(() => import('@/components/admin/SeoConfiguration').then(m => ({ default: m.SeoConfiguration })));
+const SiteSettings = lazy(() => import('@/components/admin/SiteSettings').then(m => ({ default: m.SiteSettings })));
+const HomeContentManagement = lazy(() => import('@/components/admin/HomeContentManagement').then(m => ({ default: m.HomeContentManagement })));
+const FrontendContentManager = lazy(() => import('@/components/admin/FrontendContentManager').then(m => ({ default: m.FrontendContentManager })));
+const BulkDomainOperations = lazy(() => import('@/components/admin/BulkDomainOperations').then(m => ({ default: m.BulkDomainOperations })));
+const QuickSettingsPanel = lazy(() => import('@/components/admin/QuickSettingsPanel').then(m => ({ default: m.QuickSettingsPanel })));
+const AdminActivityLog = lazy(() => import('@/components/admin/AdminActivityLog').then(m => ({ default: m.AdminActivityLog })));
+const PaymentGatewaySettings = lazy(() => import('@/components/admin/PaymentGatewaySettings').then(m => ({ default: m.PaymentGatewaySettings })));
+const OffersManagement = lazy(() => import('@/components/admin/OffersManagement').then(m => ({ default: m.OffersManagement })));
+const CommissionSettings = lazy(() => import('@/components/admin/CommissionSettings').then(m => ({ default: m.CommissionSettings })));
+const DisputeCenter = lazy(() => import('@/components/disputes/DisputeCenter').then(m => ({ default: m.DisputeCenter })));
+const EscrowService = lazy(() => import('@/components/escrow/EscrowService').then(m => ({ default: m.EscrowService })));
+const AdminTransactionManagement = lazy(() => import('@/components/admin/AdminTransactionManagement').then(m => ({ default: m.AdminTransactionManagement })));
+const AdminAuctionManagement = lazy(() => import('@/components/admin/AdminAuctionManagement').then(m => ({ default: m.AdminAuctionManagement })));
+const AdminReviewManagement = lazy(() => import('@/components/admin/AdminReviewManagement').then(m => ({ default: m.AdminReviewManagement })));
+const AdminLegalPagesManager = lazy(() => import('@/components/admin/AdminLegalPagesManager').then(m => ({ default: m.AdminLegalPagesManager })));
+const AdminMessagesView = lazy(() => import('@/components/admin/AdminMessagesView').then(m => ({ default: m.AdminMessagesView })));
+const AdminTickets = lazy(() => import('@/components/admin/AdminTickets').then(m => ({ default: m.AdminTickets })));
+const AdminNotificationSender = lazy(() => import('@/components/admin/AdminNotificationSender').then(m => ({ default: m.AdminNotificationSender })));
+const AdminFeedback = lazy(() => import('@/components/admin/AdminFeedback').then(m => ({ default: m.AdminFeedback })));
+const AdminUnifiedSearch = lazy(() => import('@/components/admin/AdminUnifiedSearch').then(m => ({ default: m.AdminUnifiedSearch })));
+const AdminAuditLogs = lazy(() => import('@/components/admin/AdminAuditLogs').then(m => ({ default: m.AdminAuditLogs })));
+const MergeStrategyManager = lazy(() => import('@/components/admin/MergeStrategyManager').then(m => ({ default: m.MergeStrategyManager })));
+const AdminLogoManagement = lazy(() => import('@/components/admin/AdminLogoManagement').then(m => ({ default: m.AdminLogoManagement })));
+const AdminTelemetry = lazy(() => import('@/components/admin/AdminTelemetry').then(m => ({ default: m.AdminTelemetry })));
+const AdminDiagnostics = lazy(() => import('@/components/admin/AdminDiagnostics').then(m => ({ default: m.AdminDiagnostics })));
+const AdminOrderOperations = lazy(() => import('@/components/admin/AdminOrderOperations').then(m => ({ default: m.AdminOrderOperations })));
+const AdminKycReview = lazy(() => import('@/components/admin/AdminKycReview').then(m => ({ default: m.AdminKycReview })));
+const AdminWithdrawals = lazy(() => import('@/components/admin/AdminWithdrawals').then(m => ({ default: m.AdminWithdrawals })));
 
 interface NavItem {
   id: string;
   label: string;
   icon: typeof LayoutDashboard;
   badge?: number;
+  keywords?: string;
 }
 
 interface NavGroup {
+  key: string;
   title: string;
   items: NavItem[];
 }
+
+const COLLAPSED_KEY = 'admin-nav-collapsed';
+const RECENT_KEY = 'admin-nav-recent';
+
+const SectionSkeleton = () => (
+  <div className="space-y-4">
+    <Skeleton className="h-8 w-52" />
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
+    </div>
+    <Skeleton className="h-64 w-full" />
+  </div>
+);
 
 export const AdminPanel = () => {
   const { user, isAdmin } = useAuth();
@@ -80,18 +97,21 @@ export const AdminPanel = () => {
   const [pendingKyc, setPendingKyc] = useState(0);
   const [newFeedback, setNewFeedback] = useState(0);
   const [navQuery, setNavQuery] = useState('');
+  const [collapsed, setCollapsed] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem(COLLAPSED_KEY) || '[]'); } catch { return []; }
+  });
+  const [recent, setRecent] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); } catch { return []; }
+  });
 
   // ProtectedRoute (adminOnly) already verified auth + admin status.
-  // No need for a second is_admin RPC — just load badges immediately.
   useEffect(() => {
     if (user && isAdmin) loadBadges();
   }, [user, isAdmin]);
 
-  // 后台启动时探测 /api/data，不可用则自动切换到 Supabase 并提示
   useEffect(() => {
     runBackendHealthCheck();
   }, []);
-
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -100,108 +120,177 @@ export const AdminPanel = () => {
 
   const loadBadges = async () => {
     try {
-      const [verRes, disputeRes, offerRes, ticketRes, kycRes] = await Promise.all([
+      const [verRes, disputeRes, offerRes, ticketRes, kycRes, feedbackRes] = await Promise.all([
         supabase.from('domain_verifications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('disputes').select('id', { count: 'exact', head: true }).eq('status', 'open'),
         supabase.from('domain_offers').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('support_tickets').select('id', { count: 'exact', head: true }).eq('status', 'open'),
         (supabase as any).from('seller_kyc').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('user_feedback').select('id', { count: 'exact', head: true }).eq('status', 'new'),
       ]);
       setPendingVerifications(verRes.count ?? 0);
       setPendingDisputes(disputeRes.count ?? 0);
       setPendingOffers(offerRes.count ?? 0);
       setPendingTickets(ticketRes.count ?? 0);
       setPendingKyc(kycRes?.count ?? 0);
-      setNewFeedback(0);
+      setNewFeedback(feedbackRes?.count ?? 0);
     } catch {}
   };
 
   const navGroups: NavGroup[] = [
     {
+      key: 'overview',
       title: '数据概览',
       items: [
-        { id: 'dashboard', label: '仪表盘', icon: LayoutDashboard },
-        { id: 'unified-search', label: '统一搜索/导出', icon: SearchCode },
-        { id: 'activity', label: '活动日志', icon: Activity },
-        { id: 'audit-logs', label: '报价审计日志', icon: ScrollText },
-        { id: 'telemetry', label: '路由遥测', icon: Activity },
-        { id: 'diagnostics', label: '后端诊断', icon: Activity },
+        { id: 'dashboard', label: '仪表盘', icon: LayoutDashboard, keywords: 'dashboard 首页 统计' },
+        { id: 'unified-search', label: '统一搜索/导出', icon: SearchCode, keywords: 'search export csv' },
       ]
     },
     {
+      key: 'domains',
       title: '域名管理',
       items: [
-        { id: 'domains', label: '全部域名', icon: Globe },
-        { id: 'verifications', label: '待审验证', icon: CheckSquare, badge: pendingVerifications },
-        { id: 'auctions', label: '拍卖管理', icon: Gavel },
-        { id: 'bulk', label: '批量操作', icon: Layers },
-        { id: 'logos', label: 'Logo 管理', icon: ImageIcon },
+        { id: 'domains', label: '全部域名', icon: Globe, keywords: 'domain 列表' },
+        { id: 'verifications', label: '待审验证', icon: CheckSquare, badge: pendingVerifications, keywords: 'verify dns' },
+        { id: 'auctions', label: '拍卖管理', icon: Gavel, keywords: 'auction 竞价' },
+        { id: 'bulk', label: '批量操作', icon: Layers, keywords: 'bulk 导入' },
+        { id: 'logos', label: 'Logo 管理', icon: ImageIcon, keywords: 'logo 徽章 图标' },
       ]
     },
     {
-      title: '交易管理',
+      key: 'orders',
+      title: '交易与订单',
       items: [
-        { id: 'transactions', label: '全部交易', icon: DollarSign },
-        { id: 'order-ops', label: '订单运维', icon: RefreshCw },
-        { id: 'offers', label: '报价管理', icon: MessageSquare, badge: pendingOffers },
-        { id: 'merge-strategy', label: '重复合并策略', icon: GitMerge },
-        { id: 'escrow', label: '资金托管', icon: Shield },
-        { id: 'disputes', label: '纠纷申诉', icon: AlertTriangle, badge: pendingDisputes },
-        { id: 'commission', label: '手续费配置', icon: Percent },
-        { id: 'reviews', label: '评价管理', icon: Star },
+        { id: 'transactions', label: '全部交易', icon: DollarSign, keywords: 'order 订单' },
+        { id: 'order-ops', label: '订单运维', icon: RefreshCw, keywords: '收据 推进 阶段' },
+        { id: 'offers', label: '报价管理', icon: MessageSquare, badge: pendingOffers, keywords: 'offer 出价' },
+        { id: 'merge-strategy', label: '重复合并策略', icon: GitMerge, keywords: '去重 合并' },
+        { id: 'escrow', label: '资金托管', icon: Shield, keywords: 'escrow 担保' },
+        { id: 'disputes', label: '纠纷申诉', icon: AlertTriangle, badge: pendingDisputes, keywords: 'dispute 争议' },
       ]
     },
     {
-      title: '用户管理',
+      key: 'finance',
+      title: '资金与风控',
       items: [
-        { id: 'users', label: '全部用户', icon: Users },
-        { id: 'kyc', label: '实名与提现审核', icon: Shield, badge: pendingKyc },
-        { id: 'withdrawals', label: '提现审核', icon: Wallet },
+        { id: 'commission', label: '手续费配置', icon: Percent, keywords: 'fee 佣金' },
+        { id: 'withdrawals', label: '提现审核', icon: Wallet, keywords: 'withdraw 打款' },
+        { id: 'kyc', label: '实名认证审核', icon: Shield, badge: pendingKyc, keywords: 'kyc 实名' },
+        { id: 'payment', label: '支付通道配置', icon: CreditCard, keywords: 'payment 支付 密钥' },
       ]
     },
     {
-      title: '内容管理',
+      key: 'users',
+      title: '用户与信誉',
       items: [
-        { id: 'homepage', label: '首页内容', icon: Home },
-        { id: 'content', label: '页面内容', icon: BookOpen },
-        { id: 'legal', label: '法律页面', icon: Scale },
-        { id: 'seo', label: 'SEO 配置', icon: Search },
-        { id: 'frontend', label: '前台组件', icon: Package },
+        { id: 'users', label: '全部用户', icon: Users, keywords: 'user 账号' },
+        { id: 'reviews', label: '评价管理', icon: Star, keywords: 'review 评分' },
       ]
     },
     {
-      title: '通讯管理',
+      key: 'content',
+      title: '内容与站点',
       items: [
-        { id: 'tickets', label: '支持工单', icon: Headphones, badge: pendingTickets },
-        { id: 'messages', label: '用户消息', icon: MessageSquare },
-        { id: 'notifications', label: '系统通知', icon: Bell },
-        { id: 'feedback', label: '用户反馈', icon: Inbox, badge: newFeedback },
+        { id: 'homepage', label: '首页内容', icon: Home, keywords: 'home banner' },
+        { id: 'content', label: '页面内容', icon: BookOpen, keywords: 'page cms' },
+        { id: 'legal', label: '法律页面', icon: Scale, keywords: 'terms privacy' },
+        { id: 'seo', label: 'SEO 配置', icon: Search, keywords: 'seo meta' },
+        { id: 'frontend', label: '前台组件', icon: Package, keywords: '组件 模块开关' },
       ]
     },
     {
-      title: '系统设置',
+      key: 'comms',
+      title: '通讯与支持',
       items: [
-        { id: 'payment', label: '支付配置', icon: CreditCard },
-        { id: 'quick-settings', label: '快速设置', icon: Sliders },
-        { id: 'settings', label: '站点设置', icon: Settings },
+        { id: 'tickets', label: '支持工单', icon: Headphones, badge: pendingTickets, keywords: 'ticket 客服' },
+        { id: 'messages', label: '用户消息', icon: MessageSquare, keywords: 'message 私信' },
+        { id: 'notifications', label: '系统通知', icon: Bell, keywords: 'notify 推送' },
+        { id: 'feedback', label: '用户反馈', icon: Inbox, badge: newFeedback, keywords: 'feedback 意见' },
+      ]
+    },
+    {
+      key: 'system',
+      title: '系统与日志',
+      items: [
+        { id: 'settings', label: '站点设置', icon: Settings, keywords: 'settings 全局' },
+        { id: 'quick-settings', label: '快速设置', icon: Sliders, keywords: '快捷 开关' },
+        { id: 'activity', label: '活动日志', icon: Activity, keywords: 'log 活动' },
+        { id: 'audit-logs', label: '报价审计日志', icon: ScrollText, keywords: 'audit 审计' },
+        { id: 'telemetry', label: '路由遥测', icon: Activity, keywords: 'telemetry 监控' },
+        { id: 'diagnostics', label: '后端诊断', icon: Activity, keywords: 'diagnostic 健康检查' },
       ]
     },
   ];
+
+  const allItems = useMemo(() => navGroups.flatMap(g => g.items), [navGroups]);
 
   const handleTabChange = (id: string) => {
     setActiveTab(id);
     setSearchParams({ tab: id });
     setSidebarOpen(false);
+    setRecent(prev => {
+      const next = [id, ...prev.filter(x => x !== id)].slice(0, 5);
+      try { localStorage.setItem(RECENT_KEY, JSON.stringify(next)); } catch {}
+      return next;
+    });
   };
 
-  const activeItem = navGroups.flatMap(g => g.items).find(i => i.id === activeTab);
+  const toggleGroup = (key: string) => {
+    setCollapsed(prev => {
+      const next = prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key];
+      try { localStorage.setItem(COLLAPSED_KEY, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
 
-  const totalPending = pendingVerifications + pendingDisputes + pendingOffers + pendingTickets + pendingKyc;
+  const activeItem = allItems.find(i => i.id === activeTab);
+  const activeGroup = navGroups.find(g => g.items.some(i => i.id === activeTab));
+
+  const totalPending = pendingVerifications + pendingDisputes + pendingOffers + pendingTickets + pendingKyc + newFeedback;
+
+  const q = navQuery.trim().toLowerCase();
+  const filteredGroups = navGroups
+    .map(group => ({
+      ...group,
+      items: group.items.filter(i =>
+        !q || i.label.toLowerCase().includes(q) || (i.keywords ?? '').toLowerCase().includes(q)
+      ),
+    }))
+    .filter(g => g.items.length > 0);
+
+  const NavButton = ({ item }: { item: NavItem }) => {
+    const Icon = item.icon;
+    const isActive = activeTab === item.id;
+    return (
+      <button
+        onClick={() => handleTabChange(item.id)}
+        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors mb-0.5 ${
+          isActive
+            ? 'bg-primary text-primary-foreground font-medium'
+            : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+        }`}
+      >
+        <Icon className="h-4 w-4 shrink-0" />
+        <span className="flex-1 text-left truncate">{item.label}</span>
+        {item.badge && item.badge > 0 ? (
+          <Badge
+            variant={isActive ? 'secondary' : 'destructive'}
+            className="h-5 min-w-5 text-xs flex items-center justify-center px-1"
+          >
+            {item.badge}
+          </Badge>
+        ) : null}
+      </button>
+    );
+  };
+
+  const recentItems = recent
+    .map(id => allItems.find(i => i.id === id))
+    .filter((i): i is NavItem => Boolean(i));
 
   const SidebarContent = () => (
     <ScrollArea className="h-full">
       <div className="p-4 space-y-1">
-        {/* 管理员标识 */}
         <div className="flex items-center gap-3 px-2 py-3 mb-2">
           <div className="bg-primary p-1.5 rounded-lg">
             <Shield className="h-4 w-4 text-primary-foreground" />
@@ -215,7 +304,6 @@ export const AdminPanel = () => {
           )}
         </div>
 
-        {/* 侧边栏搜索 */}
         <div className="relative mb-2 px-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
           <input
@@ -228,48 +316,35 @@ export const AdminPanel = () => {
 
         <Separator className="mb-3" />
 
-        {navGroups
-          .map(group => ({
-            ...group,
-            items: group.items.filter(i =>
-              !navQuery.trim() ||
-              i.label.toLowerCase().includes(navQuery.trim().toLowerCase())
-            ),
-          }))
-          .filter(g => g.items.length > 0)
-          .map(group => (
-          <div key={group.title} className="mb-4">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-1.5">
-              {group.title}
+        {!q && recentItems.length > 0 && (
+          <div className="mb-4">
+            <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-1.5">
+              <Clock className="h-3 w-3" /> 最近访问
             </p>
-            {group.items.map(item => {
-              const Icon = item.icon;
-              const isActive = activeTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => handleTabChange(item.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors mb-0.5 ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground font-medium'
-                      : 'hover:bg-muted text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  <Icon className="h-4 w-4 shrink-0" />
-                  <span className="flex-1 text-left">{item.label}</span>
-                  {item.badge && item.badge > 0 ? (
-                    <Badge
-                      variant={isActive ? 'secondary' : 'destructive'}
-                      className="h-5 min-w-5 text-xs flex items-center justify-center px-1"
-                    >
-                      {item.badge}
-                    </Badge>
-                  ) : null}
-                </button>
-              );
-            })}
+            {recentItems.map(item => <NavButton key={`recent-${item.id}`} item={item} />)}
           </div>
-        ))}
+        )}
+
+        {filteredGroups.map(group => {
+          const isCollapsed = !q && collapsed.includes(group.key);
+          return (
+            <div key={group.key} className="mb-3">
+              <button
+                onClick={() => toggleGroup(group.key)}
+                className="w-full flex items-center gap-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-1.5 hover:text-foreground transition-colors"
+              >
+                {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                <span className="flex-1 text-left">{group.title}</span>
+                <span className="text-[10px] normal-case opacity-60">{group.items.length}</span>
+              </button>
+              {!isCollapsed && group.items.map(item => <NavButton key={item.id} item={item} />)}
+            </div>
+          );
+        })}
+
+        {filteredGroups.length === 0 && (
+          <p className="text-xs text-muted-foreground px-2 py-4">没有匹配的菜单</p>
+        )}
 
         <Separator className="mb-3" />
 
@@ -326,10 +401,8 @@ export const AdminPanel = () => {
 
   return (
     <div className="min-h-screen bg-muted/30 flex flex-col">
-      {/* 顶部导航栏 */}
       <div className="sticky top-0 z-50 bg-background border-b">
         <div className="flex items-center h-14 px-4 gap-3">
-          {/* 移动端菜单 */}
           {isMobile && (
             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
               <SheetTrigger asChild>
@@ -343,16 +416,20 @@ export const AdminPanel = () => {
             </Sheet>
           )}
 
-          {/* 品牌 */}
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
             <span className="font-bold text-sm hidden sm:block">管理控制台</span>
           </div>
 
-          {/* 面包屑 */}
-          <div className="flex items-center gap-1 text-sm text-muted-foreground ml-2">
-            <ChevronRight className="h-4 w-4" />
-            <span className="font-medium text-foreground">{activeItem?.label ?? '仪表盘'}</span>
+          <div className="flex items-center gap-1 text-sm text-muted-foreground ml-2 min-w-0">
+            <ChevronRight className="h-4 w-4 shrink-0" />
+            {activeGroup && (
+              <>
+                <span className="hidden sm:inline truncate">{activeGroup.title}</span>
+                <ChevronRight className="h-4 w-4 shrink-0 hidden sm:inline" />
+              </>
+            )}
+            <span className="font-medium text-foreground truncate">{activeItem?.label ?? '仪表盘'}</span>
           </div>
 
           <div className="ml-auto flex items-center gap-2">
@@ -369,17 +446,17 @@ export const AdminPanel = () => {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* 桌面端侧边栏 */}
         {!isMobile && (
           <aside className="w-56 shrink-0 bg-background border-r h-[calc(100vh-3.5rem)] sticky top-14 overflow-hidden">
             <SidebarContent />
           </aside>
         )}
 
-        {/* 主内容区 */}
         <main className="flex-1 overflow-auto">
           <div className="max-w-7xl mx-auto p-4 md:p-6">
-            {renderContent()}
+            <Suspense fallback={<SectionSkeleton />}>
+              {renderContent()}
+            </Suspense>
           </div>
         </main>
       </div>
