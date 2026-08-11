@@ -143,8 +143,8 @@ export const DomainManagement = () => {
       </div>
       
       <DomainFilters 
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
+        searchQuery={searchInput}
+        setSearchQuery={setSearchInput}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         sortBy={sortBy}
@@ -153,8 +153,9 @@ export const DomainManagement = () => {
         setPriceRange={setPriceRange}
         category={category}
         setCategory={setCategory}
-        totalCount={filteredDomains.length}
+        totalCount={totalCount}
       />
+
 
       <AnimatePresence mode="wait">
         {domains.length === 0 ? (
