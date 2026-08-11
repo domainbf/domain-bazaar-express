@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { DomainActions } from './DomainActions';
 import { DomainFilters } from './domain/DomainFilters';
@@ -7,8 +7,10 @@ import { DomainAdvancedTable } from './domain/DomainAdvancedTable';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { EmptyDomainState } from './domain/EmptyDomainState';
 import { useDomainsData } from './domain/useDomainsData';
+import { useDebounce } from '@/hooks/useDebounce';
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Clock } from 'lucide-react';
+import { RefreshCw, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+
 import { BulkDomainImport } from './BulkDomainImport';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
@@ -48,71 +50,38 @@ const DomainManagementSkeleton = () => (
   </div>
 );
 
+const PAGE_SIZE = 20;
+
 export const DomainManagement = () => {
   const { t } = useTranslation();
   const { user, isLoading: isAuthLoading } = useAuth();
-  const { domains, isLoading, isRefreshing, lastUpdated, loadDomains, refreshDomains } = useDomainsData();
   const isMobile = useIsMobile();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const searchQuery = useDebounce(searchInput, 350);
   const [activeTab, setActiveTab] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [priceRange, setPriceRange] = useState('all');
   const [category, setCategory] = useState('all');
+  const [page, setPage] = useState(1);
 
-  // 使用 useMemo 优化域名过滤性能
-  const filteredDomains = useMemo(() => {
-    let result = domains
-      .filter(domain => 
-        domain.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (domain.description && domain.description.toLowerCase().includes(searchQuery.toLowerCase()))
-      )
-      .filter(domain => {
-        if (activeTab === 'all') return true;
-        if (activeTab === 'available') return domain.status === 'available';
-        if (activeTab === 'pending') return domain.status === 'pending';
-        if (activeTab === 'sold') return domain.status === 'sold';
-        return true;
-      });
+  // Reset to first page whenever the query changes
+  useEffect(() => { setPage(1); }, [searchQuery, activeTab, sortBy, priceRange, category]);
 
-    // 价格筛选
-    if (priceRange !== 'all') {
-      result = result.filter(domain => {
-        const price = domain.price || 0;
-        switch (priceRange) {
-          case '0-1000': return price >= 0 && price <= 1000;
-          case '1000-5000': return price > 1000 && price <= 5000;
-          case '5000-10000': return price > 5000 && price <= 10000;
-          case '10000+': return price > 10000;
-          default: return true;
-        }
-      });
-    }
+  const {
+    domains, totalCount, isLoading, isRefreshing, lastUpdated, loadDomains, refreshDomains,
+  } = useDomainsData({
+    search: searchQuery,
+    status: activeTab,
+    category,
+    priceRange,
+    sortBy,
+    page,
+    pageSize: PAGE_SIZE,
+  });
 
-    // 分类筛选
-    if (category !== 'all') {
-      result = result.filter(domain => domain.category === category);
-    }
-
-    // 排序
-    result.sort((a, b) => {
-      switch (sortBy) {
-        case 'newest':
-          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
-        case 'oldest':
-          return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
-        case 'price-high':
-          return (b.price || 0) - (a.price || 0);
-        case 'price-low':
-          return (a.price || 0) - (b.price || 0);
-        case 'name':
-          return (a.name || '').localeCompare(b.name || '');
-        default:
-          return 0;
-      }
-    });
-
-    return result;
-  }, [domains, searchQuery, activeTab, sortBy, priceRange, category]);
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  const hasFilters = Boolean(searchQuery) || activeTab !== 'all' || category !== 'all' || priceRange !== 'all';
+  const filteredDomains = domains;
 
   // 认证检查
   if (isAuthLoading) {
@@ -135,9 +104,10 @@ export const DomainManagement = () => {
   }
 
   // 初始加载状态
-  if (isLoading && domains.length === 0) {
+  if (isLoading && domains.length === 0 && !hasFilters) {
     return <DomainManagementSkeleton />;
   }
+
 
   return (
     <motion.div 
@@ -173,8 +143,8 @@ export const DomainManagement = () => {
       </div>
       
       <DomainFilters 
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
+        searchQuery={searchInput}
+        setSearchQuery={setSearchInput}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         sortBy={sortBy}
@@ -183,11 +153,12 @@ export const DomainManagement = () => {
         setPriceRange={setPriceRange}
         category={category}
         setCategory={setCategory}
-        totalCount={filteredDomains.length}
+        totalCount={totalCount}
       />
 
+
       <AnimatePresence mode="wait">
-        {domains.length === 0 ? (
+        {totalCount === 0 && !hasFilters ? (
           <motion.div
             key="empty"
             initial={{ opacity: 0, y: 10 }}
@@ -201,6 +172,7 @@ export const DomainManagement = () => {
             />
           </motion.div>
         ) : filteredDomains.length === 0 ? (
+
           <motion.div
             key="filtered-empty"
             initial={{ opacity: 0, y: 10 }}
@@ -236,6 +208,33 @@ export const DomainManagement = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {totalCount > PAGE_SIZE && (
+        <div className="flex items-center justify-between gap-3 pt-2">
+          <p className="text-sm text-muted-foreground">
+            第 {page} / {totalPages} 页 · 共 {totalCount} 个域名
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page <= 1 || isLoading}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              <ChevronLeft className="h-4 w-4" /> 上一页
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages || isLoading}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            >
+              下一页 <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 };
+

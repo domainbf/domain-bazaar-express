@@ -9,6 +9,7 @@ import { ProfileSettings } from "@/components/usercenter/ProfileSettings";
 import { AccountSecurity } from "@/components/usercenter/AccountSecurity";
 import { FavoriteDomains } from "@/components/usercenter/FavoriteDomains";
 import { WalletPanel } from "@/components/usercenter/WalletPanel";
+import { MyOffersPanel } from "@/components/usercenter/MyOffersPanel";
 import { ProfileCompletion } from "@/components/usercenter/ProfileCompletion";
 import { EscrowService } from "@/components/escrow/EscrowService";
 import { DisputeCenter } from "@/components/disputes/DisputeCenter";
@@ -16,7 +17,7 @@ import { MessagesPage } from "@/components/messages/MessageCenter";
 import { useState } from "react";
 import {
   User, Shield, Link as LinkIcon, ShoppingBag, FileText,
-  Wallet, Heart, AlertTriangle, CheckCircle2
+  Wallet, Heart, AlertTriangle, CheckCircle2, Inbox
 } from "lucide-react";
 import { CustomUrlSettings } from "@/components/usercenter/CustomUrlSettings";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -29,7 +30,8 @@ import { ComponentErrorBoundary } from "@/components/common/ComponentErrorBounda
 const TX_TABS = [
   { id: 'transactions', label: '我的交易', shortLabel: '交易', icon: ShoppingBag },
   { id: 'sold',         label: '已售域名', shortLabel: '已售', icon: CheckCircle2 },
-  { id: 'offers',       label: '交易报价', shortLabel: '报价', icon: FileText },
+  { id: 'offers',       label: '收到报价', shortLabel: '收到', icon: FileText },
+  { id: 'myoffers',     label: '我的报价', shortLabel: '我的报价', icon: Inbox },
   { id: 'wallet',       label: '我的钱包', shortLabel: '钱包', icon: Wallet },
   { id: 'escrow',       label: '资金托管', shortLabel: '托管', icon: Shield },
   { id: 'disputes',     label: '纠纷申诉', shortLabel: '纠纷', icon: AlertTriangle },
@@ -48,6 +50,7 @@ function TxContent({ tab }: { tab: string }) {
       {tab === 'transactions' && <MyTransactions />}
       {tab === 'sold'         && <SoldDomainsPanel />}
       {tab === 'offers'       && <TransactionHistory />}
+      {tab === 'myoffers'     && <MyOffersPanel />}
       {tab === 'escrow'       && <EscrowService />}
       {tab === 'disputes'     && <DisputeCenter />}
       {tab === 'wallet'       && <WalletPanel />}

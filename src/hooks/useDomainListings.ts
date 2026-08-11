@@ -2,31 +2,41 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Domain } from '@/types/domain';
 
+const LISTING_COLUMNS =
+  'id, name, price, currency, category, description, status, highlight, owner_id, created_at, is_verified, verification_status';
+
 const fetchAvailableDomains = async (): Promise<Domain[]> => {
-  // Fetch domain listings with analytics via a join
-  const { data: listings, error } = await supabase
+  // Only select the columns the marketplace renders — much lighter payload than `*`
+  const { data: listings, error } = await (supabase as any)
     .from('domain_listings')
-    .select('*')
+    .select(LISTING_COLUMNS)
     .eq('status', 'available')
     .order('created_at', { ascending: false })
-    .limit(200);
+    .limit(1000);
 
   if (error) throw new Error(error.message);
 
   const rows = listings ?? [];
 
-  // Fetch analytics for these domains
+  // Fetch analytics for these domains (chunked to stay within URL limits)
   const ids = rows.map((d: any) => d.id);
   let analyticsMap: Record<string, any> = {};
   if (ids.length > 0) {
-    const { data: analytics } = await supabase
-      .from('domain_analytics')
-      .select('domain_id, views, favorites, offers')
-      .in('domain_id', ids);
-    for (const a of (analytics ?? [])) {
-      analyticsMap[a.domain_id as string] = a;
+    const chunks: string[][] = [];
+    for (let i = 0; i < ids.length; i += 200) chunks.push(ids.slice(i, i + 200));
+    const results = await Promise.all(
+      chunks.map((chunk) =>
+        (supabase as any)
+          .from('domain_analytics')
+          .select('domain_id, views, favorites, offers')
+          .in('domain_id', chunk)
+      )
+    );
+    for (const r of results) {
+      for (const a of (r.data ?? [])) analyticsMap[a.domain_id as string] = a;
     }
   }
+
 
   return rows.map((d: any): Domain => ({
     id: String(d.id ?? ''),

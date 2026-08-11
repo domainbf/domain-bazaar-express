@@ -2199,6 +2199,8 @@ export type Database = {
         Args: { _actor: string; _txn_id: string }
         Returns: Json
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       transfer_domain_ownership: {
         Args: { _domain_id: string; _new_owner_id: string }
         Returns: boolean
