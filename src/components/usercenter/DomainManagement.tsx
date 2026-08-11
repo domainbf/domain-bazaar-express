@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { DomainActions } from './DomainActions';
 import { DomainFilters } from './domain/DomainFilters';
@@ -7,8 +7,10 @@ import { DomainAdvancedTable } from './domain/DomainAdvancedTable';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { EmptyDomainState } from './domain/EmptyDomainState';
 import { useDomainsData } from './domain/useDomainsData';
+import { useDebounce } from '@/hooks/useDebounce';
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Clock } from 'lucide-react';
+import { RefreshCw, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+
 import { BulkDomainImport } from './BulkDomainImport';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
