@@ -48,71 +48,38 @@ const DomainManagementSkeleton = () => (
   </div>
 );
 
+const PAGE_SIZE = 20;
+
 export const DomainManagement = () => {
   const { t } = useTranslation();
   const { user, isLoading: isAuthLoading } = useAuth();
-  const { domains, isLoading, isRefreshing, lastUpdated, loadDomains, refreshDomains } = useDomainsData();
   const isMobile = useIsMobile();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const searchQuery = useDebounce(searchInput, 350);
   const [activeTab, setActiveTab] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [priceRange, setPriceRange] = useState('all');
   const [category, setCategory] = useState('all');
+  const [page, setPage] = useState(1);
 
-  // 使用 useMemo 优化域名过滤性能
-  const filteredDomains = useMemo(() => {
-    let result = domains
-      .filter(domain => 
-        domain.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (domain.description && domain.description.toLowerCase().includes(searchQuery.toLowerCase()))
-      )
-      .filter(domain => {
-        if (activeTab === 'all') return true;
-        if (activeTab === 'available') return domain.status === 'available';
-        if (activeTab === 'pending') return domain.status === 'pending';
-        if (activeTab === 'sold') return domain.status === 'sold';
-        return true;
-      });
+  // Reset to first page whenever the query changes
+  useEffect(() => { setPage(1); }, [searchQuery, activeTab, sortBy, priceRange, category]);
 
-    // 价格筛选
-    if (priceRange !== 'all') {
-      result = result.filter(domain => {
-        const price = domain.price || 0;
-        switch (priceRange) {
-          case '0-1000': return price >= 0 && price <= 1000;
-          case '1000-5000': return price > 1000 && price <= 5000;
-          case '5000-10000': return price > 5000 && price <= 10000;
-          case '10000+': return price > 10000;
-          default: return true;
-        }
-      });
-    }
+  const {
+    domains, totalCount, isLoading, isRefreshing, lastUpdated, loadDomains, refreshDomains,
+  } = useDomainsData({
+    search: searchQuery,
+    status: activeTab,
+    category,
+    priceRange,
+    sortBy,
+    page,
+    pageSize: PAGE_SIZE,
+  });
 
-    // 分类筛选
-    if (category !== 'all') {
-      result = result.filter(domain => domain.category === category);
-    }
-
-    // 排序
-    result.sort((a, b) => {
-      switch (sortBy) {
-        case 'newest':
-          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
-        case 'oldest':
-          return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
-        case 'price-high':
-          return (b.price || 0) - (a.price || 0);
-        case 'price-low':
-          return (a.price || 0) - (b.price || 0);
-        case 'name':
-          return (a.name || '').localeCompare(b.name || '');
-        default:
-          return 0;
-      }
-    });
-
-    return result;
-  }, [domains, searchQuery, activeTab, sortBy, priceRange, category]);
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  const hasFilters = Boolean(searchQuery) || activeTab !== 'all' || category !== 'all' || priceRange !== 'all';
+  const filteredDomains = domains;
 
   // 认证检查
   if (isAuthLoading) {
@@ -135,9 +102,10 @@ export const DomainManagement = () => {
   }
 
   // 初始加载状态
-  if (isLoading && domains.length === 0) {
+  if (isLoading && domains.length === 0 && !hasFilters) {
     return <DomainManagementSkeleton />;
   }
+
 
   return (
     <motion.div 
