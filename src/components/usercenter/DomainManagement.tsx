@@ -158,7 +158,7 @@ export const DomainManagement = () => {
 
 
       <AnimatePresence mode="wait">
-        {domains.length === 0 ? (
+        {totalCount === 0 && !hasFilters ? (
           <motion.div
             key="empty"
             initial={{ opacity: 0, y: 10 }}
@@ -172,6 +172,7 @@ export const DomainManagement = () => {
             />
           </motion.div>
         ) : filteredDomains.length === 0 ? (
+
           <motion.div
             key="filtered-empty"
             initial={{ opacity: 0, y: 10 }}
