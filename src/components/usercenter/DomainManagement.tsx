@@ -208,6 +208,33 @@ export const DomainManagement = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {totalCount > PAGE_SIZE && (
+        <div className="flex items-center justify-between gap-3 pt-2">
+          <p className="text-sm text-muted-foreground">
+            第 {page} / {totalPages} 页 · 共 {totalCount} 个域名
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page <= 1 || isLoading}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              <ChevronLeft className="h-4 w-4" /> 上一页
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages || isLoading}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            >
+              下一页 <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 };
+
