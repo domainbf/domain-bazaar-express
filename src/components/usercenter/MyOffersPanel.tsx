@@ -12,9 +12,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { formatPrice } from '@/lib/currency';
 import {
   Search, RefreshCw, Clock, Mail, MessageSquare, CheckCircle2, XCircle,
-  ArrowRight, ChevronLeft, ChevronRight, Copy, Inbox,
+  ArrowRight, ChevronLeft, ChevronRight, Copy, Inbox, History,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { OfferTimelineDialog } from '@/components/offers/OfferTimelineDialog';
 
 interface OfferRow {
   id: string;
