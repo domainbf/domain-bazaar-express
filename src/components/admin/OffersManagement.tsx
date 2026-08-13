@@ -36,6 +36,9 @@ interface Offer {
   domain_name?: string;
   buyer_email?: string;
   seller_email?: string;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
+  review_note?: string | null;
 }
 
 const statusLabels: Record<string, string> = {
