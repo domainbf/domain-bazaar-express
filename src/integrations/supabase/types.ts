@@ -529,6 +529,9 @@ export type Database = {
           idempotency_key: string | null
           last_duplicate_at: string | null
           message: string | null
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           seller_id: string | null
           status: string | null
           transaction_id: string | null
@@ -546,6 +549,9 @@ export type Database = {
           idempotency_key?: string | null
           last_duplicate_at?: string | null
           message?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           seller_id?: string | null
           status?: string | null
           transaction_id?: string | null
@@ -563,6 +569,9 @@ export type Database = {
           idempotency_key?: string | null
           last_duplicate_at?: string | null
           message?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           seller_id?: string | null
           status?: string | null
           transaction_id?: string | null
@@ -1181,6 +1190,47 @@ export type Database = {
           user_agent?: string | null
         }
         Relationships: []
+      }
+      offer_status_events: {
+        Row: {
+          actor_id: string | null
+          actor_role: string
+          created_at: string
+          from_status: string | null
+          id: string
+          note: string | null
+          offer_id: string
+          to_status: string
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_role?: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          note?: string | null
+          offer_id: string
+          to_status: string
+        }
+        Update: {
+          actor_id?: string | null
+          actor_role?: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          note?: string | null
+          offer_id?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_status_events_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "domain_offers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       order_operations_log: {
         Row: {
