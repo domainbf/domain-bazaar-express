@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -54,6 +54,18 @@ export const DomainOfferForm = ({
   const captchaRef = useRef<HCaptcha>(null);
   const inflightRef = useRef<string | null>(null);
   const submittedKeysRef = useRef<Set<string>>(new Set());
+  // 提交节流：两次提交之间至少间隔 15 秒，防止误触与刷单
+  const COOLDOWN_SEC = 15;
+  const lastSubmitRef = useRef<number>(0);
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((c) => (c <= 1 ? 0 : c - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   const numericOffer = useMemo(() => {
     const n = parseFloat(offer);
@@ -101,6 +113,15 @@ export const DomainOfferForm = ({
 
     if (isLoading || inflightRef.current) return;
 
+    const elapsed = (Date.now() - lastSubmitRef.current) / 1000;
+    if (lastSubmitRef.current && elapsed < COOLDOWN_SEC) {
+      const left = Math.ceil(COOLDOWN_SEC - elapsed);
+      setCooldown(left);
+      setErr(`操作过于频繁，请 ${left} 秒后重试`, 'validation', '为避免重复下单与刷单，两次提交之间需要间隔 15 秒。');
+      toast.error(`操作过于频繁，请 ${left} 秒后重试`);
+      return;
+    }
+
     if (!captchaToken) { setErr(t('offer.form.captchaHint'), 'validation'); toast.error(t('offer.form.captchaHint')); return; }
     if (!numericOffer) { setErr(t('offer.form.invalidAmount'), 'validation'); toast.error(t('offer.form.invalidAmount')); return; }
     if (!isBuyNow && rangeError) { setErr(rangeError, 'validation'); toast.error(rangeError); return; }
@@ -114,6 +135,8 @@ export const DomainOfferForm = ({
     }
 
     inflightRef.current = idemKey;
+    lastSubmitRef.current = Date.now();
+    setCooldown(COOLDOWN_SEC);
     setIsLoading(true);
 
     try {
@@ -377,11 +400,16 @@ export const DomainOfferForm = ({
         />
       </div>
 
-      <Button type="submit" disabled={isLoading || !captchaToken} className="w-full">
+      <Button type="submit" disabled={isLoading || !captchaToken || cooldown > 0} className="w-full">
         {isLoading ? (
           <span className="flex items-center gap-2">
             <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
             {t('offer.form.submitting')}
+          </span>
+        ) : cooldown > 0 ? (
+          <span className="flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            请稍候 {cooldown}s
           </span>
         ) : (
           <span className="flex items-center gap-2">

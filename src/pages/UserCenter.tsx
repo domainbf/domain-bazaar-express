@@ -19,6 +19,7 @@ import {
 import { SupportTickets } from '@/components/support/SupportTickets';
 import { Badge } from "@/components/ui/badge";
 import { useNotifications } from '@/hooks/useNotifications';
+import { useRealtimeStatusToasts } from '@/hooks/useRealtimeStatusToasts';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from 'framer-motion';
@@ -45,6 +46,9 @@ export const UserCenter = () => {
 
   const { unreadCount, refreshNotifications } = useNotifications();
   const { unreadMessages } = useUnreadMessages();
+
+  // 报价 / 订单状态变更的实时站内提醒
+  useRealtimeStatusToasts();
 
   const displayName = useMemo(
     () => profile?.full_name || profile?.username || user?.email?.split('@')[0] || '用户',

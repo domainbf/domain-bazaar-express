@@ -13,7 +13,14 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, RefreshCw, Download, MoreHorizontal, Check, X, Clock, MessageSquare, CheckSquare } from 'lucide-react';
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { Search, RefreshCw, Download, MoreHorizontal, Check, X, Clock, MessageSquare, CheckSquare, History, ShieldCheck } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { OfferTimelineDialog } from '@/components/offers/OfferTimelineDialog';
 
 interface Offer {
   id: string;
@@ -29,6 +36,9 @@ interface Offer {
   domain_name?: string;
   buyer_email?: string;
   seller_email?: string;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
+  review_note?: string | null;
 }
 
 const statusLabels: Record<string, string> = {
@@ -44,12 +54,17 @@ const statusColors: Record<string, string> = {
 };
 
 export const OffersManagement = () => {
+  const { user } = useAuth();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [timeline, setTimeline] = useState<{ id: string; name?: string } | null>(null);
+  const [review, setReview] = useState<{ offer: Offer; action: 'accepted' | 'rejected' } | null>(null);
+  const [reviewNote, setReviewNote] = useState('');
+  const [reviewSaving, setReviewSaving] = useState(false);
 
   useEffect(() => {
     loadOffers();
@@ -64,12 +79,60 @@ export const OffersManagement = () => {
     setIsLoading(true);
     try {
       const data = await apiGet<Offer[]>('/data/admin/offers');
-      setOffers(Array.isArray(data) ? data : []);
+      const list = Array.isArray(data) ? data : [];
+      // 合并审核信息（处理人 / 处理时间 / 备注）
+      try {
+        const { data: reviewRows } = await (supabase as any)
+          .from('domain_offers')
+          .select('id, reviewed_by, reviewed_at, review_note');
+        const map: Record<string, any> = {};
+        (reviewRows || []).forEach((r: any) => { map[r.id] = r; });
+        setOffers(list.map(o => ({ ...o, ...(map[o.id] || {}) })));
+      } catch {
+        setOffers(list);
+      }
     } catch (error: any) {
       console.error('Error loading offers:', error);
       toast.error('加载报价失败');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const openReview = (offer: Offer, action: 'accepted' | 'rejected') => {
+    setReviewNote('');
+    setReview({ offer, action });
+  };
+
+  const submitReview = async () => {
+    if (!review) return;
+    if (review.action === 'rejected' && !reviewNote.trim()) {
+      toast.error('驳回时必须填写原因');
+      return;
+    }
+    setReviewSaving(true);
+    try {
+      const now = new Date().toISOString();
+      const { error } = await (supabase as any)
+        .from('domain_offers')
+        .update({
+          status: review.action,
+          reviewed_by: user?.id ?? null,
+          reviewed_at: now,
+          review_note: reviewNote.trim() || null,
+        })
+        .eq('id', review.offer.id);
+      if (error) throw error;
+
+      setOffers(prev => prev.map(o => o.id === review.offer.id
+        ? { ...o, status: review.action, reviewed_by: user?.id ?? null, reviewed_at: now, review_note: reviewNote.trim() || null }
+        : o));
+      toast.success(review.action === 'accepted' ? '报价已通过审核' : '报价已驳回');
+      setReview(null);
+    } catch (e: any) {
+      toast.error('审核失败：' + (e.message || ''));
+    } finally {
+      setReviewSaving(false);
     }
   };
 
@@ -227,13 +290,14 @@ export const OffersManagement = () => {
               <th className="text-left p-4 font-medium">联系邮箱</th>
               <th className="text-left p-4 font-medium">状态</th>
               <th className="text-left p-4 font-medium">留言</th>
+              <th className="text-left p-4 font-medium">审核记录</th>
               <th className="text-left p-4 font-medium">时间</th>
               <th className="text-left p-4 font-medium">操作</th>
             </tr>
           </thead>
           <tbody>
             {filteredOffers.length === 0 ? (
-              <tr><td colSpan={10} className="text-center py-12 text-muted-foreground">暂无报价记录</td></tr>
+              <tr><td colSpan={11} className="text-center py-12 text-muted-foreground">暂无报价记录</td></tr>
             ) : filteredOffers.map(offer => (
               <tr key={offer.id} className="border-b hover:bg-muted/30">
                 <td className="p-4">
@@ -259,39 +323,93 @@ export const OffersManagement = () => {
                 <td className="p-4 text-sm text-muted-foreground max-w-[150px] truncate" title={offer.message || ''}>
                   {offer.message || '-'}
                 </td>
+                <td className="p-4 text-xs text-muted-foreground whitespace-nowrap">
+                  {offer.reviewed_at ? (
+                    <div className="space-y-0.5">
+                      <p className="flex items-center gap-1"><ShieldCheck className="h-3 w-3" />
+                        {new Date(offer.reviewed_at).toLocaleString('zh-CN')}
+                      </p>
+                      <p className="truncate max-w-[140px]" title={offer.reviewed_by || ''}>
+                        处理人：{(offer.reviewed_by || '—').slice(0, 8)}
+                      </p>
+                      {offer.review_note && (
+                        <p className="truncate max-w-[140px]" title={offer.review_note}>备注：{offer.review_note}</p>
+                      )}
+                    </div>
+                  ) : '未审核'}
+                </td>
                 <td className="p-4 text-sm text-muted-foreground whitespace-nowrap">
                   {offer.created_at ? new Date(offer.created_at).toLocaleDateString() : '-'}
                 </td>
                 <td className="p-4">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {offer.status === 'pending' && (
-                        <>
-                          <DropdownMenuItem onClick={() => updateOfferStatus(offer.id, 'accepted')}>
-                            <Check className="h-4 w-4 mr-2 text-green-600" />接受报价
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => updateOfferStatus(offer.id, 'rejected')}>
-                            <X className="h-4 w-4 mr-2 text-red-600" />拒绝报价
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                      <DropdownMenuItem onClick={() => updateOfferStatus(offer.id, 'pending')}>
-                        <Clock className="h-4 w-4 mr-2" />重置为待处理
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => deleteOffer(offer.id)} className="text-destructive">
-                        <X className="h-4 w-4 mr-2" />删除记录
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost" size="icon" title="查看时间线"
+                      onClick={() => setTimeline({ id: offer.id, name: offer.domain_name })}
+                    >
+                      <History className="h-4 w-4" />
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => openReview(offer, 'accepted')}>
+                          <Check className="h-4 w-4 mr-2 text-green-600" />审核通过
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openReview(offer, 'rejected')}>
+                          <X className="h-4 w-4 mr-2 text-red-600" />驳回报价
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateOfferStatus(offer.id, 'pending')}>
+                          <Clock className="h-4 w-4 mr-2" />重置为待处理
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => deleteOffer(offer.id)} className="text-destructive">
+                          <X className="h-4 w-4 mr-2" />删除记录
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      <Dialog open={!!review} onOpenChange={(o) => { if (!o) setReview(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{review?.action === 'accepted' ? '审核通过报价' : '驳回报价'}</DialogTitle>
+            <DialogDescription className="break-all">
+              {review?.offer.domain_name || '域名'} · ¥{review?.offer.amount?.toLocaleString()}
+              {review?.action === 'rejected' && ' · 驳回时必须填写原因'}
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={reviewNote}
+            onChange={(e) => setReviewNote(e.target.value)}
+            maxLength={500}
+            placeholder={review?.action === 'accepted' ? '可填写审核备注（可选）' : '请填写驳回原因（必填）'}
+            rows={4}
+          />
+          <p className="text-xs text-muted-foreground">
+            处理人与处理时间将自动记录，并写入报价时间线，买卖双方可查看。
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReview(null)} disabled={reviewSaving}>取消</Button>
+            <Button onClick={submitReview} disabled={reviewSaving}>
+              {reviewSaving ? '提交中…' : '确认提交'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <OfferTimelineDialog
+        offerId={timeline?.id ?? null}
+        domainName={timeline?.name}
+        open={!!timeline}
+        onOpenChange={(o) => { if (!o) setTimeline(null); }}
+      />
     </div>
   );
 };

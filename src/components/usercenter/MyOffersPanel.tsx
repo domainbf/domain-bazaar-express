@@ -12,9 +12,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { formatPrice } from '@/lib/currency';
 import {
   Search, RefreshCw, Clock, Mail, MessageSquare, CheckCircle2, XCircle,
-  ArrowRight, ChevronLeft, ChevronRight, Copy, Inbox,
+  ArrowRight, ChevronLeft, ChevronRight, Copy, Inbox, History,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { OfferTimelineDialog } from '@/components/offers/OfferTimelineDialog';
 
 interface OfferRow {
   id: string;
@@ -64,6 +65,7 @@ export const MyOffersPanel = () => {
   const [group, setGroup] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [page, setPage] = useState(1);
+  const [timeline, setTimeline] = useState<{ id: string; name?: string } | null>(null);
 
   useEffect(() => { setPage(1); }, [search, group, sortBy]);
 
@@ -261,6 +263,12 @@ export const MyOffersPanel = () => {
                     {formatPrice(Number(r.amount), (r.currency || 'CNY') as any)}
                   </div>
                   <div className="flex items-center gap-2 sm:justify-end text-[11px]">
+                    <button
+                      className="text-muted-foreground hover:text-foreground underline inline-flex items-center gap-0.5"
+                      onClick={() => setTimeline({ id: r.id, name: r.domain_name })}
+                    >
+                      <History className="w-3 h-3" /> 时间线
+                    </button>
                     {r.transaction_id && (
                       <Link to={`/order/${r.transaction_id}`} className="underline inline-flex items-center gap-0.5">
                         查看订单 <ArrowRight className="w-3 h-3" />
@@ -296,6 +304,13 @@ export const MyOffersPanel = () => {
           </div>
         </div>
       )}
+
+      <OfferTimelineDialog
+        offerId={timeline?.id ?? null}
+        domainName={timeline?.name}
+        open={!!timeline}
+        onOpenChange={(o) => { if (!o) setTimeline(null); }}
+      />
     </div>
   );
 };
