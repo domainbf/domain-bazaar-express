@@ -263,6 +263,12 @@ export const MyOffersPanel = () => {
                     {formatPrice(Number(r.amount), (r.currency || 'CNY') as any)}
                   </div>
                   <div className="flex items-center gap-2 sm:justify-end text-[11px]">
+                    <button
+                      className="text-muted-foreground hover:text-foreground underline inline-flex items-center gap-0.5"
+                      onClick={() => setTimeline({ id: r.id, name: r.domain_name })}
+                    >
+                      <History className="w-3 h-3" /> 时间线
+                    </button>
                     {r.transaction_id && (
                       <Link to={`/order/${r.transaction_id}`} className="underline inline-flex items-center gap-0.5">
                         查看订单 <ArrowRight className="w-3 h-3" />
