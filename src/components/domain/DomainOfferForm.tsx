@@ -135,6 +135,8 @@ export const DomainOfferForm = ({
     }
 
     inflightRef.current = idemKey;
+    lastSubmitRef.current = Date.now();
+    setCooldown(COOLDOWN_SEC);
     setIsLoading(true);
 
     try {
