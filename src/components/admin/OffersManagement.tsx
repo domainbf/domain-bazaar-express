@@ -99,6 +99,43 @@ export const OffersManagement = () => {
     }
   };
 
+  const openReview = (offer: Offer, action: 'accepted' | 'rejected') => {
+    setReviewNote('');
+    setReview({ offer, action });
+  };
+
+  const submitReview = async () => {
+    if (!review) return;
+    if (review.action === 'rejected' && !reviewNote.trim()) {
+      toast.error('驳回时必须填写原因');
+      return;
+    }
+    setReviewSaving(true);
+    try {
+      const now = new Date().toISOString();
+      const { error } = await (supabase as any)
+        .from('domain_offers')
+        .update({
+          status: review.action,
+          reviewed_by: user?.id ?? null,
+          reviewed_at: now,
+          review_note: reviewNote.trim() || null,
+        })
+        .eq('id', review.offer.id);
+      if (error) throw error;
+
+      setOffers(prev => prev.map(o => o.id === review.offer.id
+        ? { ...o, status: review.action, reviewed_by: user?.id ?? null, reviewed_at: now, review_note: reviewNote.trim() || null }
+        : o));
+      toast.success(review.action === 'accepted' ? '报价已通过审核' : '报价已驳回');
+      setReview(null);
+    } catch (e: any) {
+      toast.error('审核失败：' + (e.message || ''));
+    } finally {
+      setReviewSaving(false);
+    }
+  };
+
   const updateOfferStatus = async (offerId: string, status: string) => {
     try {
       await apiPatch(`/data/domain-offers/${offerId}`, { status });
