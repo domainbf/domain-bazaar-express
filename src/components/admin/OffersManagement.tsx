@@ -323,39 +323,93 @@ export const OffersManagement = () => {
                 <td className="p-4 text-sm text-muted-foreground max-w-[150px] truncate" title={offer.message || ''}>
                   {offer.message || '-'}
                 </td>
+                <td className="p-4 text-xs text-muted-foreground whitespace-nowrap">
+                  {offer.reviewed_at ? (
+                    <div className="space-y-0.5">
+                      <p className="flex items-center gap-1"><ShieldCheck className="h-3 w-3" />
+                        {new Date(offer.reviewed_at).toLocaleString('zh-CN')}
+                      </p>
+                      <p className="truncate max-w-[140px]" title={offer.reviewed_by || ''}>
+                        处理人：{(offer.reviewed_by || '—').slice(0, 8)}
+                      </p>
+                      {offer.review_note && (
+                        <p className="truncate max-w-[140px]" title={offer.review_note}>备注：{offer.review_note}</p>
+                      )}
+                    </div>
+                  ) : '未审核'}
+                </td>
                 <td className="p-4 text-sm text-muted-foreground whitespace-nowrap">
                   {offer.created_at ? new Date(offer.created_at).toLocaleDateString() : '-'}
                 </td>
                 <td className="p-4">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {offer.status === 'pending' && (
-                        <>
-                          <DropdownMenuItem onClick={() => updateOfferStatus(offer.id, 'accepted')}>
-                            <Check className="h-4 w-4 mr-2 text-green-600" />接受报价
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => updateOfferStatus(offer.id, 'rejected')}>
-                            <X className="h-4 w-4 mr-2 text-red-600" />拒绝报价
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                      <DropdownMenuItem onClick={() => updateOfferStatus(offer.id, 'pending')}>
-                        <Clock className="h-4 w-4 mr-2" />重置为待处理
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => deleteOffer(offer.id)} className="text-destructive">
-                        <X className="h-4 w-4 mr-2" />删除记录
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost" size="icon" title="查看时间线"
+                      onClick={() => setTimeline({ id: offer.id, name: offer.domain_name })}
+                    >
+                      <History className="h-4 w-4" />
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => openReview(offer, 'accepted')}>
+                          <Check className="h-4 w-4 mr-2 text-green-600" />审核通过
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openReview(offer, 'rejected')}>
+                          <X className="h-4 w-4 mr-2 text-red-600" />驳回报价
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateOfferStatus(offer.id, 'pending')}>
+                          <Clock className="h-4 w-4 mr-2" />重置为待处理
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => deleteOffer(offer.id)} className="text-destructive">
+                          <X className="h-4 w-4 mr-2" />删除记录
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      <Dialog open={!!review} onOpenChange={(o) => { if (!o) setReview(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{review?.action === 'accepted' ? '审核通过报价' : '驳回报价'}</DialogTitle>
+            <DialogDescription className="break-all">
+              {review?.offer.domain_name || '域名'} · ¥{review?.offer.amount?.toLocaleString()}
+              {review?.action === 'rejected' && ' · 驳回时必须填写原因'}
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={reviewNote}
+            onChange={(e) => setReviewNote(e.target.value)}
+            maxLength={500}
+            placeholder={review?.action === 'accepted' ? '可填写审核备注（可选）' : '请填写驳回原因（必填）'}
+            rows={4}
+          />
+          <p className="text-xs text-muted-foreground">
+            处理人与处理时间将自动记录，并写入报价时间线，买卖双方可查看。
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReview(null)} disabled={reviewSaving}>取消</Button>
+            <Button onClick={submitReview} disabled={reviewSaving}>
+              {reviewSaving ? '提交中…' : '确认提交'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <OfferTimelineDialog
+        offerId={timeline?.id ?? null}
+        domainName={timeline?.name}
+        open={!!timeline}
+        onOpenChange={(o) => { if (!o) setTimeline(null); }}
+      />
     </div>
   );
 };
