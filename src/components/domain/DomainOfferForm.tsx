@@ -400,11 +400,16 @@ export const DomainOfferForm = ({
         />
       </div>
 
-      <Button type="submit" disabled={isLoading || !captchaToken} className="w-full">
+      <Button type="submit" disabled={isLoading || !captchaToken || cooldown > 0} className="w-full">
         {isLoading ? (
           <span className="flex items-center gap-2">
             <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
             {t('offer.form.submitting')}
+          </span>
+        ) : cooldown > 0 ? (
+          <span className="flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            请稍候 {cooldown}s
           </span>
         ) : (
           <span className="flex items-center gap-2">
