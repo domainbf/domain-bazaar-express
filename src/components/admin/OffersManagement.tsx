@@ -13,7 +13,14 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, RefreshCw, Download, MoreHorizontal, Check, X, Clock, MessageSquare, CheckSquare } from 'lucide-react';
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { Search, RefreshCw, Download, MoreHorizontal, Check, X, Clock, MessageSquare, CheckSquare, History, ShieldCheck } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { OfferTimelineDialog } from '@/components/offers/OfferTimelineDialog';
 
 interface Offer {
   id: string;
