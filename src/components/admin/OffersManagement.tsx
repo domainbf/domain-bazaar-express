@@ -290,13 +290,14 @@ export const OffersManagement = () => {
               <th className="text-left p-4 font-medium">联系邮箱</th>
               <th className="text-left p-4 font-medium">状态</th>
               <th className="text-left p-4 font-medium">留言</th>
+              <th className="text-left p-4 font-medium">审核记录</th>
               <th className="text-left p-4 font-medium">时间</th>
               <th className="text-left p-4 font-medium">操作</th>
             </tr>
           </thead>
           <tbody>
             {filteredOffers.length === 0 ? (
-              <tr><td colSpan={10} className="text-center py-12 text-muted-foreground">暂无报价记录</td></tr>
+              <tr><td colSpan={11} className="text-center py-12 text-muted-foreground">暂无报价记录</td></tr>
             ) : filteredOffers.map(offer => (
               <tr key={offer.id} className="border-b hover:bg-muted/30">
                 <td className="p-4">
