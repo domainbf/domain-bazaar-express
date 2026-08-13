@@ -304,6 +304,13 @@ export const MyOffersPanel = () => {
           </div>
         </div>
       )}
+
+      <OfferTimelineDialog
+        offerId={timeline?.id ?? null}
+        domainName={timeline?.name}
+        open={!!timeline}
+        onOpenChange={(o) => { if (!o) setTimeline(null); }}
+      />
     </div>
   );
 };
