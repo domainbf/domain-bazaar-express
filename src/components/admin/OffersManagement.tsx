@@ -54,12 +54,17 @@ const statusColors: Record<string, string> = {
 };
 
 export const OffersManagement = () => {
+  const { user } = useAuth();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [timeline, setTimeline] = useState<{ id: string; name?: string } | null>(null);
+  const [review, setReview] = useState<{ offer: Offer; action: 'accepted' | 'rejected' } | null>(null);
+  const [reviewNote, setReviewNote] = useState('');
+  const [reviewSaving, setReviewSaving] = useState(false);
 
   useEffect(() => {
     loadOffers();
