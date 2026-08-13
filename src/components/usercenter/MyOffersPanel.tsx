@@ -65,6 +65,7 @@ export const MyOffersPanel = () => {
   const [group, setGroup] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [page, setPage] = useState(1);
+  const [timeline, setTimeline] = useState<{ id: string; name?: string } | null>(null);
 
   useEffect(() => { setPage(1); }, [search, group, sortBy]);
 
