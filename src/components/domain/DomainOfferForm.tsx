@@ -54,6 +54,18 @@ export const DomainOfferForm = ({
   const captchaRef = useRef<HCaptcha>(null);
   const inflightRef = useRef<string | null>(null);
   const submittedKeysRef = useRef<Set<string>>(new Set());
+  // 提交节流：两次提交之间至少间隔 15 秒，防止误触与刷单
+  const COOLDOWN_SEC = 15;
+  const lastSubmitRef = useRef<number>(0);
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((c) => (c <= 1 ? 0 : c - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   const numericOffer = useMemo(() => {
     const n = parseFloat(offer);
