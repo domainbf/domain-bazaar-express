@@ -113,6 +113,15 @@ export const DomainOfferForm = ({
 
     if (isLoading || inflightRef.current) return;
 
+    const elapsed = (Date.now() - lastSubmitRef.current) / 1000;
+    if (lastSubmitRef.current && elapsed < COOLDOWN_SEC) {
+      const left = Math.ceil(COOLDOWN_SEC - elapsed);
+      setCooldown(left);
+      setErr(`操作过于频繁，请 ${left} 秒后重试`, 'validation', '为避免重复下单与刷单，两次提交之间需要间隔 15 秒。');
+      toast.error(`操作过于频繁，请 ${left} 秒后重试`);
+      return;
+    }
+
     if (!captchaToken) { setErr(t('offer.form.captchaHint'), 'validation'); toast.error(t('offer.form.captchaHint')); return; }
     if (!numericOffer) { setErr(t('offer.form.invalidAmount'), 'validation'); toast.error(t('offer.form.invalidAmount')); return; }
     if (!isBuyNow && rangeError) { setErr(rangeError, 'validation'); toast.error(rangeError); return; }
