@@ -6,13 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Notification } from '@/types/domain';
 import { Card, CardContent } from '@/components/ui/card';
-import { Bell, Check, Search, Trash2, CheckCheck } from 'lucide-react';
+import { Bell, Check, Search, Trash2, CheckCheck, Eye } from 'lucide-react';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { NotificationDetailDialog, NotificationDetail } from '@/components/usercenter/NotificationDetailDialog';
 
 export const NotificationsPanel = () => {
   const { user } = useAuth();
@@ -22,6 +23,7 @@ export const NotificationsPanel = () => {
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [detail, setDetail] = useState<NotificationDetail | null>(null);
 
   const filteredNotifications = notifications.filter(notification => {
     const matchesSearch =
@@ -346,6 +348,11 @@ export const NotificationsPanel = () => {
           ))}
         </div>
       )}
+      <NotificationDetailDialog
+        notification={detail}
+        open={!!detail}
+        onOpenChange={(o) => { if (!o) setDetail(null); }}
+      />
     </div>
   );
 };
