@@ -79,7 +79,18 @@ export const OffersManagement = () => {
     setIsLoading(true);
     try {
       const data = await apiGet<Offer[]>('/data/admin/offers');
-      setOffers(Array.isArray(data) ? data : []);
+      const list = Array.isArray(data) ? data : [];
+      // 合并审核信息（处理人 / 处理时间 / 备注）
+      try {
+        const { data: reviewRows } = await (supabase as any)
+          .from('domain_offers')
+          .select('id, reviewed_by, reviewed_at, review_note');
+        const map: Record<string, any> = {};
+        (reviewRows || []).forEach((r: any) => { map[r.id] = r; });
+        setOffers(list.map(o => ({ ...o, ...(map[o.id] || {}) })));
+      } catch {
+        setOffers(list);
+      }
     } catch (error: any) {
       console.error('Error loading offers:', error);
       toast.error('加载报价失败');
