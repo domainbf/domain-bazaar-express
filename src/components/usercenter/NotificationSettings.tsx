@@ -8,13 +8,17 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Bell, Mail, Loader2, Check, RotateCcw } from 'lucide-react';
 
-type Prefs = Record<string, boolean>;
+type Prefs = Record<string, any>;
 
 const DEFAULTS: Prefs = {
   email_offer: true, email_transaction: true, email_message: false,
   email_dispute: true, email_system: false,
   site_offer: true, site_transaction: true, site_message: true,
   site_dispute: true, site_system: true,
+  email_enabled: true,
+  email_frequency: 'instant', // instant | daily | weekly
+  site_enabled: true,
+  site_sound: false,
 };
 
 const GROUPS: { key: string; label: string; desc: string }[] = [
@@ -25,8 +29,18 @@ const GROUPS: { key: string; label: string; desc: string }[] = [
   { key: 'system', label: '系统通知', desc: '系统公告、维护与安全提醒' },
 ];
 
+const FREQUENCIES: { value: string; label: string; desc: string }[] = [
+  { value: 'instant', label: '实时发送', desc: '事件发生后立即发送邮件' },
+  { value: 'daily', label: '每日汇总', desc: '每天汇总为一封邮件发送' },
+  { value: 'weekly', label: '每周汇总', desc: '每周汇总为一封邮件发送' },
+];
+
 const isSame = (a: Prefs, b: Prefs) =>
-  Object.keys({ ...a, ...b }).every((k) => Boolean(a[k]) === Boolean(b[k]));
+  Object.keys({ ...a, ...b }).every((k) =>
+    typeof a[k] === 'string' || typeof b[k] === 'string'
+      ? String(a[k] ?? '') === String(b[k] ?? '')
+      : Boolean(a[k]) === Boolean(b[k])
+  );
 
 export const NotificationSettings = () => {
   const { user } = useAuth();
