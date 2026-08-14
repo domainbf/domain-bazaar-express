@@ -94,9 +94,17 @@ export const NotificationSettings = () => {
   }, [user]);
 
   const toggle = (k: string) => setPrefs(p => ({ ...p, [k]: !p[k] }));
+  const setValue = (k: string, v: any) => setPrefs(p => ({ ...p, [k]: v }));
 
   const setAll = (value: boolean) =>
-    setPrefs(Object.fromEntries(Object.keys(DEFAULTS).map(k => [k, value])) as Prefs);
+    setPrefs(p => ({
+      ...p,
+      ...Object.fromEntries(
+        Object.keys(DEFAULTS)
+          .filter(k => typeof DEFAULTS[k] === 'boolean')
+          .map(k => [k, value])
+      ),
+    }));
 
   const save = async () => {
     if (!user) return;
