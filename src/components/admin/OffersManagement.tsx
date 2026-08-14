@@ -300,11 +300,11 @@ export const OffersManagement = () => {
       {selectedIds.size > 0 && (
         <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg border bg-muted/30">
           <span className="text-sm font-medium mr-2">已选 {selectedIds.size} 条</span>
-          <Button size="sm" variant="outline" onClick={() => bulkUpdateStatus('accepted')}>
-            <Check className="h-4 w-4 mr-1 text-green-600" />批量接受
+          <Button size="sm" variant="outline" onClick={() => openBulkReview('accepted')}>
+            <CheckSquare className="h-4 w-4 mr-1 text-green-600" />批量审核通过
           </Button>
-          <Button size="sm" variant="outline" onClick={() => bulkUpdateStatus('rejected')}>
-            <X className="h-4 w-4 mr-1 text-red-600" />批量拒绝
+          <Button size="sm" variant="outline" onClick={() => openBulkReview('rejected')}>
+            <X className="h-4 w-4 mr-1 text-red-600" />批量驳回
           </Button>
           <Button size="sm" variant="outline" onClick={() => bulkUpdateStatus('pending')}>
             <Clock className="h-4 w-4 mr-1" />重置为待处理
