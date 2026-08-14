@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Notification } from '@/types/domain';
 import { Card, CardContent } from '@/components/ui/card';
-import { Bell, Check, Search, Trash2, CheckCheck, Eye } from 'lucide-react';
+import { Bell, Check, Search, Trash2, CheckCheck, Eye, Undo2 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +17,7 @@ import { NotificationDetailDialog, NotificationDetail } from '@/components/userc
 
 export const NotificationsPanel = () => {
   const { user } = useAuth();
-  const { notifications, isLoading, markAsRead, markAllAsRead, unreadCount, refreshNotifications } = useNotifications();
+  const { notifications, isLoading, markAsRead, toggleRead, markAllAsRead, unreadCount, refreshNotifications } = useNotifications();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [unreadOnly, setUnreadOnly] = useState(false);
