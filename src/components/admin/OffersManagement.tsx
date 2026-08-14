@@ -447,6 +447,34 @@ export const OffersManagement = () => {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={!!bulkReview} onOpenChange={(o) => { if (!o) setBulkReview(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{bulkReview === 'accepted' ? '批量审核通过' : '批量驳回'}</DialogTitle>
+            <DialogDescription>
+              将对已选中的 {selectedIds.size} 条报价执行操作
+              {bulkReview === 'rejected' && ' · 驳回时必须填写原因'}
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={bulkNote}
+            onChange={(e) => setBulkNote(e.target.value)}
+            maxLength={500}
+            rows={4}
+            placeholder={bulkReview === 'accepted' ? '可填写统一审核备注（可选）' : '请填写统一驳回原因（必填）'}
+          />
+          <p className="text-xs text-muted-foreground">
+            每条记录都会写入处理人（当前管理员）、处理时间与备注，并同步到报价时间线。
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkReview(null)} disabled={bulkSaving}>取消</Button>
+            <Button onClick={submitBulkReview} disabled={bulkSaving}>
+              {bulkSaving ? '提交中…' : `确认（${selectedIds.size} 条）`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <OfferTimelineDialog
         offerId={timeline?.id ?? null}
         domainName={timeline?.name}
