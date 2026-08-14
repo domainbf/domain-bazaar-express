@@ -317,17 +317,15 @@ export const NotificationsPanel = () => {
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          {!notification.is_read && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                              onClick={() => markAsRead(notification.id)}
-                              title="标为已读"
-                            >
-                              <Check className="h-4 w-4" />
-                            </Button>
-                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                            onClick={() => toggleRead(notification)}
+                            title={notification.is_read ? '标为未读' : '标为已读'}
+                          >
+                            {notification.is_read ? <Undo2 className="h-4 w-4" /> : <Check className="h-4 w-4" />}
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"
