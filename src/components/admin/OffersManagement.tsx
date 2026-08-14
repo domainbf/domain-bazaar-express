@@ -173,6 +173,46 @@ export const OffersManagement = () => {
     }
   };
 
+  const openBulkReview = (action: 'accepted' | 'rejected') => {
+    if (selectedIds.size === 0) { toast.error('请先选择报价'); return; }
+    setBulkNote('');
+    setBulkReview(action);
+  };
+
+  const submitBulkReview = async () => {
+    if (!bulkReview) return;
+    if (bulkReview === 'rejected' && !bulkNote.trim()) {
+      toast.error('批量驳回时必须填写原因');
+      return;
+    }
+    const ids = Array.from(selectedIds);
+    setBulkSaving(true);
+    try {
+      const now = new Date().toISOString();
+      const { error } = await (supabase as any)
+        .from('domain_offers')
+        .update({
+          status: bulkReview,
+          reviewed_by: user?.id ?? null,
+          reviewed_at: now,
+          review_note: bulkNote.trim() || null,
+        })
+        .in('id', ids);
+      if (error) throw error;
+
+      setOffers(prev => prev.map(o => selectedIds.has(o.id)
+        ? { ...o, status: bulkReview, reviewed_by: user?.id ?? null, reviewed_at: now, review_note: bulkNote.trim() || null }
+        : o));
+      toast.success(`${bulkReview === 'accepted' ? '已批量通过' : '已批量驳回'} ${ids.length} 条报价`);
+      setSelectedIds(new Set());
+      setBulkReview(null);
+    } catch (e: any) {
+      toast.error('批量审核失败：' + (e.message || ''));
+    } finally {
+      setBulkSaving(false);
+    }
+  };
+
   const bulkDelete = async () => {
     if (selectedIds.size === 0) { toast.error('请先选择报价'); return; }
     if (!confirm(`确定要删除 ${selectedIds.size} 条报价吗？此操作不可撤销。`)) return;
