@@ -65,6 +65,9 @@ export const OffersManagement = () => {
   const [review, setReview] = useState<{ offer: Offer; action: 'accepted' | 'rejected' } | null>(null);
   const [reviewNote, setReviewNote] = useState('');
   const [reviewSaving, setReviewSaving] = useState(false);
+  const [bulkReview, setBulkReview] = useState<'accepted' | 'rejected' | null>(null);
+  const [bulkNote, setBulkNote] = useState('');
+  const [bulkSaving, setBulkSaving] = useState(false);
 
   useEffect(() => {
     loadOffers();
