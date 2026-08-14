@@ -13,6 +13,26 @@ let notificationsChannelNonce = 0;
 let notificationsSubscriberCount = 0;
 let notificationsQueryClient: QueryClient | null = null;
 
+// 去重：同一用户在 2 分钟内产生的「同标题+同内容+同类型」通知视为重复，仅保留最新一条
+const DEDUPE_WINDOW_MS = 2 * 60 * 1000;
+
+const dedupeKey = (n: Notification) =>
+  `${n.type || ''}|${n.title || ''}|${n.message || ''}|${(n as any).related_id || ''}`;
+
+const dedupeNotifications = (items: Notification[]): Notification[] => {
+  const kept: Notification[] = [];
+  const lastSeen = new Map<string, number>();
+  for (const n of items) {
+    const key = dedupeKey(n);
+    const ts = new Date(n.created_at as any).getTime() || 0;
+    const prev = lastSeen.get(key);
+    if (prev !== undefined && Math.abs(prev - ts) < DEDUPE_WINDOW_MS) continue;
+    lastSeen.set(key, ts);
+    kept.push(n);
+  }
+  return kept;
+};
+
 const fetchNotifications = async (userId: string): Promise<Notification[]> => {
   try {
     const { data, error } = await supabase
@@ -22,7 +42,7 @@ const fetchNotifications = async (userId: string): Promise<Notification[]> => {
       .order('created_at', { ascending: false })
       .limit(50);
     if (error) throw error;
-    return (data ?? []) as Notification[];
+    return dedupeNotifications((data ?? []) as Notification[]);
   } catch {
     return [];
   }
@@ -37,16 +57,42 @@ const mergeNotification = (items: Notification[], next: Notification) => {
     return merged;
   }
 
+  // 内容级去重：短时间内重复推送同一条通知时不再重复插入
+  const key = dedupeKey(next);
+  const ts = new Date(next.created_at as any).getTime() || Date.now();
+  const duplicate = items.find(
+    (item) =>
+      dedupeKey(item) === key &&
+      Math.abs((new Date(item.created_at as any).getTime() || 0) - ts) < DEDUPE_WINDOW_MS
+  );
+  if (duplicate) return items;
+
   return [next, ...items].slice(0, 50);
+};
+
+const isDuplicatePush = (userId: string, notification: Notification) => {
+  const cache = notificationsQueryClient?.getQueryData<Notification[]>(NOTIF_KEY(userId)) ?? [];
+  const key = dedupeKey(notification);
+  const ts = new Date(notification.created_at as any).getTime() || Date.now();
+  return cache.some(
+    (item) =>
+      item.id !== notification.id &&
+      dedupeKey(item) === key &&
+      Math.abs((new Date(item.created_at as any).getTime() || 0) - ts) < DEDUPE_WINDOW_MS
+  );
 };
 
 const pushRealtimeNotification = (userId: string, notification: Notification) => {
   if (!notificationsQueryClient) return;
 
+  const duplicate = isDuplicatePush(userId, notification);
+
   notificationsQueryClient.setQueryData(
     NOTIF_KEY(userId),
     (old: Notification[] = []) => mergeNotification(old, notification)
   );
+
+  if (duplicate) return;
 
   toast.info(notification.title, {
     description: notification.message,
@@ -59,6 +105,18 @@ const pushRealtimeNotification = (userId: string, notification: Notification) =>
         }
       : undefined,
   });
+};
+
+const applyRealtimeUpdate = (userId: string, notification: Notification) => {
+  notificationsQueryClient?.setQueryData(NOTIF_KEY(userId), (old: Notification[] = []) =>
+    old.map((n) => (n.id === notification.id ? { ...n, ...notification } : n))
+  );
+};
+
+const applyRealtimeDelete = (userId: string, id: string) => {
+  notificationsQueryClient?.setQueryData(NOTIF_KEY(userId), (old: Notification[] = []) =>
+    old.filter((n) => n.id !== id)
+  );
 };
 
 const ensureNotificationsSubscription = (userId: string, queryClient: QueryClient) => {
@@ -75,18 +133,31 @@ const ensureNotificationsSubscription = (userId: string, queryClient: QueryClien
 
   notificationsChannelNonce += 1;
 
+  const filter = `user_id=eq.${userId}`;
+
   const channel = supabase
     .channel(`notifications-${userId}-${notificationsChannelNonce}`)
     .on(
       'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'notifications',
-        filter: `user_id=eq.${userId}`,
-      },
+      { event: 'INSERT', schema: 'public', table: 'notifications', filter },
       (payload) => {
         pushRealtimeNotification(userId, payload.new as Notification);
+      }
+    )
+    // 已读状态在其他设备变更时，未读数量实时同步
+    .on(
+      'postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'notifications', filter },
+      (payload) => {
+        applyRealtimeUpdate(userId, payload.new as Notification);
+      }
+    )
+    .on(
+      'postgres_changes',
+      { event: 'DELETE', schema: 'public', table: 'notifications' },
+      (payload) => {
+        const id = (payload.old as any)?.id;
+        if (id) applyRealtimeDelete(userId, id);
       }
     );
 
@@ -95,6 +166,7 @@ const ensureNotificationsSubscription = (userId: string, queryClient: QueryClien
   notificationsChannel = channel;
   notificationsChannelUserId = userId;
 };
+
 
 const releaseNotificationsSubscription = () => {
   notificationsSubscriberCount = Math.max(0, notificationsSubscriberCount - 1);
@@ -159,6 +231,27 @@ export const useNotifications = () => {
     toast.success('已将所有通知标记为已读');
   };
 
+
+  const markAsUnread = async (notificationId: string) => {
+    if (!userId) return;
+    queryClient.setQueryData(NOTIF_KEY(userId), (old: Notification[] = []) =>
+      old.map(n => n.id === notificationId ? { ...n, is_read: false } : n)
+    );
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: false })
+        .eq('id', notificationId)
+        .eq('user_id', userId);
+      if (error) throw error;
+    } catch (e) {
+      console.warn('markAsUnread failed:', e);
+    }
+  };
+
+  const toggleRead = async (notification: Notification) =>
+    notification.is_read ? markAsUnread(notification.id) : markAsRead(notification.id);
+
   const refreshNotifications = useCallback(() => {
     if (userId) queryClient.invalidateQueries({ queryKey: NOTIF_KEY(userId) });
   }, [userId, queryClient]);
@@ -168,6 +261,8 @@ export const useNotifications = () => {
     unreadCount,
     isLoading,
     markAsRead,
+    markAsUnread,
+    toggleRead,
     markAllAsRead,
     refreshNotifications,
   };

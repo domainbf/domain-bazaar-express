@@ -5,16 +5,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Bell, Mail, Loader2, Check, RotateCcw } from 'lucide-react';
 
-type Prefs = Record<string, boolean>;
+type Prefs = Record<string, any>;
 
 const DEFAULTS: Prefs = {
   email_offer: true, email_transaction: true, email_message: false,
   email_dispute: true, email_system: false,
   site_offer: true, site_transaction: true, site_message: true,
   site_dispute: true, site_system: true,
+  email_enabled: true,
+  email_frequency: 'instant', // instant | daily | weekly
+  site_enabled: true,
+  site_sound: false,
 };
 
 const GROUPS: { key: string; label: string; desc: string }[] = [
@@ -25,8 +30,18 @@ const GROUPS: { key: string; label: string; desc: string }[] = [
   { key: 'system', label: '系统通知', desc: '系统公告、维护与安全提醒' },
 ];
 
+const FREQUENCIES: { value: string; label: string; desc: string }[] = [
+  { value: 'instant', label: '实时发送', desc: '事件发生后立即发送邮件' },
+  { value: 'daily', label: '每日汇总', desc: '每天汇总为一封邮件发送' },
+  { value: 'weekly', label: '每周汇总', desc: '每周汇总为一封邮件发送' },
+];
+
 const isSame = (a: Prefs, b: Prefs) =>
-  Object.keys({ ...a, ...b }).every((k) => Boolean(a[k]) === Boolean(b[k]));
+  Object.keys({ ...a, ...b }).every((k) =>
+    typeof a[k] === 'string' || typeof b[k] === 'string'
+      ? String(a[k] ?? '') === String(b[k] ?? '')
+      : Boolean(a[k]) === Boolean(b[k])
+  );
 
 export const NotificationSettings = () => {
   const { user } = useAuth();
@@ -80,9 +95,17 @@ export const NotificationSettings = () => {
   }, [user]);
 
   const toggle = (k: string) => setPrefs(p => ({ ...p, [k]: !p[k] }));
+  const setValue = (k: string, v: any) => setPrefs(p => ({ ...p, [k]: v }));
 
   const setAll = (value: boolean) =>
-    setPrefs(Object.fromEntries(Object.keys(DEFAULTS).map(k => [k, value])) as Prefs);
+    setPrefs(p => ({
+      ...p,
+      ...Object.fromEntries(
+        Object.keys(DEFAULTS)
+          .filter(k => typeof DEFAULTS[k] === 'boolean')
+          .map(k => [k, value])
+      ),
+    }));
 
   const save = async () => {
     if (!user) return;
@@ -131,6 +154,55 @@ export const NotificationSettings = () => {
             <RotateCcw className="h-3.5 w-3.5 mr-1" />撤销
           </Button>
         </div>
+
+        {/* 总开关与邮件频率 */}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="border rounded-lg p-3 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium flex items-center gap-1.5"><Mail className="h-4 w-4" />邮件提醒</p>
+                <p className="text-xs text-muted-foreground">关闭后不再发送任何提醒邮件</p>
+              </div>
+              <Switch checked={!!prefs.email_enabled} onCheckedChange={() => toggle('email_enabled')} aria-label="邮件提醒总开关" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs text-muted-foreground">发送频率</label>
+              <Select
+                value={String(prefs.email_frequency || 'instant')}
+                onValueChange={(v) => setValue('email_frequency', v)}
+                disabled={!prefs.email_enabled}
+              >
+                <SelectTrigger className="h-9"><SelectValue placeholder="选择频率" /></SelectTrigger>
+                <SelectContent>
+                  {FREQUENCIES.map(f => (
+                    <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground">
+                {FREQUENCIES.find(f => f.value === (prefs.email_frequency || 'instant'))?.desc}
+              </p>
+            </div>
+          </div>
+
+          <div className="border rounded-lg p-3 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium flex items-center gap-1.5"><Bell className="h-4 w-4" />站内提醒</p>
+                <p className="text-xs text-muted-foreground">在站内通知中心与弹窗中显示</p>
+              </div>
+              <Switch checked={!!prefs.site_enabled} onCheckedChange={() => toggle('site_enabled')} aria-label="站内提醒总开关" />
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium">提示音</p>
+                <p className="text-xs text-muted-foreground">收到新通知时播放提示音</p>
+              </div>
+              <Switch checked={!!prefs.site_sound} onCheckedChange={() => toggle('site_sound')} disabled={!prefs.site_enabled} aria-label="提示音" />
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-[1fr_auto_auto] gap-3 items-center text-xs font-medium text-muted-foreground px-2">
           <span>类别</span>
           <span className="flex items-center gap-1"><Mail className="h-3 w-3" />邮件</span>

@@ -65,6 +65,9 @@ export const OffersManagement = () => {
   const [review, setReview] = useState<{ offer: Offer; action: 'accepted' | 'rejected' } | null>(null);
   const [reviewNote, setReviewNote] = useState('');
   const [reviewSaving, setReviewSaving] = useState(false);
+  const [bulkReview, setBulkReview] = useState<'accepted' | 'rejected' | null>(null);
+  const [bulkNote, setBulkNote] = useState('');
+  const [bulkSaving, setBulkSaving] = useState(false);
 
   useEffect(() => {
     loadOffers();
@@ -170,6 +173,46 @@ export const OffersManagement = () => {
     }
   };
 
+  const openBulkReview = (action: 'accepted' | 'rejected') => {
+    if (selectedIds.size === 0) { toast.error('请先选择报价'); return; }
+    setBulkNote('');
+    setBulkReview(action);
+  };
+
+  const submitBulkReview = async () => {
+    if (!bulkReview) return;
+    if (bulkReview === 'rejected' && !bulkNote.trim()) {
+      toast.error('批量驳回时必须填写原因');
+      return;
+    }
+    const ids = Array.from(selectedIds);
+    setBulkSaving(true);
+    try {
+      const now = new Date().toISOString();
+      const { error } = await (supabase as any)
+        .from('domain_offers')
+        .update({
+          status: bulkReview,
+          reviewed_by: user?.id ?? null,
+          reviewed_at: now,
+          review_note: bulkNote.trim() || null,
+        })
+        .in('id', ids);
+      if (error) throw error;
+
+      setOffers(prev => prev.map(o => selectedIds.has(o.id)
+        ? { ...o, status: bulkReview, reviewed_by: user?.id ?? null, reviewed_at: now, review_note: bulkNote.trim() || null }
+        : o));
+      toast.success(`${bulkReview === 'accepted' ? '已批量通过' : '已批量驳回'} ${ids.length} 条报价`);
+      setSelectedIds(new Set());
+      setBulkReview(null);
+    } catch (e: any) {
+      toast.error('批量审核失败：' + (e.message || ''));
+    } finally {
+      setBulkSaving(false);
+    }
+  };
+
   const bulkDelete = async () => {
     if (selectedIds.size === 0) { toast.error('请先选择报价'); return; }
     if (!confirm(`确定要删除 ${selectedIds.size} 条报价吗？此操作不可撤销。`)) return;
@@ -257,11 +300,11 @@ export const OffersManagement = () => {
       {selectedIds.size > 0 && (
         <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg border bg-muted/30">
           <span className="text-sm font-medium mr-2">已选 {selectedIds.size} 条</span>
-          <Button size="sm" variant="outline" onClick={() => bulkUpdateStatus('accepted')}>
-            <Check className="h-4 w-4 mr-1 text-green-600" />批量接受
+          <Button size="sm" variant="outline" onClick={() => openBulkReview('accepted')}>
+            <CheckSquare className="h-4 w-4 mr-1 text-green-600" />批量审核通过
           </Button>
-          <Button size="sm" variant="outline" onClick={() => bulkUpdateStatus('rejected')}>
-            <X className="h-4 w-4 mr-1 text-red-600" />批量拒绝
+          <Button size="sm" variant="outline" onClick={() => openBulkReview('rejected')}>
+            <X className="h-4 w-4 mr-1 text-red-600" />批量驳回
           </Button>
           <Button size="sm" variant="outline" onClick={() => bulkUpdateStatus('pending')}>
             <Clock className="h-4 w-4 mr-1" />重置为待处理
@@ -399,6 +442,34 @@ export const OffersManagement = () => {
             <Button variant="outline" onClick={() => setReview(null)} disabled={reviewSaving}>取消</Button>
             <Button onClick={submitReview} disabled={reviewSaving}>
               {reviewSaving ? '提交中…' : '确认提交'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!bulkReview} onOpenChange={(o) => { if (!o) setBulkReview(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{bulkReview === 'accepted' ? '批量审核通过' : '批量驳回'}</DialogTitle>
+            <DialogDescription>
+              将对已选中的 {selectedIds.size} 条报价执行操作
+              {bulkReview === 'rejected' && ' · 驳回时必须填写原因'}
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={bulkNote}
+            onChange={(e) => setBulkNote(e.target.value)}
+            maxLength={500}
+            rows={4}
+            placeholder={bulkReview === 'accepted' ? '可填写统一审核备注（可选）' : '请填写统一驳回原因（必填）'}
+          />
+          <p className="text-xs text-muted-foreground">
+            每条记录都会写入处理人（当前管理员）、处理时间与备注，并同步到报价时间线。
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkReview(null)} disabled={bulkSaving}>取消</Button>
+            <Button onClick={submitBulkReview} disabled={bulkSaving}>
+              {bulkSaving ? '提交中…' : `确认（${selectedIds.size} 条）`}
             </Button>
           </DialogFooter>
         </DialogContent>
