@@ -231,6 +231,27 @@ export const useNotifications = () => {
     toast.success('已将所有通知标记为已读');
   };
 
+
+  const markAsUnread = async (notificationId: string) => {
+    if (!userId) return;
+    queryClient.setQueryData(NOTIF_KEY(userId), (old: Notification[] = []) =>
+      old.map(n => n.id === notificationId ? { ...n, is_read: false } : n)
+    );
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: false })
+        .eq('id', notificationId)
+        .eq('user_id', userId);
+      if (error) throw error;
+    } catch (e) {
+      console.warn('markAsUnread failed:', e);
+    }
+  };
+
+  const toggleRead = async (notification: Notification) =>
+    notification.is_read ? markAsUnread(notification.id) : markAsRead(notification.id);
+
   const refreshNotifications = useCallback(() => {
     if (userId) queryClient.invalidateQueries({ queryKey: NOTIF_KEY(userId) });
   }, [userId, queryClient]);
@@ -240,6 +261,8 @@ export const useNotifications = () => {
     unreadCount,
     isLoading,
     markAsRead,
+    markAsUnread,
+    toggleRead,
     markAllAsRead,
     refreshNotifications,
   };
