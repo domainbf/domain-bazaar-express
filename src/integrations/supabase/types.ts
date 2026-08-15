@@ -905,6 +905,57 @@ export type Database = {
         }
         Relationships: []
       }
+      email_delivery_log: {
+        Row: {
+          attempts: number
+          created_at: string
+          dedupe_key: string
+          duration_ms: number | null
+          email_type: string
+          error: string | null
+          id: string
+          metadata: Json
+          recipient: string
+          related_id: string | null
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          dedupe_key: string
+          duration_ms?: number | null
+          email_type?: string
+          error?: string | null
+          id?: string
+          metadata?: Json
+          recipient: string
+          related_id?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          dedupe_key?: string
+          duration_ms?: number | null
+          email_type?: string
+          error?: string | null
+          id?: string
+          metadata?: Json
+          recipient?: string
+          related_id?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       email_templates: {
         Row: {
           body: string

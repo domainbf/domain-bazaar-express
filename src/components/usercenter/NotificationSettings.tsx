@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Bell, Mail, Loader2, Check, RotateCcw } from 'lucide-react';
+import { EmailDeliveryStatus } from './EmailDeliveryStatus';
+
 
 type Prefs = Record<string, any>;
 
@@ -202,6 +204,10 @@ export const NotificationSettings = () => {
             </div>
           </div>
         </div>
+
+        <EmailDeliveryStatus />
+
+
 
         <div className="grid grid-cols-[1fr_auto_auto] gap-3 items-center text-xs font-medium text-muted-foreground px-2">
           <span>类别</span>
