@@ -11,13 +11,15 @@ import { FavoriteDomains } from "@/components/usercenter/FavoriteDomains";
 import { WalletPanel } from "@/components/usercenter/WalletPanel";
 import { MyOffersPanel } from "@/components/usercenter/MyOffersPanel";
 import { ProfileCompletion } from "@/components/usercenter/ProfileCompletion";
+import { ActivityLogPanel } from "@/components/usercenter/ActivityLogPanel";
+import { SavedSearchesPanel } from "@/components/usercenter/SavedSearchesPanel";
 import { EscrowService } from "@/components/escrow/EscrowService";
 import { DisputeCenter } from "@/components/disputes/DisputeCenter";
 import { MessagesPage } from "@/components/messages/MessageCenter";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   User, Shield, Link as LinkIcon, ShoppingBag, FileText,
-  Wallet, Heart, AlertTriangle, CheckCircle2, Inbox
+  Wallet, Heart, AlertTriangle, CheckCircle2, Inbox, Activity, Bookmark
 } from "lucide-react";
 import { CustomUrlSettings } from "@/components/usercenter/CustomUrlSettings";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -36,13 +38,30 @@ const TX_TABS = [
   { id: 'escrow',       label: '资金托管', shortLabel: '托管', icon: Shield },
   { id: 'disputes',     label: '纠纷申诉', shortLabel: '纠纷', icon: AlertTriangle },
   { id: 'favorites',    label: '我的收藏', shortLabel: '收藏', icon: Heart },
+  { id: 'searches',     label: '搜索订阅', shortLabel: '订阅', icon: Bookmark },
 ];
 
 const PROFILE_TABS = [
   { id: 'info',      label: '个人信息', icon: User },
   { id: 'security',  label: '账户安全', icon: Shield },
   { id: 'customurl', label: '个性链接', icon: LinkIcon },
+  { id: 'activity',  label: '活动记录', icon: Activity },
 ];
+
+/* Persist sub-tab selection across visits */
+const usePersistedTab = (key: string, fallback: string, valid: string[]) => {
+  const [tab, setTab] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem(key);
+      return saved && valid.includes(saved) ? saved : fallback;
+    } catch { return fallback; }
+  });
+  useEffect(() => {
+    try { sessionStorage.setItem(key, tab); } catch { /* ignore */ }
+  }, [key, tab]);
+  return [tab, setTab] as const;
+};
+
 
 function TxContent({ tab }: { tab: string }) {
   return (
