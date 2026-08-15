@@ -127,8 +127,16 @@ async function handleKyc(supabase: any, record: any) {
   });
 }
 
+async function getUserEmail(supabase: any, userId: string): Promise<string | null> {
+  try {
+    const { data } = await supabase.auth.admin.getUserById(userId);
+    return data?.user?.email || null;
+  } catch { return null; }
+}
+
 /** 站内通知防重：2 分钟内相同用户 + 标题 + 关联记录不重复插入 */
 async function insertNotificationOnce(supabase: any, row: Record<string, unknown>) {
+
   const since = new Date(Date.now() - 2 * 60 * 1000).toISOString();
   const { data: dupe } = await supabase
     .from("notifications")
