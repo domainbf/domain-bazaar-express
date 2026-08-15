@@ -76,7 +76,7 @@ async function handleOffer(supabase: any, record: any) {
   const title = `报价状态更新：${statusLabel}`;
   const message = `域名 ${domainName} 的报价（¥${record.amount}）状态已更新为「${statusLabel}」。`;
 
-  await supabase.from("notifications").insert({
+  await insertNotificationOnce(supabase, {
     user_id: buyerId,
     title, message,
     type: "offer",
@@ -85,7 +85,17 @@ async function handleOffer(supabase: any, record: any) {
   });
 
   const email = record.contact_email || (await getUserEmail(supabase, buyerId));
-  if (email) await sendEmail(supabase, email, title, buildOfferEmail(domainName, record, statusLabel));
+  if (!email) return;
+
+  await sendManaged(supabase, {
+    userId: buyerId,
+    to: email,
+    subject: title,
+    html: buildOfferEmail(domainName, record, statusLabel),
+    emailType: "offer",
+    relatedId: record.id,
+    dedupeKey: `offer:${record.id}:${record.status}`,
+  });
 }
 
 async function handleKyc(supabase: any, record: any) {
@@ -95,7 +105,7 @@ async function handleKyc(supabase: any, record: any) {
   const noteText = record.review_note ? `\n审核备注：${record.review_note}` : "";
   const message = `您的实名认证与提现账户审核状态已更新为「${statusLabel}」。${noteText}`;
 
-  await supabase.from("notifications").insert({
+  await insertNotificationOnce(supabase, {
     user_id: userId,
     title, message,
     type: "kyc",
@@ -104,23 +114,53 @@ async function handleKyc(supabase: any, record: any) {
   });
 
   const email = await getUserEmail(supabase, userId);
-  if (email) await sendEmail(supabase, email, title, buildKycEmail(record, statusLabel));
+  if (!email) return;
+
+  await sendManaged(supabase, {
+    userId,
+    to: email,
+    subject: title,
+    html: buildKycEmail(record, statusLabel),
+    emailType: "kyc",
+    relatedId: record.id,
+    dedupeKey: `kyc:${record.id}:${record.status}`,
+  });
 }
 
-async function getUserEmail(supabase: any, userId: string): Promise<string | null> {
-  try {
-    const { data } = await supabase.auth.admin.getUserById(userId);
-    return data?.user?.email || null;
-  } catch { return null; }
+/** 站内通知防重：2 分钟内相同用户 + 标题 + 关联记录不重复插入 */
+async function insertNotificationOnce(supabase: any, row: Record<string, unknown>) {
+  const since = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+  const { data: dupe } = await supabase
+    .from("notifications")
+    .select("id")
+    .eq("user_id", row.user_id)
+    .eq("title", row.title)
+    .eq("related_id", row.related_id)
+    .gte("created_at", since)
+    .maybeSingle();
+  if (dupe) return;
+  await supabase.from("notifications").insert(row);
 }
 
-async function sendEmail(supabase: any, to: string, subject: string, html: string) {
-  try {
-    await supabase.functions.invoke("send-email", { body: { to, subject, html } });
-  } catch (e) {
-    console.error("send-email invoke failed:", e);
+/** 按用户偏好决定是否发信，并统一走防重 + 重试通道 */
+async function sendManaged(supabase: any, args: {
+  userId: string; to: string; subject: string; html: string;
+  emailType: string; relatedId: string; dedupeKey: string;
+}) {
+  const { allowed, reason, frequency } = await shouldSendEmail(supabase, args.userId, args.emailType);
+  if (!allowed) {
+    await logSkipped(supabase, { ...args, reason: reason || "disabled" });
+    return;
   }
+  if (frequency !== "instant") {
+    // 汇总模式：仅记录，交由汇总任务发送
+    await logSkipped(supabase, { ...args, reason: `digest_${frequency}` });
+    return;
+  }
+  const result = await deliverEmail(supabase, args);
+  console.log(`[notify] ${args.dedupeKey} → ${result.status} (attempts=${result.attempts})`, result.error ?? "");
 }
+
 
 function buildOfferEmail(domain: string, record: any, statusLabel: string) {
   const currency = record.currency || "CNY";
