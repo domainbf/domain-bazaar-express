@@ -74,6 +74,7 @@ function TxContent({ tab }: { tab: string }) {
       {tab === 'disputes'     && <DisputeCenter />}
       {tab === 'wallet'       && <WalletPanel />}
       {tab === 'favorites'    && <FavoriteDomains />}
+      {tab === 'searches'     && <SavedSearchesPanel />}
     </div>
   );
 }
@@ -85,6 +86,7 @@ function ProfileContent({ tab }: { tab: string }) {
       {tab === 'info'      && <ProfileSettings />}
       {tab === 'security'  && <AccountSecurity />}
       {tab === 'customurl' && <CustomUrlSettings />}
+      {tab === 'activity'  && <ActivityLogPanel />}
     </div>
   );
 }
@@ -122,8 +124,8 @@ function MobilePillNav({
 }
 
 export const UserCenterTabsContent = () => {
-  const [txTab, setTxTab] = useState('transactions');
-  const [profileTab, setProfileTab] = useState('info');
+  const [txTab, setTxTab] = usePersistedTab('uc-tx-tab', 'transactions', TX_TABS.map(t => t.id));
+  const [profileTab, setProfileTab] = usePersistedTab('uc-profile-tab', 'info', PROFILE_TABS.map(t => t.id));
   const isMobile = useIsMobile();
 
   return (
