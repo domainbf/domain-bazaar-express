@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Bell, Mail, Loader2, Check, RotateCcw } from 'lucide-react';
+import { EmailDeliveryStatus } from './EmailDeliveryStatus';
+
 
 type Prefs = Record<string, any>;
 
