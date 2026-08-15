@@ -1,6 +1,8 @@
 // Triggered by DB webhook (pg_net) on domain_offers / seller_kyc status changes.
 // Creates in-app notification and sends email to the affected user.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.48.1";
+import { deliverEmail, shouldSendEmail, logSkipped } from "../utils/emailDelivery.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
