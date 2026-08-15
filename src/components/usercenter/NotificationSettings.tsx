@@ -205,6 +205,10 @@ export const NotificationSettings = () => {
           </div>
         </div>
 
+        <EmailDeliveryStatus />
+
+
+
         <div className="grid grid-cols-[1fr_auto_auto] gap-3 items-center text-xs font-medium text-muted-foreground px-2">
           <span>类别</span>
           <span className="flex items-center gap-1"><Mail className="h-3 w-3" />邮件</span>
