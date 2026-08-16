@@ -205,6 +205,8 @@ export const NotificationSettings = () => {
           </div>
         </div>
 
+        <NotificationTestPanel />
+
         <EmailDeliveryStatus />
 
 
