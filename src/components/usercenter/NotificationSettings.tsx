@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { Bell, Mail, Loader2, Check, RotateCcw } from 'lucide-react';
 import { EmailDeliveryStatus } from './EmailDeliveryStatus';
+import { NotificationTestPanel } from './NotificationTestPanel';
 
 
 type Prefs = Record<string, any>;
@@ -204,6 +205,8 @@ export const NotificationSettings = () => {
             </div>
           </div>
         </div>
+
+        <NotificationTestPanel />
 
         <EmailDeliveryStatus />
 

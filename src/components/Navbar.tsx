@@ -22,6 +22,7 @@ import { prefetchDomainListings } from '@/hooks/useDomainListings';
 import { useTheme } from 'next-themes';
 import logoLightImg from '@/assets/logo-light.png';
 import logoDarkImg from '@/assets/logo-dark.png';
+import SiteLogo from '@/components/common/SiteLogo';
 
 interface NavbarProps {
   unreadCount?: number;
@@ -181,10 +182,10 @@ export const Navbar = ({ unreadCount = 0, unreadMessages: unreadMessagesProp = 0
     <nav className="w-full bg-background/70 backdrop-blur-xl border-b border-border/60 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <img
+          <SiteLogo
             src={logoSrc}
             alt={siteConfig.site_name || '域见•你'}
-            className="h-9 w-auto"
+            className="h-10 md:h-12 max-h-[48px]"
             onError={(e) => {
               const target = e.currentTarget;
               const nextElement = target.nextElementSibling as HTMLElement;

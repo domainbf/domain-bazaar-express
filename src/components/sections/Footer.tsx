@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { useTheme } from 'next-themes';
 import logoLightImg from '@/assets/logo-light.png';
 import logoDarkImg from '@/assets/logo-dark.png';
+import SiteLogo from '@/components/common/SiteLogo';
 
 export const Footer = () => {
   const { t } = useTranslation();
@@ -138,10 +139,10 @@ export const Footer = () => {
 
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-3">
-              <img
+              <SiteLogo
                 src={isDark ? (config?.logo_dark_url || logoDarkImg) : (config?.logo_url || logoLightImg)}
                 alt={config?.site_name ?? 'NIC.RW'}
-                className="h-7 w-auto"
+                className="h-9 md:h-10"
                 onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
               />
               <span className="text-lg font-bold">{config?.site_name ?? 'NIC.RW'}</span>

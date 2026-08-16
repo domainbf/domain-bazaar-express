@@ -1636,34 +1636,96 @@ export type Database = {
           },
         ]
       }
-      saved_searches: {
+      saved_search_runs: {
         Row: {
           created_at: string
-          filters: Json
+          error: string | null
           id: string
-          name: string
-          notify_new: boolean
-          query: string | null
-          updated_at: string
+          is_test: boolean
+          match_count: number
+          sample: Json
+          saved_search_id: string
+          status: string
           user_id: string
         }
         Insert: {
           created_at?: string
-          filters?: Json
+          error?: string | null
           id?: string
-          name: string
-          notify_new?: boolean
-          query?: string | null
-          updated_at?: string
+          is_test?: boolean
+          match_count?: number
+          sample?: Json
+          saved_search_id: string
+          status?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          error?: string | null
+          id?: string
+          is_test?: boolean
+          match_count?: number
+          sample?: Json
+          saved_search_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_search_runs_saved_search_id_fkey"
+            columns: ["saved_search_id"]
+            isOneToOne: false
+            referencedRelation: "saved_searches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_searches: {
+        Row: {
+          alert_count: number
+          created_at: string
+          filters: Json
+          id: string
+          last_match_count: number
+          last_run_at: string | null
+          last_run_error: string | null
+          last_run_status: string | null
+          name: string
+          notify_new: boolean
+          query: string | null
+          run_interval_hours: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alert_count?: number
+          created_at?: string
           filters?: Json
           id?: string
+          last_match_count?: number
+          last_run_at?: string | null
+          last_run_error?: string | null
+          last_run_status?: string | null
+          name: string
+          notify_new?: boolean
+          query?: string | null
+          run_interval_hours?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alert_count?: number
+          created_at?: string
+          filters?: Json
+          id?: string
+          last_match_count?: number
+          last_run_at?: string | null
+          last_run_error?: string | null
+          last_run_status?: string | null
           name?: string
           notify_new?: boolean
           query?: string | null
+          run_interval_hours?: number
           updated_at?: string
           user_id?: string
         }
