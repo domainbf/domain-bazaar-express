@@ -139,10 +139,10 @@ export const Footer = () => {
 
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-3">
-              <img
+              <SiteLogo
                 src={isDark ? (config?.logo_dark_url || logoDarkImg) : (config?.logo_url || logoLightImg)}
                 alt={config?.site_name ?? 'NIC.RW'}
-                className="h-7 w-auto"
+                className="h-9 md:h-10"
                 onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
               />
               <span className="text-lg font-bold">{config?.site_name ?? 'NIC.RW'}</span>
