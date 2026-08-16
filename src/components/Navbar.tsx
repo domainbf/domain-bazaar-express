@@ -22,6 +22,7 @@ import { prefetchDomainListings } from '@/hooks/useDomainListings';
 import { useTheme } from 'next-themes';
 import logoLightImg from '@/assets/logo-light.png';
 import logoDarkImg from '@/assets/logo-dark.png';
+import SiteLogo from '@/components/common/SiteLogo';
 
 interface NavbarProps {
   unreadCount?: number;

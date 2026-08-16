@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { useTheme } from 'next-themes';
 import logoLightImg from '@/assets/logo-light.png';
 import logoDarkImg from '@/assets/logo-dark.png';
+import SiteLogo from '@/components/common/SiteLogo';
 
 export const Footer = () => {
   const { t } = useTranslation();
