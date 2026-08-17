@@ -20,7 +20,7 @@ const SERVICES = [
     desc: '注册成为认证卖家，上架域名触达平台全量买家，完整卖家数据看板助力决策。',
     href: '/seller',
     badge: '免费入驻',
-    color: 'text-success bg-success/15  ',
+    color: 'text-success bg-success/15 ',
   },
   {
     icon: BarChart3,
@@ -28,7 +28,7 @@ const SERVICES = [
     desc: '一次操作批量上架数十个域名，适合域名投资者和企业客户快速铺量。',
     href: '/bulk-listing',
     badge: '效率工具',
-    color: 'text-warning bg-warning/10  ',
+    color: 'text-warning bg-warning/10 ',
   },
   {
     icon: Gavel,
@@ -44,7 +44,7 @@ const SERVICES = [
     desc: 'DNS TXT 记录一键验证，获得「已认证」标识，买家信任度和成交率显著提升。',
     href: '/seller',
     badge: '信任体系',
-    color: 'text-success bg-success/10  ',
+    color: 'text-success bg-success/10 ',
   },
   {
     icon: MessageSquare,
@@ -52,7 +52,7 @@ const SERVICES = [
     desc: '遇到交易争议？平台介入调查，资金冻结保护，7 个工作日内出具公正裁决。',
     href: '/dispute',
     badge: '权益保障',
-    color: 'text-destructive bg-destructive/15  ',
+    color: 'text-destructive bg-destructive/15 ',
   },
 ];
 

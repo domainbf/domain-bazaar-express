@@ -68,7 +68,7 @@ const STEPS = [
 type StepKey = (typeof STEPS)[number]['key'];
 
 const fmt = (v: number, cur: 'CNY' | 'USD' = 'CNY') =>
-  `${cur === 'USD' ? '$' : '¥'}${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+ `${cur === 'USD' ? '$' : '¥'}${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 
 // Renewal price heuristic: use 30% of first-year price, min ¥68
 const renewalOf = (p: number) => Math.max(Math.round(p * 0.3), 68);
@@ -281,7 +281,7 @@ export default function CheckoutPage() {
                 >
                   <div
                     className={cn(
-                      'shrink-0 w-8 h-8 rounded-full grid place-items-center text-xs font-semibold transition-all',
+ 'shrink-0 w-8 h-8 rounded-full grid place-items-center text-xs font-semibold transition-all',
                       done && 'bg-success text-success-foreground',
                       active && 'bg-gradient-primary text-primary-foreground shadow-elegant',
                       !done && !active && 'bg-muted text-muted-foreground'
@@ -291,7 +291,7 @@ export default function CheckoutPage() {
                   </div>
                   <span
                     className={cn(
-                      'text-xs md:text-sm font-medium truncate hidden sm:inline',
+ 'text-xs md:text-sm font-medium truncate hidden sm:inline',
                       active ? 'text-foreground' : 'text-muted-foreground'
                     )}
                   >
@@ -529,7 +529,7 @@ function SearchStep({
                   key={d.id}
                   onClick={() => addToCart(d)}
                   className={cn(
-                    'group flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all',
+ 'group flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all',
                     active
                       ? 'border-success/40 bg-success/5'
                       : 'border-border hover:border-primary/40 hover:bg-primary/[0.03]'
@@ -537,7 +537,7 @@ function SearchStep({
                 >
                   <div
                     className={cn(
-                      'w-9 h-9 rounded-lg grid place-items-center shrink-0',
+ 'w-9 h-9 rounded-lg grid place-items-center shrink-0',
                       active ? 'bg-success/10 text-success' : 'bg-primary/10 text-primary'
                     )}
                   >
@@ -701,7 +701,7 @@ function ConfigureStep({
               <label
                 key={a.key}
                 className={cn(
-                  'flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all',
+ 'flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all',
                   on
                     ? 'border-primary/40 bg-primary/5'
                     : 'border-border hover:border-primary/30'
@@ -713,7 +713,7 @@ function ConfigureStep({
                 />
                 <div
                   className={cn(
-                    'w-9 h-9 rounded-lg grid place-items-center shrink-0',
+ 'w-9 h-9 rounded-lg grid place-items-center shrink-0',
                     on ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
                   )}
                 >
@@ -866,7 +866,7 @@ function ReviewStep({
                 key={p.k}
                 onClick={() => setPay(p.k)}
                 className={cn(
-                  'p-3.5 rounded-xl border text-left transition-all',
+ 'p-3.5 rounded-xl border text-left transition-all',
                   on ? 'border-primary bg-primary/5 shadow-elegant' : 'border-border hover:border-primary/40'
                 )}
               >
@@ -913,7 +913,7 @@ const TrustBadge = ({
 }) => (
   <div
     className={cn(
-      'flex items-center gap-2 p-2.5 rounded-lg border text-xs',
+ 'flex items-center gap-2 p-2.5 rounded-lg border text-xs',
       tone === 'success'
         ? 'bg-success/5 border-success/15 text-success'
         : 'bg-primary/5 border-primary/15 text-primary'

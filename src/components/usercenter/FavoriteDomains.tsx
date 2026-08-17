@@ -53,7 +53,7 @@ export const FavoriteDomains = () => {
             status,
             is_verified
           )
-        `)
+ `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 

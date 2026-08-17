@@ -57,7 +57,7 @@ export const DomainTable = ({ domains, onView, onEdit, onDelete }: DomainTablePr
                 </Badge>
               </TableCell>
               <TableCell>
-                <Badge className={domain.verification_status === 'verified' ? 'bg-success text-white' : domain.verification_status === 'pending' ? 'bg-warning/10 text-white' : 'bg-gray-400 text-white'}>
+                <Badge className={domain.verification_status === 'verified' ? 'bg-success text-white' : domain.verification_status === 'pending' ? 'bg-warning/10 text-white' : 'bg-secondary text-white'}>
                   {React.createElement('span', {}, domain.verification_status === 'verified' ? '已验证' : domain.verification_status === 'pending' ? '待验证' : '未验证')}
                 </Badge>
               </TableCell>

@@ -7,18 +7,18 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 const STEPS = [
-  { icon: CreditCard, title: '买家付款', desc: '买家将购买款项支付至平台资金托管账户，资金由平台安全保管。', color: 'text-info bg-info/15  ' },
-  { icon: RefreshCw, title: '域名转移', desc: '卖家在确认收到资金托管通知后，将域名转移至买家指定账户。', color: 'text-warning bg-warning/10  ' },
-  { icon: CheckCircle2, title: '确认完成', desc: '买家确认域名收到后，平台将托管资金释放至卖家账户。', color: 'text-success bg-success/15  ' },
-  { icon: Shield, title: '纠纷保障', desc: '若出现争议，平台介入调查，保障双方权益，资金在争议解决前冻结。', color: 'text-primary bg-primary/15  ' },
+  { icon: CreditCard, title: '买家付款', desc: '买家将购买款项支付至平台资金托管账户，资金由平台安全保管。', color: 'text-info bg-info/15 ' },
+  { icon: RefreshCw, title: '域名转移', desc: '卖家在确认收到资金托管通知后，将域名转移至买家指定账户。', color: 'text-warning bg-warning/10 ' },
+  { icon: CheckCircle2, title: '确认完成', desc: '买家确认域名收到后，平台将托管资金释放至卖家账户。', color: 'text-success bg-success/15 ' },
+  { icon: Shield, title: '纠纷保障', desc: '若出现争议，平台介入调查，保障双方权益，资金在争议解决前冻结。', color: 'text-primary bg-primary/15 ' },
 ];
 
 const GUARANTEES = [
-  '买家付款后资金不直接到达卖家，由平台安全托管',
-  '域名未完成转移前，资金不会被释放',
-  '交易全程有记录留存，可供纠纷追溯',
-  '买家确认收货后，卖家资金即时到账',
-  '系统自动发送每个阶段的状态通知',
+ '买家付款后资金不直接到达卖家，由平台安全托管',
+ '域名未完成转移前，资金不会被释放',
+ '交易全程有记录留存，可供纠纷追溯',
+ '买家确认收货后，卖家资金即时到账',
+ '系统自动发送每个阶段的状态通知',
 ];
 
 export default function EscrowPage() {

@@ -167,9 +167,9 @@ export const BulkDomainImport = ({ onSuccess }: BulkDomainImportProps) => {
   const downloadTemplate = () => {
     const header = 'domain,price,description,category\n';
     const rows = [
-      'example.com,9999,优质短域名,technology',
-      'mystore.cn,4999,电商品牌域名,business',
-      'coolapp.io,2999,应用程序域名,technology',
+ 'example.com,9999,优质短域名,technology',
+ 'mystore.cn,4999,电商品牌域名,business',
+ 'coolapp.io,2999,应用程序域名,technology',
     ].join('\n');
     const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);

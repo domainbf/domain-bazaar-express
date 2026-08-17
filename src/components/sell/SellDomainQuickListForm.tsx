@@ -29,9 +29,9 @@ const suggestPriceCNY = (name: string): { low: number; mid: number; high: number
   const len = base.length;
 
   const tldFactor: Record<string, number> = {
-    '.com': 4, '.cn': 2.5, '.net': 1.6, '.io': 3, '.ai': 4.5,
-    '.app': 2.2, '.co': 2, '.org': 1.4, '.me': 1.3, '.dev': 1.6,
-    '.xyz': 0.6, '.top': 0.4, '.info': 0.5,
+ '.com': 4, '.cn': 2.5, '.net': 1.6, '.io': 3, '.ai': 4.5,
+ '.app': 2.2, '.co': 2, '.org': 1.4, '.me': 1.3, '.dev': 1.6,
+ '.xyz': 0.6, '.top': 0.4, '.info': 0.5,
   };
   const tf = tldFactor[tld] ?? 1;
 
@@ -156,7 +156,7 @@ export const SellDomainQuickListForm = () => {
                   type="button"
                   onClick={() => setSaleType(t)}
                   className={cn(
-                    'flex-1 text-xs h-9 rounded-lg border transition-colors font-medium',
+ 'flex-1 text-xs h-9 rounded-lg border transition-colors font-medium',
                     saleType === t
                       ? 'bg-foreground text-background border-foreground'
                       : 'bg-background text-muted-foreground border-border hover:text-foreground',
@@ -229,9 +229,9 @@ export const SellDomainQuickListForm = () => {
             </p>
             <div
               className={cn(
-                'group relative block overflow-hidden isolate rounded-2xl border border-white/10',
-                'bg-gradient-to-br from-neutral-900 via-neutral-950 to-black text-white',
-                'p-6 sm:p-8 min-h-[280px] shadow-[0_16px_40px_-16px_rgba(0,0,0,0.5)]',
+ 'group relative block overflow-hidden isolate rounded-2xl border border-white/10',
+ 'bg-gradient-to-br from-muted via-muted to-black text-white',
+ 'p-6 sm:p-8 min-h-[280px] shadow-[0_16px_40px_-16px_rgba(0,0,0,0.5)]',
               )}
             >
               <div
@@ -253,8 +253,8 @@ export const SellDomainQuickListForm = () => {
                 </div>
 
                 <h3 className={cn(
-                  'font-black uppercase tracking-tight leading-[0.95] break-all text-white',
-                  'my-4',
+ 'font-black uppercase tracking-tight leading-[0.95] break-all text-white',
+ 'my-4',
                   (name.length <= 10) ? 'text-4xl sm:text-6xl' :
                   (name.length <= 16) ? 'text-3xl sm:text-5xl' :
                   (name.length <= 22) ? 'text-2xl sm:text-4xl' : 'text-xl sm:text-3xl',

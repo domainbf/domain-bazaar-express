@@ -56,7 +56,7 @@ export const AdvancedSearchFilters: React.FC<AdvancedSearchFiltersProps> = ({
   ];
 
   const extensions = [
-    '.com', '.net', '.org', '.io', '.ai', '.co', '.cn', '.com.cn', '.cc', '.me'
+ '.com', '.net', '.org', '.io', '.ai', '.co', '.cn', '.com.cn', '.cc', '.me'
   ];
 
   if (!isOpen) return null;

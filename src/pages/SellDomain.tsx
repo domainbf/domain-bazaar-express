@@ -17,28 +17,28 @@ const STEPS = [
     icon: Upload,
     title: '上架域名',
     desc: '填写域名信息、定价策略，几分钟完成上架。支持固定价格或接受报价两种模式。',
-    color: 'bg-info/15 text-info  ',
+    color: 'bg-info/15 text-info ',
   },
   {
     step: '02',
     icon: ShieldCheck,
     title: '验证所有权',
     desc: '通过 DNS TXT 记录一键验证，获得"已认证"标识，买家更信任，成交率更高。',
-    color: 'bg-success/15 text-success  ',
+    color: 'bg-success/15 text-success ',
   },
   {
     step: '03',
     icon: MessageSquare,
     title: '与买家沟通',
     desc: '买家发起报价后，通过内置消息系统直接沟通，平台提供交易记录留存保障。',
-    color: 'bg-primary/15 text-primary  ',
+    color: 'bg-primary/15 text-primary ',
   },
   {
     step: '04',
     icon: Handshake,
     title: '安全完成交割',
     desc: '资金进入第三方托管，你完成域名转移后资金自动释放，交易全程有保障。',
-    color: 'bg-warning/10 text-warning  ',
+    color: 'bg-warning/10 text-warning ',
   },
 ];
 

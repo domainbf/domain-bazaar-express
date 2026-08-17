@@ -174,7 +174,7 @@ export const AdminTickets = () => {
             ])}
             <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">客服回复内容</p>
             ${quoteBlock(replyText.trim(), 'blue')}
-          `,
+ `,
           ctaLabel: '查看完整对话',
           ctaUrl: `${brand.siteDomain}/user-center?tab=support`,
           brand,

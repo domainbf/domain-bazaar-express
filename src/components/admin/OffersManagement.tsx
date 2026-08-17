@@ -228,7 +228,7 @@ export const OffersManagement = () => {
 
   const exportOffers = () => {
     const csv = [
-      '域名,报价金额,买家邮箱,卖家邮箱,联系邮箱,状态,留言,时间',
+ '域名,报价金额,买家邮箱,卖家邮箱,联系邮箱,状态,留言,时间',
       ...filteredOffers.map(o =>
         [o.domain_name, o.amount, o.buyer_email || '', o.seller_email || '', o.contact_email || '', statusLabels[o.status || ''] || o.status, (o.message || '').replace(/,/g, '，'), new Date(o.created_at || '').toLocaleString()].join(',')
       )

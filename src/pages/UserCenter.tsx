@@ -32,8 +32,8 @@ const SECTION_LABELS: Record<string, string> = {
   messages: '站内消息',
   notifications: '消息通知',
   profile: '个人资料',
-  'profile-settings': '个人资料',
-  'profile-security': '账户安全',
+ 'profile-settings': '个人资料',
+ 'profile-security': '账户安全',
   support: '联系支持',
 };
 

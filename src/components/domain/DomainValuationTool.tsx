@@ -69,11 +69,11 @@ const TLD_MULTI: Record<string, number> = {
 };
 
 const HOT_KW = [
-  'ai','gpt','llm','tech','cloud','pay','shop','mall','bank','health','edu',
-  'learn','game','meta','web3','chain','smart','data','api','saas','code',
-  'yun','shu','ke','xue','qian','bao','dian','jing','tao','pin','xin',
-  'car','home','food','travel','news','photo','video','music','art','buy',
-  'sell','job','chat','team','hub','lab','run','go','map','fast','safe',
+ 'ai','gpt','llm','tech','cloud','pay','shop','mall','bank','health','edu',
+ 'learn','game','meta','web3','chain','smart','data','api','saas','code',
+ 'yun','shu','ke','xue','qian','bao','dian','jing','tao','pin','xin',
+ 'car','home','food','travel','news','photo','video','music','art','buy',
+ 'sell','job','chat','team','hub','lab','run','go','map','fast','safe',
 ];
 
 const LOAD_STEPS = [
@@ -308,7 +308,7 @@ const sc = (s: number) =>
   s >= 80 ? 'text-success bg-success/10 border-success/30' :
   s >= 65 ? 'text-info bg-info/10 border-info/30' :
   s >= 50 ? 'text-warning bg-warning/10 border-warning/30' :
-            'text-destructive bg-destructive/10 border-destructive/30';
+ 'text-destructive bg-destructive/10 border-destructive/30';
 
 const scLabel = (s: number) => s >= 80 ? '优秀' : s >= 65 ? '良好' : s >= 50 ? '一般' : '较弱';
 const scBar   = (s: number) =>

@@ -117,7 +117,7 @@ export const ActivityLogPanel = () => {
     const channel = supabase
       .channel(`user-activities-${user.id}`)
       .on(
-        'postgres_changes',
+ 'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'user_activities', filter: `user_id=eq.${user.id}` },
         (payload) => {
           const row = payload.new as ActivityRow;

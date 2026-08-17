@@ -262,13 +262,13 @@ export const WalletPanel = () => {
       </div>
 
       {/* 余额卡片 */}
-      <Card className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white overflow-hidden relative">
+      <Card className="bg-gradient-to-br from-muted via-muted to-muted text-white overflow-hidden relative">
         <div className="absolute top-0 right-0 w-64 h-64 bg-info/10 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary/10 rounded-full translate-y-1/2 -translate-x-1/2" />
         <CardContent className={`${isMobile ? 'p-4' : 'p-6'} relative z-10`}>
           <div className="flex items-start justify-between mb-4">
             <div>
-              <div className="flex items-center gap-2 text-gray-400 text-sm mb-1">
+              <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
                 <span>可用余额</span>
                 <button onClick={() => setShowBalance(!showBalance)} className="hover:text-white transition-colors">
                   {showBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
@@ -294,7 +294,7 @@ export const WalletPanel = () => {
           <div className={`flex gap-2 md:gap-3 ${isMobile ? 'flex-col' : ''}`}>
             <Button 
               onClick={() => setDepositDialogOpen(true)}
-              className="flex-1 bg-white text-gray-900 hover:bg-white/90 font-medium"
+              className="flex-1 bg-white text-foreground hover:bg-white/90 font-medium"
               size={isMobile ? "default" : "lg"}
             >
               <Plus className="h-4 w-4 mr-2" />

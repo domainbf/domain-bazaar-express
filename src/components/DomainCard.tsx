@@ -143,7 +143,7 @@ export const DomainCard = ({
           : 'border-border bg-card'
         }
         ${isSold ? 'opacity-60' : ''}
-      `}
+ `}
       style={{ willChange: 'transform' }}
     >
       {/* Top row: badges + favorite */}
@@ -184,7 +184,7 @@ export const DomainCard = ({
                 : 'text-muted-foreground hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/30 opacity-0 group-hover:opacity-100'
               }
               ${heartKey > 0 ? 'animate-heart' : ''}
-            `}
+ `}
             onClick={handleToggleFavorite}
             disabled={isLoadingFavorite}
             aria-label={isFavorited ? '取消收藏' : '收藏'}

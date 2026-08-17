@@ -259,7 +259,7 @@ export const CustomUrlSettings = () => {
                 保存中...
               </>
             ) : (
-              '保存自定义地址'
+ '保存自定义地址'
             )}
           </Button>
           {profile?.custom_url && (

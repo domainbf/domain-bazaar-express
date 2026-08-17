@@ -222,7 +222,7 @@ export const ResetPasswordConfirmForm = ({ token: _token }: ResetPasswordConfirm
               更新中...
             </>
           ) : (
-            '确认修改密码'
+ '确认修改密码'
           )}
         </Button>
       </div>

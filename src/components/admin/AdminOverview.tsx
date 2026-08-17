@@ -216,7 +216,7 @@ export const AdminOverview = ({ stats, isLoading }: AdminOverviewProps) => {
                 <div className="relative">
                   <Progress value={metric.value} className="h-2" />
                   <div 
-                    className="absolute top-0 h-2 w-0.5 bg-gray-400"
+                    className="absolute top-0 h-2 w-0.5 bg-secondary"
                     style={{ left: `${metric.target}%` }}
                   />
                 </div>

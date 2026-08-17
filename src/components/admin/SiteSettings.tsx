@@ -774,17 +774,17 @@ export const SiteSettings = () => {
             <CardContent className="space-y-4">
               {(() => {
                 const MANAGED_KEYS = new Set([
-                  'logo_url', 'logo_dark_url', 'favicon_url', 'site_name', 'site_subtitle', 'footer_text', 'icp_number',
-                  'social_github', 'social_twitter', 'social_wechat', 'social_weibo', 'social_facebook',
-                  'primary_color', 'secondary_color',
-                  'modelscope_api_key', 'modelscope_model', 'modelscope_auto_generate',
-                  'pwa_install_banner', 'feedback_button_visible', 'maintenance_mode', 'maintenance_title', 'maintenance_message',
-                  'site_closed', 'registration_closed',
-                  'whois_api_key', 'whois_provider',
-                  'resend_api_key', 'smtp_host', 'smtp_port', 'smtp_username', 'smtp_password', 'smtp_from_email', 'smtp_from_name',
-                  'site_domain', 'contact_email', 'contact_phone', 'contact_wechat', 'contact_address',
-                  'emergency_phone', 'hours_online', 'hours_phone', 'hours_weekday',
-                  'meta_title', 'meta_description', 'meta_keywords', 'og_title', 'og_description', 'og_image',
+ 'logo_url', 'logo_dark_url', 'favicon_url', 'site_name', 'site_subtitle', 'footer_text', 'icp_number',
+ 'social_github', 'social_twitter', 'social_wechat', 'social_weibo', 'social_facebook',
+ 'primary_color', 'secondary_color',
+ 'modelscope_api_key', 'modelscope_model', 'modelscope_auto_generate',
+ 'pwa_install_banner', 'feedback_button_visible', 'maintenance_mode', 'maintenance_title', 'maintenance_message',
+ 'site_closed', 'registration_closed',
+ 'whois_api_key', 'whois_provider',
+ 'resend_api_key', 'smtp_host', 'smtp_port', 'smtp_username', 'smtp_password', 'smtp_from_email', 'smtp_from_name',
+ 'site_domain', 'contact_email', 'contact_phone', 'contact_wechat', 'contact_address',
+ 'emergency_phone', 'hours_online', 'hours_phone', 'hours_weekday',
+ 'meta_title', 'meta_description', 'meta_keywords', 'og_title', 'og_description', 'og_image',
                 ]);
                 const customSettings = getSettingsBySection('general').filter(s => !MANAGED_KEYS.has(s.key));
                 return customSettings.length === 0 ? (
@@ -1486,7 +1486,7 @@ export const SiteSettings = () => {
                       {isUploadingLogo === 'light' ? (
                         <><Loader2 className="h-4 w-4 mr-2 animate-spin" />上传中...</>
                       ) : (
-                        '选择文件上传'
+ '选择文件上传'
                       )}
                     </Button>
                     <Label className="text-xs text-muted-foreground">或填写图片 URL</Label>
@@ -1501,11 +1501,11 @@ export const SiteSettings = () => {
                 {/* 深色 Logo */}
                 <div className="space-y-3">
                   <Label className="font-semibold">深色模式 Logo</Label>
-                  <div className="border rounded-lg p-4 bg-gray-900 flex flex-col items-center gap-3 min-h-[120px] justify-center">
+                  <div className="border rounded-lg p-4 bg-invert flex flex-col items-center gap-3 min-h-[120px] justify-center">
                     {brandInfo.logo_dark_url ? (
                       <img src={brandInfo.logo_dark_url} alt="Dark Logo" className="max-h-16 max-w-full object-contain" />
                     ) : (
-                      <p className="text-xs text-gray-400">未设置深色 Logo，将使用浅色版本</p>
+                      <p className="text-xs text-muted-foreground">未设置深色 Logo，将使用浅色版本</p>
                     )}
                   </div>
                   <div className="space-y-2">
@@ -1531,7 +1531,7 @@ export const SiteSettings = () => {
                       {isUploadingLogo === 'dark' ? (
                         <><Loader2 className="h-4 w-4 mr-2 animate-spin" />上传中...</>
                       ) : (
-                        '选择文件上传'
+ '选择文件上传'
                       )}
                     </Button>
                     <Label className="text-xs text-muted-foreground">或填写图片 URL</Label>
@@ -1596,7 +1596,7 @@ export const SiteSettings = () => {
                     {isUploadingLogo === 'favicon' ? (
                       <><Loader2 className="h-4 w-4 mr-2 animate-spin" />上传中...</>
                     ) : (
-                      '选择图标文件上传'
+ '选择图标文件上传'
                     )}
                   </Button>
                   <Label className="text-xs text-muted-foreground">或填写图标 URL</Label>
@@ -1875,7 +1875,7 @@ export const SiteSettings = () => {
               )}
 
               {msTestResult && (
-                <Alert className={msTestResult.ok ? 'border-success/30 bg-success/10  ' : 'border-destructive/30 bg-destructive/10  '}>
+                <Alert className={msTestResult.ok ? 'border-success/30 bg-success/10 ' : 'border-destructive/30 bg-destructive/10 '}>
                   {msTestResult.ok
                     ? <CheckCircle className="h-4 w-4 text-success" />
                     : <XCircle className="h-4 w-4 text-destructive" />}

@@ -72,10 +72,10 @@ export default function DisputePage() {
         transaction_id: form.transaction_id || null,
         reason: form.dispute_type,
         description: [
-          `类型: ${disputeLabel}`,
+ `类型: ${disputeLabel}`,
           form.opponent_email ? `对方: ${form.opponent_email}` : null,
           form.amount ? `涉及金额: ${form.amount}` : null,
-          '',
+ '',
           form.description,
         ].filter(Boolean).join('\n'),
         status: 'open',

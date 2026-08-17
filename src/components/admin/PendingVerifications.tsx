@@ -89,7 +89,7 @@ export const PendingVerifications = () => {
         .select(`
           *,
           domain_listings!domain_verifications_domain_id_fkey(name, price, owner_id)
-        `)
+ `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -161,10 +161,10 @@ export const PendingVerifications = () => {
 
   const getMethodLabel = (method?: string) => {
     const labels: Record<string, string> = {
-      'dns': 'DNS验证',
-      'file': '文件验证',
-      'email': '邮箱验证',
-      'whois': 'WHOIS验证'
+ 'dns': 'DNS验证',
+ 'file': '文件验证',
+ 'email': '邮箱验证',
+ 'whois': 'WHOIS验证'
     };
     return labels[method || ''] || method || '未知';
   };

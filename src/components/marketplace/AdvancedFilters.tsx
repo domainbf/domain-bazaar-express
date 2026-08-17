@@ -43,8 +43,8 @@ interface AdvancedFiltersProps {
 }
 
 const DOMAIN_EXTENSIONS = [
-  '.com', '.net', '.org', '.io', '.ai', '.co', '.cn', '.com.cn', 
-  '.dev', '.app', '.xyz', '.me', '.info', '.biz', '.tech'
+ '.com', '.net', '.org', '.io', '.ai', '.co', '.cn', '.com.cn', 
+ '.dev', '.app', '.xyz', '.me', '.info', '.biz', '.tech'
 ];
 
 const CATEGORIES = [

@@ -307,7 +307,7 @@ export const AccountSecurity = () => {
                     更新中...
                   </>
                 ) : (
-                  '确认修改'
+ '确认修改'
                 )}
               </Button>
               <Button
@@ -411,7 +411,7 @@ export const AccountSecurity = () => {
                       更新中...
                     </>
                   ) : (
-                    '确认修改'
+ '确认修改'
                   )}
                 </Button>
                 <Button

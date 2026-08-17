@@ -39,11 +39,11 @@ interface AuctionBid {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  active: { label: '进行中', color: 'bg-success/15 text-success   ' },
-  ended: { label: '已结束', color: 'bg-muted text-foreground dark:bg-gray-800 dark:text-gray-300' },
-  cancelled: { label: '已取消', color: 'bg-destructive/15 text-destructive  ' },
-  completed: { label: '已完成', color: 'bg-info/15 text-info  ' },
-  pending: { label: '待开始', color: 'bg-warning/15 text-warning   ' },
+  active: { label: '进行中', color: 'bg-success/15 text-success ' },
+  ended: { label: '已结束', color: 'bg-muted text-foreground ' },
+  cancelled: { label: '已取消', color: 'bg-destructive/15 text-destructive ' },
+  completed: { label: '已完成', color: 'bg-info/15 text-info ' },
+  pending: { label: '待开始', color: 'bg-warning/15 text-warning ' },
 };
 
 export const AdminAuctionManagement = () => {

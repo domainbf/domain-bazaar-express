@@ -166,7 +166,7 @@ export const Profile = () => {
                       保存中...
                     </span>
                   ) : (
-                    '保存更改'
+ '保存更改'
                   )}
                 </Button>
               </form>

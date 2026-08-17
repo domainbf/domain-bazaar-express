@@ -372,7 +372,7 @@ export default function TransactionDetail() {
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10 ${
                           isDone ? 'bg-primary text-primary-foreground' :
                           isCurrent ? 'bg-primary/20 text-primary border-2 border-primary' :
-                          'bg-muted text-muted-foreground'
+ 'bg-muted text-muted-foreground'
                         }`}>
                           <StepIcon className="w-4 h-4" />
                         </div>

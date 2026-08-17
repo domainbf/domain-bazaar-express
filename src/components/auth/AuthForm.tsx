@@ -288,7 +288,7 @@ export const AuthForm = ({
                         发送中...
                       </>
                     ) : (
-                      '重新发送验证邮件'
+ '重新发送验证邮件'
                     )}
                   </Button>
                 </div>

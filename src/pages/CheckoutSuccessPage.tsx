@@ -46,7 +46,7 @@ interface RealOrder {
 
 const symOf = (c: string) => (c === 'USD' ? '$' : c === 'EUR' ? '€' : c === 'GBP' ? '£' : '¥');
 const fmt = (v: number, c = 'CNY') =>
-  `${symOf(c)}${Number(v || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+ `${symOf(c)}${Number(v || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 
 export default function CheckoutSuccessPage() {
   const [params] = useSearchParams();

@@ -38,19 +38,19 @@ interface Props {
 }
 
 const EPP_STATUS_LABELS: Record<string, string> = {
-  'clientTransferProhibited': '禁止转移（客户端）',
-  'clientDeleteProhibited': '禁止删除（客户端）',
-  'clientUpdateProhibited': '禁止更新（客户端）',
-  'serverTransferProhibited': '禁止转移（注册商）',
-  'serverDeleteProhibited': '禁止删除（注册商）',
-  'serverUpdateProhibited': '禁止更新（注册商）',
-  'ok': '正常',
-  'active': '活跃',
-  'pendingDelete': '等待删除',
-  'pendingTransfer': '等待转移',
-  'redemptionPeriod': '赎回期',
-  'renewPeriod': '续费期',
-  'addPeriod': '新注册保护期',
+ 'clientTransferProhibited': '禁止转移（客户端）',
+ 'clientDeleteProhibited': '禁止删除（客户端）',
+ 'clientUpdateProhibited': '禁止更新（客户端）',
+ 'serverTransferProhibited': '禁止转移（注册商）',
+ 'serverDeleteProhibited': '禁止删除（注册商）',
+ 'serverUpdateProhibited': '禁止更新（注册商）',
+ 'ok': '正常',
+ 'active': '活跃',
+ 'pendingDelete': '等待删除',
+ 'pendingTransfer': '等待转移',
+ 'redemptionPeriod': '赎回期',
+ 'renewPeriod': '续费期',
+ 'addPeriod': '新注册保护期',
 };
 
 const translateEppStatus = (status: string): string => {

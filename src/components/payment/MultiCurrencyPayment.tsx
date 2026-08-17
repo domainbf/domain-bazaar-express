@@ -389,7 +389,7 @@ export const MultiCurrencyPayment: React.FC<MultiCurrencyPaymentProps> = ({
                 处理中...
               </>
             ) : (
-              `确认支付 ${currency.symbol}${total.toFixed(2)}`
+ `确认支付 ${currency.symbol}${total.toFixed(2)}`
             )}
           </Button>
 

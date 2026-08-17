@@ -75,8 +75,8 @@ const FavoriteHeart = ({ domainId }: { domainId: string }) => {
       data-testid={`button-favorite-${domainId}`}
       aria-label={active ? '取消收藏' : '收藏'}
       className={cn(
-        'h-8 w-8 shrink-0 flex items-center justify-center rounded-full transition-colors backdrop-blur-sm',
-        'bg-invert-foreground/10 hover:bg-invert-foreground/20',
+ 'h-8 w-8 shrink-0 flex items-center justify-center rounded-full transition-colors backdrop-blur-sm',
+ 'bg-invert-foreground/10 hover:bg-invert-foreground/20',
         active ? 'text-destructive' : 'text-invert-foreground/60 hover:text-invert-foreground',
       )}
     >
@@ -120,8 +120,8 @@ const HeroStyleCard = ({ domain, index, hero, onSelect }: CardProps) => {
         {/* Top: badge + heart */}
         <div className="flex items-start justify-between gap-2 mb-4">
           <span className={cn(
-            'inline-flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold',
-            'bg-invert-foreground/10 text-invert-foreground px-2.5 py-1 rounded-full backdrop-blur-sm',
+ 'inline-flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold',
+ 'bg-invert-foreground/10 text-invert-foreground px-2.5 py-1 rounded-full backdrop-blur-sm',
           )}>
             {hero && <Star className="h-2.5 w-2.5 fill-current" />}
             {badgeText}
@@ -131,7 +131,7 @@ const HeroStyleCard = ({ domain, index, hero, onSelect }: CardProps) => {
 
         {/* Domain wordmark */}
         <h3 className={cn(
-          'font-black uppercase tracking-tight leading-[0.95] break-all text-invert-foreground',
+ 'font-black uppercase tracking-tight leading-[0.95] break-all text-invert-foreground',
           hero ? 'my-6' : 'my-4',
           domainTextSize(domain.name, isFeatured),
         )}>
@@ -143,7 +143,7 @@ const HeroStyleCard = ({ domain, index, hero, onSelect }: CardProps) => {
           <div>
             <p className="text-[10px] uppercase tracking-widest text-invert-foreground/50 mb-1">一口价</p>
             <p className={cn(
-              'font-bold tabular-nums text-invert-foreground',
+ 'font-bold tabular-nums text-invert-foreground',
               hero ? 'text-3xl sm:text-4xl' : 'text-2xl',
             )}>
               {formatPrice(domain)}
@@ -171,12 +171,12 @@ const HeroStyleCard = ({ domain, index, hero, onSelect }: CardProps) => {
   );
 
   const wrapperClass = cn(
-    'group relative block overflow-hidden isolate',
-    'rounded-2xl border border-invert-foreground/10',
-    'bg-invert text-invert-foreground',
-    'shadow-[0_2px_20px_-8px_rgba(0,0,0,0.4)]',
-    'transition-all duration-300',
-    'hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-[0_16px_40px_-12px_rgba(0,0,0,0.6)]',
+ 'group relative block overflow-hidden isolate',
+ 'rounded-2xl border border-invert-foreground/10',
+ 'bg-invert text-invert-foreground',
+ 'shadow-[0_2px_20px_-8px_rgba(0,0,0,0.4)]',
+ 'transition-all duration-300',
+ 'hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-[0_16px_40px_-12px_rgba(0,0,0,0.6)]',
     hero ? 'p-6 sm:p-8 min-h-[260px] sm:min-h-[300px]' : 'p-5 min-h-[200px]',
   );
 
@@ -216,7 +216,7 @@ const CardSkeleton = ({ hero, i }: { hero?: boolean; i: number }) => (
     animate={{ opacity: 1 }}
     transition={{ duration: 0.2, delay: Math.min(i * 0.04, 0.2) }}
     className={cn(
-      'relative rounded-2xl border border-white/10 bg-neutral-900/60 overflow-hidden',
+ 'relative rounded-2xl border border-white/10 bg-invert overflow-hidden',
       hero ? 'p-6 sm:p-8 min-h-[260px] sm:min-h-[300px] sm:col-span-2' : 'p-5 min-h-[200px]',
     )}
   >

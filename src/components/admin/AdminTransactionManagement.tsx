@@ -38,14 +38,14 @@ interface AdminTransaction {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-warning/15 text-warning   ',
-  paid: 'bg-info/15 text-info   ',
-  in_escrow: 'bg-primary/15 text-primary   ',
-  domain_transferred: 'bg-primary/10 text-primary  ',
-  completed: 'bg-success/15 text-success   ',
-  cancelled: 'bg-muted text-foreground dark:bg-gray-900/30 dark:text-muted-foreground',
-  disputed: 'bg-destructive/15 text-destructive   ',
-  refunded: 'bg-warning/10 text-warning  ',
+  pending: 'bg-warning/15 text-warning ',
+  paid: 'bg-info/15 text-info ',
+  in_escrow: 'bg-primary/15 text-primary ',
+  domain_transferred: 'bg-primary/10 text-primary ',
+  completed: 'bg-success/15 text-success ',
+  cancelled: 'bg-muted text-foreground  dark:text-muted-foreground',
+  disputed: 'bg-destructive/15 text-destructive ',
+  refunded: 'bg-warning/10 text-warning ',
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -120,7 +120,7 @@ export const AdminTransactionManagement = () => {
 
         // Reusable section builder helpers
         const stepList = (steps: string[]) =>
-          `<table cellpadding="0" cellspacing="0" role="presentation" width="100%" style="margin-bottom:20px;">
+ `<table cellpadding="0" cellspacing="0" role="presentation" width="100%" style="margin-bottom:20px;">
             ${steps.map((s, i) => `<tr><td style="padding:5px 0;font-size:13px;color:#475569;line-height:1.5;">
               <span style="display:inline-block;background:#0f172a;color:#f8fafc;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;font-size:11px;font-weight:700;margin-right:10px;vertical-align:middle;">${i+1}</span>
               ${s}
@@ -128,7 +128,7 @@ export const AdminTransactionManagement = () => {
           </table>`;
 
         const infoBox = (emoji: string, title: string, body: string, color = '#f8fafc', border = '#e2e8f0') =>
-          `<div style="background:${color};border:1px solid ${border};border-radius:10px;padding:16px 18px;margin-bottom:20px;">
+ `<div style="background:${color};border:1px solid ${border};border-radius:10px;padding:16px 18px;margin-bottom:20px;">
             <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#0f172a;">${emoji} ${title}</p>
             <p style="margin:0;font-size:13px;color:#475569;line-height:1.6;">${body}</p>
           </div>`;
@@ -164,14 +164,14 @@ export const AdminTransactionManagement = () => {
               ${amountBlock({ label: '担保金额', amount: fmtAmount, sublabel: '资金安全托管中，域名确认后结算给卖家', color: '#0f172a' })}
               <p style="margin:0 0 12px;font-size:14px;font-weight:700;color:#0f172a;">接下来的流程</p>
               ${stepList([
-                `卖家收到通知后，开始准备域名过户所需材料`,
-                `卖家在注册商处完成域名转移操作`,
-                `您收到域名转入通知，登录平台 <strong>确认接收</strong>`,
-                `确认后平台自动向卖家释放款项，交易完成`,
+ `卖家收到通知后，开始准备域名过户所需材料`,
+ `卖家在注册商处完成域名转移操作`,
+ `您收到域名转入通知，登录平台 <strong>确认接收</strong>`,
+ `确认后平台自动向卖家释放款项，交易完成`,
               ])}
               ${infoBox('⏱️', '预计过户时间', '域名过户通常需要 1–3 个工作日，具体取决于注册商处理速度。如超过 5 个工作日仍未收到域名，请联系平台客服。', '#eff6ff', '#bfdbfe')}
               ${infoBox('🛡️', '资金安全保障', '在您确认收到域名之前，资金不会释放给卖家。如域名未按时转移，您可以申请退款，平台全程保护您的权益。', '#f0fdf4', '#bbf7d0')}
-            `,
+ `,
             ctaLabel: '查看交易进度',
             ctaUrl: txUrl,
             brand,
@@ -191,15 +191,15 @@ export const AdminTransactionManagement = () => {
               ${feeTable(txAmount, commission)}
               <p style="margin:0 0 12px;font-size:14px;font-weight:700;color:#0f172a;">过户操作步骤</p>
               ${stepList([
-                `登录您的域名注册商账户（GoDaddy / 阿里云 / Namecheap 等）`,
-                `找到域名 <strong>${domainName}</strong>，发起域名转移/推送`,
-                `将域名转移给买家（通过 Auth Code 或账户推送）`,
-                `在本平台填写过户凭证，等待买家确认接收`,
-                `买家确认后，款项自动结算到您的账户`,
+ `登录您的域名注册商账户（GoDaddy / 阿里云 / Namecheap 等）`,
+ `找到域名 <strong>${domainName}</strong>，发起域名转移/推送`,
+ `将域名转移给买家（通过 Auth Code 或账户推送）`,
+ `在本平台填写过户凭证，等待买家确认接收`,
+ `买家确认后，款项自动结算到您的账户`,
               ])}
               ${infoBox('⚠️', '重要提醒', `请在 <strong>3 个工作日内</strong>完成过户操作。超时可能导致买家申请退款，影响您的账户信誉。如遇技术问题请立即联系客服。`, '#fefce8', '#fef08a')}
               ${infoBox('💡', '过户小贴士', '如买家使用的是国内注册商（如阿里云、腾讯云），可使用"账户内域名转移"方式，速度更快；如是国际注册商，使用 Auth Code 转移即可。', '#f8fafc', '#e2e8f0')}
-            `,
+ `,
             ctaLabel: '查看交易详情',
             ctaUrl: txUrl,
             brand,
@@ -220,14 +220,14 @@ export const AdminTransactionManagement = () => {
               ${amountBlock({ label: '待确认金额', amount: fmtAmount, sublabel: '确认接收后款项将自动结算给卖家', color: '#7c3aed' })}
               <p style="margin:0 0 12px;font-size:14px;font-weight:700;color:#0f172a;">如何确认接收域名</p>
               ${stepList([
-                `登录您的域名注册商账户，查看 <strong>${domainName}</strong> 是否已出现在您的域名列表中`,
-                `确认域名 Whois 信息已更新为您的注册人信息`,
-                `返回 ${brand.siteName} 平台，在交易页面点击 <strong>"确认接收"</strong> 按钮`,
-                `交易自动完成，款项结算给卖家`,
+ `登录您的域名注册商账户，查看 <strong>${domainName}</strong> 是否已出现在您的域名列表中`,
+ `确认域名 Whois 信息已更新为您的注册人信息`,
+ `返回 ${brand.siteName} 平台，在交易页面点击 <strong>"确认接收"</strong> 按钮`,
+ `交易自动完成，款项结算给卖家`,
               ])}
               ${infoBox('⚠️', '请在 48 小时内确认', `若您 48 小时内未操作，系统将自动确认完成交易。如域名未到账，请 <strong>不要</strong> 点击确认，立即联系平台客服发起争议。`, '#fefce8', '#fef08a')}
               ${infoBox('🔍', '如何检查域名归属', `在浏览器打开 <a href="https://lookup.icann.org" style="color:#7c3aed;">lookup.icann.org</a> 查询 ${domainName} 的注册人信息是否已更新为您的信息。通常注册商处理需 1–24 小时。`, '#eff6ff', '#bfdbfe')}
-            `,
+ `,
             ctaLabel: '确认接收域名',
             ctaUrl: txUrl,
             brand,
@@ -247,7 +247,7 @@ export const AdminTransactionManagement = () => {
               ${feeTable(txAmount, commission)}
               ${infoBox('⏱️', '预计结算时间', `买家确认接收后款项立即结算。如买家 48 小时内未操作，系统将<strong>自动完成</strong>交易并结算款项给您。`, '#f0fdf4', '#bbf7d0')}
               ${infoBox('❓', '如买家有争议', '如果买家对域名接收有异议，平台将介入调查。请保留好过户凭证截图备用。', '#fefce8', '#fef08a')}
-            `,
+ `,
             ctaLabel: '查看交易进度',
             ctaUrl: txUrl,
             brand,
@@ -268,14 +268,14 @@ export const AdminTransactionManagement = () => {
               ${amountBlock({ label: '交易金额', amount: fmtAmount, sublabel: '交易已完成结算', color: '#16a34a' })}
               <p style="margin:0 0 12px;font-size:14px;font-weight:700;color:#0f172a;">下一步建议</p>
               ${stepList([
-                `登录注册商控制台，检查 ${domainName} 的 DNS 配置，按需修改`,
-                `设置域名续费提醒，避免域名到期流失`,
-                `如需出售域名，可在 ${brand.siteName} 发布新的出售挂单`,
-                `对本次交易体验满意？欢迎在平台给卖家留下评价`,
+ `登录注册商控制台，检查 ${domainName} 的 DNS 配置，按需修改`,
+ `设置域名续费提醒，避免域名到期流失`,
+ `如需出售域名，可在 ${brand.siteName} 发布新的出售挂单`,
+ `对本次交易体验满意？欢迎在平台给卖家留下评价`,
               ])}
               ${infoBox('🛡️', '交易凭证', `本次交易编号 <strong>${txId.substring(0,8).toUpperCase()}</strong> 已记录在案，可在用户中心→交易记录中随时查询完整凭证。`, '#f0fdf4', '#bbf7d0')}
               ${infoBox('💡', '域名管理建议', `建议您立即登录注册商，将域名的注册人邮箱更新为您的常用邮箱，并开启"域名锁定"保护，防止意外转移。`, '#eff6ff', '#bfdbfe')}
-            `,
+ `,
             ctaLabel: '查看我的域名',
             ctaUrl: txUrl,
             brand,
@@ -295,7 +295,7 @@ export const AdminTransactionManagement = () => {
               ${txInfo}
               ${infoBox('✅', '结算说明', `款项已即时划入您的 ${brand.siteName} 账户余额。如需提现，请在用户中心→钱包中发起提现申请，通常 1–3 个工作日到账。`, '#f0fdf4', '#bbf7d0')}
               ${infoBox('🌟', '感谢您的信任', `本次交易 <strong>编号 ${txId.substring(0,8).toUpperCase()}</strong> 已完成归档。您可在交易记录中随时下载交易凭证。期待您继续在 ${brand.siteName} 出售更多优质域名！`, '#f8fafc', '#e2e8f0')}
-            `,
+ `,
             ctaLabel: '查看我的收益',
             ctaUrl: txUrl,
             brand,
@@ -316,7 +316,7 @@ export const AdminTransactionManagement = () => {
               ${actionNote ? infoBox('📝', '取消原因', actionNote, '#f8fafc', '#e2e8f0') : ''}
               ${infoBox('💳', '退款说明', '如您已完成付款，款项将退回至您的原支付账户（支付宝/微信/银行卡）。退款到账时间因支付渠道而异，一般为 3–7 个工作日。', '#eff6ff', '#bfdbfe')}
               ${infoBox('❓', '有疑问？', `如对取消原因或退款有疑问，请通过平台客服中心联系我们，我们将在 24 小时内回复。`, '#fefce8', '#fef08a')}
-            `,
+ `,
             ctaLabel: '联系客服',
             ctaUrl: `${brand.siteDomain}/support`,
             brand,
@@ -335,7 +335,7 @@ export const AdminTransactionManagement = () => {
               ${txInfo}
               ${actionNote ? infoBox('📝', '取消原因', actionNote, '#f8fafc', '#e2e8f0') : ''}
               ${infoBox('🔄', '域名状态', `${domainName} 已自动恢复为"上架中"状态，可继续在平台接收新的买家报价。您无需进行任何操作。`, '#f0fdf4', '#bbf7d0')}
-            `,
+ `,
             ctaLabel: '管理我的域名',
             ctaUrl: txUrl,
             brand,
@@ -355,7 +355,7 @@ export const AdminTransactionManagement = () => {
               ${amountBlock({ label: '退款金额', amount: fmtAmount, sublabel: '退还至原支付账户', color: '#f97316' })}
               ${infoBox('⏱️', '退款到账时间', '退款处理时间因支付渠道而异：<br>• 支付宝 / 微信支付：1–3 个工作日<br>• 银行卡：3–7 个工作日<br>• 如超过 7 个工作日未到账，请联系客服', '#fefce8', '#fef08a')}
               ${infoBox('❓', '有疑问？', '如对退款金额或到账时间有疑问，请通过平台客服中心提交工单，我们将在 24 小时内处理。', '#eff6ff', '#bfdbfe')}
-            `,
+ `,
             ctaLabel: '查看退款状态',
             ctaUrl: txUrl,
             brand,
@@ -374,7 +374,7 @@ export const AdminTransactionManagement = () => {
               ${txInfo}
               ${actionNote ? infoBox('📝', '退款原因', actionNote, '#f8fafc', '#e2e8f0') : ''}
               ${infoBox('🔄', '域名已恢复上架', `${domainName} 已自动恢复为"上架中"状态，其他买家可继续报价和购买。`, '#f0fdf4', '#bbf7d0')}
-            `,
+ `,
             ctaLabel: '管理我的域名',
             ctaUrl: txUrl,
             brand,

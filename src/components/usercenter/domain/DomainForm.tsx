@@ -346,9 +346,9 @@ export const DomainForm = ({
               已保存
             </>
           ) : mode === 'add' ? (
-            '上架域名'
+ '上架域名'
           ) : (
-            '更新域名'
+ '更新域名'
           )}
         </Button>
       </div>

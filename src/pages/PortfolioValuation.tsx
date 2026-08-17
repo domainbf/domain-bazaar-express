@@ -146,9 +146,9 @@ export default function PortfolioValuation() {
       const short = rows.filter((r) => r.length <= 5).length;
       const premium = rows.filter((r) => r.tld === 'com').length;
       setAiNarrative(
-        `本组合共 ${rows.length} 个域名，估算中位总值约 ${formatPrice(totals.mid, 'CNY')}。` +
-        `其中头部资产 ${top} 具备较强流动性；短字符 (≤5) 域名占比 ${short}，.com 优质后缀 ${premium} 个。` +
-        `建议优先推广长度短、后缀纯度高的资产；对长域名或含连字符的资产考虑组合打包出售。` +
+ `本组合共 ${rows.length} 个域名，估算中位总值约 ${formatPrice(totals.mid, 'CNY')}。` +
+ `其中头部资产 ${top} 具备较强流动性；短字符 (≤5) 域名占比 ${short}，.com 优质后缀 ${premium} 个。` +
+ `建议优先推广长度短、后缀纯度高的资产；对长域名或含连字符的资产考虑组合打包出售。` +
         (data ? '' : ''),
       );
       if (error) console.warn(error);

@@ -82,7 +82,7 @@ export const NotificationSettings = () => {
     const channel = supabase
       .channel(`notif-prefs-${user.id}`)
       .on(
-        'postgres_changes',
+ 'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` },
         (payload) => {
           const incoming = (payload.new as any)?.notification_prefs as Prefs | null;

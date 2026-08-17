@@ -38,9 +38,9 @@ export const DomainListRow = ({ domain, index }: { domain: Domain; index: number
         to={`/domain/${encodeURIComponent(domain.name)}`}
         data-testid={`row-domain-${domain.id}`}
         className={cn(
-          'group flex items-center gap-4 px-4 py-3.5 rounded-xl',
-          'border border-border/60 bg-card hover:bg-muted/40',
-          'transition-colors',
+ 'group flex items-center gap-4 px-4 py-3.5 rounded-xl',
+ 'border border-border/60 bg-card hover:bg-muted/40',
+ 'transition-colors',
         )}
       >
         {/* Wordmark */}
@@ -85,7 +85,7 @@ export const DomainListRow = ({ domain, index }: { domain: Domain; index: number
             disabled={toggling}
             aria-label={fav ? '取消收藏' : '收藏'}
             className={cn(
-              'h-8 w-8 flex items-center justify-center rounded-full border border-border/60',
+ 'h-8 w-8 flex items-center justify-center rounded-full border border-border/60',
               fav ? 'text-destructive bg-destructive/10 border-destructive/40' : 'text-muted-foreground hover:text-foreground',
             )}
           >

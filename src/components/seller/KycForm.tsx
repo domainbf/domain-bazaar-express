@@ -90,8 +90,8 @@ export default function KycForm({ onStatusChange, compact }: Props) {
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open(
-          'POST',
-          `${SUPABASE_URL}/storage/v1/object/kyc-documents/${encodeURI(path)}`,
+ 'POST',
+ `${SUPABASE_URL}/storage/v1/object/kyc-documents/${encodeURI(path)}`,
           true
         );
         xhr.setRequestHeader('Authorization', `Bearer ${token}`);

@@ -61,7 +61,7 @@ export const SoldDomainsPanel = () => {
           created_at, updated_at, completed_at, buyer_id, domain_id,
           domains:domain_id ( name ),
           buyer:profiles!transactions_buyer_id_fkey ( email, full_name, username )
-        `)
+ `)
         .eq('seller_id', user.id)
         .or('progress_stage.in.(transferred,completed),status.in.(completed,domain_transferred,buyer_confirmed)')
         .order('updated_at', { ascending: false });
@@ -138,7 +138,7 @@ export const SoldDomainsPanel = () => {
     const ch = supabase
       .channel('sold-domains-' + user.id)
       .on(
-        'postgres_changes',
+ 'postgres_changes',
         { event: '*', schema: 'public', table: 'transactions', filter: `seller_id=eq.${user.id}` },
         () => load(),
       )

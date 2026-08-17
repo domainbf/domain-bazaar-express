@@ -23,12 +23,12 @@ interface ActivityLog {
 }
 
 const activityConfig: Record<string, { icon: any; label: string; color: string }> = {
-  'login': { icon: User, label: '用户登录', color: 'bg-info/15 text-info  ' },
-  'view_domain': { icon: Eye, label: '查看域名', color: 'bg-muted text-muted-foreground' },
-  'create_offer': { icon: MessageSquare, label: '提交报价', color: 'bg-primary/15 text-primary  ' },
-  'favorite_domain': { icon: Heart, label: '收藏域名', color: 'bg-destructive/10 text-destructive  ' },
-  'purchase': { icon: DollarSign, label: '完成购买', color: 'bg-success/15 text-success  ' },
-  'verify_domain': { icon: Shield, label: '域名验证', color: 'bg-warning/15 text-warning  ' },
+ 'login': { icon: User, label: '用户登录', color: 'bg-info/15 text-info ' },
+ 'view_domain': { icon: Eye, label: '查看域名', color: 'bg-muted text-muted-foreground' },
+ 'create_offer': { icon: MessageSquare, label: '提交报价', color: 'bg-primary/15 text-primary ' },
+ 'favorite_domain': { icon: Heart, label: '收藏域名', color: 'bg-destructive/10 text-destructive ' },
+ 'purchase': { icon: DollarSign, label: '完成购买', color: 'bg-success/15 text-success ' },
+ 'verify_domain': { icon: Shield, label: '域名验证', color: 'bg-warning/15 text-warning ' },
 };
 
 const PAGE_SIZE = 20;

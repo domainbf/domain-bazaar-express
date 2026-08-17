@@ -69,7 +69,7 @@ export const UserTable = ({
                       className="w-8 h-8 rounded-full"
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
                       {(user.username || user.full_name || 'U').charAt(0).toUpperCase()}
                     </div>
                   )}

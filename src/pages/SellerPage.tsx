@@ -253,7 +253,7 @@ const SellerDashboard = ({ userId }: { userId: string }) => {
                           className={
                             d.status === 'available' ? 'text-success border-success/40 text-[10px]' :
                             d.status === 'reserved' ? 'text-warning border-warning/40 text-[10px]' :
-                            'text-muted-foreground text-[10px]'
+ 'text-muted-foreground text-[10px]'
                           }
                         >
                           {d.status === 'available' ? '在售' : d.status === 'reserved' ? '预留' : (d.status || '—')}

@@ -58,9 +58,9 @@ const scriptFields: FieldDef[] = [
 const allExtraFields = [...heroFields, ...howItWorksFields, ...statsFields, ...ctaFields, ...scriptFields];
 
 const BRAND_KEYS = [
-  'site_name', 'site_domain', 'logo_url', 'favicon_url',
-  'footer_text', 'contact_phone', 'contact_email',
-  'contact_address', 'emergency_phone', 'support_hours',
+ 'site_name', 'site_domain', 'logo_url', 'favicon_url',
+ 'footer_text', 'contact_phone', 'contact_email',
+ 'contact_address', 'emergency_phone', 'support_hours',
 ];
 
 export const FrontendContentManager = () => {

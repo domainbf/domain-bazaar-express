@@ -99,12 +99,12 @@ export const ContactPage: React.FC = () => {
     
     try {
       const categoryLabels: Record<string, string> = {
-        'transaction': '交易问题',
-        'domain': '域名相关',
-        'account': '账户问题',
-        'payment': '支付结算',
-        'technical': '技术支持',
-        'other': '其他问题',
+ 'transaction': '交易问题',
+ 'domain': '域名相关',
+ 'account': '账户问题',
+ 'payment': '支付结算',
+ 'technical': '技术支持',
+ 'other': '其他问题',
       };
       const categoryLabel = categoryLabels[formData.category] || formData.category;
       const siteDomain = (config.site_domain || window.location.origin).replace(/\/$/, '');

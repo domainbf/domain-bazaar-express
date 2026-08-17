@@ -20,8 +20,8 @@ export const SiteLogo = ({ src, alt, className, onError }: SiteLogoProps) => (
     loading="eager"
     decoding="async"
     className={cn(
-      'w-auto max-w-[180px] object-contain select-none',
-      'mix-blend-multiply dark:mix-blend-screen dark:invert-0',
+ 'w-auto max-w-[180px] object-contain select-none',
+ 'mix-blend-multiply dark:mix-blend-screen dark:invert-0',
       className,
     )}
     onError={onError}

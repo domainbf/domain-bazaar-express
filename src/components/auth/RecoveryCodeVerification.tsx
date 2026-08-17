@@ -98,7 +98,7 @@ export const RecoveryCodeVerification = ({
                 验证中...
               </>
             ) : (
-              '验证恢复码'
+ '验证恢复码'
             )}
           </Button>
 

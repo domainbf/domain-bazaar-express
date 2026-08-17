@@ -81,7 +81,7 @@ export const AllDomainListings = () => {
         .select(`
           *,
           domain_analytics(views, favorites, offers)
-        `);
+ `);
       
       if (error) throw error;
       
@@ -317,31 +317,31 @@ export const AllDomainListings = () => {
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
-      'available': '可售',
-      'sold': '已售',
-      'reserved': '保留',
-      'pending': '待审核'
+ 'available': '可售',
+ 'sold': '已售',
+ 'reserved': '保留',
+ 'pending': '待审核'
     };
     return labels[status] || status;
   };
 
   const getCategoryLabel = (category: string) => {
     const labels: Record<string, string> = {
-      'premium': '高端',
-      'standard': '标准',
-      'short': '短域名',
-      'numeric': '数字',
-      'brandable': '品牌',
-      'keyword': '关键词'
+ 'premium': '高端',
+ 'standard': '标准',
+ 'short': '短域名',
+ 'numeric': '数字',
+ 'brandable': '品牌',
+ 'keyword': '关键词'
     };
     return labels[category] || category;
   };
 
   const getVerificationLabel = (status: string) => {
     const labels: Record<string, string> = {
-      'verified': '已验证',
-      'pending': '待验证',
-      'none': '未验证'
+ 'verified': '已验证',
+ 'pending': '待验证',
+ 'none': '未验证'
     };
     return labels[status] || '未验证';
   };

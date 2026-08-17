@@ -247,7 +247,7 @@ export const PaymentIntegration: React.FC<PaymentIntegrationProps> = ({
             {isProcessing ? (
               <><Clock className="h-4 w-4 mr-2 animate-spin" />处理中...</>
             ) : isManualTransfer ? (
-              '获取转账信息'
+ '获取转账信息'
             ) : (
               <>支付 ¥{total.toLocaleString()} <ExternalLink className="h-4 w-4 ml-2" /></>
             )}
