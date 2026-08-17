@@ -262,7 +262,7 @@ export const WalletPanel = () => {
       </div>
 
       {/* 余额卡片 */}
-      <Card className="bg-gradient-to-br from-muted via-muted to-muted text-white overflow-hidden relative">
+      <Card className="invert-surface overflow-hidden relative">
         <div className="absolute top-0 right-0 w-64 h-64 bg-info/10 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary/10 rounded-full translate-y-1/2 -translate-x-1/2" />
         <CardContent className={`${isMobile ? 'p-4' : 'p-6'} relative z-10`}>
@@ -270,7 +270,7 @@ export const WalletPanel = () => {
             <div>
               <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
                 <span>可用余额</span>
-                <button onClick={() => setShowBalance(!showBalance)} className="hover:text-white transition-colors">
+                <button onClick={() => setShowBalance(!showBalance)} className="hover:text-invert-foreground transition-colors">
                   {showBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                 </button>
               </div>
@@ -302,7 +302,7 @@ export const WalletPanel = () => {
             </Button>
             <Button 
               onClick={() => setWithdrawDialogOpen(true)}
-              className="flex-1 bg-white/15 border border-white/40 text-white hover:bg-white/25 font-medium backdrop-blur-sm"
+              className="flex-1 bg-invert-foreground/15 border border-invert-foreground/30 text-invert-foreground hover:bg-invert-foreground/25 font-medium backdrop-blur-sm"
               size={isMobile ? "default" : "lg"}
             >
               <Minus className="h-4 w-4 mr-2" />
