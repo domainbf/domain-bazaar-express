@@ -229,7 +229,7 @@ const CardSkeleton = ({ hero, i }: { hero?: boolean; i: number }) => (
     animate={{ opacity: 1 }}
     transition={{ duration: 0.2, delay: Math.min(i * 0.04, 0.2) }}
     className={cn(
- 'relative rounded-2xl border border-white/10 bg-invert overflow-hidden',
+ 'relative rounded-2xl border border-invert-foreground/10 bg-invert overflow-hidden',
       hero ? 'p-6 sm:p-8 min-h-[260px] sm:min-h-[300px] sm:col-span-2' : 'p-5 min-h-[200px]',
     )}
   >

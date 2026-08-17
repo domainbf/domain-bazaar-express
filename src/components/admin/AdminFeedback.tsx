@@ -96,7 +96,7 @@ function FeedbackItem({
           onClick={() => setPreviewUrl(null)}
         >
           <button
-            className="absolute top-4 right-4 text-white"
+            className="absolute top-4 right-4 text-muted-foreground"
             onClick={() => setPreviewUrl(null)}
           >
             <X className="h-6 w-6" />

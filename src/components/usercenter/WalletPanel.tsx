@@ -294,7 +294,7 @@ export const WalletPanel = () => {
           <div className={`flex gap-2 md:gap-3 ${isMobile ? 'flex-col' : ''}`}>
             <Button 
               onClick={() => setDepositDialogOpen(true)}
-              className="flex-1 bg-white text-foreground hover:bg-white/90 font-medium"
+              className="flex-1 bg-invert-foreground text-invert hover:bg-invert-foreground/90 font-medium"
               size={isMobile ? "default" : "lg"}
             >
               <Plus className="h-4 w-4 mr-2" />
