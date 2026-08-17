@@ -226,7 +226,7 @@ export const DeviceManagement = () => {
                           {device.browser} · {device.os}
                         </p>
                         {device.isCurrent && (
-                          <Badge className="bg-success text-white text-[10px] px-1.5 py-0">
+                          <Badge className="bg-success text-success-foreground text-[10px] px-1.5 py-0">
                             当前设备
                           </Badge>
                         )}

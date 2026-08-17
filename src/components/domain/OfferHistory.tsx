@@ -28,7 +28,7 @@ const STATUS_CONFIG: Record<string, { label: string; icon: React.FC<{ className?
   accepted:  { label: '已接受', icon: CheckCircle2,   classes: 'bg-success/10 text-success border-success/30' },
   rejected:  { label: '已拒绝', icon: XCircle,        classes: 'bg-destructive/10 text-destructive border-destructive/30' },
   pending:   { label: '待处理', icon: Clock,           classes: 'bg-warning/10 text-warning border-warning/30' },
-  expired:   { label: '已过期', icon: AlertCircle,     classes: 'bg-invert text-muted-foreground border-border' },
+  expired:   { label: '已过期', icon: AlertCircle,     classes: 'bg-muted text-muted-foreground border-border' },
   countered: { label: '已还价', icon: ArrowLeftRight,  classes: 'bg-info/10 text-info border-info/30' },
 };
 

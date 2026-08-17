@@ -208,7 +208,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
                   <div className="flex gap-2 pt-2 border-t">
                     {offer.status === 'countered' ? (
                       <>
-                        <Button size="sm" className="flex-1 gap-1 bg-info hover:bg-info text-white"
+                        <Button size="sm" className="flex-1 gap-1 bg-info hover:bg-info text-info-foreground"
                           onClick={() => setCounterResponseDialog({ open: true, offer, action: 'accept' })}
                           disabled={isProcessing}>
                           <Check className="h-4 w-4" />接受还价
@@ -302,7 +302,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
                       <div className="flex gap-2">
                         {offer.status === 'countered' ? (
                           <>
-                            <Button size="sm" className="gap-1 bg-info hover:bg-info text-white"
+                            <Button size="sm" className="gap-1 bg-info hover:bg-info text-info-foreground"
                               onClick={() => setCounterResponseDialog({ open: true, offer, action: 'accept' })}
                               disabled={isProcessing}>
                               <Check className="h-4 w-4" />接受还价
@@ -383,7 +383,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
               <AlertDialogCancel>取消</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => handleCounterResponse(counterResponseDialog.offer, counterResponseDialog.action)}
-                className={counterResponseDialog.action === 'reject' ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground' : 'bg-info hover:bg-info text-white'}
+                className={counterResponseDialog.action === 'reject' ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground' : 'bg-info hover:bg-info text-info-foreground'}
               >
                 {counterResponseDialog.action === 'accept' ? '确认接受' : '确认拒绝'}
               </AlertDialogAction>

@@ -221,7 +221,7 @@ export const EscrowService: React.FC<EscrowServiceProps> = ({ transactionId, isA
                 <div className="space-y-3">
                   {getSteps(displayRecord).map((step, i) => (
                     <div key={i} className="flex items-center gap-3">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${step.done ? 'bg-success text-white' : 'bg-muted text-muted-foreground'}`}>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${step.done ? 'bg-success text-success-foreground' : 'bg-muted text-muted-foreground'}`}>
                         {step.done ? <CheckCircle className="w-3.5 h-3.5" /> : <Clock className="w-3 h-3" />}
                       </div>
                       <div className="flex-1">

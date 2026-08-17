@@ -35,7 +35,7 @@ export const DomainGrid = ({ domains, onSelect }: DomainGridProps) => {
         >
           <div className="flex justify-between items-start mb-2">
             <h3 className="text-lg font-bold text-foreground">{domain.name}</h3>
-            {domain.highlight && <Badge className="bg-warning text-white">{React.createElement('span', {}, '精选')}</Badge>}
+            {domain.highlight && <Badge className="bg-warning text-warning-foreground">{React.createElement('span', {}, '精选')}</Badge>}
           </div>
           
           <div className="flex justify-between items-end">

@@ -39,28 +39,28 @@ export const QuickActions = ({ onAddDomain, onViewNotifications }: QuickActionsP
       icon: Search,
       label: '浏览市场',
       onClick: () => navigate('/marketplace'),
-      color: 'bg-success text-white',
+      color: 'bg-success text-success-foreground',
       showFor: 'all'
     },
     {
       icon: Calculator,
       label: '域名估价',
       onClick: () => navigate('/#estimator'),
-      color: 'bg-primary text-white',
+      color: 'bg-primary text-primary-foreground',
       showFor: 'all'
     },
     {
       icon: BarChart3,
       label: '数据分析',
       onClick: () => navigate('/user-center?tab=domains'),
-      color: 'bg-warning text-white',
+      color: 'bg-warning text-warning-foreground',
       showFor: 'seller'
     },
     {
       icon: Bell,
       label: '消息通知',
       onClick: onViewNotifications || (() => navigate('/user-center?tab=notifications')),
-      color: 'bg-destructive text-white',
+      color: 'bg-destructive text-destructive-foreground',
       badge: unreadCount > 0 ? unreadCount : undefined,
       showFor: 'all'
     },
@@ -75,14 +75,14 @@ export const QuickActions = ({ onAddDomain, onViewNotifications }: QuickActionsP
       icon: HelpCircle,
       label: '帮助中心',
       onClick: () => navigate('/faq'),
-      color: 'bg-success text-white',
+      color: 'bg-success text-success-foreground',
       showFor: 'all'
     },
     {
       icon: Settings,
       label: '账户设置',
       onClick: () => navigate('/user-center?tab=profile'),
-      color: 'bg-primary text-white',
+      color: 'bg-primary text-primary-foreground',
       showFor: 'all'
     }
   ];
