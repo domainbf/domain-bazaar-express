@@ -215,7 +215,7 @@ export const Marketplace = () => {
 
   // Drawer preview removed — cards now navigate directly to the domain detail page.
 
-  const px = isMobile ? 'px-4' : 'max-w-7xl mx-auto px-6';
+  const px = isMobile ? 'px-4' : 'page-container';
 
   return (
     <div className="min-h-screen bg-background">
