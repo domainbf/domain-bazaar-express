@@ -12,7 +12,7 @@ const FEATURES = [
     icon: Eye,
     title: '实时价格监控',
     desc: '追踪目标域名的价格变化，当价格下调或接近预算时立即通知你。',
-    color: 'bg-blue-500/15 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+    color: 'bg-info/10 text-info',
   },
   {
     icon: Bell,
@@ -30,7 +30,7 @@ const FEATURES = [
     icon: Shield,
     title: '品牌保护监控',
     desc: '监控与你品牌相关的域名注册动态，防止他人抢注。',
-    color: 'bg-purple-500/15 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
+    color: 'bg-primary/10 text-primary',
   },
 ];
 

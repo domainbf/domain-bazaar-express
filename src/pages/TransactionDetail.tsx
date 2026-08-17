@@ -406,7 +406,7 @@ export default function TransactionDetail() {
                       <p className="text-xs text-muted-foreground mb-3">
                         请通过平台指定方式将 <strong>{txCurrency}{transaction.amount.toLocaleString()}</strong> 汇入托管账户，资金确认后交易将自动进入托管阶段。
                       </p>
-                      <div className="text-xs bg-card dark:bg-black/20 rounded-lg p-3 space-y-1.5 border border-yellow-500/30 dark:border-yellow-800 mb-3">
+                      <div className="text-xs bg-warning/5 rounded-lg p-3 space-y-1.5 border border-warning/30 mb-3">
                         <p className="font-semibold text-foreground">付款步骤：</p>
                         <p className="text-muted-foreground">① 通过平台内消息联系客服获取收款账户信息</p>
                         <p className="text-muted-foreground">② 按照指定金额付款，备注填写交易ID</p>
@@ -420,8 +420,8 @@ export default function TransactionDetail() {
                   )}
 
                   {canSellerConfirm && (
-                    <div className="p-4 bg-blue-500/10 dark:bg-blue-950/20 border border-blue-500/30 dark:border-blue-800 rounded-lg">
-                      <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2">卖家操作：确认域名已转移</p>
+                    <div className="p-4 bg-info/10 border border-info/30 rounded-lg">
+                      <p className="text-sm font-medium text-info mb-2">卖家操作：确认域名已转移</p>
                       <p className="text-xs text-muted-foreground mb-3">请确认您已将域名转移至买家指定账户，确认后买家将验证并释放资金。</p>
                       <Button onClick={handleSellerConfirmTransfer} disabled={actionLoading} data-testid="button-confirm-transfer">
                         {actionLoading ? <LoadingSpinner size="sm" /> : <CheckCircle className="w-4 h-4 mr-2" />}
@@ -563,7 +563,7 @@ export default function TransactionDetail() {
                   <span>平台资金托管，保障买卖双方权益</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <FileText className="w-3 h-3 mt-0.5 text-blue-500 shrink-0" />
+                  <FileText className="w-3 h-3 mt-0.5 text-info shrink-0" />
                   <span>如有纠纷，平台24小时内介入处理</span>
                 </div>
                 <div className="flex items-start gap-2">

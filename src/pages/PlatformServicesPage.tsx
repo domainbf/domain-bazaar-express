@@ -12,7 +12,7 @@ const SERVICES = [
     desc: '买家付款后资金由平台安全保管，域名完成转移后自动释放，买卖双方零风险。',
     href: '/escrow',
     badge: '核心服务',
-    color: 'text-blue-600 bg-blue-500/15 dark:bg-blue-900/30 dark:text-blue-400',
+    color: 'text-info bg-info/10',
   },
   {
     icon: Upload,
@@ -36,7 +36,7 @@ const SERVICES = [
     desc: '通过公开竞拍方式出售或购买域名，价高者得，平台监管确保拍卖公平公正。',
     href: '/auctions',
     badge: '竞价模式',
-    color: 'text-purple-600 bg-purple-500/15 dark:bg-purple-900/30 dark:text-purple-400',
+    color: 'text-primary bg-primary/10',
   },
   {
     icon: CheckCircle2,

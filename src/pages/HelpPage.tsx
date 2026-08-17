@@ -13,7 +13,7 @@ const HELP_SECTIONS = [
     title: '常见问题',
     desc: '快速找到注册、交易、域名验证等高频问题的解答。',
     href: '/faq',
-    color: 'text-blue-600 bg-blue-500/15 dark:bg-blue-900/30 dark:text-blue-400',
+    color: 'text-info bg-info/10',
   },
   {
     icon: Mail,
@@ -27,7 +27,7 @@ const HELP_SECTIONS = [
     title: '用户社区',
     desc: '加入域名交易者社区，分享经验、获取建议、结交同好。',
     href: '/community',
-    color: 'text-purple-600 bg-purple-500/15 dark:bg-purple-900/30 dark:text-purple-400',
+    color: 'text-primary bg-primary/10',
   },
   {
     icon: Shield,

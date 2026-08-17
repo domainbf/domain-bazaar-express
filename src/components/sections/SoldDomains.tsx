@@ -19,7 +19,7 @@ export const SoldDomains = () => {
   if (soldDomains.length === 0) return null;
 
   return (
-    <section className="py-14 bg-gradient-to-b from-background to-emerald-50/30 dark:to-emerald-950/10 border-t border-border overflow-hidden">
+    <section className="py-14 bg-gradient-to-b from-background to-success/5 border-t border-border overflow-hidden">
       <div className="max-w-7xl mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -28,9 +28,9 @@ export const SoldDomains = () => {
           viewport={{ once: true }}
           className="flex items-center justify-center gap-3 mb-8"
         >
-          <Trophy className="w-5 h-5 text-amber-500" />
+          <Trophy className="w-5 h-5 text-warning" />
           <h2 className="text-2xl font-bold text-foreground">成功交易案例</h2>
-          <Trophy className="w-5 h-5 text-amber-500" />
+          <Trophy className="w-5 h-5 text-warning" />
         </motion.div>
 
         <div className="overflow-x-auto pb-2 scrollbar-hide">
@@ -42,14 +42,14 @@ export const SoldDomains = () => {
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.4, delay: i * 0.06 }}
                 viewport={{ once: true }}
-                className="flex-shrink-0 w-56 p-4 bg-card border border-emerald-200 dark:border-emerald-800/60 rounded-xl shadow-sm hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-700 transition-all group"
+                className="flex-shrink-0 w-56 p-4 bg-card border border-success/30 rounded-xl shadow-sm hover:shadow-md hover:border-success/60 transition-all group"
               >
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="font-semibold text-foreground truncate flex-1 text-sm">{domain.name}</h3>
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 ml-2" />
+                  <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0 ml-2" />
                 </div>
                 <p className="text-xs text-muted-foreground mb-1">成交价格</p>
-                <p className="text-base font-bold text-emerald-600 dark:text-emerald-400">
+                <p className="text-base font-bold text-success">
                   ¥{domain.price.toLocaleString()}
                 </p>
               </motion.div>

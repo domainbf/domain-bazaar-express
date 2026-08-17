@@ -199,13 +199,13 @@ const SellerDashboard = ({ userId }: { userId: string }) => {
         ) : (
           <>
             <StatCard icon={Package} label="总域名" value={stats?.totalDomains ?? 0}
-              hint={`在售 ${stats?.activeListings ?? 0}`} color="text-blue-600" />
+              hint={`在售 ${stats?.activeListings ?? 0}`} color="text-info" />
             <StatCard icon={DollarSign} label="总估值 (CNY)" value={`¥${(stats?.totalValue ?? 0).toLocaleString()}`}
-              hint="按当前定价合计" color="text-emerald-600" />
+              hint="按当前定价合计" color="text-success" />
             <StatCard icon={Eye} label="总浏览" value={(stats?.totalViews ?? 0).toLocaleString()}
-              hint={`收藏 ${stats?.totalFavorites ?? 0}`} color="text-violet-600" />
+              hint={`收藏 ${stats?.totalFavorites ?? 0}`} color="text-primary" />
             <StatCard icon={Handshake} label="报价 · 成交" value={`${stats?.totalOffers ?? 0} · ${stats?.completedTransactions ?? 0}`}
-              hint={pendingOffers ? `${pendingOffers} 待处理` : '暂无待处理'} color="text-amber-600" />
+              hint={pendingOffers ? `${pendingOffers} 待处理` : '暂无待处理'} color="text-warning" />
           </>
         )}
       </div>
@@ -251,8 +251,8 @@ const SellerDashboard = ({ userId }: { userId: string }) => {
                         <Badge
                           variant="outline"
                           className={
-                            d.status === 'available' ? 'text-emerald-600 border-emerald-500/40 text-[10px]' :
-                            d.status === 'reserved' ? 'text-amber-600 border-amber-500/40 text-[10px]' :
+                            d.status === 'available' ? 'text-success border-success/40 text-[10px]' :
+                            d.status === 'reserved' ? 'text-warning border-warning/40 text-[10px]' :
                             'text-muted-foreground text-[10px]'
                           }
                         >

@@ -28,7 +28,7 @@ export const UserCenterLayout = ({ profile, user, children }: UserCenterLayoutPr
   
   const getVerificationBadge = () => {
     if (profile?.seller_verified) {
-      return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30 dark:border-green-800 text-xs">已认证卖家</Badge>;
+      return <Badge className="bg-success/10 text-success border-success/30 text-xs">已认证卖家</Badge>;
     }
     if (profile?.is_seller) {
       return <Badge variant="secondary" className="text-xs">卖家</Badge>;
@@ -40,8 +40,8 @@ export const UserCenterLayout = ({ profile, user, children }: UserCenterLayoutPr
     const level = profile?.account_level || 'basic';
     const levelConfig = {
       basic: { label: '基础会员', classes: 'bg-muted text-muted-foreground' },
-      premium: { label: '高级会员', classes: 'bg-blue-500/10 text-blue-700 dark:text-blue-400' },
-      vip: { label: 'VIP会员', classes: 'bg-purple-500/10 text-purple-700 dark:text-purple-400' }
+      premium: { label: '高级会员', classes: 'bg-info/10 text-info' },
+      vip: { label: 'VIP会员', classes: 'bg-primary/10 text-primary' }
     };
     const config = levelConfig[level as keyof typeof levelConfig] || levelConfig.basic;
     return <Badge className={`${config.classes} text-xs`}>{config.label}</Badge>;
@@ -68,8 +68,8 @@ export const UserCenterLayout = ({ profile, user, children }: UserCenterLayoutPr
                   </div>
                 )}
                 {profile?.verification_status === 'verified' && (
-                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                    <Shield className="w-3 h-3 text-white" />
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-success rounded-full flex items-center justify-center">
+                    <Shield className="w-3 h-3 text-success-foreground" />
                   </div>
                 )}
               </div>

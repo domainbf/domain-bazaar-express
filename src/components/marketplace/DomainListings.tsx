@@ -76,8 +76,8 @@ const FavoriteHeart = ({ domainId }: { domainId: string }) => {
       aria-label={active ? '取消收藏' : '收藏'}
       className={cn(
         'h-8 w-8 shrink-0 flex items-center justify-center rounded-full transition-colors backdrop-blur-sm',
-        'bg-white/10 hover:bg-white/20',
-        active ? 'text-red-400' : 'text-white/60 hover:text-white',
+        'bg-invert-foreground/10 hover:bg-invert-foreground/20',
+        active ? 'text-destructive' : 'text-invert-foreground/60 hover:text-invert-foreground',
       )}
     >
       <Heart className={cn('h-4 w-4', active && 'fill-current')} />
@@ -113,7 +113,7 @@ const HeroStyleCard = ({ domain, index, hero, onSelect }: CardProps) => {
       {/* Subtle top-glow highlight */}
       <div
         aria-hidden
-        className="absolute -top-32 -right-24 h-64 w-64 rounded-full bg-white/[0.06] blur-3xl pointer-events-none"
+        className="absolute -top-32 -right-24 h-64 w-64 rounded-full bg-invert-foreground/[0.06] blur-3xl pointer-events-none"
       />
 
       <div className="relative flex flex-col h-full">
@@ -121,7 +121,7 @@ const HeroStyleCard = ({ domain, index, hero, onSelect }: CardProps) => {
         <div className="flex items-start justify-between gap-2 mb-4">
           <span className={cn(
             'inline-flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold',
-            'bg-white/10 text-white px-2.5 py-1 rounded-full backdrop-blur-sm',
+            'bg-invert-foreground/10 text-invert-foreground px-2.5 py-1 rounded-full backdrop-blur-sm',
           )}>
             {hero && <Star className="h-2.5 w-2.5 fill-current" />}
             {badgeText}
@@ -131,7 +131,7 @@ const HeroStyleCard = ({ domain, index, hero, onSelect }: CardProps) => {
 
         {/* Domain wordmark */}
         <h3 className={cn(
-          'font-black uppercase tracking-tight leading-[0.95] break-all text-white',
+          'font-black uppercase tracking-tight leading-[0.95] break-all text-invert-foreground',
           hero ? 'my-6' : 'my-4',
           domainTextSize(domain.name, isFeatured),
         )}>
@@ -141,28 +141,28 @@ const HeroStyleCard = ({ domain, index, hero, onSelect }: CardProps) => {
         {/* Bottom: price + CTA */}
         <div className="mt-auto flex items-end justify-between gap-3">
           <div>
-            <p className="text-[10px] uppercase tracking-widest text-white/50 mb-1">一口价</p>
+            <p className="text-[10px] uppercase tracking-widest text-invert-foreground/50 mb-1">一口价</p>
             <p className={cn(
-              'font-bold tabular-nums text-white',
+              'font-bold tabular-nums text-invert-foreground',
               hero ? 'text-3xl sm:text-4xl' : 'text-2xl',
             )}>
               {formatPrice(domain)}
             </p>
           </div>
-          <div className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-white/80 group-hover:text-white group-hover:gap-2.5 transition-all">
+          <div className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-invert-foreground/80 group-hover:text-invert-foreground group-hover:gap-2.5 transition-all">
             立即查看 <ArrowUpRight className="h-3.5 w-3.5" />
           </div>
         </div>
 
         {/* Meta strip (only if extra data exists) */}
         {(domain.is_verified || (domain.views ?? 0) > 0) && (
-          <div className="mt-4 pt-3 border-t border-white/10 flex items-center gap-3 text-[10px] text-white/50 uppercase tracking-wider">
+          <div className="mt-4 pt-3 border-t border-invert-foreground/10 flex items-center gap-3 text-[10px] text-invert-foreground/50 uppercase tracking-wider">
             <span className="inline-flex items-center gap-1"><Tag className="h-2.5 w-2.5" />{categoryLabel}</span>
             {(domain.views ?? 0) > 0 && (
               <span className="inline-flex items-center gap-1"><Eye className="h-2.5 w-2.5" />{domain.views}</span>
             )}
             {domain.is_verified && (
-              <span className="inline-flex items-center gap-1 ml-auto text-emerald-300/80"><Shield className="h-2.5 w-2.5" />已验证</span>
+              <span className="inline-flex items-center gap-1 ml-auto text-success"><Shield className="h-2.5 w-2.5" />已验证</span>
             )}
           </div>
         )}
@@ -172,11 +172,11 @@ const HeroStyleCard = ({ domain, index, hero, onSelect }: CardProps) => {
 
   const wrapperClass = cn(
     'group relative block overflow-hidden isolate',
-    'rounded-2xl border border-white/10',
-    'bg-gradient-to-br from-neutral-900 via-neutral-950 to-black text-white',
+    'rounded-2xl border border-invert-foreground/10',
+    'bg-invert text-invert-foreground',
     'shadow-[0_2px_20px_-8px_rgba(0,0,0,0.4)]',
     'transition-all duration-300',
-    'hover:border-white/25 hover:-translate-y-0.5 hover:shadow-[0_16px_40px_-12px_rgba(0,0,0,0.6)]',
+    'hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-[0_16px_40px_-12px_rgba(0,0,0,0.6)]',
     hero ? 'p-6 sm:p-8 min-h-[260px] sm:min-h-[300px]' : 'p-5 min-h-[200px]',
   );
 
@@ -222,12 +222,12 @@ const CardSkeleton = ({ hero, i }: { hero?: boolean; i: number }) => (
   >
     <div className="animate-pulse space-y-4">
       <div className="flex items-center justify-between">
-        <div className="h-5 w-20 rounded-full bg-white/10" />
-        <div className="h-8 w-8 rounded-full bg-white/10" />
+        <div className="h-5 w-20 rounded-full bg-invert-foreground/10" />
+        <div className="h-8 w-8 rounded-full bg-invert-foreground/10" />
       </div>
-      <div className={cn('h-10 rounded bg-white/10', hero ? 'w-3/4 sm:h-16' : 'w-2/3')} />
-      <div className="h-3 w-1/3 rounded bg-white/10" />
-      <div className="h-7 w-1/2 rounded bg-white/10" />
+      <div className={cn('h-10 rounded bg-invert-foreground/10', hero ? 'w-3/4 sm:h-16' : 'w-2/3')} />
+      <div className="h-3 w-1/3 rounded bg-invert-foreground/10" />
+      <div className="h-7 w-1/2 rounded bg-invert-foreground/10" />
     </div>
   </motion.div>
 );

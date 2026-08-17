@@ -120,7 +120,7 @@ export const UserProfilePage = () => {
               </Avatar>
               {profile.seller_verified && (
                 <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-green-500 border-2 border-background flex items-center justify-center">
-                  <BadgeCheck className="h-3.5 w-3.5 text-white" />
+                  <BadgeCheck className="h-3.5 w-3.5 text-primary-foreground" />
                 </div>
               )}
             </div>
@@ -152,8 +152,8 @@ export const UserProfilePage = () => {
                   <CalendarDays className="h-3.5 w-3.5" />加入 {memberSince}前
                 </span>
                 {rating && (
-                  <span className="flex items-center gap-1 text-amber-500 font-medium">
-                    <Star className="h-3.5 w-3.5 fill-amber-400" />{rating} 分
+                  <span className="flex items-center gap-1 text-warning font-medium">
+                    <Star className="h-3.5 w-3.5 fill-warning text-warning" />{rating} 分
                   </span>
                 )}
               </div>
@@ -180,7 +180,7 @@ export const UserProfilePage = () => {
             </div>
             <div className="text-center p-3 bg-background/70 rounded-xl border border-border" data-testid="seller-stat-views">
               <div className="flex items-center justify-center gap-1.5 mb-1">
-                <Eye className="h-4 w-4 text-purple-500" />
+                <Eye className="h-4 w-4 text-primary" />
                 <span className="text-xs text-muted-foreground">总浏览量</span>
               </div>
               <p className="text-2xl font-bold">{sellerStats.totalViews.toLocaleString()}</p>
