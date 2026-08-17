@@ -167,7 +167,7 @@ export const UserReviewSystem: React.FC<UserReviewSystemProps> = ({
               <div className="text-4xl font-bold text-primary mb-2">{averageRating.toFixed(1)}</div>
               <div className="flex justify-center mb-2">
                 {[1, 2, 3, 4, 5].map((star) => (
-                  <StarIcon key={star} className={`h-5 w-5 ${star <= Math.round(averageRating) ? 'text-yellow-400 fill-current' : 'text-muted-foreground/40'}`} />
+                  <StarIcon key={star} className={`h-5 w-5 ${star <= Math.round(averageRating) ? 'text-warning fill-current' : 'text-muted-foreground/40'}`} />
                 ))}
               </div>
               <p className="text-muted-foreground">基于 {reviews.length} 条评价</p>
@@ -177,7 +177,7 @@ export const UserReviewSystem: React.FC<UserReviewSystemProps> = ({
                 <div key={rt} className="flex items-center gap-2">
                   <span className="text-sm w-8">{rt}星</span>
                   <div className="flex-1 bg-muted rounded-full h-2">
-                    <div className="bg-yellow-400 h-2 rounded-full"
+                    <div className="bg-warning/10 h-2 rounded-full"
                       style={{ width: reviews.length ? `${(ratingCounts[i] / reviews.length) * 100}%` : '0%' }} />
                   </div>
                   <span className="text-sm text-muted-foreground w-8">{ratingCounts[i]}</span>
@@ -206,7 +206,7 @@ export const UserReviewSystem: React.FC<UserReviewSystemProps> = ({
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button key={star} type="button" onClick={() => setRating(star)}
                     onMouseEnter={() => setHoveredRating(star)} onMouseLeave={() => setHoveredRating(0)} className="p-1">
-                    <StarIcon className={`h-6 w-6 transition-colors ${star <= (hoveredRating || rating) ? 'text-yellow-400 fill-current' : 'text-muted-foreground/40 hover:text-yellow-200'}`} />
+                    <StarIcon className={`h-6 w-6 transition-colors ${star <= (hoveredRating || rating) ? 'text-warning fill-current' : 'text-muted-foreground/40 hover:text-warning'}`} />
                   </button>
                 ))}
               </div>
@@ -244,7 +244,7 @@ export const UserReviewSystem: React.FC<UserReviewSystemProps> = ({
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <div className="flex">
                         {[1, 2, 3, 4, 5].map((star) => (
-                          <StarIcon key={star} className={`h-3.5 w-3.5 ${star <= review.rating ? 'text-yellow-400 fill-current' : 'text-muted-foreground/30'}`} />
+                          <StarIcon key={star} className={`h-3.5 w-3.5 ${star <= review.rating ? 'text-warning fill-current' : 'text-muted-foreground/30'}`} />
                         ))}
                       </div>
                       <span>·</span>

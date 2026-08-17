@@ -166,7 +166,7 @@ export const AdminMessagesView = () => {
         <Card>
           <CardContent className="pt-4 pb-3">
             <div className="flex items-center gap-3">
-              <MessageSquare className="h-8 w-8 text-amber-500" />
+              <MessageSquare className="h-8 w-8 text-warning" />
               <div>
                 <p className="text-2xl font-bold">{unreadCount}</p>
                 <p className="text-xs text-muted-foreground">未读消息</p>
@@ -177,7 +177,7 @@ export const AdminMessagesView = () => {
         <Card>
           <CardContent className="pt-4 pb-3">
             <div className="flex items-center gap-3">
-              <MessageSquare className="h-8 w-8 text-green-500" />
+              <MessageSquare className="h-8 w-8 text-success" />
               <div>
                 <p className="text-2xl font-bold">{conversations.length}</p>
                 <p className="text-xs text-muted-foreground">对话总数</p>

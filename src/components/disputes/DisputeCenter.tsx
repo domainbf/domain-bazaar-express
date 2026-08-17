@@ -81,7 +81,7 @@ export const DisputeCenter = ({ isAdmin = false }: DisputeCenterProps) => {
     const channel = supabase
       .channel(`disputes-${isAdmin ? 'admin' : user?.id ?? 'anon'}`)
       .on(
-        'postgres_changes',
+ 'postgres_changes',
         { event: '*', schema: 'public', table: 'disputes' },
         () => { loadDisputes(); }
       )

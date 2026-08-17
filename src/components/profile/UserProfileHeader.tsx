@@ -64,13 +64,13 @@ export const UserProfileHeader = ({ profile }: UserProfileHeaderProps) => {
           
           <div className="shrink-0 flex flex-col items-center gap-2">
             {profile.is_seller && (
-              <div className="bg-blue-500/15 text-blue-600 dark:text-blue-400 text-xs font-medium px-2.5 py-0.5 rounded">
+              <div className="bg-info/15 text-info  text-xs font-medium px-2.5 py-0.5 rounded">
                 卖家
               </div>
             )}
             
             {profile.seller_verified && (
-              <div className="bg-green-500/15 text-green-600 dark:text-green-400 text-xs font-medium px-2.5 py-0.5 rounded">
+              <div className="bg-success/15 text-success  text-xs font-medium px-2.5 py-0.5 rounded">
                 已认证
               </div>
             )}

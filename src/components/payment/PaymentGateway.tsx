@@ -60,7 +60,7 @@ const paymentMethods: PaymentMethodOption[] = [
   {
     id: 'alipay',
     name: '支付宝',
-    icon: <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-xs">支</div>,
+    icon: <div className="w-8 h-8 bg-info rounded-lg flex items-center justify-center text-info-foreground font-bold text-xs">支</div>,
     description: '支持扫码支付、余额支付',
     fee: '免费',
     minAmount: 1,
@@ -71,7 +71,7 @@ const paymentMethods: PaymentMethodOption[] = [
   {
     id: 'wechat',
     name: '微信支付',
-    icon: <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center text-white font-bold text-xs">微</div>,
+    icon: <div className="w-8 h-8 bg-success rounded-lg flex items-center justify-center text-success-foreground font-bold text-xs">微</div>,
     description: '支持扫码支付、零钱支付',
     fee: '免费',
     minAmount: 1,
@@ -82,7 +82,7 @@ const paymentMethods: PaymentMethodOption[] = [
   {
     id: 'paypal',
     name: 'PayPal',
-    icon: <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">P</div>,
+    icon: <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold text-xs">P</div>,
     description: '国际支付，支持多币种',
     fee: '2.9% + ¥2',
     minAmount: 10,
@@ -104,7 +104,7 @@ const paymentMethods: PaymentMethodOption[] = [
   {
     id: 'crypto',
     name: '加密货币',
-    icon: <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center text-white font-bold text-xs">₿</div>,
+    icon: <div className="w-8 h-8 bg-warning rounded-lg flex items-center justify-center text-warning-foreground font-bold text-xs">₿</div>,
     description: 'USDT/BTC/ETH',
     fee: '网络费用',
     minAmount: 50,
@@ -373,7 +373,7 @@ export const PaymentGateway = ({
           {feeAmount > 0 && (
             <div className="flex justify-between">
               <span className="text-muted-foreground">手续费</span>
-              <span className="font-medium text-orange-600">¥{feeAmount.toFixed(2)}</span>
+              <span className="font-medium text-warning">¥{feeAmount.toFixed(2)}</span>
             </div>
           )}
           <Separator />
@@ -471,12 +471,12 @@ export const PaymentGateway = ({
 
   const renderSuccess = () => (
     <div className="py-8 text-center space-y-6">
-      <div className="w-16 h-16 bg-green-500/15 rounded-full flex items-center justify-center mx-auto">
-        <Check className="w-8 h-8 text-green-600" />
+      <div className="w-16 h-16 bg-success/15 rounded-full flex items-center justify-center mx-auto">
+        <Check className="w-8 h-8 text-success" />
       </div>
 
       <div>
-        <h3 className="text-xl font-semibold text-green-600">
+        <h3 className="text-xl font-semibold text-success">
           {type === 'deposit' ? '充值成功！' : '提现申请已提交！'}
         </h3>
         <p className="text-muted-foreground mt-2">

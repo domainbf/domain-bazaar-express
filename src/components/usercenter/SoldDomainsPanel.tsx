@@ -35,12 +35,12 @@ interface SoldRow {
 }
 
 const STAGE_STYLE: Record<string, { label: string; className: string }> = {
-  payment_pending: { label: '待付款', className: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400' },
-  paid:            { label: '已付款', className: 'bg-blue-500/10 text-blue-700 dark:text-blue-400' },
-  in_escrow:       { label: '资金托管中', className: 'bg-purple-500/10 text-purple-700 dark:text-purple-400' },
-  transferred:     { label: '已过户', className: 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-400' },
-  activation:      { label: '激活中', className: 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-400' },
-  completed:       { label: '交易完成', className: 'bg-green-500/10 text-green-700 dark:text-green-400' },
+  payment_pending: { label: '待付款', className: 'bg-warning/10 text-warning ' },
+  paid:            { label: '已付款', className: 'bg-info/10 text-info ' },
+  in_escrow:       { label: '资金托管中', className: 'bg-primary/10 text-primary ' },
+  transferred:     { label: '已过户', className: 'bg-primary/10 text-primary ' },
+  activation:      { label: '激活中', className: 'bg-info/10 text-info ' },
+  completed:       { label: '交易完成', className: 'bg-success/10 text-success ' },
 };
 
 export const SoldDomainsPanel = () => {
@@ -61,7 +61,7 @@ export const SoldDomainsPanel = () => {
           created_at, updated_at, completed_at, buyer_id, domain_id,
           domains:domain_id ( name ),
           buyer:profiles!transactions_buyer_id_fkey ( email, full_name, username )
-        `)
+ `)
         .eq('seller_id', user.id)
         .or('progress_stage.in.(transferred,completed),status.in.(completed,domain_transferred,buyer_confirmed)')
         .order('updated_at', { ascending: false });
@@ -138,7 +138,7 @@ export const SoldDomainsPanel = () => {
     const ch = supabase
       .channel('sold-domains-' + user.id)
       .on(
-        'postgres_changes',
+ 'postgres_changes',
         { event: '*', schema: 'public', table: 'transactions', filter: `seller_id=eq.${user.id}` },
         () => load(),
       )
@@ -188,7 +188,7 @@ export const SoldDomainsPanel = () => {
           <div className="h-8 w-px bg-border hidden sm:block" />
           <div>
             <p className="text-xs text-muted-foreground">累计成交额</p>
-            <p className="text-2xl font-bold text-green-600">
+            <p className="text-2xl font-bold text-success">
               {formatPrice(totalRevenue, rows[0]?.currency || "CNY")}
             </p>
           </div>
@@ -261,7 +261,7 @@ export const SoldDomainsPanel = () => {
                       </div>
                       <div>
                         <p className="text-muted-foreground mb-0.5">成交金额</p>
-                        <p className="font-semibold text-green-600">
+                        <p className="font-semibold text-success">
                           {formatPrice(r.amount, r.currency || "CNY")}
                         </p>
                       </div>
@@ -273,7 +273,7 @@ export const SoldDomainsPanel = () => {
                         最后更新 {formatDistanceToNow(new Date(settledAt), { addSuffix: true, locale: dfLocale })}
                       </span>
                       {r.completed_at && (
-                        <span className="text-green-600">
+                        <span className="text-success">
                           完成于 {new Date(r.completed_at).toLocaleDateString()}
                         </span>
                       )}

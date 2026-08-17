@@ -99,9 +99,9 @@ export const AccountSecurity = () => {
 
   const getStrengthInfo = (s: number) => {
     if (s <= 1) return { text: '弱', color: 'bg-destructive', textColor: 'text-destructive' };
-    if (s === 2) return { text: '一般', color: 'bg-yellow-500', textColor: 'text-yellow-600 dark:text-yellow-400' };
-    if (s === 3) return { text: '中等', color: 'bg-blue-500', textColor: 'text-blue-600 dark:text-blue-400' };
-    return { text: '强', color: 'bg-green-500', textColor: 'text-green-600 dark:text-green-400' };
+    if (s === 2) return { text: '一般', color: 'bg-warning', textColor: 'text-warning ' };
+    if (s === 3) return { text: '中等', color: 'bg-info', textColor: 'text-info ' };
+    return { text: '强', color: 'bg-success', textColor: 'text-success ' };
   };
 
   const passwordStrength = getPasswordStrength(newPassword);
@@ -127,8 +127,8 @@ export const AccountSecurity = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50 border">
-              <div className="p-2 rounded-full bg-green-500/10">
-                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+              <div className="p-2 rounded-full bg-success/10">
+                <CheckCircle className="w-5 h-5 text-success " />
               </div>
               <div>
                 <p className="text-sm font-medium">邮箱已验证</p>
@@ -136,8 +136,8 @@ export const AccountSecurity = () => {
               </div>
             </div>
             <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50 border">
-              <div className={`p-2 rounded-full ${is2FAEnabled ? 'bg-green-500/10' : 'bg-yellow-500/10'}`}>
-                <Shield className={`w-5 h-5 ${is2FAEnabled ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}`} />
+              <div className={`p-2 rounded-full ${is2FAEnabled ? 'bg-success/10' : 'bg-warning/10'}`}>
+                <Shield className={`w-5 h-5 ${is2FAEnabled ? 'text-success ' : 'text-warning '}`} />
               </div>
               <div>
                 <p className="text-sm font-medium">两步验证</p>
@@ -147,8 +147,8 @@ export const AccountSecurity = () => {
               </div>
             </div>
             <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50 border">
-              <div className="p-2 rounded-full bg-blue-500/10">
-                <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <div className="p-2 rounded-full bg-info/10">
+                <Clock className="w-5 h-5 text-info " />
               </div>
               <div>
                 <p className="text-sm font-medium">上次登录</p>
@@ -158,8 +158,8 @@ export const AccountSecurity = () => {
           </div>
 
           {!is2FAEnabled && (
-            <Alert className="mt-4 border-yellow-500/30 bg-yellow-500/5">
-              <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+            <Alert className="mt-4 border-warning/30 bg-warning/5">
+              <AlertTriangle className="h-4 w-4 text-warning " />
               <AlertDescription className="text-sm">
                 建议启用两步验证以增强账户安全性。启用后，每次登录都需要额外的验证步骤。
               </AlertDescription>
@@ -253,7 +253,7 @@ export const AccountSecurity = () => {
                   <div className="grid grid-cols-2 gap-1">
                     {pwReqs.map((req, i) => (
                       <div key={i} className="flex items-center gap-1.5">
-                        <div className={`w-1.5 h-1.5 rounded-full ${req.met ? 'bg-green-500' : 'bg-muted-foreground/30'}`} />
+                        <div className={`w-1.5 h-1.5 rounded-full ${req.met ? 'bg-success' : 'bg-muted-foreground/30'}`} />
                         <span className={`text-xs ${req.met ? 'text-foreground' : 'text-muted-foreground'}`}>
                           {req.label}
                         </span>
@@ -290,7 +290,7 @@ export const AccountSecurity = () => {
                 </p>
               )}
               {confirmPassword && newPassword === confirmPassword && confirmPassword.length > 0 && (
-                <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                <p className="text-xs text-success  flex items-center gap-1">
                   <CheckCircle className="h-3 w-3" /> 密码匹配
                 </p>
               )}
@@ -307,7 +307,7 @@ export const AccountSecurity = () => {
                     更新中...
                   </>
                 ) : (
-                  '确认修改'
+ '确认修改'
                 )}
               </Button>
               <Button
@@ -352,7 +352,7 @@ export const AccountSecurity = () => {
                 <p className="text-sm font-medium">{user?.email}</p>
               </div>
             </div>
-            <Badge variant="outline" className="text-green-600 dark:text-green-400 border-green-500/30">
+            <Badge variant="outline" className="text-success  border-success/30">
               <CheckCircle className="w-3 h-3 mr-1" />
               已验证
             </Badge>
@@ -411,7 +411,7 @@ export const AccountSecurity = () => {
                       更新中...
                     </>
                   ) : (
-                    '确认修改'
+ '确认修改'
                   )}
                 </Button>
                 <Button
@@ -444,8 +444,8 @@ export const AccountSecurity = () => {
           <div className="space-y-3">
             <div className="flex items-center justify-between p-3 rounded-lg border">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-green-500/10">
-                  <MapPin className="w-4 h-4 text-green-600 dark:text-green-400" />
+                <div className="p-2 rounded-full bg-success/10">
+                  <MapPin className="w-4 h-4 text-success " />
                 </div>
                 <div>
                   <p className="text-sm font-medium">当前会话</p>
@@ -454,7 +454,7 @@ export const AccountSecurity = () => {
                   </p>
                 </div>
               </div>
-              <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 hover:bg-green-500/10">活跃</Badge>
+              <Badge className="bg-success/10 text-success  hover:bg-success/10">活跃</Badge>
             </div>
             <p className="text-xs text-muted-foreground text-center py-2">
               如发现异常登录活动，请立即修改密码并启用两步验证

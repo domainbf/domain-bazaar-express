@@ -69,11 +69,11 @@ const TLD_MULTI: Record<string, number> = {
 };
 
 const HOT_KW = [
-  'ai','gpt','llm','tech','cloud','pay','shop','mall','bank','health','edu',
-  'learn','game','meta','web3','chain','smart','data','api','saas','code',
-  'yun','shu','ke','xue','qian','bao','dian','jing','tao','pin','xin',
-  'car','home','food','travel','news','photo','video','music','art','buy',
-  'sell','job','chat','team','hub','lab','run','go','map','fast','safe',
+ 'ai','gpt','llm','tech','cloud','pay','shop','mall','bank','health','edu',
+ 'learn','game','meta','web3','chain','smart','data','api','saas','code',
+ 'yun','shu','ke','xue','qian','bao','dian','jing','tao','pin','xin',
+ 'car','home','food','travel','news','photo','video','music','art','buy',
+ 'sell','job','chat','team','hub','lab','run','go','map','fast','safe',
 ];
 
 const LOAD_STEPS = [
@@ -305,15 +305,15 @@ const ScoreRing = ({ score }: { score: number }) => {
 
 /* ─────────────────────────── SCORE COLOR ─────────────────────────── */
 const sc = (s: number) =>
-  s >= 80 ? 'text-green-600 bg-green-500/10 border-green-500/30' :
-  s >= 65 ? 'text-blue-600 bg-blue-500/10 border-blue-500/30' :
-  s >= 50 ? 'text-yellow-600 bg-yellow-500/10 border-yellow-500/30' :
-            'text-red-600 bg-red-500/10 border-red-500/30';
+  s >= 80 ? 'text-success bg-success/10 border-success/30' :
+  s >= 65 ? 'text-info bg-info/10 border-info/30' :
+  s >= 50 ? 'text-warning bg-warning/10 border-warning/30' :
+ 'text-destructive bg-destructive/10 border-destructive/30';
 
 const scLabel = (s: number) => s >= 80 ? '优秀' : s >= 65 ? '良好' : s >= 50 ? '一般' : '较弱';
 const scBar   = (s: number) =>
-  s >= 80 ? '[&>div]:bg-green-500' : s >= 65 ? '[&>div]:bg-blue-500' :
-  s >= 50 ? '[&>div]:bg-yellow-500' : '[&>div]:bg-red-500';
+  s >= 80 ? '[&>div]:bg-success' : s >= 65 ? '[&>div]:bg-info' :
+  s >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive';
 
 const DIM_CONFIG = {
   marketTrend:         { icon: TrendingUp, label: '市场趋势' },
@@ -496,7 +496,7 @@ export const DomainValuationTool: React.FC<DomainValuationToolProps> = ({ domain
                   const done = i < step;
                   const active = i === step;
                   return (
-                    <div key={s.label} className={`flex items-center gap-2.5 text-sm transition-colors ${done ? 'text-green-500' : active ? 'text-primary font-medium' : 'text-muted-foreground/40'}`}>
+                    <div key={s.label} className={`flex items-center gap-2.5 text-sm transition-colors ${done ? 'text-success' : active ? 'text-primary font-medium' : 'text-muted-foreground/40'}`}>
                       {done
                         ? <CheckCircle className="h-4 w-4" />
                         : <Icon className={`h-4 w-4 ${active ? 'animate-pulse' : ''}`} />}
@@ -609,14 +609,14 @@ export const DomainValuationTool: React.FC<DomainValuationToolProps> = ({ domain
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
-                <CheckCircle className="h-4 w-4 text-green-500" /> 专业建议
+                <CheckCircle className="h-4 w-4 text-success" /> 专业建议
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2.5">
                 {result.recommendations.map((r, i) => (
                   <li key={i} className="flex items-start gap-2.5 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                    <CheckCircle className="h-4 w-4 text-success mt-0.5 shrink-0" />
                     <span className="text-foreground leading-relaxed">{r}</span>
                   </li>
                 ))}

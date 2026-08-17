@@ -14,11 +14,11 @@ const STEPS = [
 ];
 
 const TIPS = [
-  '单次最多可批量上架 50 个域名',
-  '支持固定价格和接受报价两种定价模式',
-  '批量上架后可单独编辑每个域名信息',
-  '建议上架前完成域名所有权验证，提升信任度',
-  '可设置不同域名的最低接受价格',
+ '单次最多可批量上架 50 个域名',
+ '支持固定价格和接受报价两种定价模式',
+ '批量上架后可单独编辑每个域名信息',
+ '建议上架前完成域名所有权验证，提升信任度',
+ '可设置不同域名的最低接受价格',
 ];
 
 export default function BulkListingPage() {
@@ -77,7 +77,7 @@ export default function BulkListingPage() {
             <div className="bg-card rounded-xl border border-border p-6 space-y-3">
               {TIPS.map((t) => (
                 <div key={t} className="flex items-start gap-3">
-                  <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="h-4 w-4 text-success shrink-0 mt-0.5" />
                   <span className="text-sm">{t}</span>
                 </div>
               ))}

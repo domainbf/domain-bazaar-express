@@ -242,8 +242,8 @@ export function AdminLogoManagement() {
   };
 
   const statusBadge = (s: string, fb: boolean) => {
-    if (s === 'success') return <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30" variant="outline">成功</Badge>;
-    if (s === 'fallback' || fb) return <Badge variant="outline" className="border-amber-500/40 text-amber-600">降级</Badge>;
+    if (s === 'success') return <Badge className="bg-success/15 text-success border-success/30" variant="outline">成功</Badge>;
+    if (s === 'fallback' || fb) return <Badge variant="outline" className="border-warning/40 text-warning">降级</Badge>;
     if (s === 'cache_hit') return <Badge variant="outline">缓存命中</Badge>;
     return <Badge variant="destructive">失败</Badge>;
   };
@@ -409,8 +409,8 @@ export function AdminLogoManagement() {
           {lastBatchStats && !batchRunning && (
             <div className="rounded-md border p-3 text-xs flex items-center gap-4 flex-wrap bg-muted/30">
               <span>上次批次：<span className="tabular-nums">{lastBatchStats.total}</span> 条</span>
-              <span className="text-emerald-600">成功 {lastBatchStats.ok}</span>
-              <span className="text-amber-600">降级 {lastBatchStats.fb}</span>
+              <span className="text-success">成功 {lastBatchStats.ok}</span>
+              <span className="text-warning">降级 {lastBatchStats.fb}</span>
               <span className="text-destructive">失败 {lastBatchStats.fail}</span>
               <span className="text-muted-foreground">耗时 {(lastBatchStats.ms / 1000).toFixed(1)}s · 平均 {(lastBatchStats.ms / Math.max(1, lastBatchStats.total) / 1000).toFixed(1)}s/条</span>
             </div>
@@ -446,7 +446,7 @@ export function AdminLogoManagement() {
                     </TableCell>
                     <TableCell className="text-xs">
                       {d.logoUrl ? (
-                        <span className="text-emerald-600 inline-flex items-center gap-1"><CheckCircle2 className="h-3 w-3" />已生成</span>
+                        <span className="text-success inline-flex items-center gap-1"><CheckCircle2 className="h-3 w-3" />已生成</span>
                       ) : d.lastStatus === 'failed' ? (
                         <span className="text-destructive inline-flex items-center gap-1"><AlertTriangle className="h-3 w-3" />失败</span>
                       ) : (

@@ -201,9 +201,9 @@ export const TwoFactorAuth = ({ onStatusChange }: TwoFactorAuthProps) => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-lg ${is2FAEnabled ? 'bg-green-500/10' : 'bg-muted'}`}>
+              <div className={`p-2 rounded-lg ${is2FAEnabled ? 'bg-success/10' : 'bg-muted'}`}>
                 {is2FAEnabled ? (
-                  <ShieldCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <ShieldCheck className="w-5 h-5 text-success " />
                 ) : (
                   <Shield className="w-5 h-5 text-muted-foreground" />
                 )}
@@ -215,7 +215,7 @@ export const TwoFactorAuth = ({ onStatusChange }: TwoFactorAuthProps) => {
                 </CardDescription>
               </div>
             </div>
-            <Badge variant={is2FAEnabled ? "default" : "secondary"} className={is2FAEnabled ? "bg-green-500/10 text-green-700 dark:text-green-400 hover:bg-green-500/10" : ""}>
+            <Badge variant={is2FAEnabled ? "default" : "secondary"} className={is2FAEnabled ? "bg-success/10 text-success  hover:bg-success/10" : ""}>
               {is2FAEnabled ? '已启用' : '未启用'}
             </Badge>
           </div>
@@ -223,9 +223,9 @@ export const TwoFactorAuth = ({ onStatusChange }: TwoFactorAuthProps) => {
         <CardContent className="space-y-4">
           {is2FAEnabled ? (
             <>
-              <Alert className="border-green-500/30 bg-green-500/5">
-                <ShieldCheck className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <AlertDescription className="text-green-600 dark:text-green-400 dark:text-green-300">
+              <Alert className="border-success/30 bg-success/5">
+                <ShieldCheck className="h-4 w-4 text-success " />
+                <AlertDescription className="text-success ">
                   您的账户已启用两步验证保护。每次登录时，您需要输入身份验证器应用生成的验证码。
                 </AlertDescription>
               </Alert>
@@ -253,20 +253,20 @@ export const TwoFactorAuth = ({ onStatusChange }: TwoFactorAuthProps) => {
             <>
               <div className="bg-muted/50 rounded-lg p-4 space-y-3 border">
                 <h4 className="font-medium flex items-center gap-2">
-                  <Info className="w-4 h-4 text-blue-500" />
+                  <Info className="w-4 h-4 text-info" />
                   为什么需要两步验证？
                 </h4>
                 <ul className="text-sm text-muted-foreground space-y-2">
                   <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <Check className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
                     <span>即使密码泄露，攻击者也无法访问您的账户</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <Check className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
                     <span>保护您的域名资产和交易安全</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <Check className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
                     <span>支持 Google Authenticator、Microsoft Authenticator 等主流应用</span>
                   </li>
                 </ul>
@@ -377,9 +377,9 @@ export const TwoFactorAuth = ({ onStatusChange }: TwoFactorAuthProps) => {
 
           {setupStep === 'recovery' && (
             <div className="space-y-4">
-              <Alert className="border-yellow-500/30 bg-yellow-500/5">
-                <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-                <AlertDescription className="text-yellow-600 dark:text-yellow-400 dark:text-yellow-300">
+              <Alert className="border-warning/30 bg-warning/5">
+                <AlertTriangle className="h-4 w-4 text-warning " />
+                <AlertDescription className="text-warning ">
                   请妥善保存这些恢复码！如果您无法访问身份验证器应用，可以使用恢复码登录。
                 </AlertDescription>
               </Alert>
@@ -436,7 +436,7 @@ export const TwoFactorAuth = ({ onStatusChange }: TwoFactorAuthProps) => {
       <Dialog open={showDisableDialog} onOpenChange={setShowDisableDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-600">
+            <DialogTitle className="flex items-center gap-2 text-destructive">
               <ShieldOff className="w-5 h-5" />
               禁用两步验证
             </DialogTitle>

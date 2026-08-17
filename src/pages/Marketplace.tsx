@@ -215,7 +215,7 @@ export const Marketplace = () => {
 
   // Drawer preview removed — cards now navigate directly to the domain detail page.
 
-  const px = isMobile ? 'px-4' : 'max-w-7xl mx-auto px-6';
+  const px = isMobile ? 'px-4' : 'page-container';
 
   return (
     <div className="min-h-screen bg-background">
@@ -251,7 +251,7 @@ export const Marketplace = () => {
                 data-testid="toggle-favorites-only"
                 className={`h-10 px-3 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors shrink-0 ${
                   favoritesOnly
-                    ? 'bg-red-500/10 text-red-500 border border-red-500/40'
+                    ? 'bg-destructive/10 text-destructive border border-destructive/40'
                     : 'bg-muted/40 text-muted-foreground border border-border hover:text-foreground'
                 }`}
                 title={favoritesOnly ? t('marketplace.ui.showAll') : t('marketplace.ui.favoritesOnlyTitle')}
@@ -391,7 +391,7 @@ export const Marketplace = () => {
                   <span className="ml-1 text-xs text-muted-foreground/60">/ {allDomains.length}</span>
                 )}
                 {favoritesOnly && (
-                  <span className="ml-2 inline-flex items-center gap-1 text-[10px] text-red-500 font-medium">
+                  <span className="ml-2 inline-flex items-center gap-1 text-[10px] text-destructive font-medium">
                     <Heart className="h-2.5 w-2.5 fill-current" />{t('marketplace.ui.favOnlyBadge')}
                   </span>
                 )}

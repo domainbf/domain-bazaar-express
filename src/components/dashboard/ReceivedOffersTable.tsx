@@ -147,15 +147,15 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
   const getStatusConfig = (status: string) => {
     switch (status) {
       case 'pending':
-        return { label: '待处理', className: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/30 dark:border-yellow-800', icon: <Clock className="h-3 w-3" /> };
+        return { label: '待处理', className: 'bg-warning/10 text-warning  border-warning/30 ', icon: <Clock className="h-3 w-3" /> };
       case 'countered':
-        return { label: '已还价', className: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30 dark:border-blue-800', icon: <ArrowLeftRight className="h-3 w-3" /> };
+        return { label: '已还价', className: 'bg-info/10 text-info  border-info/30 ', icon: <ArrowLeftRight className="h-3 w-3" /> };
       case 'accepted':
-        return { label: '已接受', className: 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30 dark:border-green-800', icon: <CheckCircle2 className="h-3 w-3" /> };
+        return { label: '已接受', className: 'bg-success/10 text-success  border-success/30 ', icon: <CheckCircle2 className="h-3 w-3" /> };
       case 'rejected':
-        return { label: '已拒绝', className: 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/30 dark:border-red-800', icon: <XCircle className="h-3 w-3" /> };
+        return { label: '已拒绝', className: 'bg-destructive/10 text-destructive  border-destructive/30 ', icon: <XCircle className="h-3 w-3" /> };
       case 'completed':
-        return { label: '已完成', className: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30 dark:border-blue-800', icon: <Package className="h-3 w-3" /> };
+        return { label: '已完成', className: 'bg-info/10 text-info  border-info/30 ', icon: <Package className="h-3 w-3" /> };
       case 'cancelled':
         return { label: '已取消', className: 'bg-muted text-muted-foreground border-border', icon: <XCircle className="h-3 w-3" /> };
       default:
@@ -205,11 +205,11 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
                   </div>
 
                   {offer.status === 'countered' && parsed.counterAmount && (
-                    <div className="flex items-center justify-between bg-blue-500/10 dark:bg-blue-950/30 rounded-lg px-3 py-2">
-                      <span className="text-sm text-blue-700 dark:text-blue-400 font-medium flex items-center gap-1">
+                    <div className="flex items-center justify-between bg-info/10  rounded-lg px-3 py-2">
+                      <span className="text-sm text-info  font-medium flex items-center gap-1">
                         <ArrowLeftRight className="h-3.5 w-3.5" />您的还价
                       </span>
-                      <span className="text-lg font-bold text-blue-700 dark:text-blue-400">¥{parsed.counterAmount.toLocaleString()}</span>
+                      <span className="text-lg font-bold text-info ">¥{parsed.counterAmount.toLocaleString()}</span>
                     </div>
                   )}
 
@@ -223,7 +223,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
                   {parsed.counterNote && (
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">您的还价备注</p>
-                      <p className="text-sm bg-blue-500/10 dark:bg-blue-950/30 p-2 rounded text-blue-700 dark:text-blue-400">{parsed.counterNote}</p>
+                      <p className="text-sm bg-info/10  p-2 rounded text-info ">{parsed.counterNote}</p>
                     </div>
                   )}
 
@@ -293,7 +293,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
                           ¥{offer.amount.toLocaleString()}
                         </span>
                         {offer.status === 'countered' && parsed.counterAmount && (
-                          <span className="text-sm font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                          <span className="text-sm font-bold text-info  flex items-center gap-1">
                             <ArrowLeftRight className="h-3 w-3" />还价 ¥{parsed.counterAmount.toLocaleString()}
                           </span>
                         )}
@@ -313,7 +313,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
                           <span className="text-sm text-muted-foreground/50">无留言</span>
                         )}
                         {parsed.counterNote && (
-                          <p className="text-xs text-blue-600 dark:text-blue-400 truncate flex items-center gap-1">
+                          <p className="text-xs text-info  truncate flex items-center gap-1">
                             <MessageSquare className="h-3 w-3 shrink-0" />{parsed.counterNote}
                           </p>
                         )}
@@ -341,7 +341,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
                         </div>
                       )}
                       {offer.status === 'countered' && (
-                        <span className="text-sm text-blue-600 dark:text-blue-400">等待买家回复</span>
+                        <span className="text-sm text-info ">等待买家回复</span>
                       )}
                       {offer.status === 'accepted' && (
                         <div className="flex gap-2">
@@ -404,7 +404,7 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <ArrowLeftRight className="h-5 w-5 text-blue-500" />
+                <ArrowLeftRight className="h-5 w-5 text-info" />
                 向买家还价
               </DialogTitle>
               <DialogDescription>

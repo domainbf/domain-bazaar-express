@@ -34,7 +34,7 @@ export const DomainMonitor = () => {
   };
 
   const { data: cachedDomains, loading: cacheLoading, refresh: refreshCache } = useAppCache(
-    `domain_monitoring_${user?.id || 'anonymous'}`,
+ `domain_monitoring_${user?.id || 'anonymous'}`,
     fetchMonitoredDomains,
     { ttl: 60 * 1000 }
   );

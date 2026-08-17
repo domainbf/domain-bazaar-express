@@ -203,7 +203,7 @@ export const Footer = () => {
           </div>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
-              <Shield className="h-3.5 w-3.5 text-green-500" />
+              <Shield className="h-3.5 w-3.5 text-success" />
               {t('footer.slogan')}
             </span>
             <span>{t('footer.escrowNote')}</span>

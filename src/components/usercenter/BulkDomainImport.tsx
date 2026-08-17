@@ -167,9 +167,9 @@ export const BulkDomainImport = ({ onSuccess }: BulkDomainImportProps) => {
   const downloadTemplate = () => {
     const header = 'domain,price,description,category\n';
     const rows = [
-      'example.com,9999,优质短域名,technology',
-      'mystore.cn,4999,电商品牌域名,business',
-      'coolapp.io,2999,应用程序域名,technology',
+ 'example.com,9999,优质短域名,technology',
+ 'mystore.cn,4999,电商品牌域名,business',
+ 'coolapp.io,2999,应用程序域名,technology',
     ].join('\n');
     const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -258,13 +258,13 @@ export const BulkDomainImport = ({ onSuccess }: BulkDomainImportProps) => {
               <div className="flex items-center gap-3 flex-wrap">
                 <span className="text-sm font-medium">解析结果：</span>
                 {validDomains.length > 0 && (
-                  <Badge variant="outline" className="text-green-600 border-green-600 flex items-center gap-1">
+                  <Badge variant="outline" className="text-success border-success flex items-center gap-1">
                     <CheckCircle2 className="h-3 w-3" />
                     {validDomains.length} 个有效
                   </Badge>
                 )}
                 {invalidDomains.length > 0 && (
-                  <Badge variant="outline" className="text-red-500 border-red-500 flex items-center gap-1">
+                  <Badge variant="outline" className="text-destructive border-destructive flex items-center gap-1">
                     <XCircle className="h-3 w-3" />
                     {invalidDomains.length} 个无效
                   </Badge>

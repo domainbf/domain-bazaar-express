@@ -204,7 +204,7 @@ export const DomainAuction: React.FC<DomainAuctionProps> = ({ auction: initialAu
           {!isEnded && user && (
             <>
               {isUserLeading && (
-                <div className="flex items-center gap-2 p-2 bg-green-500/10 dark:bg-green-950/20 border border-green-500/30 rounded-lg text-sm text-green-700 dark:text-green-400">
+                <div className="flex items-center gap-2 p-2 bg-success/10  border border-success/30 rounded-lg text-sm text-success ">
                   <Trophy className="w-4 h-4" />
                   <span>您当前是最高出价者！</span>
                 </div>
@@ -295,7 +295,7 @@ export const DomainAuction: React.FC<DomainAuctionProps> = ({ auction: initialAu
                       <p className="text-xs text-muted-foreground">
                         {bid.bidder_id === user?.id ? '您' : `用户${bid.bidder_id?.slice(-4)}`}
                         {bid.is_automatic && <Badge variant="outline" className="ml-1 text-xs h-4">自动</Badge>}
-                        {idx === 0 && <span className="ml-1 text-yellow-600 text-xs">领先</span>}
+                        {idx === 0 && <span className="ml-1 text-warning text-xs">领先</span>}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {new Date(bid.created_at ?? '').toLocaleString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -316,7 +316,7 @@ export const DomainAuction: React.FC<DomainAuctionProps> = ({ auction: initialAu
             <div className="flex items-center gap-2">
               {auction.winner_id ? (
                 <>
-                  <Trophy className="w-5 h-5 text-yellow-500" />
+                  <Trophy className="w-5 h-5 text-warning" />
                   <div>
                     <p className="font-medium">拍卖已结束</p>
                     <p className="text-sm text-muted-foreground">

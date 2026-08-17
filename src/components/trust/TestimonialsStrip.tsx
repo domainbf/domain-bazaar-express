@@ -44,7 +44,7 @@ export const TestimonialsStrip = () => {
               <Quote className="absolute top-4 right-4 w-5 h-5 text-primary/20" />
               <div className="flex items-center gap-0.5 mb-3">
                 {Array.from({ length: t.rating }).map((_, j) => (
-                  <Star key={j} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                  <Star key={j} className="w-3.5 h-3.5 fill-warning text-warning" />
                 ))}
               </div>
               <p className="text-sm text-foreground/90 leading-relaxed mb-4">"{t.text}"</p>

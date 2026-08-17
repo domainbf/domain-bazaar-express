@@ -161,7 +161,7 @@ export const AdminReviewManagement = () => {
                       <TableCell>
                         <div className="flex items-center gap-0.5">
                           {[...Array(5)].map((_, i) => (
-                            <Star key={i} className={`h-3.5 w-3.5 ${i < r.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground/30'}`} />
+                            <Star key={i} className={`h-3.5 w-3.5 ${i < r.rating ? 'text-warning fill-warning' : 'text-muted-foreground/30'}`} />
                           ))}
                         </div>
                       </TableCell>
@@ -170,7 +170,7 @@ export const AdminReviewManagement = () => {
                       </TableCell>
                       <TableCell>
                         {r.is_visible
-                          ? <Badge className="text-xs bg-green-500/15 text-green-700">已显示</Badge>
+                          ? <Badge className="text-xs bg-success/15 text-success">已显示</Badge>
                           : <Badge variant="secondary" className="text-xs">已隐藏</Badge>
                         }
                       </TableCell>
@@ -205,7 +205,7 @@ export const AdminReviewManagement = () => {
                   <span className="text-muted-foreground">评分：</span>
                   <span className="inline-flex items-center gap-0.5 ml-2">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className={`h-4 w-4 ${i < selected.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground/30'}`} />
+                      <Star key={i} className={`h-4 w-4 ${i < selected.rating ? 'text-warning fill-warning' : 'text-muted-foreground/30'}`} />
                     ))}
                   </span>
                 </div>

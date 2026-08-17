@@ -35,11 +35,11 @@ export const UserCenterStatsGrid = ({ profile, user, compact = false, mobileRow 
 
   const allCards = [
     { title: '域名', value: stats.totalDomains.toString(), sub: `${stats.activeListings}个出售中`, icon: Globe, color: 'text-primary', bg: 'bg-primary/10' },
-    { title: '总价值', value: fmtCny(stats.totalValue), sub: '持有估值', icon: DollarSign, color: 'text-green-600 dark:text-green-400', bg: 'bg-green-500/10' },
-    { title: '浏览量', value: stats.totalViews.toLocaleString(), sub: '累计访问', icon: Eye, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-500/10' },
-    { title: '收到报价', value: stats.totalOffers.toString(), sub: '买家报价', icon: MessageSquare, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-500/10' },
-    { title: '被收藏', value: stats.totalFavorites.toString(), sub: '收藏次数', icon: Heart, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-500/10' },
-    { title: '完成交易', value: stats.completedTransactions.toString(), sub: '成功成交', icon: ShoppingCart, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-500/10' },
+    { title: '总价值', value: fmtCny(stats.totalValue), sub: '持有估值', icon: DollarSign, color: 'text-success ', bg: 'bg-success/10' },
+    { title: '浏览量', value: stats.totalViews.toLocaleString(), sub: '累计访问', icon: Eye, color: 'text-primary ', bg: 'bg-primary/10' },
+    { title: '收到报价', value: stats.totalOffers.toString(), sub: '买家报价', icon: MessageSquare, color: 'text-warning ', bg: 'bg-warning/10' },
+    { title: '被收藏', value: stats.totalFavorites.toString(), sub: '收藏次数', icon: Heart, color: 'text-destructive ', bg: 'bg-destructive/10' },
+    { title: '完成交易', value: stats.completedTransactions.toString(), sub: '成功成交', icon: ShoppingCart, color: 'text-primary ', bg: 'bg-primary/10' },
   ];
 
   const cards = compact ? allCards.slice(0, 3) : allCards;
@@ -149,19 +149,19 @@ export const UserCenterStatsGrid = ({ profile, user, compact = false, mobileRow 
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="bg-yellow-500/10 p-2 rounded-lg">
-                    <Award className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                  <div className="bg-warning/10 p-2 rounded-lg">
+                    <Award className="h-4 w-4 text-warning " />
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">卖家评分</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
+                      <span className="text-lg font-bold text-warning ">
                         {stats.avgRating > 0 ? stats.avgRating.toFixed(1) : '暂无'}
                       </span>
                       {stats.avgRating > 0 && (
                         <div className="flex gap-0.5">
                           {[...Array(5)].map((_, i) => (
-                            <div key={i} className={`w-2 h-2 rounded-full ${i < Math.round(stats.avgRating) ? 'bg-yellow-400' : 'bg-muted'}`} />
+                            <div key={i} className={`w-2 h-2 rounded-full ${i < Math.round(stats.avgRating) ? 'bg-warning/10' : 'bg-muted'}`} />
                           ))}
                         </div>
                       )}
@@ -169,7 +169,7 @@ export const UserCenterStatsGrid = ({ profile, user, compact = false, mobileRow 
                   </div>
                 </div>
                 {profile.seller_verified && (
-                  <span className="text-[10px] font-medium text-green-700 dark:text-green-400 bg-green-500/10 px-2 py-1 rounded-full flex items-center gap-1">
+                  <span className="text-[10px] font-medium text-success  bg-success/10 px-2 py-1 rounded-full flex items-center gap-1">
                     <CheckCircle className="w-3 h-3" />已认证
                   </span>
                 )}
@@ -181,17 +181,17 @@ export const UserCenterStatsGrid = ({ profile, user, compact = false, mobileRow 
           <Card className="hover:shadow-md transition-shadow duration-200 border-border/60">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="bg-teal-500/10 p-2 rounded-lg">
-                  <CalendarDays className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                <div className="bg-success/10 p-2 rounded-lg">
+                  <CalendarDays className="h-4 w-4 text-success " />
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">加入时长</p>
-                  <p className="text-lg font-bold text-teal-600 dark:text-teal-400 mt-0.5">{memberSince}</p>
+                  <p className="text-lg font-bold text-success  mt-0.5">{memberSince}</p>
                 </div>
                 {profile?.total_sales != null && profile.total_sales > 0 && (
                   <div className="ml-auto text-right">
                     <p className="text-xs text-muted-foreground">累计销售</p>
-                    <p className="text-lg font-bold text-green-600 dark:text-green-400">¥{Number(profile.total_sales).toLocaleString()}</p>
+                    <p className="text-lg font-bold text-success ">¥{Number(profile.total_sales).toLocaleString()}</p>
                   </div>
                 )}
               </div>

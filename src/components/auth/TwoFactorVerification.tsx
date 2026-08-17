@@ -108,7 +108,7 @@ export const TwoFactorVerification = ({
                 验证中...
               </>
             ) : (
-              '验证'
+ '验证'
             )}
           </Button>
 

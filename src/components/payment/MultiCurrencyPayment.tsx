@@ -343,7 +343,7 @@ export const MultiCurrencyPayment: React.FC<MultiCurrencyPaymentProps> = ({
 
           {/* 费用明细 */}
           {selectedPaymentMethod && (
-            <Card className="border-blue-500/30 bg-blue-500/10">
+            <Card className="border-info/30 bg-info/10">
               <CardContent className="p-4">
                 <div className="space-y-2">
                   <div className="flex justify-between">
@@ -364,9 +364,9 @@ export const MultiCurrencyPayment: React.FC<MultiCurrencyPaymentProps> = ({
           )}
 
           {/* 汇率提醒 */}
-          <div className="flex items-start gap-2 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-            <Info className="h-4 w-4 text-yellow-600 mt-0.5" />
-            <div className="text-sm text-yellow-600 dark:text-yellow-400">
+          <div className="flex items-start gap-2 p-3 bg-warning/10 border border-warning/30 rounded-lg">
+            <Info className="h-4 w-4 text-warning mt-0.5" />
+            <div className="text-sm text-warning ">
               <div className="font-medium mb-1">汇率说明</div>
               <ul className="text-xs space-y-1">
                 <li>• 汇率每分钟更新，实际支付时可能有微小差异</li>
@@ -389,7 +389,7 @@ export const MultiCurrencyPayment: React.FC<MultiCurrencyPaymentProps> = ({
                 处理中...
               </>
             ) : (
-              `确认支付 ${currency.symbol}${total.toFixed(2)}`
+ `确认支付 ${currency.symbol}${total.toFixed(2)}`
             )}
           </Button>
 

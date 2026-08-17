@@ -149,9 +149,9 @@ export const BatchDomainOperations: React.FC<BatchDomainOperationsProps> = ({
   const exportSelectedDomains = () => {
     const selectedDomainsData = domains.filter(d => selectedDomains.includes(d.id));
     const csvContent = [
-      'Domain Name,Price,Category,Status,Description',
+ 'Domain Name,Price,Category,Status,Description',
       ...selectedDomainsData.map(d => 
-        `${d.name},${d.price},${d.category || ''},${d.status || ''},${d.description || ''}`
+ `${d.name},${d.price},${d.category || ''},${d.status || ''},${d.description || ''}`
       )
     ].join('\n');
     

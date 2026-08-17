@@ -35,17 +35,17 @@ interface TransactionRecord {
 }
 
 const STATUS_MAP: Record<string, { label: string; color: string; icon: typeof Clock; progress: number }> = {
-  payment_pending: { label: '等待付款', color: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400', icon: Clock, progress: 20 },
-  pending: { label: '等待付款', color: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400', icon: Clock, progress: 20 },
-  paid: { label: '已付款', color: 'bg-blue-500/10 text-blue-700 dark:text-blue-400', icon: CheckCircle2, progress: 40 },
-  escrow_funded: { label: '资金托管中', color: 'bg-purple-500/10 text-purple-700 dark:text-purple-400', icon: Clock, progress: 55 },
-  in_escrow: { label: '资金托管中', color: 'bg-purple-500/10 text-purple-700 dark:text-purple-400', icon: Clock, progress: 55 },
-  domain_transferred: { label: '域名已转移', color: 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-400', icon: Globe, progress: 80 },
-  buyer_confirmed: { label: '买家已确认', color: 'bg-teal-500/10 text-teal-700 dark:text-teal-400', icon: CheckCircle2, progress: 90 },
-  completed: { label: '已完成', color: 'bg-green-500/10 text-green-700 dark:text-green-400', icon: CheckCircle2, progress: 100 },
+  payment_pending: { label: '等待付款', color: 'bg-warning/10 text-warning ', icon: Clock, progress: 20 },
+  pending: { label: '等待付款', color: 'bg-warning/10 text-warning ', icon: Clock, progress: 20 },
+  paid: { label: '已付款', color: 'bg-info/10 text-info ', icon: CheckCircle2, progress: 40 },
+  escrow_funded: { label: '资金托管中', color: 'bg-primary/10 text-primary ', icon: Clock, progress: 55 },
+  in_escrow: { label: '资金托管中', color: 'bg-primary/10 text-primary ', icon: Clock, progress: 55 },
+  domain_transferred: { label: '域名已转移', color: 'bg-primary/10 text-primary ', icon: Globe, progress: 80 },
+  buyer_confirmed: { label: '买家已确认', color: 'bg-success/10 text-success ', icon: CheckCircle2, progress: 90 },
+  completed: { label: '已完成', color: 'bg-success/10 text-success ', icon: CheckCircle2, progress: 100 },
   cancelled: { label: '已取消', color: 'bg-muted text-muted-foreground', icon: XCircle, progress: 0 },
-  disputed: { label: '纠纷中', color: 'bg-red-500/10 text-red-700 dark:text-red-400', icon: AlertTriangle, progress: 50 },
-  refunded: { label: '已退款', color: 'bg-orange-500/10 text-orange-700 dark:text-orange-400', icon: RefreshCw, progress: 0 },
+  disputed: { label: '纠纷中', color: 'bg-destructive/10 text-destructive ', icon: AlertTriangle, progress: 50 },
+  refunded: { label: '已退款', color: 'bg-warning/10 text-warning ', icon: RefreshCw, progress: 0 },
 };
 
 export const MyTransactions = () => {
@@ -66,7 +66,7 @@ export const MyTransactions = () => {
           created_at, completed_at, transfer_confirmed_seller, transfer_confirmed_buyer,
           buyer_id, seller_id, domain_id, offer_id, payment_method,
           domains:domain_id ( name )
-        `)
+ `)
         .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
 
@@ -140,21 +140,21 @@ export const MyTransactions = () => {
             <p className="text-xs text-muted-foreground mt-1">全部交易</p>
           </CardContent>
         </Card>
-        <Card className="border-green-500/30 bg-green-500/5">
+        <Card className="border-success/30 bg-success/5">
           <CardContent className="p-3 text-center">
-            <p className="text-2xl font-bold text-green-700 dark:text-green-400">{stats.completed}</p>
+            <p className="text-2xl font-bold text-success ">{stats.completed}</p>
             <p className="text-xs text-muted-foreground mt-1">已完成</p>
           </CardContent>
         </Card>
-        <Card className="border-yellow-500/30 bg-yellow-500/5">
+        <Card className="border-warning/30 bg-warning/5">
           <CardContent className="p-3 text-center">
-            <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-400">{stats.pending}</p>
+            <p className="text-2xl font-bold text-warning ">{stats.pending}</p>
             <p className="text-xs text-muted-foreground mt-1">进行中</p>
           </CardContent>
         </Card>
-        <Card className="border-blue-500/30 bg-blue-500/5">
+        <Card className="border-info/30 bg-info/5">
           <CardContent className="p-3 text-center">
-            <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">{stats.asSeller}</p>
+            <p className="text-2xl font-bold text-info ">{stats.asSeller}</p>
             <p className="text-xs text-muted-foreground mt-1">作为卖家</p>
           </CardContent>
         </Card>
@@ -204,7 +204,7 @@ export const MyTransactions = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-semibold text-base truncate">{tx.domain_name}</span>
-                          <Badge variant="outline" className={`text-xs shrink-0 ${isBuyer ? 'border-blue-500/40 text-blue-600 dark:text-blue-400' : 'border-green-500/40 text-green-600 dark:text-green-400'}`}>
+                          <Badge variant="outline" className={`text-xs shrink-0 ${isBuyer ? 'border-info/40 text-info ' : 'border-success/40 text-success '}`}>
                             {isBuyer ? '买家' : '卖家'}
                           </Badge>
                           <Badge className={`text-xs shrink-0 ${statusInfo.color}`}>
@@ -241,7 +241,7 @@ export const MyTransactions = () => {
                         <p className="text-xl font-bold text-primary">¥{Number(tx.amount).toLocaleString()}</p>
                         {!isBuyer && tx.seller_amount !== null && tx.commission_amount !== null && (
                           <div className="text-xs text-muted-foreground">
-                            <span className="text-green-600 dark:text-green-400">到手 ¥{Number(tx.seller_amount).toLocaleString()}</span>
+                            <span className="text-success ">到手 ¥{Number(tx.seller_amount).toLocaleString()}</span>
                             <span className="mx-1">·</span>
                             <span>手续费 ¥{Number(tx.commission_amount).toLocaleString()}</span>
                           </div>

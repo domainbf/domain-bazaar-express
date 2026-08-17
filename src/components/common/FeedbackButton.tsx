@@ -199,7 +199,7 @@ export function FeedbackButton() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="flex flex-col items-center justify-center py-8 gap-3"
               >
-                <CheckCircle className="h-12 w-12 text-green-500" />
+                <CheckCircle className="h-12 w-12 text-success" />
                 <p className="text-base font-semibold text-foreground">感谢您的反馈！</p>
                 <p className="text-sm text-muted-foreground text-center">
                   您的反馈已发送给管理员，我们会尽快处理。
@@ -315,7 +315,7 @@ export function FeedbackButton() {
                           <button
                             type="button"
                             onClick={() => removeFile(f.preview)}
-                            className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-destructive text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                           >
                             <X className="w-2.5 h-2.5" />
                           </button>

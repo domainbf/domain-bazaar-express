@@ -52,7 +52,7 @@ export const DomainShowcaseTabs = () => {
     return (
       <>
         {name.slice(0, idx)}
-        <mark className="bg-yellow-200/70 dark:bg-yellow-500/30 text-inherit rounded px-0.5">
+        <mark className="bg-warning/70  text-inherit rounded px-0.5">
           {name.slice(idx, idx + q.length)}
         </mark>
         {name.slice(idx + q.length)}
@@ -94,7 +94,7 @@ export const DomainShowcaseTabs = () => {
             transition={{ duration: 0.25, delay: Math.min(i, 12) * 0.02 }}
             className={`group relative rounded-xl border bg-card p-3 hover:shadow-md transition-all ${
               variant === 'sold'
-                ? 'border-emerald-200/70 dark:border-emerald-800/50 hover:border-emerald-300'
+                ? 'border-success/70  hover:border-success'
                 : 'border-border hover:border-primary/50'
             }`}
           >
@@ -107,7 +107,7 @@ export const DomainShowcaseTabs = () => {
                 {highlight(d.name)}
               </Link>
               {variant === 'sold' ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
               ) : (
                 <Tag className="w-4 h-4 text-primary/60 flex-shrink-0" />
               )}
@@ -115,7 +115,7 @@ export const DomainShowcaseTabs = () => {
             <div className="mt-2 flex items-center justify-between">
               <span
                 className={`text-sm font-bold ${
-                  variant === 'sold' ? 'text-emerald-600 dark:text-emerald-400' : 'text-foreground'
+                  variant === 'sold' ? 'text-success ' : 'text-foreground'
                 }`}
               >
                 {formatPrice(d.price, d.currency)}
@@ -135,10 +135,10 @@ export const DomainShowcaseTabs = () => {
   };
 
   return (
-    <section className="py-14 bg-gradient-to-b from-background to-emerald-50/30 dark:to-emerald-950/10 border-t border-border">
+    <section className="py-14 bg-gradient-to-b from-background to-success/30  border-t border-border">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-center gap-3 mb-6">
-          <Trophy className="w-5 h-5 text-amber-500" />
+          <Trophy className="w-5 h-5 text-warning" />
           <h2 className="text-2xl font-bold text-foreground">域名精选 · 成交案例</h2>
         </div>
 

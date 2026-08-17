@@ -45,7 +45,7 @@ function HighlightedText({ text, query }: { text: string; query?: string }) {
   return (
     <>
       {text.slice(0, idx)}
-      <mark className="bg-yellow-300/70 dark:bg-yellow-500/40 text-foreground rounded px-0.5">
+      <mark className="bg-warning/70  text-foreground rounded px-0.5">
         {text.slice(idx, idx + q.length)}
       </mark>
       {text.slice(idx + q.length)}
@@ -143,7 +143,7 @@ export const DomainCard = ({
           : 'border-border bg-card'
         }
         ${isSold ? 'opacity-60' : ''}
-      `}
+ `}
       style={{ willChange: 'transform' }}
     >
       {/* Top row: badges + favorite */}
@@ -174,17 +174,17 @@ export const DomainCard = ({
             aria-label="复制域名"
             data-testid={`button-copy-${domainId}`}
           >
-            {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+            {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
           </button>
           <button
             key={heartKey}
             className={`h-7 w-7 rounded-full flex items-center justify-center transition-all
               ${isFavorited
-                ? 'text-red-500 hover:text-red-400 hover:bg-red-500/10 dark:hover:bg-red-950/30'
-                : 'text-muted-foreground hover:text-red-500 hover:bg-red-500/10 dark:hover:bg-red-950/30 opacity-0 group-hover:opacity-100'
+                ? 'text-destructive hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/30'
+                : 'text-muted-foreground hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/30 opacity-0 group-hover:opacity-100'
               }
               ${heartKey > 0 ? 'animate-heart' : ''}
-            `}
+ `}
             onClick={handleToggleFavorite}
             disabled={isLoadingFavorite}
             aria-label={isFavorited ? '取消收藏' : '收藏'}

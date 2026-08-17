@@ -84,14 +84,14 @@ export default function MaintenancePage() {
         }
         .float-domain { animation: float-up 4s ease-in-out infinite; }
         .pulse-ring { animation: pulse-ring 2.4s ease-out infinite; }
-      `}</style>
+ `}</style>
 
       {/* Radial glow background */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse 60% 45% at 50% 40%, hsl(var(--primary) / 0.07) 0%, transparent 70%)',
+ 'radial-gradient(ellipse 60% 45% at 50% 40%, hsl(var(--primary) / 0.07) 0%, transparent 70%)',
         }}
       />
 
@@ -100,7 +100,7 @@ export default function MaintenancePage() {
         className="absolute inset-0 pointer-events-none opacity-[0.025]"
         style={{
           backgroundImage:
-            'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
+ 'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
           backgroundSize: '48px 48px',
         }}
       />
@@ -160,7 +160,7 @@ export default function MaintenancePage() {
         {/* Status row */}
         <div className="flex flex-wrap justify-center gap-3 mb-8">
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 border border-border/50 rounded-full px-3 py-1.5">
-            <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-warning animate-pulse" />
             <Wrench className="h-3 w-3" />
             <span>维护进行中</span>
           </div>

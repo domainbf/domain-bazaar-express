@@ -41,11 +41,11 @@ const EVENT_LABELS: Record<string, string> = {
 };
 
 const EVENT_COLORS: Record<string, string> = {
-  submitted: 'bg-green-500/15 text-green-600',
-  duplicate_hit: 'bg-yellow-500/15 text-yellow-600',
-  email_sent: 'bg-blue-500/15 text-blue-600',
-  email_failed: 'bg-red-500/15 text-red-600',
-  rolled_back: 'bg-orange-500/15 text-orange-600',
+  submitted: 'bg-success/15 text-success',
+  duplicate_hit: 'bg-warning/15 text-warning',
+  email_sent: 'bg-info/15 text-info',
+  email_failed: 'bg-destructive/15 text-destructive',
+  rolled_back: 'bg-warning/15 text-warning',
   validation_failed: 'bg-muted text-muted-foreground',
 };
 
@@ -135,9 +135,9 @@ export const AdminAuditLogs = () => {
     <div className="space-y-6">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold">{stats.total}</p><p className="text-xs text-muted-foreground">总日志</p></CardContent></Card>
-        <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-yellow-600">{stats.duplicates}</p><p className="text-xs text-muted-foreground">重复命中</p></CardContent></Card>
-        <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-red-600">{stats.emailFailed}</p><p className="text-xs text-muted-foreground">邮件失败</p></CardContent></Card>
-        <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-orange-600">{stats.rolledBack}</p><p className="text-xs text-muted-foreground">已回滚</p></CardContent></Card>
+        <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-warning">{stats.duplicates}</p><p className="text-xs text-muted-foreground">重复命中</p></CardContent></Card>
+        <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-destructive">{stats.emailFailed}</p><p className="text-xs text-muted-foreground">邮件失败</p></CardContent></Card>
+        <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-warning">{stats.rolledBack}</p><p className="text-xs text-muted-foreground">已回滚</p></CardContent></Card>
       </div>
 
       <Card>

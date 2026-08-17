@@ -15,28 +15,28 @@ export const MarketTrendsAnalysis: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-6 text-center">
-            <Target className="h-8 w-8 mx-auto mb-2 text-blue-500" />
+            <Target className="h-8 w-8 mx-auto mb-2 text-info" />
             <div className="text-2xl font-bold">{marketStats.totalListings.toLocaleString()}</div>
             <div className="text-sm text-muted-foreground">总上架域名</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6 text-center">
-            <DollarSign className="h-8 w-8 mx-auto mb-2 text-green-500" />
+            <DollarSign className="h-8 w-8 mx-auto mb-2 text-success" />
             <div className="text-2xl font-bold">¥{marketStats.averagePrice.toLocaleString()}</div>
             <div className="text-sm text-muted-foreground">平均价格</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6 text-center">
-            <TrendingUp className="h-8 w-8 mx-auto mb-2 text-purple-500" />
+            <TrendingUp className="h-8 w-8 mx-auto mb-2 text-primary" />
             <div className="text-2xl font-bold">{marketStats.monthlyGrowth}%</div>
             <div className="text-sm text-muted-foreground">月度增长</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6 text-center">
-            <Activity className="h-8 w-8 mx-auto mb-2 text-orange-500" />
+            <Activity className="h-8 w-8 mx-auto mb-2 text-warning" />
             <div className="text-2xl font-bold">{marketStats.hotCategories}</div>
             <div className="text-sm text-muted-foreground">热门分类</div>
           </CardContent>

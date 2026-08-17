@@ -146,9 +146,9 @@ export default function PortfolioValuation() {
       const short = rows.filter((r) => r.length <= 5).length;
       const premium = rows.filter((r) => r.tld === 'com').length;
       setAiNarrative(
-        `本组合共 ${rows.length} 个域名，估算中位总值约 ${formatPrice(totals.mid, 'CNY')}。` +
-        `其中头部资产 ${top} 具备较强流动性；短字符 (≤5) 域名占比 ${short}，.com 优质后缀 ${premium} 个。` +
-        `建议优先推广长度短、后缀纯度高的资产；对长域名或含连字符的资产考虑组合打包出售。` +
+ `本组合共 ${rows.length} 个域名，估算中位总值约 ${formatPrice(totals.mid, 'CNY')}。` +
+ `其中头部资产 ${top} 具备较强流动性；短字符 (≤5) 域名占比 ${short}，.com 优质后缀 ${premium} 个。` +
+ `建议优先推广长度短、后缀纯度高的资产；对长域名或含连字符的资产考虑组合打包出售。` +
         (data ? '' : ''),
       );
       if (error) console.warn(error);
@@ -226,7 +226,7 @@ export default function PortfolioValuation() {
       {/* Social share card preview */}
       {rows.length > 0 && (
         <Card className="overflow-hidden border-0 shadow-lg print:shadow-none print:border portfolio-share-card">
-          <div className="relative bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-6 md:p-8">
+          <div className="relative bg-invert text-invert-foreground p-6 md:p-8">
             <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_20%_20%,white,transparent_40%),radial-gradient(circle_at_80%_60%,white,transparent_40%)]" />
             <div className="relative flex flex-col md:flex-row md:items-end justify-between gap-4">
               <div>
@@ -244,12 +244,12 @@ export default function PortfolioValuation() {
             </div>
             <div className="relative mt-6 flex flex-wrap gap-1.5">
               {rows.slice(0, 8).map((r) => (
-                <span key={r.name} className="px-2.5 py-1 rounded-full bg-white/10 border border-white/15 backdrop-blur text-[11px] font-mono uppercase">
+                <span key={r.name} className="px-2.5 py-1 rounded-full bg-invert-foreground/10 border border-invert-foreground/15 backdrop-blur text-[11px] font-mono uppercase">
                   {r.name}
                 </span>
               ))}
               {rows.length > 8 && (
-                <span className="px-2.5 py-1 rounded-full bg-white/5 text-[11px] opacity-70">+{rows.length - 8}</span>
+                <span className="px-2.5 py-1 rounded-full bg-invert-foreground/5 text-[11px] opacity-70">+{rows.length - 8}</span>
               )}
             </div>
           </div>

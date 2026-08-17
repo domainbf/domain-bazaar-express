@@ -67,10 +67,10 @@ export const DomainValuationReport: React.FC<DomainValuationReportProps> = ({
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600 bg-green-500/10 border-green-500/30';
-    if (score >= 60) return 'text-blue-600 bg-blue-500/10 border-blue-500/30';
-    if (score >= 40) return 'text-yellow-600 bg-yellow-500/10 border-yellow-500/30';
-    return 'text-red-600 bg-red-500/10 border-red-500/30';
+    if (score >= 80) return 'text-success bg-success/10 border-success/30';
+    if (score >= 60) return 'text-info bg-info/10 border-info/30';
+    if (score >= 40) return 'text-warning bg-warning/10 border-warning/30';
+    return 'text-destructive bg-destructive/10 border-destructive/30';
   };
 
   const getPriceComparison = () => {
@@ -79,21 +79,21 @@ export const DomainValuationReport: React.FC<DomainValuationReportProps> = ({
     
     if (diff > 10) {
       return (
-        <div className="flex items-center gap-2 text-green-600 bg-green-500/10 px-3 py-2 rounded-lg text-sm">
+        <div className="flex items-center gap-2 text-success bg-success/10 px-3 py-2 rounded-lg text-sm">
           <TrendingUp className="h-4 w-4 shrink-0" />
           <span className="font-medium">当前定价偏低 {diff.toFixed(0)}%，建议适当提价</span>
         </div>
       );
     } else if (diff < -10) {
       return (
-        <div className="flex items-center gap-2 text-yellow-600 bg-yellow-500/10 px-3 py-2 rounded-lg text-sm">
+        <div className="flex items-center gap-2 text-warning bg-warning/10 px-3 py-2 rounded-lg text-sm">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           <span className="font-medium">当前定价偏高 {Math.abs(diff).toFixed(0)}%，可能影响成交</span>
         </div>
       );
     }
     return (
-      <div className="flex items-center gap-2 text-blue-600 bg-blue-500/10 px-3 py-2 rounded-lg text-sm">
+      <div className="flex items-center gap-2 text-info bg-info/10 px-3 py-2 rounded-lg text-sm">
         <CheckCircle className="h-4 w-4 shrink-0" />
         <span className="font-medium">当前定价合理，与市场估值相符</span>
       </div>
@@ -208,7 +208,7 @@ export const DomainValuationReport: React.FC<DomainValuationReportProps> = ({
         <ul className="space-y-2">
           {result.recommendations.map((rec, index) => (
             <li key={index} className="flex items-start gap-2 text-sm">
-              <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+              <CheckCircle className="h-4 w-4 text-success mt-0.5 shrink-0" />
               <span className="text-muted-foreground">{rec}</span>
             </li>
           ))}

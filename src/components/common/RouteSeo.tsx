@@ -16,76 +16,76 @@ const DEFAULT: SeoEntry = {
 
 /** 精确路径 → 元信息 */
 const EXACT: Record<string, SeoEntry> = {
-  '/': DEFAULT,
-  '/marketplace': {
+ '/': DEFAULT,
+ '/marketplace': {
     title: '域名市场 — 精品域名在售列表｜域见•你',
     description: '浏览域见•你精品域名市场：按价格、长度、后缀筛选优质域名，支持收藏、议价与安全托管交易。',
   },
-  '/auctions': {
+ '/auctions': {
     title: '域名拍卖 — 竞价抢购优质域名｜域见•你',
     description: '参与域见•你域名拍卖：实时竞价、自动出价与保留价机制，公平透明地竞得心仪域名。',
   },
-  '/valuation': {
+ '/valuation': {
     title: 'AI 域名估值 — 免费评估域名价值｜域见•你',
     description: '使用 AI 多维度模型免费评估域名价值：长度、后缀、关键词热度与市场成交对比，秒出估价报告。',
   },
-  '/sell': {
+ '/sell': {
     title: '出售域名 — 免费上架与议价托管｜域见•你',
     description: '在域见•你免费上架出售域名：一口价或议价模式，平台托管收款与过户，交易安全省心。',
   },
-  '/escrow': {
+ '/escrow': {
     title: '担保交易 — 域名资金与过户托管｜域见•你',
     description: '域见•你担保交易服务：买家付款进入托管，卖家完成过户后放款，全流程可追踪，双方零风险。',
   },
-  '/seller': {
+ '/seller': {
     title: '卖家中心 — 域名出售与结算服务｜域见•你',
     description: '卖家中心：批量上架、报价管理、收益结算与实名认证，帮助域名投资者高效变现。',
   },
-  '/platform-services': {
+ '/platform-services': {
     title: '平台服务 — 交易·估值·监控一站式｜域见•你',
     description: '域见•你平台服务总览：域名交易、AI 估值、到期监控、DNS 管理与担保过户等一站式能力。',
   },
-  '/domain-monitor': {
+ '/domain-monitor': {
     title: '域名监控 — 到期与状态实时提醒｜域见•你',
     description: '添加域名监控，自动检测解析状态与到期时间变化，第一时间通过站内信与邮件提醒。',
   },
-  '/community': {
+ '/community': {
     title: '域名社区 — 行业动态与交流｜域见•你',
     description: '域见•你社区：域名投资经验、行业动态与成交案例分享，与同好交流米市趋势。',
   },
-  '/help': {
+ '/help': {
     title: '帮助中心 — 使用指南与常见问题｜域见•你',
     description: '域见•你帮助中心：账号、交易、过户、支付与提现的完整操作指南。',
   },
-  '/faq': {
+ '/faq': {
     title: '常见问题 FAQ — 交易与过户答疑｜域见•你',
     description: '关于域名购买、报价、担保交易、过户与退款的常见问题解答。',
   },
-  '/contact': {
+ '/contact': {
     title: '联系我们 — 客服与商务合作｜域见•你',
     description: '联系域见•你团队：客户支持、商务合作与批量域名采购咨询渠道。',
   },
-  '/terms': {
+ '/terms': {
     title: '服务条款｜域见•你',
     description: '域见•你平台服务条款：用户权利义务、交易规则与责任说明。',
   },
-  '/privacy': {
+ '/privacy': {
     title: '隐私政策｜域见•你',
     description: '域见•你隐私政策：说明我们如何收集、使用与保护您的个人信息。',
   },
-  '/disclaimer': {
+ '/disclaimer': {
     title: '免责声明｜域见•你',
     description: '域见•你免责声明：平台信息展示与第三方内容的责任边界说明。',
   },
-  '/security-center': {
+ '/security-center': {
     title: '安全中心 — 账号保护与两步验证｜域见•你',
     description: '安全中心：开启两步验证、管理登录设备与恢复码，全面保护您的域名资产。',
   },
-  '/tools/portfolio-valuation': {
+ '/tools/portfolio-valuation': {
     title: '域名组合估值 — 批量资产评估报告｜域见•你',
     description: '批量导入域名生成组合估值报告，掌握资产总值分布与优化建议。',
   },
-  '/auth': {
+ '/auth': {
     title: '登录 / 注册｜域见•你',
     description: '登录或注册域见•你账号，管理您的域名、报价与交易订单。',
     noindex: true,

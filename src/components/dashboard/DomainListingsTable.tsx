@@ -236,7 +236,7 @@ export const DomainListingsTable = ({
             <tr key={domain.id} className="border-b hover:bg-muted/50">
               <td className="p-4">
                 <div className="font-medium">{domain.name}</div>
-                {domain.highlight && <span className="text-xs bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 px-2 py-1 rounded">精选</span>}
+                {domain.highlight && <span className="text-xs bg-warning/15 text-warning  px-2 py-1 rounded">精选</span>}
               </td>
               <td className="p-4">¥{domain.price}</td>
               <td className="p-4 capitalize">
@@ -250,9 +250,9 @@ export const DomainListingsTable = ({
                 <div className="flex flex-col space-y-1">
                   <span className={`px-2 py-1 rounded text-xs ${
                     domain.verification_status === 'verified' 
-                      ? 'bg-green-500/15 text-green-600 dark:text-green-400' 
+                      ? 'bg-success/15 text-success ' 
                       : domain.verification_status === 'pending'
-                      ? 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400'
+                      ? 'bg-warning/15 text-warning '
                       : 'bg-muted text-foreground'
                   }`}>
                     {domain.verification_status === 'verified' && '已验证'}
@@ -261,7 +261,7 @@ export const DomainListingsTable = ({
                   </span>
                   <span className={`px-2 py-1 rounded text-xs ${
                     domain.status === 'available' 
-                      ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400' 
+                      ? 'bg-info/15 text-info ' 
                       : domain.status === 'sold'
                       ? 'bg-muted text-foreground'
                       : 'bg-muted text-foreground'
@@ -294,7 +294,7 @@ export const DomainListingsTable = ({
                         size="sm" 
                         variant="outline" 
                         onClick={() => handleVerifyDomain(domain.id)}
-                        className="border-green-300 text-green-600 hover:bg-green-500/10 hover:border-green-300"
+                        className="border-success text-success hover:bg-success/10 hover:border-success"
                         title="验证域名"
                       >
                         <ShieldCheck className="w-4 h-4" />
@@ -309,8 +309,8 @@ export const DomainListingsTable = ({
                         onClick={() => handleToggleStatus(domain)}
                         className={`border-border ${
                           domain.status === 'available' 
-                            ? 'text-orange-600 hover:bg-orange-500/10 hover:border-orange-300' 
-                            : 'text-blue-600 hover:bg-blue-500/10 hover:border-blue-300'
+                            ? 'text-warning hover:bg-warning/10 hover:border-warning' 
+                            : 'text-info hover:bg-info/10 hover:border-info'
                         }`}
                         title={domain.status === 'available' ? '下架域名' : '上架域名'}
                       >
@@ -324,7 +324,7 @@ export const DomainListingsTable = ({
                         size="sm" 
                         variant="outline" 
                         onClick={() => handleViewInMarketplace(domain)}
-                        className="border-border text-blue-600 hover:bg-blue-500/10 hover:border-blue-300"
+                        className="border-border text-info hover:bg-info/10 hover:border-info"
                         title="在市场中查看"
                       >
                         <ExternalLink className="w-4 h-4" />
@@ -337,7 +337,7 @@ export const DomainListingsTable = ({
                         size="sm" 
                         variant="outline" 
                         onClick={() => handleDeleteDomain(domain.id as string)}
-                        className="border-border text-red-600 hover:bg-red-500/10 hover:border-red-300"
+                        className="border-border text-destructive hover:bg-destructive/10 hover:border-destructive"
                         title="删除域名"
                       >
                         <Trash className="w-4 h-4" />

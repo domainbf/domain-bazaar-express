@@ -50,9 +50,9 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.FC<{ className?: string }> }> = {
-  open: { label: '待处理', color: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20', icon: Clock },
-  in_progress: { label: '处理中', color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20', icon: RefreshCw },
-  resolved: { label: '已解决', color: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20', icon: CheckCircle },
+  open: { label: '待处理', color: 'bg-warning/10 text-warning  border-warning/20', icon: Clock },
+  in_progress: { label: '处理中', color: 'bg-info/10 text-info  border-info/20', icon: RefreshCw },
+  resolved: { label: '已解决', color: 'bg-success/10 text-success  border-success/20', icon: CheckCircle },
   closed: { label: '已关闭', color: 'bg-muted text-muted-foreground border-border', icon: XCircle },
 };
 
@@ -183,7 +183,7 @@ export const SupportTickets = () => {
             ])}
             <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">用户描述</p>
             ${quoteBlock(form.description, 'amber')}
-          `,
+ `,
           ctaLabel: '前往后台处理',
           ctaUrl: `${brand.siteDomain}/admin?tab=tickets`,
           footerNote: `工单 #${ticket.ticket_number} · ${brand.siteName} 管理后台`,
@@ -210,7 +210,7 @@ export const SupportTickets = () => {
               { label: '预计回复', value: '工作日 24 小时内' },
             ])}
             <p style="margin:0 0 20px;font-size:14px;color:#64748b;line-height:1.7;">如有紧急情况，请直接发送邮件至 <a href="mailto:${brand.supportEmail}" style="color:#0f172a;font-weight:600;">${brand.supportEmail}</a>。</p>
-          `,
+ `,
           ctaLabel: '查看我的工单',
           ctaUrl: `${brand.siteDomain}/user-center?tab=support`,
           brand,
@@ -272,7 +272,7 @@ export const SupportTickets = () => {
             ])}
             <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">用户回复内容</p>
             ${quoteBlock(replyText.trim(), 'gray')}
-          `,
+ `,
           ctaLabel: '前往后台查看',
           ctaUrl: `${replyBrand.siteDomain}/admin?tab=tickets`,
           footerNote: `${replyBrand.siteName} 管理后台 · 自动通知`,

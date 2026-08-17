@@ -39,31 +39,31 @@ interface ActivityLog {
 }
 
 const activityIcons: Record<string, any> = {
-  'login': User,
-  'view_domain': Eye,
-  'create_offer': MessageSquare,
-  'favorite_domain': Heart,
-  'purchase': DollarSign,
-  'verify_domain': Shield,
-  'default': Activity
+ 'login': User,
+ 'view_domain': Eye,
+ 'create_offer': MessageSquare,
+ 'favorite_domain': Heart,
+ 'purchase': DollarSign,
+ 'verify_domain': Shield,
+ 'default': Activity
 };
 
 const activityLabels: Record<string, string> = {
-  'login': '用户登录',
-  'view_domain': '查看域名',
-  'create_offer': '提交报价',
-  'favorite_domain': '收藏域名',
-  'purchase': '完成购买',
-  'verify_domain': '域名验证'
+ 'login': '用户登录',
+ 'view_domain': '查看域名',
+ 'create_offer': '提交报价',
+ 'favorite_domain': '收藏域名',
+ 'purchase': '完成购买',
+ 'verify_domain': '域名验证'
 };
 
 const activityColors: Record<string, string> = {
-  'login': 'bg-blue-500/15 text-blue-700',
-  'view_domain': 'bg-muted text-foreground',
-  'create_offer': 'bg-purple-500/15 text-purple-700',
-  'favorite_domain': 'bg-pink-100 text-pink-700',
-  'purchase': 'bg-green-500/15 text-green-700',
-  'verify_domain': 'bg-yellow-500/15 text-yellow-700'
+ 'login': 'bg-info/15 text-info',
+ 'view_domain': 'bg-muted text-foreground',
+ 'create_offer': 'bg-primary/15 text-primary',
+ 'favorite_domain': 'bg-destructive/10 text-destructive',
+ 'purchase': 'bg-success/15 text-success',
+ 'verify_domain': 'bg-warning/15 text-warning'
 };
 
 export const AdminActivityLog = () => {

@@ -53,7 +53,7 @@ export function OrderProgressTracker({ orderId, initialStage = 'submitted', init
     const ch = supabase
       .channel(`order-${orderId}`)
       .on(
-        'postgres_changes',
+ 'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'transactions', filter: `id=eq.${orderId}` },
         (payload) => {
           const n: any = payload.new;

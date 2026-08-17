@@ -38,8 +38,8 @@ export const LanguageSwitcher = ({ className = "", iconOnly = false }: LanguageS
 
   const getLanguageDisplay = (langCode: string) => {
     const languageMap = {
-      'zh': '中文',
-      'en': 'English'
+ 'zh': '中文',
+ 'en': 'English'
     };
     return languageMap[langCode as keyof typeof languageMap] || langCode;
   };

@@ -166,7 +166,7 @@ export const Profile = () => {
                       保存中...
                     </span>
                   ) : (
-                    '保存更改'
+ '保存更改'
                   )}
                 </Button>
               </form>
@@ -226,7 +226,7 @@ export const Profile = () => {
             {user && (
               <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+                  <Star className="h-5 w-5 text-warning fill-warning" />
                   我收到的评价
                 </h2>
                 <UserReviews userId={user.id} />

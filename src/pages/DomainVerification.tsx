@@ -65,7 +65,7 @@ export const DomainVerification = () => {
     if (accessDenied) {
       return (
         <div className="text-center py-12">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">访问被拒绝</h2>
+          <h2 className="text-2xl font-bold text-destructive mb-4">访问被拒绝</h2>
           <p className="text-muted-foreground mb-4">您只能验证自己的域名</p>
           <p className="text-sm text-muted-foreground/70">正在跳转到市场页面...</p>
         </div>

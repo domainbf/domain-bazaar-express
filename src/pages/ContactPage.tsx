@@ -99,12 +99,12 @@ export const ContactPage: React.FC = () => {
     
     try {
       const categoryLabels: Record<string, string> = {
-        'transaction': '交易问题',
-        'domain': '域名相关',
-        'account': '账户问题',
-        'payment': '支付结算',
-        'technical': '技术支持',
-        'other': '其他问题',
+ 'transaction': '交易问题',
+ 'domain': '域名相关',
+ 'account': '账户问题',
+ 'payment': '支付结算',
+ 'technical': '技术支持',
+ 'other': '其他问题',
       };
       const categoryLabel = categoryLabels[formData.category] || formData.category;
       const siteDomain = (config.site_domain || window.location.origin).replace(/\/$/, '');
@@ -233,7 +233,7 @@ export const ContactPage: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-sm font-medium">
-                        姓名 <span className="text-red-500">*</span>
+                        姓名 <span className="text-destructive">*</span>
                       </label>
                       <Input
                         type="text"
@@ -246,7 +246,7 @@ export const ContactPage: React.FC = () => {
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium">
-                        邮箱 <span className="text-red-500">*</span>
+                        邮箱 <span className="text-destructive">*</span>
                       </label>
                       <Input
                         type="email"
@@ -270,7 +270,7 @@ export const ContactPage: React.FC = () => {
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium">
-                        问题类型 <span className="text-red-500">*</span>
+                        问题类型 <span className="text-destructive">*</span>
                       </label>
                       <Select 
                         value={formData.category} 
@@ -292,7 +292,7 @@ export const ContactPage: React.FC = () => {
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium">
-                      主题 <span className="text-red-500">*</span>
+                      主题 <span className="text-destructive">*</span>
                     </label>
                     <Input
                       value={formData.subject}
@@ -304,7 +304,7 @@ export const ContactPage: React.FC = () => {
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium">
-                      详细描述 <span className="text-red-500">*</span>
+                      详细描述 <span className="text-destructive">*</span>
                     </label>
                     <Textarea
                       value={formData.message}
@@ -427,8 +427,8 @@ export const ContactPage: React.FC = () => {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 gap-3">
                   <a href="/faq" className="block">
-                    <div className="flex items-center gap-3 p-3 bg-blue-500/10 rounded-lg hover:bg-blue-500/15 transition-colors cursor-pointer">
-                      <Globe className="h-6 w-6 text-blue-500" />
+                    <div className="flex items-center gap-3 p-3 bg-info/10 rounded-lg hover:bg-info/15 transition-colors cursor-pointer">
+                      <Globe className="h-6 w-6 text-info" />
                       <div className="flex-1">
                         <div className="font-medium">在线帮助中心</div>
                         <div className="text-sm text-muted-foreground">查看常见问题</div>
@@ -437,8 +437,8 @@ export const ContactPage: React.FC = () => {
                   </a>
 
                   <a href="/community" className="block">
-                    <div className="flex items-center gap-3 p-3 bg-green-500/10 rounded-lg hover:bg-green-500/15 transition-colors cursor-pointer">
-                      <Users className="h-6 w-6 text-green-500" />
+                    <div className="flex items-center gap-3 p-3 bg-success/10 rounded-lg hover:bg-success/15 transition-colors cursor-pointer">
+                      <Users className="h-6 w-6 text-success" />
                       <div className="flex-1">
                         <div className="font-medium">用户社区</div>
                         <div className="text-sm text-muted-foreground">与其他用户交流</div>
@@ -447,8 +447,8 @@ export const ContactPage: React.FC = () => {
                   </a>
 
                   <a href="/security-center" className="block">
-                    <div className="flex items-center gap-3 p-3 bg-purple-500/10 rounded-lg hover:bg-purple-500/15 transition-colors cursor-pointer">
-                      <Shield className="h-6 w-6 text-purple-500" />
+                    <div className="flex items-center gap-3 p-3 bg-primary/10 rounded-lg hover:bg-primary/15 transition-colors cursor-pointer">
+                      <Shield className="h-6 w-6 text-primary" />
                       <div className="flex-1">
                         <div className="font-medium">安全中心</div>
                         <div className="text-sm text-muted-foreground">账户安全指引</div>
@@ -461,22 +461,22 @@ export const ContactPage: React.FC = () => {
 
             {/* 紧急联系 */}
             {config.emergency_phone && (
-              <Card className="border-red-500/30 bg-red-500/10">
+              <Card className="border-destructive/30 bg-destructive/10">
                 <CardHeader>
-                  <CardTitle className="text-red-700 flex items-center gap-2">
+                  <CardTitle className="text-destructive flex items-center gap-2">
                     <Building className="h-5 w-5" />
                     紧急情况
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-red-700 text-sm">
+                  <p className="text-destructive text-sm">
                     如遇到账户安全问题或紧急交易纠纷，
                     请立即拨打紧急热线：
                   </p>
-                  <div className="font-bold text-red-600 dark:text-red-400 text-lg mt-2">
+                  <div className="font-bold text-destructive  text-lg mt-2">
                     {config.emergency_phone}
                   </div>
-                  <p className="text-red-600 text-xs mt-1">
+                  <p className="text-destructive text-xs mt-1">
                     24小时紧急服务热线
                   </p>
                 </CardContent>

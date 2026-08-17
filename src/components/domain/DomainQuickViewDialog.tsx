@@ -130,7 +130,7 @@ export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerI
           </div>
           <div className="flex justify-center pt-1">
             <Button type="button" variant="outline" size="sm" onClick={handleCopy} className="h-7 gap-1.5 text-xs">
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
               {copied ? '已复制' : '复制域名'}
             </Button>
           </div>

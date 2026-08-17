@@ -329,8 +329,8 @@ export default function TransactionDetail() {
                 </div>
 
                 {isSeller && (
-                  <div className="p-3 bg-green-500/10 dark:bg-green-950/20 border border-green-500/30 dark:border-green-800 rounded-lg text-sm space-y-1">
-                    <p className="font-medium text-green-600 dark:text-green-400 flex items-center gap-1">
+                  <div className="p-3 bg-success/10  border border-success/30  rounded-lg text-sm space-y-1">
+                    <p className="font-medium text-success  flex items-center gap-1">
                       <Banknote className="w-4 h-4" /> 收益明细
                     </p>
                     <div className="flex justify-between text-muted-foreground">
@@ -342,7 +342,7 @@ export default function TransactionDetail() {
                       <span>-{txCurrency}{commissionAmount.toLocaleString()}</span>
                     </div>
                     <Separator className="my-1" />
-                    <div className="flex justify-between font-semibold text-green-700 dark:text-green-400">
+                    <div className="flex justify-between font-semibold text-success ">
                       <span>实际到账</span>
                       <span>{txCurrency}{sellerAmount.toLocaleString()}</span>
                     </div>
@@ -372,7 +372,7 @@ export default function TransactionDetail() {
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10 ${
                           isDone ? 'bg-primary text-primary-foreground' :
                           isCurrent ? 'bg-primary/20 text-primary border-2 border-primary' :
-                          'bg-muted text-muted-foreground'
+ 'bg-muted text-muted-foreground'
                         }`}>
                           <StepIcon className="w-4 h-4" />
                         </div>
@@ -380,7 +380,7 @@ export default function TransactionDetail() {
                           <p className={`font-medium text-sm ${isCurrent ? 'text-primary' : isDone ? 'text-foreground' : 'text-muted-foreground'}`}>
                             {step.label}
                             {isCurrent && <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">当前</span>}
-                            {isDone && index < STATUS_STEPS.length - 1 && <CheckCircle className="w-3 h-3 inline ml-1 text-green-500" />}
+                            {isDone && index < STATUS_STEPS.length - 1 && <CheckCircle className="w-3 h-3 inline ml-1 text-success" />}
                           </p>
                           <p className="text-xs text-muted-foreground mt-0.5">{step.desc}</p>
                         </div>
@@ -399,14 +399,14 @@ export default function TransactionDetail() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {canBuyerPay && (
-                    <div className="p-4 bg-yellow-500/10 dark:bg-yellow-950/20 border border-yellow-300 dark:border-yellow-700 rounded-lg">
-                      <p className="text-sm font-semibold text-yellow-900 dark:text-yellow-300 mb-1 flex items-center gap-2">
+                    <div className="p-4 bg-warning/10  border border-warning  rounded-lg">
+                      <p className="text-sm font-semibold text-warning  mb-1 flex items-center gap-2">
                         <CreditCard className="w-4 h-4" /> 买家操作：完成付款
                       </p>
                       <p className="text-xs text-muted-foreground mb-3">
                         请通过平台指定方式将 <strong>{txCurrency}{transaction.amount.toLocaleString()}</strong> 汇入托管账户，资金确认后交易将自动进入托管阶段。
                       </p>
-                      <div className="text-xs bg-card dark:bg-black/20 rounded-lg p-3 space-y-1.5 border border-yellow-500/30 dark:border-yellow-800 mb-3">
+                      <div className="text-xs bg-warning/5 rounded-lg p-3 space-y-1.5 border border-warning/30 mb-3">
                         <p className="font-semibold text-foreground">付款步骤：</p>
                         <p className="text-muted-foreground">① 通过平台内消息联系客服获取收款账户信息</p>
                         <p className="text-muted-foreground">② 按照指定金额付款，备注填写交易ID</p>
@@ -420,8 +420,8 @@ export default function TransactionDetail() {
                   )}
 
                   {canSellerConfirm && (
-                    <div className="p-4 bg-blue-500/10 dark:bg-blue-950/20 border border-blue-500/30 dark:border-blue-800 rounded-lg">
-                      <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2">卖家操作：确认域名已转移</p>
+                    <div className="p-4 bg-info/10 border border-info/30 rounded-lg">
+                      <p className="text-sm font-medium text-info mb-2">卖家操作：确认域名已转移</p>
                       <p className="text-xs text-muted-foreground mb-3">请确认您已将域名转移至买家指定账户，确认后买家将验证并释放资金。</p>
                       <Button onClick={handleSellerConfirmTransfer} disabled={actionLoading} data-testid="button-confirm-transfer">
                         {actionLoading ? <LoadingSpinner size="sm" /> : <CheckCircle className="w-4 h-4 mr-2" />}
@@ -431,8 +431,8 @@ export default function TransactionDetail() {
                   )}
 
                   {canBuyerConfirm && (
-                    <div className="p-4 bg-green-500/10 dark:bg-green-950/20 border border-green-500/30 dark:border-green-800 rounded-lg">
-                      <p className="text-sm font-medium text-green-600 dark:text-green-400 mb-2">买家操作：确认收到域名</p>
+                    <div className="p-4 bg-success/10  border border-success/30  rounded-lg">
+                      <p className="text-sm font-medium text-success  mb-2">买家操作：确认收到域名</p>
                       <p className="text-xs text-muted-foreground mb-3">请确认域名已成功转移至您的账户。确认后资金将自动释放给卖家，此操作不可撤销。</p>
                       <Button onClick={handleBuyerConfirmReceived} disabled={actionLoading} data-testid="button-confirm-received">
                         {actionLoading ? <LoadingSpinner size="sm" /> : <CheckCheck className="w-4 h-4 mr-2" />}
@@ -473,8 +473,8 @@ export default function TransactionDetail() {
                               data-testid="input-dispute-description"
                             />
                           </div>
-                          <div className="p-3 bg-yellow-500/10 dark:bg-yellow-950/20 border border-yellow-500/30 rounded-lg text-xs text-muted-foreground">
-                            <AlertTriangle className="w-3 h-3 inline mr-1 text-yellow-600" />
+                          <div className="p-3 bg-warning/10  border border-warning/30 rounded-lg text-xs text-muted-foreground">
+                            <AlertTriangle className="w-3 h-3 inline mr-1 text-warning" />
                             提交纠纷后，交易将暂停，平台将在24小时内介入调查。请确保您提供的信息真实准确。
                           </div>
                         </div>
@@ -489,9 +489,9 @@ export default function TransactionDetail() {
                   )}
 
                   {isCompleted && (
-                    <div className="p-4 bg-green-500/10 dark:bg-green-950/20 border border-green-500/30 dark:border-green-800 rounded-lg text-center">
-                      <CheckCheck className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                      <p className="font-medium text-green-600 dark:text-green-400">交易已完成</p>
+                    <div className="p-4 bg-success/10  border border-success/30  rounded-lg text-center">
+                      <CheckCheck className="w-8 h-8 text-success mx-auto mb-2" />
+                      <p className="font-medium text-success ">交易已完成</p>
                       <p className="text-xs text-muted-foreground mt-1">完成于 {transaction.completed_at ? new Date(transaction.completed_at).toLocaleString('zh-CN') : '—'}</p>
                       <Button
                         variant="outline"
@@ -514,7 +514,7 @@ export default function TransactionDetail() {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-green-500" /> 资金托管状态
+                  <Shield className="w-4 h-4 text-success" /> 资金托管状态
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
@@ -559,15 +559,15 @@ export default function TransactionDetail() {
             <Card className="border-muted">
               <CardContent className="pt-4 text-xs text-muted-foreground space-y-2">
                 <div className="flex items-start gap-2">
-                  <Shield className="w-3 h-3 mt-0.5 text-green-500 shrink-0" />
+                  <Shield className="w-3 h-3 mt-0.5 text-success shrink-0" />
                   <span>平台资金托管，保障买卖双方权益</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <FileText className="w-3 h-3 mt-0.5 text-blue-500 shrink-0" />
+                  <FileText className="w-3 h-3 mt-0.5 text-info shrink-0" />
                   <span>如有纠纷，平台24小时内介入处理</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <Star className="w-3 h-3 mt-0.5 text-yellow-500 shrink-0" />
+                  <Star className="w-3 h-3 mt-0.5 text-warning shrink-0" />
                   <span>交易完成后请互相评价，建立信任体系</span>
                 </div>
               </CardContent>

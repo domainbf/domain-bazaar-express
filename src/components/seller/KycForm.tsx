@@ -90,8 +90,8 @@ export default function KycForm({ onStatusChange, compact }: Props) {
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open(
-          'POST',
-          `${SUPABASE_URL}/storage/v1/object/kyc-documents/${encodeURI(path)}`,
+ 'POST',
+ `${SUPABASE_URL}/storage/v1/object/kyc-documents/${encodeURI(path)}`,
           true
         );
         xhr.setRequestHeader('Authorization', `Bearer ${token}`);
@@ -296,7 +296,7 @@ export default function KycForm({ onStatusChange, compact }: Props) {
                 <UploadCloud className="w-3 h-3" />{label}
               </Label>
               {form[field] ? (
-                <div className="text-xs text-green-600 dark:text-green-400 break-all">已上传 ✓</div>
+                <div className="text-xs text-success  break-all">已上传 ✓</div>
               ) : (
                 <div className="text-xs text-muted-foreground">未上传</div>
               )}

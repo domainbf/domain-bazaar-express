@@ -298,7 +298,7 @@ function PropChip({ label, res }: { label: string; res?: PropResult }) {
   if (!res) return null;
   const Icon = res.ok ? CheckCircle2 : XCircle;
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${res.ok ? 'text-emerald-600 border-emerald-500/40 bg-emerald-500/5' : 'text-muted-foreground border-border'}`}>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${res.ok ? 'text-success border-success/40 bg-success/5' : 'text-muted-foreground border-border'}`}>
       <Icon className="h-3 w-3" />
       {label}: {res.ok ? res.values.slice(0, 1).join(', ') : '未解析'}
     </span>

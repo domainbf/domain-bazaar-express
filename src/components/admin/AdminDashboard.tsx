@@ -204,8 +204,8 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
       change: `+${stats.newUsersToday}`,
       changeLabel: '今日新增',
       icon: Users,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-500/10',
+      color: 'text-info',
+      bgColor: 'bg-info/10',
       trend: stats.newUsersToday > 0 ? 'up' : 'stable'
     },
     {
@@ -214,8 +214,8 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
       change: `+${stats.newDomainsToday}`,
       changeLabel: '今日新增',
       icon: Globe,
-      color: 'text-green-600',
-      bgColor: 'bg-green-500/10',
+      color: 'text-success',
+      bgColor: 'bg-success/10',
       trend: stats.newDomainsToday > 0 ? 'up' : 'stable'
     },
     {
@@ -224,8 +224,8 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
       change: stats.totalDomains > 0 ? `${((stats.activeListings / stats.totalDomains) * 100).toFixed(1)}%` : '0%',
       changeLabel: '占总数',
       icon: TrendingUp,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-500/10',
+      color: 'text-primary',
+      bgColor: 'bg-primary/10',
       trend: 'stable'
     },
     {
@@ -234,17 +234,17 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
       change: `${stats.completedTransactions}`,
       changeLabel: '笔交易',
       icon: DollarSign,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-500/10',
+      color: 'text-warning',
+      bgColor: 'bg-warning/10',
       trend: stats.completedTransactions > 0 ? 'up' : 'stable'
     }
   ];
 
   const secondaryStats = [
-    { label: '待审核验证', value: stats.pendingVerifications, icon: Clock, color: 'text-yellow-600' },
-    { label: '已验证域名', value: stats.verifiedDomains, icon: CheckCircle, color: 'text-green-600' },
-    { label: '总浏览量', value: stats.totalViews, icon: Eye, color: 'text-blue-600' },
-    { label: '待处理报价', value: stats.pendingOffers, icon: MessageSquare, color: 'text-purple-600' }
+    { label: '待审核验证', value: stats.pendingVerifications, icon: Clock, color: 'text-warning' },
+    { label: '已验证域名', value: stats.verifiedDomains, icon: CheckCircle, color: 'text-success' },
+    { label: '总浏览量', value: stats.totalViews, icon: Eye, color: 'text-info' },
+    { label: '待处理报价', value: stats.pendingOffers, icon: MessageSquare, color: 'text-primary' }
   ];
 
   if (isLoading) {
@@ -305,9 +305,9 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
                     <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
                     <div className="flex items-center space-x-2">
                       {stat.trend === 'up' ? (
-                        <ArrowUpRight className="h-4 w-4 text-green-500" />
+                        <ArrowUpRight className="h-4 w-4 text-success" />
                       ) : stat.trend === 'down' ? (
-                        <ArrowDownRight className="h-4 w-4 text-red-500" />
+                        <ArrowDownRight className="h-4 w-4 text-destructive" />
                       ) : null}
                       <Badge variant={stat.trend === 'up' ? 'default' : 'secondary'} className="text-xs">
                         {stat.change}
@@ -370,7 +370,7 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
                 用户管理
               </span>
               {stats.newUsersToday > 0 && (
-                <Badge className="bg-blue-500/15 text-blue-600 dark:text-blue-400">+{stats.newUsersToday}</Badge>
+                <Badge className="bg-info/15 text-info ">+{stats.newUsersToday}</Badge>
               )}
             </Button>
             
@@ -384,7 +384,7 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
                 域名管理
               </span>
               {stats.newDomainsToday > 0 && (
-                <Badge className="bg-green-500/15 text-green-600 dark:text-green-400">+{stats.newDomainsToday}</Badge>
+                <Badge className="bg-success/15 text-success ">+{stats.newDomainsToday}</Badge>
               )}
             </Button>
             
@@ -398,7 +398,7 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
                 域名验证
               </span>
               {stats.pendingVerifications > 0 && (
-                <Badge className="bg-yellow-500/15 text-yellow-600 dark:text-yellow-400">{stats.pendingVerifications}</Badge>
+                <Badge className="bg-warning/15 text-warning ">{stats.pendingVerifications}</Badge>
               )}
             </Button>
             
@@ -466,9 +466,9 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 系统警告 */}
         {(stats.pendingVerifications > 10 || stats.pendingOffers > 20) && (
-          <Card className="border-yellow-500/30 bg-yellow-500/10">
+          <Card className="border-warning/30 bg-warning/10">
             <CardHeader>
-              <CardTitle className="text-yellow-600 dark:text-yellow-400 flex items-center gap-2">
+              <CardTitle className="text-warning  flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5" />
                 系统提醒
               </CardTitle>
@@ -476,7 +476,7 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
             <CardContent className="space-y-3">
               {stats.pendingVerifications > 10 && (
                 <div className="flex items-center justify-between">
-                  <p className="text-yellow-700">
+                  <p className="text-warning">
                     有 {stats.pendingVerifications} 个域名验证请求待处理
                   </p>
                   <Button 
@@ -489,7 +489,7 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
               )}
               {stats.pendingOffers > 20 && (
                 <div className="flex items-center justify-between">
-                  <p className="text-yellow-700">
+                  <p className="text-warning">
                     有 {stats.pendingOffers} 个报价待处理
                   </p>
                   <Button size="sm" variant="outline">
@@ -502,9 +502,9 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
         )}
 
         {/* 系统健康状态 */}
-        <Card className="border-green-500/30 bg-green-500/10">
+        <Card className="border-success/30 bg-success/10">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-green-600 dark:text-green-400">
+            <CardTitle className="flex items-center gap-2 text-success ">
               <CheckCircle className="h-5 w-5" />
               系统状态
             </CardTitle>
@@ -513,7 +513,7 @@ export const AdminDashboard = ({ stats: propStats, isLoading: propIsLoading, onR
             <div className="space-y-2 text-xs text-muted-foreground">
               <div className="flex items-center justify-between">
                 <span>Supabase</span>
-                <span className="font-medium text-green-600 dark:text-green-400">在线</span>
+                <span className="font-medium text-success ">在线</span>
               </div>
               <div className="flex items-center justify-between">
                 <span>上次数据同步</span>

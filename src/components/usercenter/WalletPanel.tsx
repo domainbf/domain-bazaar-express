@@ -187,11 +187,11 @@ export const WalletPanel = () => {
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
-      case 'deposit': return <ArrowDownLeft className="h-4 w-4 text-green-600 dark:text-green-400" />;
-      case 'withdrawal': return <ArrowUpRight className="h-4 w-4 text-red-600 dark:text-red-400" />;
-      case 'purchase': return <CreditCard className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
-      case 'sale': return <DollarSign className="h-4 w-4 text-green-600 dark:text-green-400" />;
-      case 'refund': return <RefreshCw className="h-4 w-4 text-orange-600 dark:text-orange-400" />;
+      case 'deposit': return <ArrowDownLeft className="h-4 w-4 text-success " />;
+      case 'withdrawal': return <ArrowUpRight className="h-4 w-4 text-destructive " />;
+      case 'purchase': return <CreditCard className="h-4 w-4 text-info " />;
+      case 'sale': return <DollarSign className="h-4 w-4 text-success " />;
+      case 'refund': return <RefreshCw className="h-4 w-4 text-warning " />;
       default: return <History className="h-4 w-4 text-muted-foreground" />;
     }
   };
@@ -209,10 +209,10 @@ export const WalletPanel = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'completed': return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 text-xs">已完成</Badge>;
-      case 'approved': return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 text-xs">已批准</Badge>;
-      case 'processing': return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 text-xs">打款中</Badge>;
-      case 'pending': return <Badge className="bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 text-xs">审核中</Badge>;
+      case 'completed': return <Badge className="bg-success/10 text-success  text-xs">已完成</Badge>;
+      case 'approved': return <Badge className="bg-info/10 text-info  text-xs">已批准</Badge>;
+      case 'processing': return <Badge className="bg-info/10 text-info  text-xs">打款中</Badge>;
+      case 'pending': return <Badge className="bg-warning/10 text-warning  text-xs">审核中</Badge>;
       case 'rejected': return <Badge className="bg-destructive/10 text-destructive text-xs">已驳回</Badge>;
       case 'cancelled': return <Badge variant="secondary" className="text-xs">已取消</Badge>;
       case 'failed': return <Badge className="bg-destructive/10 text-destructive text-xs">失败</Badge>;
@@ -262,15 +262,15 @@ export const WalletPanel = () => {
       </div>
 
       {/* 余额卡片 */}
-      <Card className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/10 rounded-full translate-y-1/2 -translate-x-1/2" />
+      <Card className="invert-surface overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-info/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary/10 rounded-full translate-y-1/2 -translate-x-1/2" />
         <CardContent className={`${isMobile ? 'p-4' : 'p-6'} relative z-10`}>
           <div className="flex items-start justify-between mb-4">
             <div>
-              <div className="flex items-center gap-2 text-gray-400 text-sm mb-1">
+              <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
                 <span>可用余额</span>
-                <button onClick={() => setShowBalance(!showBalance)} className="hover:text-white transition-colors">
+                <button onClick={() => setShowBalance(!showBalance)} className="hover:text-invert-foreground transition-colors">
                   {showBalance ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                 </button>
               </div>
@@ -278,14 +278,14 @@ export const WalletPanel = () => {
                 {showBalance ? `¥${stats.balance.toLocaleString()}` : '****'}
               </p>
             </div>
-            <div className="flex items-center gap-1 bg-green-500/20 text-green-400 px-2 py-1 rounded-full text-xs">
+            <div className="flex items-center gap-1 bg-success/20 text-success px-2 py-1 rounded-full text-xs">
               <Shield className="h-3 w-3" />
               <span>已验证</span>
             </div>
           </div>
 
           {stats.frozenBalance > 0 && (
-            <div className="flex items-center gap-2 text-yellow-400 text-sm mb-4">
+            <div className="flex items-center gap-2 text-warning text-sm mb-4">
               <Clock className="h-4 w-4" />
               <span>冻结金额: {showBalance ? `¥${stats.frozenBalance.toLocaleString()}` : '****'}</span>
             </div>
@@ -294,7 +294,7 @@ export const WalletPanel = () => {
           <div className={`flex gap-2 md:gap-3 ${isMobile ? 'flex-col' : ''}`}>
             <Button 
               onClick={() => setDepositDialogOpen(true)}
-              className="flex-1 bg-white text-gray-900 hover:bg-white/90 font-medium"
+              className="flex-1 bg-invert-foreground text-invert hover:bg-invert-foreground/90 font-medium"
               size={isMobile ? "default" : "lg"}
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -302,7 +302,7 @@ export const WalletPanel = () => {
             </Button>
             <Button 
               onClick={() => setWithdrawDialogOpen(true)}
-              className="flex-1 bg-white/15 border border-white/40 text-white hover:bg-white/25 font-medium backdrop-blur-sm"
+              className="flex-1 bg-invert-foreground/15 border border-invert-foreground/30 text-invert-foreground hover:bg-invert-foreground/25 font-medium backdrop-blur-sm"
               size={isMobile ? "default" : "lg"}
             >
               <Minus className="h-4 w-4 mr-2" />
@@ -314,65 +314,65 @@ export const WalletPanel = () => {
 
       {/* 统计卡片 - 使用暗色兼容样式 */}
       <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-4'} gap-3 md:gap-4`}>
-        <Card className="border-green-500/20 bg-green-500/5">
+        <Card className="border-success/20 bg-success/5">
           <CardContent className={`${isMobile ? 'p-3' : 'p-4'}`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-green-600 dark:text-green-400">累计充值</p>
-                <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-green-700 dark:text-green-300`}>
+                <p className="text-xs text-success ">累计充值</p>
+                <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-success `}>
                   {showBalance ? `¥${stats.totalDeposited.toLocaleString()}` : '****'}
                 </p>
               </div>
-              <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-green-500/10 flex items-center justify-center">
-                <ArrowDownLeft className="h-4 w-4 md:h-5 md:w-5 text-green-600 dark:text-green-400" />
+              <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-success/10 flex items-center justify-center">
+                <ArrowDownLeft className="h-4 w-4 md:h-5 md:w-5 text-success " />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-red-500/20 bg-red-500/5">
+        <Card className="border-destructive/20 bg-destructive/5">
           <CardContent className={`${isMobile ? 'p-3' : 'p-4'}`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-red-600 dark:text-red-400">累计提现</p>
-                <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-red-700 dark:text-red-300`}>
+                <p className="text-xs text-destructive ">累计提现</p>
+                <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-destructive `}>
                   {showBalance ? `¥${stats.totalWithdrawn.toLocaleString()}` : '****'}
                 </p>
               </div>
-              <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-red-500/10 flex items-center justify-center">
-                <ArrowUpRight className="h-4 w-4 md:h-5 md:w-5 text-red-600 dark:text-red-400" />
+              <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-destructive/10 flex items-center justify-center">
+                <ArrowUpRight className="h-4 w-4 md:h-5 md:w-5 text-destructive " />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-blue-500/20 bg-blue-500/5">
+        <Card className="border-info/20 bg-info/5">
           <CardContent className={`${isMobile ? 'p-3' : 'p-4'}`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-blue-600 dark:text-blue-400">交易收益</p>
-                <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-blue-700 dark:text-blue-300`}>
+                <p className="text-xs text-info ">交易收益</p>
+                <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-info `}>
                   {showBalance ? `¥${stats.totalEarned.toLocaleString()}` : '****'}
                 </p>
               </div>
-              <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-blue-500/10 flex items-center justify-center">
-                <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-blue-600 dark:text-blue-400" />
+              <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-info/10 flex items-center justify-center">
+                <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-info " />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-purple-500/20 bg-purple-500/5">
+        <Card className="border-primary/20 bg-primary/5">
           <CardContent className={`${isMobile ? 'p-3' : 'p-4'}`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-purple-600 dark:text-purple-400">待处理</p>
-                <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-purple-700 dark:text-purple-300`}>
+                <p className="text-xs text-primary ">待处理</p>
+                <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-primary `}>
                   {stats.pendingTransactions}笔
                 </p>
               </div>
-              <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-purple-500/10 flex items-center justify-center">
-                <Clock className="h-4 w-4 md:h-5 md:w-5 text-purple-600 dark:text-purple-400" />
+              <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Clock className="h-4 w-4 md:h-5 md:w-5 text-primary " />
               </div>
             </div>
           </CardContent>
@@ -520,8 +520,8 @@ export const WalletPanel = () => {
                   <div className="text-right">
                     <p className={`font-bold ${isMobile ? 'text-sm' : ''} ${
                       transaction.type === 'deposit' || transaction.type === 'sale' || transaction.type === 'refund'
-                        ? 'text-green-600 dark:text-green-400'
-                        : 'text-red-600 dark:text-red-400'
+                        ? 'text-success '
+                        : 'text-destructive '
                     }`}>
                       {transaction.type === 'deposit' || transaction.type === 'sale' || transaction.type === 'refund' ? '+' : '-'}
                       ¥{transaction.amount.toLocaleString()}

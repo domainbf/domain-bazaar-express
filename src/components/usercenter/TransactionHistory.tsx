@@ -162,8 +162,8 @@ export const TransactionHistory = () => {
                 <p className="text-sm text-muted-foreground">收到报价</p>
                 <p className="text-3xl font-bold mt-1">{stats.totalReceived}</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center">
-                <ArrowDownRight className="h-6 w-6 text-green-600 dark:text-green-400" />
+              <div className="h-12 w-12 rounded-full bg-success/10 flex items-center justify-center">
+                <ArrowDownRight className="h-6 w-6 text-success " />
               </div>
             </div>
             <div className="text-xs text-muted-foreground mt-3">
@@ -179,8 +179,8 @@ export const TransactionHistory = () => {
                 <p className="text-sm text-muted-foreground">发出报价</p>
                 <p className="text-3xl font-bold mt-1">{stats.totalSent}</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-blue-500/10 flex items-center justify-center">
-                <ArrowUpRight className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <div className="h-12 w-12 rounded-full bg-info/10 flex items-center justify-center">
+                <ArrowUpRight className="h-6 w-6 text-info " />
               </div>
             </div>
             <div className="text-xs text-muted-foreground mt-3">
@@ -196,8 +196,8 @@ export const TransactionHistory = () => {
                 <p className="text-sm text-muted-foreground">总交易额</p>
                 <p className="text-3xl font-bold mt-1">¥{stats.totalValue.toLocaleString()}</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-purple-500/10 flex items-center justify-center">
-                <DollarSign className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <DollarSign className="h-6 w-6 text-primary " />
               </div>
             </div>
             <div className="text-xs text-muted-foreground mt-3">
@@ -213,8 +213,8 @@ export const TransactionHistory = () => {
                 <p className="text-sm text-muted-foreground">接受率</p>
                 <p className="text-3xl font-bold mt-1">{stats.acceptanceRate.toFixed(1)}%</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-orange-500/10 flex items-center justify-center">
-                <BarChart3 className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+              <div className="h-12 w-12 rounded-full bg-warning/10 flex items-center justify-center">
+                <BarChart3 className="h-6 w-6 text-warning " />
               </div>
             </div>
             <div className="text-xs text-muted-foreground mt-3">
@@ -234,21 +234,21 @@ export const TransactionHistory = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-4 bg-blue-500/10 rounded-lg">
+            <div className="text-center p-4 bg-info/10 rounded-lg">
               <div className="text-sm text-muted-foreground mb-1">平均报价金额</div>
-              <div className="text-xl font-bold text-blue-600 dark:text-blue-400">
+              <div className="text-xl font-bold text-info ">
                 ¥{stats.averageOffer.toLocaleString()}
               </div>
             </div>
-            <div className="text-center p-4 bg-green-500/10 rounded-lg">
+            <div className="text-center p-4 bg-success/10 rounded-lg">
               <div className="text-sm text-muted-foreground mb-1">月度增长</div>
-              <div className="text-xl font-bold text-green-600 dark:text-green-400">
+              <div className="text-xl font-bold text-success ">
                 {stats.monthlyGrowth >= 0 ? '+' : ''}{stats.monthlyGrowth.toFixed(1)}%
               </div>
             </div>
-            <div className="text-center p-4 bg-purple-500/10 rounded-lg">
+            <div className="text-center p-4 bg-primary/10 rounded-lg">
               <div className="text-sm text-muted-foreground mb-1">活跃度评分</div>
-              <div className="text-xl font-bold text-purple-600 dark:text-purple-400">
+              <div className="text-xl font-bold text-primary ">
                 {Math.min(100, Math.round((stats.totalReceived + stats.totalSent) * 2))}
               </div>
             </div>

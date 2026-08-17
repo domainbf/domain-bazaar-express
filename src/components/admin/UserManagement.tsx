@@ -413,7 +413,7 @@ export const UserManagement = () => {
                 <p className="text-sm text-muted-foreground">卖家</p>
                 <p className="text-2xl font-bold">{users.filter(u => u.is_seller).length}</p>
               </div>
-              <Shield className="h-8 w-8 text-blue-500" />
+              <Shield className="h-8 w-8 text-info" />
             </div>
           </CardContent>
         </Card>
@@ -424,7 +424,7 @@ export const UserManagement = () => {
                 <p className="text-sm text-muted-foreground">已验证</p>
                 <p className="text-2xl font-bold">{users.filter(u => u.seller_verified).length}</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-500" />
+              <CheckCircle className="h-8 w-8 text-success" />
             </div>
           </CardContent>
         </Card>
@@ -435,7 +435,7 @@ export const UserManagement = () => {
                 <p className="text-sm text-muted-foreground">管理员</p>
                 <p className="text-2xl font-bold">{users.filter(u => u.is_admin).length}</p>
               </div>
-              <Crown className="h-8 w-8 text-yellow-500" />
+              <Crown className="h-8 w-8 text-warning" />
             </div>
           </CardContent>
         </Card>
@@ -446,7 +446,7 @@ export const UserManagement = () => {
                 <p className="text-sm text-muted-foreground">2FA启用</p>
                 <p className="text-2xl font-bold">{users.filter(u => u.has_2fa).length}</p>
               </div>
-              <Shield className="h-8 w-8 text-purple-500" />
+              <Shield className="h-8 w-8 text-primary" />
             </div>
           </CardContent>
         </Card>
@@ -516,7 +516,7 @@ export const UserManagement = () => {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
                       onClick={() => handleBatchAction('delete')}
-                      className="text-red-600"
+                      className="text-destructive"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
                       批量删除
@@ -595,13 +595,13 @@ export const UserManagement = () => {
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {user.verification_status === 'suspended' && (
-                        <Badge className="bg-red-500/15 text-red-600 dark:text-red-400 dark:bg-red-950 dark:text-red-300">
+                        <Badge className="bg-destructive/15 text-destructive ">
                           <Ban className="h-3 w-3 mr-1" />
                           已封号
                         </Badge>
                       )}
                       {user.is_admin && (
-                        <Badge className="bg-yellow-500/15 text-yellow-600 dark:text-yellow-400">
+                        <Badge className="bg-warning/15 text-warning ">
                           <Crown className="h-3 w-3 mr-1" />
                           管理员
                         </Badge>
@@ -616,7 +616,7 @@ export const UserManagement = () => {
                   </TableCell>
                   <TableCell>
                     {user.seller_verified ? (
-                      <Badge className="bg-green-500/15 text-green-600 dark:text-green-400">
+                      <Badge className="bg-success/15 text-success ">
                         <CheckCircle className="h-3 w-3 mr-1" />
                         已验证
                       </Badge>
@@ -626,7 +626,7 @@ export const UserManagement = () => {
                   </TableCell>
                   <TableCell>
                     {user.has_2fa ? (
-                      <Badge className="bg-blue-500/15 text-blue-600 dark:text-blue-400">
+                      <Badge className="bg-info/15 text-info ">
                         <Shield className="h-3 w-3 mr-1" />
                         已启用
                       </Badge>
@@ -677,7 +677,7 @@ export const UserManagement = () => {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={() => handleToggleSuspend(user.id, user.verification_status)}
-                          className={user.verification_status === 'suspended' ? 'text-green-600' : 'text-amber-600'}
+                          className={user.verification_status === 'suspended' ? 'text-success' : 'text-warning'}
                         >
                           {user.verification_status === 'suspended' ? (
                             <><UserCheck className="h-4 w-4 mr-2" />解除封号</>
@@ -687,7 +687,7 @@ export const UserManagement = () => {
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleDeleteUser(user.id)}
-                          className="text-red-600"
+                          className="text-destructive"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           删除用户
@@ -854,16 +854,16 @@ export const UserManagement = () => {
                   </SelectItem>
                   <SelectItem value="admin">
                     <div className="flex items-center gap-2">
-                      <Crown className="h-4 w-4 text-yellow-500" />
+                      <Crown className="h-4 w-4 text-warning" />
                       管理员
                     </div>
                   </SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <Card className="bg-yellow-500/10 border-yellow-500/30">
+            <Card className="bg-warning/10 border-warning/30">
               <CardContent className="py-3">
-                <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                <p className="text-sm text-warning ">
                   ⚠️ 管理员角色拥有系统最高权限，请谨慎设置
                 </p>
               </CardContent>

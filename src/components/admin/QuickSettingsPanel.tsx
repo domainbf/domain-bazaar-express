@@ -183,7 +183,7 @@ export const QuickSettingsPanel = () => {
         </div>
         <div className="flex items-center gap-2">
           {hasChanges && (
-            <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+            <Badge variant="outline" className="text-warning border-warning">
               <AlertCircle className="h-3 w-3 mr-1" />
               未保存的更改
             </Badge>

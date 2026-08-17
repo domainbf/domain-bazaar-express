@@ -109,7 +109,7 @@ export default function AiPricingSuggestions({ userId }: { userId: string }) {
               const up = s.delta > 0;
               const flat = Math.abs(s.delta) < 20;
               const Icon = flat ? Minus : up ? TrendingUp : TrendingDown;
-              const color = flat ? 'text-muted-foreground' : up ? 'text-emerald-600' : 'text-amber-600';
+              const color = flat ? 'text-muted-foreground' : up ? 'text-success' : 'text-warning';
               return (
                 <button
                   key={s.id}

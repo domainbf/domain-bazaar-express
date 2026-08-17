@@ -40,7 +40,7 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
   ];
 
   const extensions = [
-    '.com', '.net', '.org', '.io', '.ai', '.co', '.cn', '.com.cn'
+ '.com', '.net', '.org', '.io', '.ai', '.co', '.cn', '.com.cn'
   ];
 
   const sortOptions = [

@@ -29,9 +29,9 @@ const suggestPriceCNY = (name: string): { low: number; mid: number; high: number
   const len = base.length;
 
   const tldFactor: Record<string, number> = {
-    '.com': 4, '.cn': 2.5, '.net': 1.6, '.io': 3, '.ai': 4.5,
-    '.app': 2.2, '.co': 2, '.org': 1.4, '.me': 1.3, '.dev': 1.6,
-    '.xyz': 0.6, '.top': 0.4, '.info': 0.5,
+ '.com': 4, '.cn': 2.5, '.net': 1.6, '.io': 3, '.ai': 4.5,
+ '.app': 2.2, '.co': 2, '.org': 1.4, '.me': 1.3, '.dev': 1.6,
+ '.xyz': 0.6, '.top': 0.4, '.info': 0.5,
   };
   const tf = tldFactor[tld] ?? 1;
 
@@ -156,7 +156,7 @@ export const SellDomainQuickListForm = () => {
                   type="button"
                   onClick={() => setSaleType(t)}
                   className={cn(
-                    'flex-1 text-xs h-9 rounded-lg border transition-colors font-medium',
+ 'flex-1 text-xs h-9 rounded-lg border transition-colors font-medium',
                     saleType === t
                       ? 'bg-foreground text-background border-foreground'
                       : 'bg-background text-muted-foreground border-border hover:text-foreground',
@@ -229,9 +229,9 @@ export const SellDomainQuickListForm = () => {
             </p>
             <div
               className={cn(
-                'group relative block overflow-hidden isolate rounded-2xl border border-white/10',
-                'bg-gradient-to-br from-neutral-900 via-neutral-950 to-black text-white',
-                'p-6 sm:p-8 min-h-[280px] shadow-[0_16px_40px_-16px_rgba(0,0,0,0.5)]',
+ 'group relative block overflow-hidden isolate rounded-2xl border border-invert-foreground/10',
+ 'bg-invert text-invert-foreground',
+ 'p-6 sm:p-8 min-h-[280px] shadow-[0_16px_40px_-16px_rgba(0,0,0,0.5)]',
               )}
             >
               <div
@@ -244,17 +244,17 @@ export const SellDomainQuickListForm = () => {
               />
               <div className="relative flex flex-col h-full">
                 <div className="flex items-start justify-between mb-4">
-                  <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold bg-white/10 text-white px-2.5 py-1 rounded-full">
+                  <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold bg-invert-foreground/10 text-invert-foreground px-2.5 py-1 rounded-full">
                     {saleType === 'fixed' ? '一口价' : '接受报价'}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-[10px] text-white/60">
+                  <span className="inline-flex items-center gap-1 text-[10px] text-invert-foreground/60">
                     <Shield className="h-3 w-3" />上架预览
                   </span>
                 </div>
 
                 <h3 className={cn(
-                  'font-black uppercase tracking-tight leading-[0.95] break-all text-white',
-                  'my-4',
+ 'font-black uppercase tracking-tight leading-[0.95] break-all text-invert-foreground',
+ 'my-4',
                   (name.length <= 10) ? 'text-4xl sm:text-6xl' :
                   (name.length <= 16) ? 'text-3xl sm:text-5xl' :
                   (name.length <= 22) ? 'text-2xl sm:text-4xl' : 'text-xl sm:text-3xl',
@@ -263,19 +263,19 @@ export const SellDomainQuickListForm = () => {
                 </h3>
 
                 {description && (
-                  <p className="text-sm text-white/70 line-clamp-2 mb-3">{description}</p>
+                  <p className="text-sm text-invert-foreground/70 line-clamp-2 mb-3">{description}</p>
                 )}
 
                 <div className="mt-auto flex items-end justify-between gap-3">
                   <div>
-                    <p className="text-[10px] uppercase tracking-widest text-white/50 mb-1">
+                    <p className="text-[10px] uppercase tracking-widest text-invert-foreground/50 mb-1">
                       {saleType === 'fixed' ? '一口价' : '起始报价'}
                     </p>
-                    <p className="font-bold text-2xl sm:text-3xl text-white tabular-nums">
+                    <p className="font-bold text-2xl sm:text-3xl text-invert-foreground tabular-nums">
                       {priceNum > 0 ? fmt(priceNum, sym) : '—'}
                     </p>
                   </div>
-                  <div className="inline-flex items-center gap-1.5 text-xs text-white/70">
+                  <div className="inline-flex items-center gap-1.5 text-xs text-invert-foreground/70">
                     <Eye className="h-3.5 w-3.5" /> 预览
                   </div>
                 </div>
@@ -285,7 +285,7 @@ export const SellDomainQuickListForm = () => {
             <div className="grid grid-cols-3 gap-2 text-center text-xs">
               <div className="p-2.5 rounded-lg bg-background border border-border">
                 <p className="text-muted-foreground text-[10px] uppercase">上架费用</p>
-                <p className="font-bold text-emerald-600">免费</p>
+                <p className="font-bold text-success">免费</p>
               </div>
               <div className="p-2.5 rounded-lg bg-background border border-border">
                 <p className="text-muted-foreground text-[10px] uppercase">成交手续费</p>

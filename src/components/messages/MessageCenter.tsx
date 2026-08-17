@@ -57,7 +57,7 @@ export const MessageCenter = ({ otherUserId, transactionId, domainId, offerId, o
         .from('messages')
         .select('id, sender_id, receiver_id, content, is_read, created_at')
         .or(
-          `and(sender_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${user.id})`
+ `and(sender_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${user.id})`
         )
         .order('created_at', { ascending: true });
       if (error) throw error;
@@ -97,7 +97,7 @@ export const MessageCenter = ({ otherUserId, transactionId, domainId, offerId, o
     const channel = supabase
       .channel(`thread-${user.id}-${otherUserId}`)
       .on(
-        'postgres_changes',
+ 'postgres_changes',
         { event: '*', schema: 'public', table: 'messages' },
         (payload) => {
           const row = (payload.new ?? payload.old) as Partial<Message> | undefined;

@@ -209,10 +209,10 @@ export const AuthForm = ({
   if (mode === 'signup' && registrationClosed) {
     return (
       <div className="space-y-5">
-        <Card className="border-l-4 border-l-amber-500 bg-amber-500/5">
+        <Card className="border-l-4 border-l-amber-500 bg-warning/5">
           <CardContent className="p-5">
             <div className="flex items-start gap-3">
-              <UserX className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
+              <UserX className="h-5 w-5 text-warning mt-0.5 shrink-0" />
               <div className="space-y-1">
                 <h4 className="text-sm font-semibold text-foreground">注册暂时关闭</h4>
                 <p className="text-xs text-muted-foreground leading-relaxed">
@@ -288,7 +288,7 @@ export const AuthForm = ({
                         发送中...
                       </>
                     ) : (
-                      '重新发送验证邮件'
+ '重新发送验证邮件'
                     )}
                   </Button>
                 </div>
@@ -367,14 +367,14 @@ export const AuthForm = ({
             ];
             const allOk = checks.every(c => c.ok);
             return (
-              <div className={`rounded-lg border p-3 space-y-1.5 ${allOk ? 'border-green-500/30 bg-green-500/5' : 'border-border bg-muted/40'}`}>
+              <div className={`rounded-lg border p-3 space-y-1.5 ${allOk ? 'border-success/30 bg-success/5' : 'border-border bg-muted/40'}`}>
                 <p className="text-xs font-medium text-muted-foreground">密码要求</p>
                 {checks.map((c) => (
                   <div key={c.label} className="flex items-center gap-2">
-                    <span className={`text-xs font-bold ${c.ok ? 'text-green-500' : 'text-muted-foreground'}`}>
+                    <span className={`text-xs font-bold ${c.ok ? 'text-success' : 'text-muted-foreground'}`}>
                       {c.ok ? '✓' : '·'}
                     </span>
-                    <span className={`text-xs ${c.ok ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
+                    <span className={`text-xs ${c.ok ? 'text-success ' : 'text-muted-foreground'}`}>
                       {c.label}
                     </span>
                   </div>

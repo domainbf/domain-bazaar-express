@@ -42,10 +42,10 @@ export const DomainAnalytics = ({
   const isMobile = useIsMobile();
 
   const stats = [
-    { icon: Eye, label: '浏览量', value: analytics?.views ?? 0, color: 'text-blue-600' },
-    { icon: Heart, label: '收藏数', value: analytics?.favorites ?? 0, color: 'text-red-500' },
-    { icon: TrendingUp, label: '报价数', value: analytics?.offers ?? 0, color: 'text-green-600' },
-    { icon: Clock, label: '在售天数', value: daysSinceListing(createdAt), color: 'text-purple-600' },
+    { icon: Eye, label: '浏览量', value: analytics?.views ?? 0, color: 'text-info' },
+    { icon: Heart, label: '收藏数', value: analytics?.favorites ?? 0, color: 'text-destructive' },
+    { icon: TrendingUp, label: '报价数', value: analytics?.offers ?? 0, color: 'text-success' },
+    { icon: Clock, label: '在售天数', value: daysSinceListing(createdAt), color: 'text-primary' },
   ];
 
   return (
@@ -103,7 +103,7 @@ export const DomainAnalytics = ({
           onClick={toggleFavorite}
           className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 ${
             isFavorited
-              ? 'bg-red-500/10 text-red-600 border-red-500/30 hover:bg-red-500/15'
+              ? 'bg-destructive/10 text-destructive border-destructive/30 hover:bg-destructive/15'
               : 'bg-muted text-muted-foreground border-border hover:bg-accent'
           }`}
         >

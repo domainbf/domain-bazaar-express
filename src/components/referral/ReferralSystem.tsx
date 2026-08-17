@@ -136,10 +136,10 @@ export const ReferralSystem: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Stat icon={<Users className="h-8 w-8 text-blue-600" />} value={totals.totalReferrals} label="成功推荐" />
-        <Stat icon={<DollarSign className="h-8 w-8 text-green-600" />} value={`¥${totals.totalEarnings.toFixed(0)}`} label="总收益" />
-        <Stat icon={<Trophy className="h-8 w-8 text-yellow-600" />} value={currentTier.name} label="当前等级" small />
-        <Stat icon={<Target className="h-8 w-8 text-purple-600" />} value={`¥${totals.pendingEarnings.toFixed(0)}`} label="待结算" />
+        <Stat icon={<Users className="h-8 w-8 text-info" />} value={totals.totalReferrals} label="成功推荐" />
+        <Stat icon={<DollarSign className="h-8 w-8 text-success" />} value={`¥${totals.totalEarnings.toFixed(0)}`} label="总收益" />
+        <Stat icon={<Trophy className="h-8 w-8 text-warning" />} value={currentTier.name} label="当前等级" small />
+        <Stat icon={<Target className="h-8 w-8 text-primary" />} value={`¥${totals.pendingEarnings.toFixed(0)}`} label="待结算" />
       </div>
 
       <Card>
@@ -178,7 +178,7 @@ export const ReferralSystem: React.FC = () => {
               <span>已推荐 {totals.totalReferrals} 人</span>
               <span>还需 {Math.max(0, nextTier.requirement - totals.totalReferrals)} 人升级</span>
             </div>
-            <div className="p-3 bg-blue-500/10 rounded-lg text-sm">
+            <div className="p-3 bg-info/10 rounded-lg text-sm">
               <strong>升级奖励：</strong>每成功推荐从 ¥{currentTier.reward} 提升到 ¥{nextTier.reward}
             </div>
           </CardContent>
@@ -207,7 +207,7 @@ export const ReferralSystem: React.FC = () => {
                     {record.status === 'paid' || record.status === 'completed' ? '已完成' : record.status === 'pending' ? '待结算' : record.status}
                   </Badge>
                   <div className="text-right">
-                    <div className="font-bold text-green-600">+¥{Number(record.reward_amount || 0).toFixed(0)}</div>
+                    <div className="font-bold text-success">+¥{Number(record.reward_amount || 0).toFixed(0)}</div>
                   </div>
                 </div>
               </div>

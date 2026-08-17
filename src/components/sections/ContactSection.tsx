@@ -19,7 +19,7 @@ export const ContactSection = () => {
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-cyan-400 mb-6">
+            <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-info mb-6">
               联系我们
             </h2>
             <p className="text-muted-foreground mb-8">
@@ -28,8 +28,8 @@ export const ContactSection = () => {
             
             <div className="space-y-6">
               <div className="flex items-center space-x-4">
-                <div className="p-3 rounded-full bg-violet-500/10">
-                  <Phone className="w-6 h-6 text-violet-400" />
+                <div className="p-3 rounded-full bg-primary/10">
+                  <Phone className="w-6 h-6 text-primary" />
                 </div>
                 <div>
                   <div className="text-foreground font-medium">电话咨询</div>
@@ -38,8 +38,8 @@ export const ContactSection = () => {
               </div>
               
               <div className="flex items-center space-x-4">
-                <div className="p-3 rounded-full bg-cyan-500/10">
-                  <Mail className="w-6 h-6 text-cyan-400" />
+                <div className="p-3 rounded-full bg-info/10">
+                  <Mail className="w-6 h-6 text-info" />
                 </div>
                 <div>
                   <div className="text-foreground font-medium">邮件支持</div>
@@ -48,8 +48,8 @@ export const ContactSection = () => {
               </div>
               
               <div className="flex items-center space-x-4">
-                <div className="p-3 rounded-full bg-amber-500/10">
-                  <MessageSquare className="w-6 h-6 text-amber-400" />
+                <div className="p-3 rounded-full bg-warning/10">
+                  <MessageSquare className="w-6 h-6 text-warning" />
                 </div>
                 <div>
                   <div className="text-foreground font-medium">在线客服</div>
@@ -104,7 +104,7 @@ export const ContactSection = () => {
               
               <Button 
                 type="submit"
-                className="w-full bg-gradient-to-r from-violet-500 to-cyan-500 hover:from-violet-600 hover:to-cyan-600"
+                className="w-full bg-gradient-to-r from-primary to-info hover:from-primary hover:to-info"
               >
                 提交咨询
               </Button>

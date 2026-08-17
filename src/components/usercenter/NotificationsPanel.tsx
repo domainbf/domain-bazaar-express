@@ -131,13 +131,13 @@ export const NotificationsPanel = () => {
 
   const getNotificationTypeBadge = (type: string) => {
     switch (type) {
-      case 'offer': return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20">报价</Badge>;
-      case 'verification': return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20">验证</Badge>;
-      case 'transaction': return <Badge className="bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20">交易</Badge>;
-      case 'message': return <Badge className="bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-500/20">消息</Badge>;
-      case 'dispute': return <Badge className="bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20">纠纷</Badge>;
-      case 'escrow': return <Badge className="bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-500/20">托管</Badge>;
-      case 'auction': return <Badge className="bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20">拍卖</Badge>;
+      case 'offer': return <Badge className="bg-info/10 text-info  border-info/20">报价</Badge>;
+      case 'verification': return <Badge className="bg-success/10 text-success  border-success/20">验证</Badge>;
+      case 'transaction': return <Badge className="bg-primary/10 text-primary  border-primary/20">交易</Badge>;
+      case 'message': return <Badge className="bg-info/10 text-info  border-info/20">消息</Badge>;
+      case 'dispute': return <Badge className="bg-destructive/10 text-destructive  border-destructive/20">纠纷</Badge>;
+      case 'escrow': return <Badge className="bg-primary/10 text-primary  border-primary/20">托管</Badge>;
+      case 'auction': return <Badge className="bg-warning/10 text-warning  border-warning/20">拍卖</Badge>;
       case 'system': return <Badge variant="secondary">系统</Badge>;
       default: return <Badge variant="secondary">通知</Badge>;
     }

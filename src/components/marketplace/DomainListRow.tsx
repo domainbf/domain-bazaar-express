@@ -38,9 +38,9 @@ export const DomainListRow = ({ domain, index }: { domain: Domain; index: number
         to={`/domain/${encodeURIComponent(domain.name)}`}
         data-testid={`row-domain-${domain.id}`}
         className={cn(
-          'group flex items-center gap-4 px-4 py-3.5 rounded-xl',
-          'border border-border/60 bg-card hover:bg-muted/40',
-          'transition-colors',
+ 'group flex items-center gap-4 px-4 py-3.5 rounded-xl',
+ 'border border-border/60 bg-card hover:bg-muted/40',
+ 'transition-colors',
         )}
       >
         {/* Wordmark */}
@@ -50,12 +50,12 @@ export const DomainListRow = ({ domain, index }: { domain: Domain; index: number
               {domain.name}
             </span>
             {domain.highlight && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase text-amber-600 bg-amber-500/10 px-1.5 py-0.5 rounded">
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase text-warning bg-warning/10 px-1.5 py-0.5 rounded">
                 <Star className="h-2.5 w-2.5 fill-current" />精选
               </span>
             )}
             {domain.is_verified && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-success bg-success/10 px-1.5 py-0.5 rounded">
                 <Shield className="h-2.5 w-2.5" />已验证
               </span>
             )}
@@ -85,8 +85,8 @@ export const DomainListRow = ({ domain, index }: { domain: Domain; index: number
             disabled={toggling}
             aria-label={fav ? '取消收藏' : '收藏'}
             className={cn(
-              'h-8 w-8 flex items-center justify-center rounded-full border border-border/60',
-              fav ? 'text-red-500 bg-red-500/10 border-red-500/40' : 'text-muted-foreground hover:text-foreground',
+ 'h-8 w-8 flex items-center justify-center rounded-full border border-border/60',
+              fav ? 'text-destructive bg-destructive/10 border-destructive/40' : 'text-muted-foreground hover:text-foreground',
             )}
           >
             <Heart className={cn('h-4 w-4', fav && 'fill-current')} />

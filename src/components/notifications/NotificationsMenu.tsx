@@ -33,11 +33,11 @@ export const NotificationsMenu = () => {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'offer':
-        return <span className="text-blue-500">💰</span>;
+        return <span className="text-info">💰</span>;
       case 'verification':
-        return <span className="text-green-500">✓</span>;
+        return <span className="text-success">✓</span>;
       case 'transaction':
-        return <span className="text-purple-500">💳</span>;
+        return <span className="text-primary">💳</span>;
       default:
         return <span className="text-muted-foreground">📢</span>;
     }
@@ -94,7 +94,7 @@ export const NotificationsMenu = () => {
               notifications.map((notification) => (
                 <DropdownMenuItem 
                   key={notification.id} 
-                  className={`px-4 py-3 cursor-pointer ${notification.is_read ? '' : 'bg-blue-500/10'}`}
+                  className={`px-4 py-3 cursor-pointer ${notification.is_read ? '' : 'bg-info/10'}`}
                   onClick={() => handleNotificationClick(notification)}
                 >
                   <Link 
@@ -111,7 +111,7 @@ export const NotificationsMenu = () => {
                       <div className="text-xs text-muted-foreground/70 mt-1">{formatDate(notification.created_at)}</div>
                     </div>
                     {!notification.is_read && (
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-1 shrink-0" />
+                      <div className="w-2 h-2 bg-info rounded-full mt-1 shrink-0" />
                     )}
                   </Link>
                 </DropdownMenuItem>
