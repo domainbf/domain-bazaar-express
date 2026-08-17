@@ -18,13 +18,13 @@ const FEATURES = [
     icon: Bell,
     title: '到期提醒',
     desc: '自动监控你关注的域名到期时间，第一时间抢注机会域名。',
-    color: 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400',
+    color: 'bg-warning/10 text-warning  ',
   },
   {
     icon: TrendingDown,
     title: '市场动态推送',
     desc: '同类域名新上架、同类价格变化，帮你掌握市场行情。',
-    color: 'bg-green-500/15 text-green-600 dark:bg-green-900/30 dark:text-green-400',
+    color: 'bg-success/15 text-success  ',
   },
   {
     icon: Shield,

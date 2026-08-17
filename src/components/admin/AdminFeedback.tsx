@@ -30,16 +30,16 @@ interface Feedback {
 }
 
 const TYPE_CONFIG: Record<string, { label: string; icon: typeof Bug; color: string; badgeClass: string }> = {
-  bug:        { label: 'Bug 反馈',  icon: Bug,           color: 'text-red-600',    badgeClass: 'bg-red-50 text-red-600 border-red-200' },
-  suggestion: { label: '功能建议',  icon: Lightbulb,      color: 'text-blue-600',   badgeClass: 'bg-blue-50 text-blue-600 border-blue-200' },
-  complaint:  { label: '投诉建议',  icon: Megaphone,      color: 'text-orange-600', badgeClass: 'bg-orange-50 text-orange-600 border-orange-200' },
-  other:      { label: '其他反馈',  icon: MessageCircle,  color: 'text-green-600',  badgeClass: 'bg-green-50 text-green-600 border-green-200' },
+  bug:        { label: 'Bug 反馈',  icon: Bug,           color: 'text-destructive',    badgeClass: 'bg-destructive/10 text-destructive border-destructive' },
+  suggestion: { label: '功能建议',  icon: Lightbulb,      color: 'text-info',   badgeClass: 'bg-info/10 text-info border-info' },
+  complaint:  { label: '投诉建议',  icon: Megaphone,      color: 'text-warning', badgeClass: 'bg-warning/10 text-warning border-warning' },
+  other:      { label: '其他反馈',  icon: MessageCircle,  color: 'text-success',  badgeClass: 'bg-success/10 text-success border-success' },
 };
 
 const STATUS_CONFIG: Record<string, { label: string; badgeClass: string }> = {
-  new:      { label: '未处理', badgeClass: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
-  seen:     { label: '已查看', badgeClass: 'bg-blue-50 text-blue-700 border-blue-200' },
-  resolved: { label: '已解决', badgeClass: 'bg-green-50 text-green-700 border-green-200' },
+  new:      { label: '未处理', badgeClass: 'bg-warning/10 text-warning border-warning' },
+  seen:     { label: '已查看', badgeClass: 'bg-info/10 text-info border-info' },
+  resolved: { label: '已解决', badgeClass: 'bg-success/10 text-success border-success' },
 };
 
 function FeedbackItem({
@@ -110,7 +110,7 @@ function FeedbackItem({
         </div>
       )}
 
-      <div className={`border rounded-xl overflow-hidden ${item.status === 'new' ? 'border-yellow-300 shadow-sm' : 'border-border'}`}>
+      <div className={`border rounded-xl overflow-hidden ${item.status === 'new' ? 'border-warning shadow-sm' : 'border-border'}`}>
         {/* Header */}
         <button
           className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/30 transition-colors"
@@ -228,7 +228,7 @@ function FeedbackItem({
               )}
               {item.status !== 'resolved' && (
                 <Button size="sm" variant="outline" onClick={() => markAs('resolved')} disabled={saving}
-                  className="text-green-700 border-green-300 hover:bg-green-50">
+                  className="text-success border-success hover:bg-success/10">
                   <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
                   标记已解决
                 </Button>
@@ -310,7 +310,7 @@ export function AdminFeedback({ onBadgeRefresh }: { onBadgeRefresh?: () => void 
           <h2 className="text-xl font-bold">用户反馈</h2>
           <p className="text-sm text-muted-foreground mt-0.5">
             共 {total} 条反馈
-            {newCount > 0 && <span className="ml-2 text-yellow-600 font-medium">· {newCount} 条未处理</span>}
+            {newCount > 0 && <span className="ml-2 text-warning font-medium">· {newCount} 条未处理</span>}
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={() => load(true)} disabled={loading}>

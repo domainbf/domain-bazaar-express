@@ -21,10 +21,10 @@ interface DomainDetailDrawerProps {
 }
 
 const statusMap: Record<string, { label: string; className: string }> = {
-  available: { label: '可售', className: 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30' },
-  pending: { label: '暂不出售', className: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/30' },
-  sold: { label: '已售', className: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30' },
-  reserved: { label: '保留', className: 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30' },
+  available: { label: '可售', className: 'bg-success/10 text-success  border-success/30' },
+  pending: { label: '暂不出售', className: 'bg-warning/10 text-warning  border-warning/30' },
+  sold: { label: '已售', className: 'bg-info/10 text-info  border-info/30' },
+  reserved: { label: '保留', className: 'bg-primary/10 text-primary  border-primary/30' },
 };
 
 export const DomainDetailDrawer = ({ domain, open, onOpenChange, onUpdate }: DomainDetailDrawerProps) => {
@@ -44,13 +44,13 @@ export const DomainDetailDrawer = ({ domain, open, onOpenChange, onUpdate }: Dom
       <SheetContent className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader>
           <div className="flex items-center gap-2">
-            {domain.highlight && <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />}
+            {domain.highlight && <Star className="w-4 h-4 text-warning fill-warning" />}
             <SheetTitle className="text-xl break-all">{domain.name}</SheetTitle>
           </div>
           <SheetDescription className="flex items-center gap-2 flex-wrap">
             <Badge className={status.className}>{status.label}</Badge>
             {domain.is_verified && (
-              <Badge variant="outline" className="border-green-500 text-green-600 gap-1">
+              <Badge variant="outline" className="border-success text-success gap-1">
                 <Shield className="w-3 h-3" /> 已验证
               </Badge>
             )}

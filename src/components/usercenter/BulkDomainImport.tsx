@@ -258,13 +258,13 @@ export const BulkDomainImport = ({ onSuccess }: BulkDomainImportProps) => {
               <div className="flex items-center gap-3 flex-wrap">
                 <span className="text-sm font-medium">解析结果：</span>
                 {validDomains.length > 0 && (
-                  <Badge variant="outline" className="text-green-600 border-green-600 flex items-center gap-1">
+                  <Badge variant="outline" className="text-success border-success flex items-center gap-1">
                     <CheckCircle2 className="h-3 w-3" />
                     {validDomains.length} 个有效
                   </Badge>
                 )}
                 {invalidDomains.length > 0 && (
-                  <Badge variant="outline" className="text-red-500 border-red-500 flex items-center gap-1">
+                  <Badge variant="outline" className="text-destructive border-destructive flex items-center gap-1">
                     <XCircle className="h-3 w-3" />
                     {invalidDomains.length} 个无效
                   </Badge>

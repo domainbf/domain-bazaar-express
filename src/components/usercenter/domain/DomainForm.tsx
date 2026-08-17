@@ -299,7 +299,7 @@ export const DomainForm = ({
 
       <div className="flex items-center justify-between p-3 border border-border rounded-lg bg-muted/30">
         <div className="flex items-center gap-2">
-          <Star className="h-4 w-4 text-yellow-500" />
+          <Star className="h-4 w-4 text-warning" />
           <div>
             <Label className="text-sm font-medium">高亮显示</Label>
             <p className="text-xs text-muted-foreground">在列表中突出显示此域名</p>

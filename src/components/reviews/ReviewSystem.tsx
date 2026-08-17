@@ -95,7 +95,7 @@ export const ReviewSystem = ({ transactionId, reviewedUserId, onDone }: ReviewSy
   if (hasReviewed) {
     return (
       <div className="text-center py-6 text-muted-foreground">
-        <Star className="w-10 h-10 mx-auto mb-2 text-yellow-400 fill-yellow-400" />
+        <Star className="w-10 h-10 mx-auto mb-2 text-warning fill-warning" />
         <p className="font-medium">已提交评价</p>
         <p className="text-sm mt-1">感谢您的反馈</p>
       </div>
@@ -116,7 +116,7 @@ export const ReviewSystem = ({ transactionId, reviewedUserId, onDone }: ReviewSy
               data-testid={`star-${star}`}
             >
               <Star className={`w-8 h-8 transition-colors ${
-                star <= (hoverRating || rating) ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground'
+                star <= (hoverRating || rating) ? 'text-warning fill-warning' : 'text-muted-foreground'
               }`} />
             </button>
           ))}
@@ -187,10 +187,10 @@ export const UserReviews = ({ userId }: { userId: string }) => {
       {reviews.length > 0 && (
         <div className="flex items-center gap-3 p-4 bg-muted/40 rounded-lg">
           <div className="text-center">
-            <p className="text-3xl font-bold text-yellow-500">{avgRating}</p>
+            <p className="text-3xl font-bold text-warning">{avgRating}</p>
             <div className="flex gap-0.5 justify-center mt-1">
               {[1,2,3,4,5].map(s => (
-                <Star key={s} className={`w-3 h-3 ${s <= Math.round(avgRating) ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground'}`} />
+                <Star key={s} className={`w-3 h-3 ${s <= Math.round(avgRating) ? 'text-warning fill-warning' : 'text-muted-foreground'}`} />
               ))}
             </div>
           </div>
@@ -222,7 +222,7 @@ export const UserReviews = ({ userId }: { userId: string }) => {
               </div>
               <div className="flex gap-0.5">
                 {[1,2,3,4,5].map(s => (
-                  <Star key={s} className={`w-3.5 h-3.5 ${s <= (review.rating ?? 0) ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground'}`} />
+                  <Star key={s} className={`w-3.5 h-3.5 ${s <= (review.rating ?? 0) ? 'text-warning fill-warning' : 'text-muted-foreground'}`} />
                 ))}
               </div>
             </div>

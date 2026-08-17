@@ -168,8 +168,7 @@ export const SmartSearchBar: React.FC<SmartSearchBarProps> = ({
             {allSuggestions.map((suggestion, index) => (
               <div
                 key={`${suggestion.domain}-${suggestion.type}`}
-                className={cn(
-                  "flex items-center justify-between px-4 py-3 cursor-pointer transition-all duration-150 rounded-lg mx-1",
+                className={cn( "flex items-center justify-between px-4 py-3 cursor-pointer transition-all duration-150 rounded-lg mx-1",
                   index === selectedIndex 
                     ? "bg-primary/10 text-primary border border-primary/20" 
                     : "hover:bg-muted/50"

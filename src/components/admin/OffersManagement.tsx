@@ -46,9 +46,9 @@ const statusLabels: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
-  pending: 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400',
-  accepted: 'bg-green-500/15 text-green-600 dark:text-green-400',
-  rejected: 'bg-red-500/15 text-red-600 dark:text-red-400',
+  pending: 'bg-warning/15 text-warning ',
+  accepted: 'bg-success/15 text-success ',
+  rejected: 'bg-destructive/15 text-destructive ',
   expired: 'bg-muted text-muted-foreground',
   cancelled: 'bg-muted text-muted-foreground',
 };
@@ -263,8 +263,8 @@ export const OffersManagement = () => {
     <div className="space-y-6">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold">{stats.total}</p><p className="text-xs text-muted-foreground">总报价数</p></CardContent></Card>
-        <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-yellow-600">{stats.pending}</p><p className="text-xs text-muted-foreground">待处理</p></CardContent></Card>
-        <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-green-600">{stats.accepted}</p><p className="text-xs text-muted-foreground">已接受</p></CardContent></Card>
+        <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-warning">{stats.pending}</p><p className="text-xs text-muted-foreground">待处理</p></CardContent></Card>
+        <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-success">{stats.accepted}</p><p className="text-xs text-muted-foreground">已接受</p></CardContent></Card>
         <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-primary">¥{stats.totalAmount.toLocaleString()}</p><p className="text-xs text-muted-foreground">总报价金额</p></CardContent></Card>
       </div>
 
@@ -301,10 +301,10 @@ export const OffersManagement = () => {
         <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg border bg-muted/30">
           <span className="text-sm font-medium mr-2">已选 {selectedIds.size} 条</span>
           <Button size="sm" variant="outline" onClick={() => openBulkReview('accepted')}>
-            <CheckSquare className="h-4 w-4 mr-1 text-green-600" />批量审核通过
+            <CheckSquare className="h-4 w-4 mr-1 text-success" />批量审核通过
           </Button>
           <Button size="sm" variant="outline" onClick={() => openBulkReview('rejected')}>
-            <X className="h-4 w-4 mr-1 text-red-600" />批量驳回
+            <X className="h-4 w-4 mr-1 text-destructive" />批量驳回
           </Button>
           <Button size="sm" variant="outline" onClick={() => bulkUpdateStatus('pending')}>
             <Clock className="h-4 w-4 mr-1" />重置为待处理
@@ -398,10 +398,10 @@ export const OffersManagement = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => openReview(offer, 'accepted')}>
-                          <Check className="h-4 w-4 mr-2 text-green-600" />审核通过
+                          <Check className="h-4 w-4 mr-2 text-success" />审核通过
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => openReview(offer, 'rejected')}>
-                          <X className="h-4 w-4 mr-2 text-red-600" />驳回报价
+                          <X className="h-4 w-4 mr-2 text-destructive" />驳回报价
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => updateOfferStatus(offer.id, 'pending')}>
                           <Clock className="h-4 w-4 mr-2" />重置为待处理

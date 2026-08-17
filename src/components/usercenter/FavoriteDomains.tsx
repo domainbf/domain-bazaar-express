@@ -187,11 +187,11 @@ export const FavoriteDomains = () => {
 
   const getCategoryBadge = (category: string) => {
     const categoryMap: Record<string, { label: string; className: string }> = {
-      premium: { label: '高级', className: 'bg-purple-500/10 text-purple-700 dark:text-purple-400' },
+      premium: { label: '高级', className: 'bg-primary/10 text-primary ' },
       standard: { label: '标准', className: 'bg-muted text-muted-foreground' },
-      short: { label: '短域名', className: 'bg-blue-500/10 text-blue-700 dark:text-blue-400' },
-      brandable: { label: '品牌', className: 'bg-green-500/10 text-green-700 dark:text-green-400' },
-      dev: { label: '开发', className: 'bg-orange-500/10 text-orange-700 dark:text-orange-400' }
+      short: { label: '短域名', className: 'bg-info/10 text-info ' },
+      brandable: { label: '品牌', className: 'bg-success/10 text-success ' },
+      dev: { label: '开发', className: 'bg-warning/10 text-warning ' }
     };
     return categoryMap[category] || { label: category, className: 'bg-muted text-muted-foreground' };
   };
@@ -208,7 +208,7 @@ export const FavoriteDomains = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold flex items-center gap-2">
-          <Heart className="h-6 w-6 text-red-500" />
+          <Heart className="h-6 w-6 text-destructive" />
           我的收藏
           <Badge variant="secondary">{favorites.length}</Badge>
         </h2>
@@ -296,7 +296,7 @@ export const FavoriteDomains = () => {
                             {categoryInfo.label}
                           </Badge>
                           {favorite.domain.is_verified && (
-                            <Badge className="bg-green-500/10 text-green-700 dark:text-green-400">已验证</Badge>
+                            <Badge className="bg-success/10 text-success ">已验证</Badge>
                           )}
                         </div>
                       </div>
@@ -306,7 +306,7 @@ export const FavoriteDomains = () => {
                       variant="ghost"
                       size="icon"
                       onClick={() => handleRemoveFavorite(favorite.id, favorite.domain.name)}
-                      className="text-red-500 hover:text-red-700 hover:bg-red-500/10"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

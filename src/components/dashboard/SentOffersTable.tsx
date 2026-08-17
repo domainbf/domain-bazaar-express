@@ -115,18 +115,18 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
   const getStatusConfig = (status: string) => {
     switch (status) {
       case 'countered':
-        return { label: '卖家已还价', className: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30 dark:border-blue-800', icon: <ArrowLeftRight className="h-3 w-3" /> };
+        return { label: '卖家已还价', className: 'bg-info/10 text-info  border-info/30 ', icon: <ArrowLeftRight className="h-3 w-3" /> };
       case 'accepted':
-        return { label: '已接受', className: 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30 dark:border-green-800', icon: <CheckCircle2 className="h-3 w-3" /> };
+        return { label: '已接受', className: 'bg-success/10 text-success  border-success/30 ', icon: <CheckCircle2 className="h-3 w-3" /> };
       case 'rejected':
-        return { label: '已拒绝', className: 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/30 dark:border-red-800', icon: <XCircle className="h-3 w-3" /> };
+        return { label: '已拒绝', className: 'bg-destructive/10 text-destructive  border-destructive/30 ', icon: <XCircle className="h-3 w-3" /> };
       case 'completed':
-        return { label: '已完成', className: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30 dark:border-blue-800', icon: <Package className="h-3 w-3" /> };
+        return { label: '已完成', className: 'bg-info/10 text-info  border-info/30 ', icon: <Package className="h-3 w-3" /> };
       case 'cancelled':
         return { label: '已取消', className: 'bg-muted text-muted-foreground border-border', icon: <XCircle className="h-3 w-3" /> };
       case 'pending':
       default:
-        return { label: '待处理', className: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/30 dark:border-yellow-800', icon: <Clock className="h-3 w-3" /> };
+        return { label: '待处理', className: 'bg-warning/10 text-warning  border-warning/30 ', icon: <Clock className="h-3 w-3" /> };
     }
   };
 
@@ -154,12 +154,12 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
             const parsed = parseOfferMessage(offer);
 
             return (
-              <Card key={offer.id} className={`overflow-hidden ${offer.status === 'countered' ? 'border-blue-300 dark:border-blue-700' : ''}`}>
+              <Card key={offer.id} className={`overflow-hidden ${offer.status === 'countered' ? 'border-info ' : ''}`}>
                 <CardContent className="p-4 space-y-3">
                   {offer.status === 'countered' && (
-                    <div className="flex items-center gap-2 bg-blue-500/10 dark:bg-blue-950/30 -mx-4 -mt-4 px-4 pt-3 pb-2 border-b border-blue-100 dark:border-blue-900">
-                      <ArrowLeftRight className="h-4 w-4 text-blue-500 shrink-0" />
-                      <p className="text-sm font-medium text-blue-700 dark:text-blue-400">卖家已还价，请查看并回复</p>
+                    <div className="flex items-center gap-2 bg-info/10  -mx-4 -mt-4 px-4 pt-3 pb-2 border-b border-info ">
+                      <ArrowLeftRight className="h-4 w-4 text-info shrink-0" />
+                      <p className="text-sm font-medium text-info ">卖家已还价，请查看并回复</p>
                     </div>
                   )}
 
@@ -183,18 +183,18 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
                     </div>
                     {offer.status === 'countered' && parsed.counterAmount && (
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                        <span className="text-sm font-medium text-info  flex items-center gap-1">
                           <ArrowLeftRight className="h-3.5 w-3.5" />卖家还价
                         </span>
-                        <span className="text-xl font-bold text-blue-600 dark:text-blue-400">¥{parsed.counterAmount.toLocaleString()}</span>
+                        <span className="text-xl font-bold text-info ">¥{parsed.counterAmount.toLocaleString()}</span>
                       </div>
                     )}
                   </div>
 
                   {parsed.counterNote && (
-                    <div className="bg-blue-500/10 dark:bg-blue-950/30 rounded-lg p-3">
-                      <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">卖家备注</p>
-                      <p className="text-sm text-blue-700 dark:text-blue-300">{parsed.counterNote}</p>
+                    <div className="bg-info/10  rounded-lg p-3">
+                      <p className="text-xs text-info  font-medium mb-1">卖家备注</p>
+                      <p className="text-sm text-info ">{parsed.counterNote}</p>
                     </div>
                   )}
 
@@ -208,7 +208,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
                   <div className="flex gap-2 pt-2 border-t">
                     {offer.status === 'countered' ? (
                       <>
-                        <Button size="sm" className="flex-1 gap-1 bg-blue-600 hover:bg-blue-700 text-white"
+                        <Button size="sm" className="flex-1 gap-1 bg-info hover:bg-info text-white"
                           onClick={() => setCounterResponseDialog({ open: true, offer, action: 'accept' })}
                           disabled={isProcessing}>
                           <Check className="h-4 w-4" />接受还价
@@ -262,7 +262,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
                 const parsed = parseOfferMessage(offer);
 
                 return (
-                  <tr key={offer.id} className={`hover:bg-muted/30 transition-colors ${offer.status === 'countered' ? 'bg-blue-500/10/50 dark:bg-blue-950/10' : ''}`}>
+                  <tr key={offer.id} className={`hover:bg-muted/30 transition-colors ${offer.status === 'countered' ? 'bg-info/10/50 ' : ''}`}>
                     <td className="p-4">
                       <Link to={getDomainDetailPath(offer.domain_name)} className="font-semibold text-primary hover:underline">{offer.domain_name}</Link>
                     </td>
@@ -272,7 +272,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
                           ¥{offer.amount.toLocaleString()}
                         </span>
                         {offer.status === 'countered' && parsed.counterAmount && (
-                          <span className="text-base font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                          <span className="text-base font-bold text-info  flex items-center gap-1">
                             <ArrowLeftRight className="h-3.5 w-3.5" />¥{parsed.counterAmount.toLocaleString()}
                           </span>
                         )}
@@ -292,7 +292,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
                           <span className="text-sm text-muted-foreground/50">无留言</span>
                         )}
                         {parsed.counterNote && (
-                          <p className="text-xs text-blue-600 dark:text-blue-400 truncate" title={parsed.counterNote}>
+                          <p className="text-xs text-info  truncate" title={parsed.counterNote}>
                             卖家: {parsed.counterNote}
                           </p>
                         )}
@@ -302,7 +302,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
                       <div className="flex gap-2">
                         {offer.status === 'countered' ? (
                           <>
-                            <Button size="sm" className="gap-1 bg-blue-600 hover:bg-blue-700 text-white"
+                            <Button size="sm" className="gap-1 bg-info hover:bg-info text-white"
                               onClick={() => setCounterResponseDialog({ open: true, offer, action: 'accept' })}
                               disabled={isProcessing}>
                               <Check className="h-4 w-4" />接受还价
@@ -369,7 +369,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
               <AlertDialogDescription>
                 {counterResponseDialog.action === 'accept' ? (
                   <>
-                    您将以 <span className="font-bold text-blue-600">¥{parseOfferMessage(counterResponseDialog.offer).counterAmount?.toLocaleString()}</span> 的价格购买域名{' '}
+                    您将以 <span className="font-bold text-info">¥{parseOfferMessage(counterResponseDialog.offer).counterAmount?.toLocaleString()}</span> 的价格购买域名{' '}
                     <span className="font-semibold">{counterResponseDialog.offer.domain_name}</span>，系统将自动创建交易记录。
                   </>
                 ) : (
@@ -383,7 +383,7 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
               <AlertDialogCancel>取消</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => handleCounterResponse(counterResponseDialog.offer, counterResponseDialog.action)}
-                className={counterResponseDialog.action === 'reject' ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground' : 'bg-blue-600 hover:bg-blue-700 text-white'}
+                className={counterResponseDialog.action === 'reject' ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground' : 'bg-info hover:bg-info text-white'}
               >
                 {counterResponseDialog.action === 'accept' ? '确认接受' : '确认拒绝'}
               </AlertDialogAction>

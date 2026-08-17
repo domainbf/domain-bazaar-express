@@ -169,7 +169,7 @@ export const OfferTimelineDialog = ({ offerId, domainName, open, onOpenChange }:
                 <ol className="relative border-l border-border pl-4 space-y-3">
                   {orderStages.map((s, i) => (
                     <li key={i} className="relative">
-                      <span className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                      <span className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-success" />
                       <div className="text-sm">{STAGE_LABEL[s.stage] || s.stage}</div>
                       <div className="text-[11px] text-muted-foreground">
                         {new Date(s.at).toLocaleString('zh-CN')}

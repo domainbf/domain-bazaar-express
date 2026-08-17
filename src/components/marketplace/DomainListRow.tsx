@@ -86,7 +86,7 @@ export const DomainListRow = ({ domain, index }: { domain: Domain; index: number
             aria-label={fav ? '取消收藏' : '收藏'}
             className={cn(
               'h-8 w-8 flex items-center justify-center rounded-full border border-border/60',
-              fav ? 'text-red-500 bg-red-500/10 border-red-500/40' : 'text-muted-foreground hover:text-foreground',
+              fav ? 'text-destructive bg-destructive/10 border-destructive/40' : 'text-muted-foreground hover:text-foreground',
             )}
           >
             <Heart className={cn('h-4 w-4', fav && 'fill-current')} />

@@ -15,28 +15,28 @@ export const UserBehaviorAnalysis: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-6 text-center">
-            <Eye className="h-8 w-8 mx-auto mb-2 text-blue-500" />
+            <Eye className="h-8 w-8 mx-auto mb-2 text-info" />
             <div className="text-2xl font-bold">{stats.totalViews.toLocaleString()}</div>
             <div className="text-sm text-muted-foreground">总浏览量</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6 text-center">
-            <Search className="h-8 w-8 mx-auto mb-2 text-green-500" />
+            <Search className="h-8 w-8 mx-auto mb-2 text-success" />
             <div className="text-2xl font-bold">{stats.totalSearches.toLocaleString()}</div>
             <div className="text-sm text-muted-foreground">搜索次数</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6 text-center">
-            <TrendingUp className="h-8 w-8 mx-auto mb-2 text-purple-500" />
+            <TrendingUp className="h-8 w-8 mx-auto mb-2 text-primary" />
             <div className="text-2xl font-bold">{stats.totalOffers.toLocaleString()}</div>
             <div className="text-sm text-muted-foreground">报价次数</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6 text-center">
-            <Users className="h-8 w-8 mx-auto mb-2 text-orange-500" />
+            <Users className="h-8 w-8 mx-auto mb-2 text-warning" />
             <div className="text-2xl font-bold">{stats.uniqueUsers.toLocaleString()}</div>
             <div className="text-sm text-muted-foreground">活跃用户</div>
           </CardContent>

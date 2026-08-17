@@ -90,16 +90,16 @@ const getExpiryInfo = (expiryDate: string | null, createdDate: string | null) =>
     ? Math.min(100, Math.max(0, Math.round((usedDays / totalDays) * 100)))
     : null;
 
-  let color = 'bg-green-500';
-  let textColor = 'text-green-600';
+  let color = 'bg-success';
+  let textColor = 'text-success';
   let label = '';
 
   if (daysLeft < 0) {
-    color = 'bg-red-500'; textColor = 'text-red-600'; label = '已过期';
+    color = 'bg-destructive'; textColor = 'text-destructive'; label = '已过期';
   } else if (daysLeft <= 30) {
-    color = 'bg-red-500'; textColor = 'text-red-600'; label = `${daysLeft}天后到期`;
+    color = 'bg-destructive'; textColor = 'text-destructive'; label = `${daysLeft}天后到期`;
   } else if (daysLeft <= 90) {
-    color = 'bg-orange-500'; textColor = 'text-orange-600'; label = `${daysLeft}天后到期`;
+    color = 'bg-warning'; textColor = 'text-warning'; label = `${daysLeft}天后到期`;
   } else {
     label = `${daysLeft}天后到期`;
   }
@@ -191,13 +191,13 @@ export const DomainWhoisInfo: React.FC<Props> = ({ domainName }) => {
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex flex-wrap gap-2">
           <Badge className={
-            whoisData.status === 0 ? 'bg-green-500' :
-            whoisData.status === 4 ? 'bg-red-500' : 'bg-blue-500'
+            whoisData.status === 0 ? 'bg-success' :
+            whoisData.status === 4 ? 'bg-destructive' : 'bg-info'
           }>
             {whoisData.statusText}
           </Badge>
           {whoisData.rdap && (
-            <Badge variant="outline" className="text-emerald-600 border-emerald-300">
+            <Badge variant="outline" className="text-success border-success">
               RDAP ✓
             </Badge>
           )}
@@ -298,14 +298,14 @@ export const DomainWhoisInfo: React.FC<Props> = ({ domainName }) => {
       {/* DNSSEC */}
       <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/40 border">
         {isDnssecSigned
-          ? <Lock className="h-5 w-5 text-green-500 shrink-0" />
+          ? <Lock className="h-5 w-5 text-success shrink-0" />
           : <Unlock className="h-5 w-5 text-muted-foreground shrink-0" />
         }
         <div>
           <p className="text-xs text-muted-foreground mb-0.5">DNSSEC</p>
           <p className="font-semibold text-sm flex items-center gap-2">
             {whoisData.dnsSec || '未签名'}
-            {isDnssecSigned && <CheckCircle2 className="h-4 w-4 text-green-500" />}
+            {isDnssecSigned && <CheckCircle2 className="h-4 w-4 text-success" />}
           </p>
         </div>
       </div>

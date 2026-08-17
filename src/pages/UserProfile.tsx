@@ -119,7 +119,7 @@ export const UserProfilePage = () => {
                 <AvatarFallback className="text-2xl font-bold bg-primary text-primary-foreground">{initials}</AvatarFallback>
               </Avatar>
               {profile.seller_verified && (
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-green-500 border-2 border-background flex items-center justify-center">
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-success border-2 border-background flex items-center justify-center">
                   <BadgeCheck className="h-3.5 w-3.5 text-primary-foreground" />
                 </div>
               )}
@@ -130,7 +130,7 @@ export const UserProfilePage = () => {
               <div className="flex flex-wrap items-center gap-2 mb-1">
                 <h1 className="text-2xl font-bold truncate">{profile.full_name || profile.username || '域名卖家'}</h1>
                 {profile.seller_verified && (
-                  <Badge className="bg-green-500/15 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-300 dark:border-green-700 text-xs">
+                  <Badge className="bg-success/15 text-success   border-success  text-xs">
                     <ShieldCheck className="h-3 w-3 mr-1" />已认证卖家
                   </Badge>
                 )}
@@ -187,7 +187,7 @@ export const UserProfilePage = () => {
             </div>
             <div className="text-center p-3 bg-background/70 rounded-xl border border-border" data-testid="seller-stat-deals">
               <div className="flex items-center justify-center gap-1.5 mb-1">
-                <Handshake className="h-4 w-4 text-green-500" />
+                <Handshake className="h-4 w-4 text-success" />
                 <span className="text-xs text-muted-foreground">成功交易</span>
               </div>
               <p className="text-2xl font-bold">{sellerStats.completedDeals}</p>
@@ -247,10 +247,10 @@ export const UserProfilePage = () => {
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-1.5">
                         {domain.highlight && (
-                          <Badge className="text-[10px] px-1.5 py-0 bg-orange-100 text-orange-600 border-orange-500/30">精选</Badge>
+                          <Badge className="text-[10px] px-1.5 py-0 bg-warning/10 text-warning border-warning/30">精选</Badge>
                         )}
                         {domain.is_verified && (
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green-400 text-green-600">已验证</Badge>
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-success text-success">已验证</Badge>
                         )}
                       </div>
                       <Badge variant="secondary" className="text-[10px]">

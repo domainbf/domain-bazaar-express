@@ -162,7 +162,7 @@ export const CustomUrlSettings = () => {
         {profile?.custom_url && (
           <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border">
             <div className="flex items-center gap-2 min-w-0">
-              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 shrink-0" />
+              <CheckCircle className="h-4 w-4 text-success  shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">当前地址</p>
                 <p className="text-sm font-medium truncate">
@@ -203,7 +203,7 @@ export const CustomUrlSettings = () => {
                 placeholder="your-custom-url"
                 className={`rounded-l-none ${
                   error ? 'border-destructive focus-visible:ring-destructive' : 
-                  isAvailable === true && hasChanged ? 'border-green-500 focus-visible:ring-green-500' : ''
+                  isAvailable === true && hasChanged ? 'border-success focus-visible:ring-success' : ''
                 }`}
                 maxLength={30}
               />
@@ -214,7 +214,7 @@ export const CustomUrlSettings = () => {
                 ) : error ? (
                   <XCircle className="h-4 w-4 text-destructive" />
                 ) : isAvailable === true && hasChanged ? (
-                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <CheckCircle className="h-4 w-4 text-success" />
                 ) : null}
               </div>
             </div>
@@ -227,7 +227,7 @@ export const CustomUrlSettings = () => {
             </p>
           )}
           {!error && isAvailable === true && hasChanged && (
-            <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+            <p className="text-xs text-success  flex items-center gap-1">
               <CheckCircle className="h-3 w-3" /> 该地址可用
             </p>
           )}

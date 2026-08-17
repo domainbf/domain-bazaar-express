@@ -197,12 +197,12 @@ export default function DisputePage() {
                 </div>
               </div>
 
-              <div className="bg-amber-500/10 dark:bg-amber-900/20 rounded-xl border border-amber-500/30 dark:border-amber-800 p-5">
+              <div className="bg-warning/10  rounded-xl border border-warning/30  p-5">
                 <div className="flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <AlertTriangle className="h-5 w-5 text-warning  shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-amber-600 dark:text-amber-400 dark:text-amber-300 text-sm mb-1">申诉前请注意</p>
-                    <ul className="text-xs text-amber-700 dark:text-amber-400 space-y-1">
+                    <p className="font-semibold text-warning   text-sm mb-1">申诉前请注意</p>
+                    <ul className="text-xs text-warning  space-y-1">
                       <li>• 请先尝试与对方直接沟通协商</li>
                       <li>• 准备好相关截图和交易记录</li>
                       <li>• 恶意申诉将导致账号受到限制</li>
@@ -216,7 +216,7 @@ export default function DisputePage() {
               {submitted ? (
                 <Card>
                   <CardContent className="pt-8 pb-8 text-center">
-                    <CheckCircle2 className="h-14 w-14 text-green-500 mx-auto mb-4" />
+                    <CheckCircle2 className="h-14 w-14 text-success mx-auto mb-4" />
                     <h3 className="text-xl font-bold mb-2">申诉已提交</h3>
                     <p className="text-muted-foreground text-sm mb-4">平台将在工作日 24 小时内联系你，请留意邮箱通知。</p>
                     <Button variant="outline" onClick={() => navigate('/user-center?tab=disputes')} data-testid="button-dispute-transactions">

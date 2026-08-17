@@ -215,8 +215,8 @@ export const DomainOfferForm = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-4 mt-4">
       {!isAuthenticated && (
-        <div className="bg-yellow-500/10 border border-yellow-500/30 p-3 rounded-md mb-4">
-          <p className="text-yellow-700 dark:text-yellow-400 text-sm">
+        <div className="bg-warning/10 border border-warning/30 p-3 rounded-md mb-4">
+          <p className="text-warning  text-sm">
             {t('offer.form.guestNotice')}
           </p>
         </div>
@@ -264,18 +264,18 @@ export const DomainOfferForm = ({
           <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('offer.form.statusHeading')}</div>
           <div className="space-y-1.5 text-sm">
             <div className="flex items-center gap-2 text-foreground">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              <CheckCircle2 className="w-4 h-4 text-success" />
               <span>{t('offer.form.submitted')} · <span className="tabular-nums font-semibold">{formatPrice(submitState.amount, submitState.currency)}</span></span>
             </div>
             <div className="flex items-center gap-2">
-              <Clock className={`w-4 h-4 ${submitState.status !== 'submitted' ? 'text-emerald-500' : 'text-muted-foreground animate-pulse'}`} />
+              <Clock className={`w-4 h-4 ${submitState.status !== 'submitted' ? 'text-success' : 'text-muted-foreground animate-pulse'}`} />
               <span className={submitState.status !== 'submitted' ? 'text-foreground' : 'text-muted-foreground'}>
                 {t('offer.form.awaitingReview')}
               </span>
             </div>
             <div className="flex items-center gap-2">
               {submitState.status === 'emailed' ? (
-                <><MailCheck className="w-4 h-4 text-emerald-500" /><span className="text-foreground">{t('offer.form.emailSent')}</span></>
+                <><MailCheck className="w-4 h-4 text-success" /><span className="text-foreground">{t('offer.form.emailSent')}</span></>
               ) : (
                 <><Mail className="w-4 h-4 text-muted-foreground animate-pulse" /><span className="text-muted-foreground">{t('offer.form.emailSending')}</span></>
               )}

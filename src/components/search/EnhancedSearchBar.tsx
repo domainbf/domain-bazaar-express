@@ -120,9 +120,9 @@ export const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
   };
 
   const getSuggestionIcon = (type: string) =>
-    type === 'trending' ? <TrendingUp className="h-4 w-4 text-orange-500" /> :
-    type === 'similar' ? <Sparkles className="h-4 w-4 text-blue-500" /> :
-    <Search className="h-4 w-4 text-green-500" />;
+    type === 'trending' ? <TrendingUp className="h-4 w-4 text-warning" /> :
+    type === 'similar' ? <Sparkles className="h-4 w-4 text-info" /> :
+    <Search className="h-4 w-4 text-success" />;
 
   const getSuggestionBadge = (type: string) => {
     const map = {

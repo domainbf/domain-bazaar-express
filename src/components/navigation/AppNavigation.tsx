@@ -88,9 +88,7 @@ export const AppNavigation: React.FC<AppNavigationProps> = ({
             <Link
               key={item.href}
               to={item.href}
-              className={cn(
-                "flex items-center gap-3 p-4 rounded-lg border transition-colors",
-                "hover:bg-muted/50 hover:border-primary/50",
+              className={cn( "flex items-center gap-3 p-4 rounded-lg border transition-colors", "hover:bg-muted/50 hover:border-primary/50",
                 currentPath === item.href && "bg-primary/5 border-primary"
               )}
             >

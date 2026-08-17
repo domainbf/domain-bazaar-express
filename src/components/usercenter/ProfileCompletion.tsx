@@ -60,7 +60,7 @@ export const ProfileCompletion = ({ onNavigateTab }: ProfileCompletionProps) => 
               {items.map(item => (
                 <div key={item.key} className={`flex items-center gap-1.5 text-xs ${item.done ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
                   {item.done
-                    ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />
+                    ? <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
                     : <Circle className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
                   }
                   {item.label}

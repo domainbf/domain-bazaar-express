@@ -827,17 +827,17 @@ export const SiteSettings = () => {
                 <Label className="font-semibold">网站域名</Label>
                 <p className="text-xs text-muted-foreground">用于邮件通知中的链接和版权信息，填写完整域名（含协议），<strong>必须配置否则邮件链接无效</strong></p>
                 {contactInfo.site_domain && contactInfo.site_domain !== window.location.origin && (
-                  <Alert className="border-yellow-500/30 bg-yellow-500/5">
-                    <AlertCircle className="h-4 w-4 text-yellow-600" />
-                    <AlertDescription className="text-yellow-700 dark:text-yellow-400 text-xs">
+                  <Alert className="border-warning/30 bg-warning/5">
+                    <AlertCircle className="h-4 w-4 text-warning" />
+                    <AlertDescription className="text-warning  text-xs">
                       <strong>注意：</strong>当前配置的域名（<code className="font-mono">{contactInfo.site_domain}</code>）与您正在访问的域名（<code className="font-mono">{window.location.origin}</code>）不一致。密码重置邮件中的链接将指向旧域名。请更新为当前域名并保存。
                     </AlertDescription>
                   </Alert>
                 )}
                 {!contactInfo.site_domain && (
-                  <Alert className="border-orange-500/30 bg-orange-500/5">
-                    <AlertCircle className="h-4 w-4 text-orange-600" />
-                    <AlertDescription className="text-orange-700 dark:text-orange-400 text-xs">
+                  <Alert className="border-warning/30 bg-warning/5">
+                    <AlertCircle className="h-4 w-4 text-warning" />
+                    <AlertDescription className="text-warning  text-xs">
                       <strong>未配置：</strong>请填写当前网站域名（如 <code className="font-mono">{window.location.origin}</code>），否则邮件中的重置密码链接将无法正常工作。
                     </AlertDescription>
                   </Alert>
@@ -892,7 +892,7 @@ export const SiteSettings = () => {
 
               <div className="space-y-2">
                 <Label className="font-semibold flex items-center gap-2">
-                  <span className="text-red-600">紧急热线</span>
+                  <span className="text-destructive">紧急热线</span>
                   <Badge variant="destructive" className="text-xs">谨慎填写</Badge>
                 </Label>
                 <Input
@@ -966,9 +966,9 @@ export const SiteSettings = () => {
             </CardHeader>
             <CardContent className="space-y-5">
               {/* All-emails-use-this-SMTP notice */}
-              <div className="rounded-lg bg-blue-500/10 dark:bg-blue-950/30 border border-blue-500/30 dark:border-blue-800 px-4 py-3 flex gap-3">
-                <Info className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
-                <div className="text-xs text-blue-600 dark:text-blue-400 dark:text-blue-300 space-y-0.5">
+              <div className="rounded-lg bg-info/10  border border-info/30  px-4 py-3 flex gap-3">
+                <Info className="h-4 w-4 text-info shrink-0 mt-0.5" />
+                <div className="text-xs text-info   space-y-0.5">
                   <p className="font-semibold">此 SMTP 是系统唯一邮件出口</p>
                   <p>交易通知、出价提醒、密码重置等<strong>所有系统邮件</strong>均通过此处配置的 SMTP 发送。更换服务商只需修改下方参数并保存，立即生效，无需任何额外操作。</p>
                 </div>
@@ -1002,10 +1002,10 @@ export const SiteSettings = () => {
                   const p = SMTP_PRESETS.find(x => x.label === selectedPreset);
                   return p ? (
                     <div className="rounded-md bg-muted/60 px-3 py-2 text-xs text-muted-foreground flex gap-2 items-start">
-                      <CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0 mt-0.5" />
+                      <CheckCircle className="h-3.5 w-3.5 text-success shrink-0 mt-0.5" />
                       <span>
                         <strong>{p.label}</strong>：{p.host} · 端口 {p.port}
-                        {p.note ? <span className="ml-2 text-amber-600 dark:text-amber-400">⚠ {p.note}</span> : null}
+                        {p.note ? <span className="ml-2 text-warning ">⚠ {p.note}</span> : null}
                       </span>
                     </div>
                   ) : null;
@@ -1113,9 +1113,9 @@ export const SiteSettings = () => {
             <CardContent className="space-y-4">
               {emailTestResult && (
                 emailTestResult.ok ? (
-                  <Alert className="border-green-500/30 bg-green-500/10 dark:border-green-900 dark:bg-green-950/30">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <AlertDescription className="text-green-600 dark:text-green-400 dark:text-green-300 font-medium">{emailTestResult.msg}</AlertDescription>
+                  <Alert className="border-success/30 bg-success/10 ">
+                    <CheckCircle className="h-4 w-4 text-success" />
+                    <AlertDescription className="text-success   font-medium">{emailTestResult.msg}</AlertDescription>
                   </Alert>
                 ) : (
                   <Alert variant="destructive">
@@ -1163,14 +1163,14 @@ export const SiteSettings = () => {
               通过此 SMTP 发送的邮件类型
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1 text-xs text-muted-foreground pl-1">
-              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-green-500" /> 用户注册欢迎邮件</span>
-              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-green-500" /> 找回密码 / 重置密码</span>
-              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-green-500" /> 新报价通知（卖家）</span>
-              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-green-500" /> 还价 / 反还价通知</span>
-              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-green-500" /> 报价被接受 / 拒绝通知</span>
-              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-green-500" /> 交易状态更新通知</span>
-              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-green-500" /> 付款确认 / 转移完成</span>
-              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-green-500" /> 争议受理通知</span>
+              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-success" /> 用户注册欢迎邮件</span>
+              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-success" /> 找回密码 / 重置密码</span>
+              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-success" /> 新报价通知（卖家）</span>
+              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-success" /> 还价 / 反还价通知</span>
+              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-success" /> 报价被接受 / 拒绝通知</span>
+              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-success" /> 交易状态更新通知</span>
+              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-success" /> 付款确认 / 转移完成</span>
+              <span className="flex items-center gap-1.5"><CheckCircle className="h-3 w-3 text-success" /> 争议受理通知</span>
             </div>
             <p className="text-xs text-muted-foreground pt-1 border-t">
               保存配置后立即生效，切换任意服务商无需重启或额外操作。
@@ -1686,7 +1686,7 @@ export const SiteSettings = () => {
                 <Globe className="h-5 w-5 text-primary" />
                 WHOIS / RDAP API（www.x.rw）
                 {whoisApiKey && (
-                  <Badge className="bg-green-500/10 text-green-600 border-green-500/30 ml-auto">已配置</Badge>
+                  <Badge className="bg-success/10 text-success border-success/30 ml-auto">已配置</Badge>
                 )}
               </CardTitle>
               <CardDescription>
@@ -1755,11 +1755,11 @@ export const SiteSettings = () => {
                 </div>
 
                 {whoisTestResult && (
-                  <Alert className={whoisTestResult.ok ? 'border-green-500/30 bg-green-500/10' : 'border-red-500/30 bg-red-500/10'}>
+                  <Alert className={whoisTestResult.ok ? 'border-success/30 bg-success/10' : 'border-destructive/30 bg-destructive/10'}>
                     {whoisTestResult.ok
-                      ? <CheckCircle className="h-4 w-4 text-green-600" />
-                      : <XCircle className="h-4 w-4 text-red-600" />}
-                    <AlertDescription className={whoisTestResult.ok ? 'text-green-700' : 'text-red-700'}>
+                      ? <CheckCircle className="h-4 w-4 text-success" />
+                      : <XCircle className="h-4 w-4 text-destructive" />}
+                    <AlertDescription className={whoisTestResult.ok ? 'text-success' : 'text-destructive'}>
                       {whoisTestResult.msg}
                     </AlertDescription>
                   </Alert>
@@ -1785,7 +1785,7 @@ export const SiteSettings = () => {
                 <Zap className="h-5 w-5 text-primary" />
                 ModelScope 魔搭 AI 图像生成
                 {msApiKey && (
-                  <Badge className="bg-green-500/10 text-green-600 border-green-500/30 ml-auto">已配置</Badge>
+                  <Badge className="bg-success/10 text-success border-success/30 ml-auto">已配置</Badge>
                 )}
               </CardTitle>
               <CardDescription>
@@ -1875,11 +1875,11 @@ export const SiteSettings = () => {
               )}
 
               {msTestResult && (
-                <Alert className={msTestResult.ok ? 'border-green-500/30 bg-green-500/10 dark:border-green-800 dark:bg-green-950/30' : 'border-red-500/30 bg-red-500/10 dark:border-red-800 dark:bg-red-950/30'}>
+                <Alert className={msTestResult.ok ? 'border-success/30 bg-success/10  ' : 'border-destructive/30 bg-destructive/10  '}>
                   {msTestResult.ok
-                    ? <CheckCircle className="h-4 w-4 text-green-600" />
-                    : <XCircle className="h-4 w-4 text-red-600" />}
-                  <AlertDescription className={msTestResult.ok ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}>
+                    ? <CheckCircle className="h-4 w-4 text-success" />
+                    : <XCircle className="h-4 w-4 text-destructive" />}
+                  <AlertDescription className={msTestResult.ok ? 'text-success ' : 'text-destructive '}>
                     {msTestResult.msg}
                   </AlertDescription>
                 </Alert>
@@ -1891,9 +1891,9 @@ export const SiteSettings = () => {
         {/* ── 站点控制 ── */}
         <TabsContent value="control" className="space-y-6">
           {siteClosed && (
-            <Alert className="border-red-500/40 bg-red-500/10">
-              <Power className="h-4 w-4 text-red-500" />
-              <AlertDescription className="text-red-700 dark:text-red-400 font-medium">
+            <Alert className="border-destructive/40 bg-destructive/10">
+              <Power className="h-4 w-4 text-destructive" />
+              <AlertDescription className="text-destructive  font-medium">
                 网站目前处于<strong>关闭状态</strong>，非管理员用户将看到维护页面。
               </AlertDescription>
             </Alert>
@@ -1910,7 +1910,7 @@ export const SiteSettings = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               {/* 关闭网站 */}
-              <div className={`flex items-start justify-between gap-4 p-4 rounded-xl border transition-colors ${siteClosed ? 'border-red-400/50 bg-red-500/5' : 'border-border bg-muted/20'}`}>
+              <div className={`flex items-start justify-between gap-4 p-4 rounded-xl border transition-colors ${siteClosed ? 'border-destructive/50 bg-destructive/5' : 'border-border bg-muted/20'}`}>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <Wrench className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -1929,12 +1929,12 @@ export const SiteSettings = () => {
               </div>
 
               {/* 关闭注册 */}
-              <div className={`flex items-start justify-between gap-4 p-4 rounded-xl border transition-colors ${registrationClosed ? 'border-amber-400/50 bg-amber-500/5' : 'border-border bg-muted/20'}`}>
+              <div className={`flex items-start justify-between gap-4 p-4 rounded-xl border transition-colors ${registrationClosed ? 'border-warning/50 bg-warning/5' : 'border-border bg-muted/20'}`}>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <UserX className="h-4 w-4 text-muted-foreground shrink-0" />
                     <p className="text-sm font-semibold text-foreground">关闭注册</p>
-                    {registrationClosed && <Badge variant="outline" className="text-xs border-amber-400 text-amber-600">已开启</Badge>}
+                    {registrationClosed && <Badge variant="outline" className="text-xs border-warning text-warning">已开启</Badge>}
                   </div>
                   <p className="text-xs text-muted-foreground">
                     开启后，注册入口将隐藏，新用户无法创建账户。已有账户不受影响，仍可正常登录。
@@ -1948,12 +1948,12 @@ export const SiteSettings = () => {
               </div>
 
               {/* App 安装引导横幅 */}
-              <div className={`flex items-start justify-between gap-4 p-4 rounded-xl border transition-colors ${pwaInstallBanner ? 'border-blue-400/50 bg-blue-500/5' : 'border-border bg-muted/20'}`}>
+              <div className={`flex items-start justify-between gap-4 p-4 rounded-xl border transition-colors ${pwaInstallBanner ? 'border-info/50 bg-info/5' : 'border-border bg-muted/20'}`}>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <Smartphone className="h-4 w-4 text-muted-foreground shrink-0" />
                     <p className="text-sm font-semibold text-foreground">App 安装引导横幅</p>
-                    {pwaInstallBanner && <Badge variant="outline" className="text-xs border-blue-400 text-blue-600">已开启</Badge>}
+                    {pwaInstallBanner && <Badge variant="outline" className="text-xs border-info text-info">已开启</Badge>}
                   </div>
                   <p className="text-xs text-muted-foreground">
                     向移动端访客展示"添加到主屏幕"引导弹窗，5 秒后自动关闭。关闭此开关后新访客将不再看到提示。
@@ -1967,13 +1967,13 @@ export const SiteSettings = () => {
               </div>
 
               {/* 反馈按钮 */}
-              <div className={`flex items-start justify-between gap-4 p-4 rounded-xl border transition-colors ${feedbackButtonVisible ? 'border-green-400/50 bg-green-500/5' : 'border-border bg-muted/20'}`}>
+              <div className={`flex items-start justify-between gap-4 p-4 rounded-xl border transition-colors ${feedbackButtonVisible ? 'border-success/50 bg-success/5' : 'border-border bg-muted/20'}`}>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0" />
                     <p className="text-sm font-semibold text-foreground">悬浮反馈按钮</p>
                     {feedbackButtonVisible
-                      ? <Badge variant="outline" className="text-xs border-green-400 text-green-600">已显示</Badge>
+                      ? <Badge variant="outline" className="text-xs border-success text-success">已显示</Badge>
                       : <Badge variant="outline" className="text-xs border-muted-foreground text-muted-foreground">已隐藏</Badge>
                     }
                   </div>
@@ -2095,7 +2095,7 @@ const SettingItem = ({ setting, onChange, onDelete }: SettingItemProps) => {
       </div>
       {onDelete && (
         <Button variant="ghost" size="sm" onClick={onDelete}>
-          <Trash2 className="h-4 w-4 text-muted-foreground hover:text-red-600" />
+          <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
         </Button>
       )}
     </div>

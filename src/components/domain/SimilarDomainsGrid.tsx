@@ -79,9 +79,9 @@ export const SimilarDomainsGrid: React.FC<SimilarDomainsGridProps> = ({
                       variant="outline" 
                       className={`text-xs ${
                         similarity >= 70 
-                          ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/30' 
+                          ? 'bg-success/10 text-success  border-success/30' 
                           : similarity >= 50 
-                            ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30'
+                            ? 'bg-info/10 text-info  border-info/30'
                             : 'bg-muted text-muted-foreground border-border'
                       }`}
                     >
@@ -89,7 +89,7 @@ export const SimilarDomainsGrid: React.FC<SimilarDomainsGridProps> = ({
                     </Badge>
                   )}
                   {domain.is_verified && (
-                    <Badge className="bg-green-500/10 text-green-600 border-green-500/30 text-xs">
+                    <Badge className="bg-success/10 text-success border-success/30 text-xs">
                       <Shield className="h-3 w-3 mr-1" />
                       已验证
                     </Badge>
@@ -109,7 +109,7 @@ export const SimilarDomainsGrid: React.FC<SimilarDomainsGridProps> = ({
                   <div className="font-bold text-primary flex items-center">
                     ¥{domain.price.toLocaleString()}
                     {domain.highlight && (
-                      <TrendingUp className="h-4 w-4 ml-1 text-orange-500" />
+                      <TrendingUp className="h-4 w-4 ml-1 text-warning" />
                     )}
                   </div>
                 </div>

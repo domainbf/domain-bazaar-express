@@ -184,14 +184,14 @@ export const ResetPasswordConfirmForm = ({ token: _token }: ResetPasswordConfirm
         ];
         const allOk = checks.every(c => c.ok);
         return (
-          <div className={`rounded-lg border p-3 space-y-1.5 ${allOk ? 'border-green-500/30 bg-green-500/5' : 'border-border bg-muted/40'}`}>
+          <div className={`rounded-lg border p-3 space-y-1.5 ${allOk ? 'border-success/30 bg-success/5' : 'border-border bg-muted/40'}`}>
             <p className="text-xs font-medium text-muted-foreground mb-1">密码要求</p>
             {checks.map((c) => (
               <div key={c.label} className="flex items-center gap-2">
-                <span className={`text-xs font-bold ${c.ok ? 'text-green-500' : 'text-muted-foreground'}`}>
+                <span className={`text-xs font-bold ${c.ok ? 'text-success' : 'text-muted-foreground'}`}>
                   {c.ok ? '✓' : '·'}
                 </span>
-                <span className={`text-xs ${c.ok ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
+                <span className={`text-xs ${c.ok ? 'text-success ' : 'text-muted-foreground'}`}>
                   {c.label}
                 </span>
               </div>

@@ -7,10 +7,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 const STEPS = [
-  { icon: CreditCard, title: '买家付款', desc: '买家将购买款项支付至平台资金托管账户，资金由平台安全保管。', color: 'text-blue-600 bg-blue-500/15 dark:bg-blue-900/30 dark:text-blue-400' },
-  { icon: RefreshCw, title: '域名转移', desc: '卖家在确认收到资金托管通知后，将域名转移至买家指定账户。', color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/30 dark:text-orange-400' },
-  { icon: CheckCircle2, title: '确认完成', desc: '买家确认域名收到后，平台将托管资金释放至卖家账户。', color: 'text-green-600 bg-green-500/15 dark:bg-green-900/30 dark:text-green-400' },
-  { icon: Shield, title: '纠纷保障', desc: '若出现争议，平台介入调查，保障双方权益，资金在争议解决前冻结。', color: 'text-purple-600 bg-purple-500/15 dark:bg-purple-900/30 dark:text-purple-400' },
+  { icon: CreditCard, title: '买家付款', desc: '买家将购买款项支付至平台资金托管账户，资金由平台安全保管。', color: 'text-info bg-info/15  ' },
+  { icon: RefreshCw, title: '域名转移', desc: '卖家在确认收到资金托管通知后，将域名转移至买家指定账户。', color: 'text-warning bg-warning/10  ' },
+  { icon: CheckCircle2, title: '确认完成', desc: '买家确认域名收到后，平台将托管资金释放至卖家账户。', color: 'text-success bg-success/15  ' },
+  { icon: Shield, title: '纠纷保障', desc: '若出现争议，平台介入调查，保障双方权益，资金在争议解决前冻结。', color: 'text-primary bg-primary/15  ' },
 ];
 
 const GUARANTEES = [
@@ -78,18 +78,18 @@ export default function EscrowPage() {
             <div className="bg-card rounded-xl border border-border p-6 space-y-3">
               {GUARANTEES.map((g) => (
                 <div key={g} className="flex items-start gap-3">
-                  <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="h-4 w-4 text-success shrink-0 mt-0.5" />
                   <span className="text-sm">{g}</span>
                 </div>
               ))}
             </div>
 
-            <div className="mt-6 bg-amber-500/10 dark:bg-amber-900/20 rounded-xl border border-amber-500/30 dark:border-amber-800 p-5">
+            <div className="mt-6 bg-warning/10  rounded-xl border border-warning/30  p-5">
               <div className="flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <AlertCircle className="h-5 w-5 text-warning  shrink-0 mt-0.5" />
                 <div>
-                  <h3 className="font-semibold text-amber-600 dark:text-amber-400 dark:text-amber-300 mb-1">注意事项</h3>
-                  <p className="text-sm text-amber-700 dark:text-amber-400 leading-relaxed">
+                  <h3 className="font-semibold text-warning   mb-1">注意事项</h3>
+                  <p className="text-sm text-warning  leading-relaxed">
                     资金托管仅适用于通过平台达成的交易。私下交易不受平台保护，若出现纠纷平台无法介入。请始终通过平台内完成交易流程。
                   </p>
                 </div>

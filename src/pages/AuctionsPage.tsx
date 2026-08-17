@@ -203,7 +203,7 @@ export const AuctionsPage = () => {
                     key={auction.id}
                     className={`cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 border-border/60 ${
                       isSelected ? 'ring-2 ring-primary shadow-md' : ''
-                    } ${isUrgent ? 'border-orange-400/60 dark:border-orange-600/40' : ''}`}
+                    } ${isUrgent ? 'border-warning/60 ' : ''}`}
                     onClick={() => setSelectedAuction(isSelected ? null : auction)}
                     data-testid={`card-auction-${auction.id}`}
                   >
@@ -211,7 +211,7 @@ export const AuctionsPage = () => {
                       <div className="flex items-start justify-between mb-2">
                         <h3 className="font-bold text-foreground truncate pr-2">{auction.domainName}</h3>
                         {isActive ? (
-                          <Badge className={`shrink-0 text-[10px] ${isUrgent ? 'bg-orange-500' : 'bg-primary'}`}>
+                          <Badge className={`shrink-0 text-[10px] ${isUrgent ? 'bg-warning' : 'bg-primary'}`}>
                             进行中
                           </Badge>
                         ) : (
@@ -236,7 +236,7 @@ export const AuctionsPage = () => {
                           <span>{auction.total_bids} 次出价</span>
                         </div>
                         {isActive ? (
-                          <div className={`flex items-center gap-1 ${isUrgent ? 'text-orange-500 font-medium' : ''}`}>
+                          <div className={`flex items-center gap-1 ${isUrgent ? 'text-warning font-medium' : ''}`}>
                             {isUrgent ? <Timer className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
                             <span>
                               {formatDistanceToNow(new Date(auction.end_time), { locale: zhCN, addSuffix: true })}结束

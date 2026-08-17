@@ -48,11 +48,11 @@ export const DomainTableMobile = ({ domains, onDomainUpdate }: DomainTableMobile
   const renderDomainStatus = (status?: string) => {
     switch (status) {
       case 'available':
-        return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30 dark:border-green-800 text-xs">可售</Badge>;
+        return <Badge className="bg-success/10 text-success  border-success/30  text-xs">可售</Badge>;
       case 'pending':
-        return <Badge className="bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/30 dark:border-yellow-800 text-xs">暂不出售</Badge>;
+        return <Badge className="bg-warning/10 text-warning  border-warning/30  text-xs">暂不出售</Badge>;
       case 'sold':
-        return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30 dark:border-blue-800 text-xs">已售</Badge>;
+        return <Badge className="bg-info/10 text-info  border-info/30  text-xs">已售</Badge>;
       default:
         return <Badge variant="secondary" className="text-xs">未知</Badge>;
     }
@@ -68,18 +68,18 @@ export const DomainTableMobile = ({ domains, onDomainUpdate }: DomainTableMobile
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   {domain.highlight && (
-                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 shrink-0" />
+                    <Star className="w-4 h-4 text-warning fill-warning shrink-0" />
                   )}
                   <h3 className="font-semibold text-base truncate">{domain.name}</h3>
                 </div>
                 <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                   {domain.is_verified ? (
-                    <Badge variant="outline" className="border-green-500 text-green-600 dark:text-green-400 text-xs gap-1">
+                    <Badge variant="outline" className="border-success text-success  text-xs gap-1">
                       <Shield className="w-3 h-3" />
                       已验证
                     </Badge>
                   ) : domain.verification_status === 'pending' ? (
-                    <Badge variant="outline" className="border-yellow-500 text-yellow-600 dark:text-yellow-400 text-xs">
+                    <Badge variant="outline" className="border-warning text-warning  text-xs">
                       验证中
                     </Badge>
                   ) : null}

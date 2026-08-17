@@ -35,12 +35,12 @@ const gatewayIcons: Record<string, any> = {
 };
 
 const gatewayColors: Record<string, string> = {
-  alipay: 'text-blue-600',
-  wechat_pay: 'text-green-600',
-  paypal: 'text-blue-700',
-  stripe: 'text-purple-600',
-  bank_transfer: 'text-amber-600',
-  usdt_trc20: 'text-emerald-500',
+  alipay: 'text-info',
+  wechat_pay: 'text-success',
+  paypal: 'text-info',
+  stripe: 'text-primary',
+  bank_transfer: 'text-warning',
+  usdt_trc20: 'text-success',
 };
 
 // Fields that should be masked in the UI
@@ -215,7 +215,7 @@ export const PaymentGatewaySettings = () => {
                   <Icon className={`h-5 w-5 ${color}`} />
                   {gateway.display_name}
                   {gateway.is_enabled ? (
-                    <Badge variant="default" className="bg-green-500/15 text-green-600 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400">
+                    <Badge variant="default" className="bg-success/15 text-success ">
                       <CheckCircle className="h-3 w-3 mr-1" />
                       已启用
                     </Badge>
@@ -243,7 +243,7 @@ export const PaymentGatewaySettings = () => {
               <CardDescription>
                 手续费率: {(gateway.fee_rate * 100).toFixed(1)}%
                 {!configComplete && gateway.is_enabled && (
-                  <span className="text-yellow-600 dark:text-yellow-400 ml-2 inline-flex items-center gap-1">
+                  <span className="text-warning  ml-2 inline-flex items-center gap-1">
                     <AlertTriangle className="h-3 w-3" />
                     部分配置为空，请填写完整
                   </span>

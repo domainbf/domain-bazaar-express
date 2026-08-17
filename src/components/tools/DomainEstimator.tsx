@@ -79,10 +79,10 @@ export const DomainEstimator = () => {
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600 bg-green-500/10';
-    if (score >= 60) return 'text-blue-600 bg-blue-500/10';
-    if (score >= 40) return 'text-yellow-600 bg-yellow-500/10';
-    return 'text-red-600 bg-red-500/10';
+    if (score >= 80) return 'text-success bg-success/10';
+    if (score >= 60) return 'text-info bg-info/10';
+    if (score >= 40) return 'text-warning bg-warning/10';
+    return 'text-destructive bg-destructive/10';
   };
 
   const getScoreLabel = (score: number) => {
@@ -147,10 +147,10 @@ export const DomainEstimator = () => {
 
           {result && (
             <div ref={resultRef} className="space-y-6">
-              <div className="text-center p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+              <div className="text-center p-6 bg-gradient-to-r from-info to-primary rounded-lg">
                 <h3 className="text-2xl font-bold text-foreground mb-2">{result.domain}</h3>
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <span className="text-3xl font-bold text-green-600">${result.estimatedValue.toLocaleString('en-US')}</span>
+                  <span className="text-3xl font-bold text-success">${result.estimatedValue.toLocaleString('en-US')}</span>
                 </div>
                 <p className="text-muted-foreground">估算价值（USD）· 置信度: {result.confidence}%</p>
                 <Progress value={result.confidence} className="w-full max-w-xs mx-auto mt-2" />
@@ -199,7 +199,7 @@ export const DomainEstimator = () => {
                 <ul className="space-y-2">
                   {result.recommendations.map((suggestion, index) => (
                     <li key={index} className="flex items-start">
-                      <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                      <CheckCircle className="w-4 h-4 text-success mr-2 mt-0.5 flex-shrink-0" />
                       <span className="text-foreground">{suggestion}</span>
                     </li>
                   ))}

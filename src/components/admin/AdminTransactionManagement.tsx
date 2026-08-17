@@ -38,14 +38,14 @@ interface AdminTransaction {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 dark:bg-yellow-900/30 dark:text-yellow-400',
-  paid: 'bg-blue-500/15 text-blue-600 dark:text-blue-400 dark:bg-blue-900/30 dark:text-blue-400',
-  in_escrow: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 dark:bg-purple-900/30 dark:text-purple-400',
-  domain_transferred: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400',
-  completed: 'bg-green-500/15 text-green-600 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400',
+  pending: 'bg-warning/15 text-warning   ',
+  paid: 'bg-info/15 text-info   ',
+  in_escrow: 'bg-primary/15 text-primary   ',
+  domain_transferred: 'bg-primary/10 text-primary  ',
+  completed: 'bg-success/15 text-success   ',
   cancelled: 'bg-muted text-foreground dark:bg-gray-900/30 dark:text-muted-foreground',
-  disputed: 'bg-red-500/15 text-red-600 dark:text-red-400 dark:bg-red-900/30 dark:text-red-400',
-  refunded: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
+  disputed: 'bg-destructive/15 text-destructive   ',
+  refunded: 'bg-warning/10 text-warning  ',
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -424,10 +424,10 @@ export const AdminTransactionManagement = () => {
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {[
           { label: '全部交易', value: stats.total, color: 'text-foreground' },
-          { label: '已完成', value: stats.completed, color: 'text-green-600' },
-          { label: '进行中', value: stats.pending, color: 'text-blue-600' },
-          { label: '纠纷中', value: stats.disputed, color: 'text-red-600' },
-          { label: '平台手续费', value: `¥${stats.totalRevenue.toLocaleString()}`, color: 'text-orange-600' },
+          { label: '已完成', value: stats.completed, color: 'text-success' },
+          { label: '进行中', value: stats.pending, color: 'text-info' },
+          { label: '纠纷中', value: stats.disputed, color: 'text-destructive' },
+          { label: '平台手续费', value: `¥${stats.totalRevenue.toLocaleString()}`, color: 'text-warning' },
         ].map((s, i) => (
           <Card key={i}>
             <CardContent className="p-3 text-center">
@@ -492,7 +492,7 @@ export const AdminTransactionManagement = () => {
                       <TableCell className="text-sm text-muted-foreground max-w-32 truncate">{tx.buyer_email}</TableCell>
                       <TableCell className="text-sm text-muted-foreground max-w-32 truncate">{tx.seller_email}</TableCell>
                       <TableCell className="text-right font-semibold">¥{Number(tx.amount).toLocaleString()}</TableCell>
-                      <TableCell className="text-right text-sm text-orange-600">
+                      <TableCell className="text-right text-sm text-warning">
                         {tx.commission_amount ? `¥${Number(tx.commission_amount).toLocaleString()}` : '—'}
                       </TableCell>
                       <TableCell>

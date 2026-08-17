@@ -443,9 +443,9 @@ export const ContentManagement = () => {
 
         <TabsContent value="pages">
           <div className="space-y-6">
-            <Card className="bg-blue-500/10 border-blue-500/30">
+            <Card className="bg-info/10 border-info/30">
               <CardContent className="py-4 flex items-center justify-between">
-                <p className="text-sm text-blue-700">
+                <p className="text-sm text-info">
                   💡 拖拽页面卡片可以调整显示顺序
                 </p>
                 <Button onClick={() => {
@@ -499,9 +499,9 @@ export const ContentManagement = () => {
 
         <TabsContent value="content">
           <div className="space-y-6">
-            <Card className="bg-blue-500/10 border-blue-500/30">
+            <Card className="bg-info/10 border-info/30">
               <CardContent className="py-4 flex items-center justify-between">
-                <p className="text-sm text-blue-700">
+                <p className="text-sm text-info">
                   💡 站点内容用于存储可复用的文本块，如页脚信息、公告等
                 </p>
                 <Button onClick={() => {

@@ -49,7 +49,7 @@ export const AdminDiagnostics = () => {
           <div className="flex flex-wrap items-center gap-3">
             <Badge
               variant="outline"
-              className={usingSupabase ? 'text-green-600 border-green-500/40' : 'text-blue-600 border-blue-500/40'}
+              className={usingSupabase ? 'text-success border-success/40' : 'text-info border-info/40'}
               data-testid="badge-backend-mode"
             >
               {usingSupabase ? <Database className="w-3 h-3 mr-1" /> : <Server className="w-3 h-3 mr-1" />}
@@ -82,7 +82,7 @@ export const AdminDiagnostics = () => {
               <div className="space-y-1 text-muted-foreground">
                 <div><span className="text-foreground font-mono">{last.method} {last.path}</span></div>
                 <div>通道：{last.backend === 'supabase' ? 'Supabase' : '/api/data'} · 状态码：
-                  <span className={last.ok ? 'text-green-600' : 'text-destructive'}> {last.status}</span> · 重试 {last.attempts} 次 · {last.durationMs}ms
+                  <span className={last.ok ? 'text-success' : 'text-destructive'}> {last.status}</span> · 重试 {last.attempts} 次 · {last.durationMs}ms
                 </div>
                 <div className="break-all font-mono text-xs">{last.summary || '(空响应)'}</div>
               </div>

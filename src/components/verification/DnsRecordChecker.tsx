@@ -114,12 +114,12 @@ export const DnsRecordChecker = ({ recordName, expectedValue, domainName }: DnsR
         {result && (
           <div className="space-y-3">
             {result.found ? (
-              <Alert className="border-green-500 bg-green-500/10">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-600 dark:text-green-400">
+              <Alert className="border-success bg-success/10">
+                <CheckCircle className="h-4 w-4 text-success" />
+                <AlertDescription className="text-success ">
                   <strong>验证成功！</strong> DNS记录已找到且值匹配。
                   <div className="mt-2 text-sm">
-                    找到的记录值: <code className="bg-green-500/15 px-2 py-1 rounded">{expectedValue}</code>
+                    找到的记录值: <code className="bg-success/15 px-2 py-1 rounded">{expectedValue}</code>
                   </div>
                 </AlertDescription>
               </Alert>
@@ -132,14 +132,14 @@ export const DnsRecordChecker = ({ recordName, expectedValue, domainName }: DnsR
                 </AlertDescription>
               </Alert>
             ) : (
-              <Alert className="border-yellow-500 bg-yellow-500/10">
-                <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                <AlertDescription className="text-yellow-600 dark:text-yellow-400">
+              <Alert className="border-warning bg-warning/10">
+                <AlertTriangle className="h-4 w-4 text-warning" />
+                <AlertDescription className="text-warning ">
                   <strong>DNS记录未找到或值不匹配</strong>
                   {result.values && result.values.length > 0 ? (
                     <div className="mt-2 text-sm space-y-1">
                       <div>找到了TXT记录，但值不匹配：</div>
-                      <div className="bg-yellow-500/15 p-2 rounded">
+                      <div className="bg-warning/15 p-2 rounded">
                         <div>期望值: <code className="text-xs">{expectedValue}</code></div>
                         <div className="mt-1">实际值: {result.values.map((v, i) => (
                           <code key={i} className="text-xs block">{v}</code>
@@ -148,7 +148,7 @@ export const DnsRecordChecker = ({ recordName, expectedValue, domainName }: DnsR
                     </div>
                   ) : (
                     <div className="mt-2 text-sm">
-                      <div>未找到 <code className="bg-yellow-500/15 px-1 rounded">{recordName}</code> 的TXT记录</div>
+                      <div>未找到 <code className="bg-warning/15 px-1 rounded">{recordName}</code> 的TXT记录</div>
                       <div className="mt-2 space-y-1">
                         <div><strong>可能原因：</strong></div>
                         <ul className="list-disc list-inside ml-2 space-y-1">
@@ -171,9 +171,9 @@ export const DnsRecordChecker = ({ recordName, expectedValue, domainName }: DnsR
                 {result.servers.google && (
                   <div className="flex items-start gap-2">
                     {result.servers.google.found ? (
-                      <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
+                      <CheckCircle className="w-4 h-4 text-success mt-0.5" />
                     ) : (
-                      <XCircle className="w-4 h-4 text-red-600 mt-0.5" />
+                      <XCircle className="w-4 h-4 text-destructive mt-0.5" />
                     )}
                     <div>
                       <div className="font-medium">Google DNS (8.8.8.8):</div>
@@ -191,9 +191,9 @@ export const DnsRecordChecker = ({ recordName, expectedValue, domainName }: DnsR
                 {result.servers.cloudflare && (
                   <div className="flex items-start gap-2">
                     {result.servers.cloudflare.found ? (
-                      <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
+                      <CheckCircle className="w-4 h-4 text-success mt-0.5" />
                     ) : (
-                      <XCircle className="w-4 h-4 text-red-600 mt-0.5" />
+                      <XCircle className="w-4 h-4 text-destructive mt-0.5" />
                     )}
                     <div>
                       <div className="font-medium">Cloudflare DNS (1.1.1.1):</div>

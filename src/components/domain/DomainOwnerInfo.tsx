@@ -47,7 +47,7 @@ export const DomainOwnerInfo: React.FC<DomainOwnerInfoProps> = ({ owner }) => {
 
         {owner.seller_rating !== undefined && owner.seller_rating > 0 && (
           <div className="flex items-center gap-2 text-sm">
-            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+            <Star className="h-4 w-4 fill-warning text-warning" />
             <span className="font-medium">{owner.seller_rating.toFixed(1)}</span>
             <span className="text-muted-foreground">卖家评分</span>
           </div>

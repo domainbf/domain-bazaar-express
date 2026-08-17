@@ -77,7 +77,7 @@ export default function BulkListingPage() {
             <div className="bg-card rounded-xl border border-border p-6 space-y-3">
               {TIPS.map((t) => (
                 <div key={t} className="flex items-start gap-3">
-                  <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="h-4 w-4 text-success shrink-0 mt-0.5" />
                   <span className="text-sm">{t}</span>
                 </div>
               ))}

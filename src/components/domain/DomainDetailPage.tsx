@@ -223,7 +223,7 @@ export const DomainDetailPage = () => {
                 transition={{ delay: 0.2, duration: 0.4 }}
               >
                 {domain.is_verified && (
-                  <Badge className="bg-green-500/10 text-green-600 border-green-500/30 animate-fade-in">
+                  <Badge className="bg-success/10 text-success border-success/30 animate-fade-in">
                     <Shield className="h-3 w-3 mr-1" />
                     {t('domains.detail.verified')}
                   </Badge>
@@ -297,7 +297,7 @@ export const DomainDetailPage = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    className={`h-12 font-semibold ${isFavorited ? "text-red-500 border-red-500/30 bg-red-500/10" : ""}`}
+                    className={`h-12 font-semibold ${isFavorited ? "text-destructive border-destructive/30 bg-destructive/10" : ""}`}
                     onClick={toggleFavorite}
                   >
                     <Heart className={`h-4 w-4 mr-2 ${isFavorited ? "fill-current" : ""}`} />
@@ -326,12 +326,12 @@ export const DomainDetailPage = () => {
                   </Button>
                 )}
                 {domain.is_verified && (
-                  <div className="text-center p-4 bg-green-500/10 rounded-xl border border-green-500/30">
+                  <div className="text-center p-4 bg-success/10 rounded-xl border border-success/30">
                     <div className="flex items-center justify-center mb-1">
-                      <ShieldCheck className="h-5 w-5 text-green-600 mr-2" />
-                      <span className="font-semibold text-green-600 dark:text-green-400">{t('domains.detail.verifiedTitle')}</span>
+                      <ShieldCheck className="h-5 w-5 text-success mr-2" />
+                      <span className="font-semibold text-success ">{t('domains.detail.verifiedTitle')}</span>
                     </div>
-                    <p className="text-sm text-green-600">{t('domains.detail.verifiedDesc')}</p>
+                    <p className="text-sm text-success">{t('domains.detail.verifiedDesc')}</p>
                   </div>
                 )}
                 {!activeAuction && (
@@ -343,7 +343,7 @@ export const DomainDetailPage = () => {
                   />
                 )}
                 {activeAuction && (
-                  <div className="flex items-center justify-center gap-2 py-2 text-sm text-amber-600">
+                  <div className="flex items-center justify-center gap-2 py-2 text-sm text-warning">
                     <Gavel className="h-4 w-4" />
                     {t('domains.detail.auctionActive')}
                   </div>
@@ -487,7 +487,7 @@ export const DomainDetailPage = () => {
             <div className="flex items-center gap-2 mb-3">
               <Gavel className="h-5 w-5 text-primary" />
               <h2 className="text-lg font-bold text-foreground">{t('domains.detail.sections.ongoingAuction')}</h2>
-              <Badge variant="default" className="bg-red-500 hover:bg-red-500 animate-pulse text-xs">{t('domains.detail.sections.auctionBadge')}</Badge>
+              <Badge variant="default" className="bg-destructive hover:bg-destructive animate-pulse text-xs">{t('domains.detail.sections.auctionBadge')}</Badge>
             </div>
             <DomainAuction auction={activeAuction} onBidPlaced={() => loadActiveAuction(domain.id)} />
           </motion.section>

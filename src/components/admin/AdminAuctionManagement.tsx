@@ -39,11 +39,11 @@ interface AuctionBid {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  active: { label: '进行中', color: 'bg-green-500/15 text-green-600 dark:text-green-400 dark:bg-green-900/30 dark:text-green-400' },
+  active: { label: '进行中', color: 'bg-success/15 text-success   ' },
   ended: { label: '已结束', color: 'bg-muted text-foreground dark:bg-gray-800 dark:text-gray-300' },
-  cancelled: { label: '已取消', color: 'bg-red-500/15 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
-  completed: { label: '已完成', color: 'bg-blue-500/15 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
-  pending: { label: '待开始', color: 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 dark:bg-yellow-900/30 dark:text-yellow-400' },
+  cancelled: { label: '已取消', color: 'bg-destructive/15 text-destructive  ' },
+  completed: { label: '已完成', color: 'bg-info/15 text-info  ' },
+  pending: { label: '待开始', color: 'bg-warning/15 text-warning   ' },
 };
 
 export const AdminAuctionManagement = () => {
@@ -139,9 +139,9 @@ export const AdminAuctionManagement = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { label: '全部拍卖', value: stats.total, icon: Gavel, color: 'text-foreground' },
-          { label: '进行中', value: stats.active, icon: Clock, color: 'text-green-600' },
-          { label: '已结束', value: stats.ended, icon: CheckCircle, color: 'text-blue-600' },
-          { label: '总出价次数', value: stats.totalBids, icon: TrendingUp, color: 'text-purple-600' },
+          { label: '进行中', value: stats.active, icon: Clock, color: 'text-success' },
+          { label: '已结束', value: stats.ended, icon: CheckCircle, color: 'text-info' },
+          { label: '总出价次数', value: stats.totalBids, icon: TrendingUp, color: 'text-primary' },
         ].map((s, i) => {
           const Icon = s.icon;
           return (
@@ -194,12 +194,12 @@ export const AdminAuctionManagement = () => {
                       <TableRow key={auction.id} className="hover:bg-muted/50">
                         <TableCell className="font-medium">{auction.domain_name}</TableCell>
                         <TableCell className="text-right">¥{Number(auction.start_price).toLocaleString()}</TableCell>
-                        <TableCell className="text-right font-semibold text-green-600">¥{Number(auction.current_price).toLocaleString()}</TableCell>
+                        <TableCell className="text-right font-semibold text-success">¥{Number(auction.current_price).toLocaleString()}</TableCell>
                         <TableCell className="text-right">{auction.bid_count ?? 0}</TableCell>
                         <TableCell>
                           <Badge className={`text-xs ${cfg.color}`}>{cfg.label}</Badge>
                           {auction.status === 'active' && isExpired && (
-                            <Badge className="ml-1 text-xs bg-orange-100 text-orange-800">已超时</Badge>
+                            <Badge className="ml-1 text-xs bg-warning/10 text-warning">已超时</Badge>
                           )}
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
@@ -234,7 +234,7 @@ export const AdminAuctionManagement = () => {
           {selectedAuction && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-2 text-sm">
-                <div><span className="text-muted-foreground">当前最高价：</span><strong className="text-green-600">¥{Number(selectedAuction.current_price).toLocaleString()}</strong></div>
+                <div><span className="text-muted-foreground">当前最高价：</span><strong className="text-success">¥{Number(selectedAuction.current_price).toLocaleString()}</strong></div>
                 <div><span className="text-muted-foreground">保留价：</span>{selectedAuction.reserve_price ? `¥${Number(selectedAuction.reserve_price).toLocaleString()}` : '无'}</div>
                 <div><span className="text-muted-foreground">一口价：</span>{selectedAuction.buy_now_price ? `¥${Number(selectedAuction.buy_now_price).toLocaleString()}` : '无'}</div>
                 <div><span className="text-muted-foreground">出价次数：</span>{selectedAuction.bid_count ?? 0}</div>
@@ -255,10 +255,10 @@ export const AdminAuctionManagement = () => {
                     </TableHeader>
                     <TableBody>
                       {bids.map((bid, i) => (
-                        <TableRow key={bid.id} className={i === 0 ? 'bg-green-500/10 dark:bg-green-900/20' : ''}>
+                        <TableRow key={bid.id} className={i === 0 ? 'bg-success/10 ' : ''}>
                           <TableCell className="text-xs">{i === 0 ? '🏆' : i + 1}</TableCell>
                           <TableCell className="text-sm">{bid.bidder_email}</TableCell>
-                          <TableCell className={`text-right font-semibold ${i === 0 ? 'text-green-600' : ''}`}>¥{Number(bid.amount).toLocaleString()}</TableCell>
+                          <TableCell className={`text-right font-semibold ${i === 0 ? 'text-success' : ''}`}>¥{Number(bid.amount).toLocaleString()}</TableCell>
                           <TableCell className="text-xs text-muted-foreground">
                             {formatDistanceToNow(new Date(bid.created_at), { addSuffix: true, locale: zhCN })}
                           </TableCell>

@@ -199,7 +199,7 @@ export function FeedbackButton() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="flex flex-col items-center justify-center py-8 gap-3"
               >
-                <CheckCircle className="h-12 w-12 text-green-500" />
+                <CheckCircle className="h-12 w-12 text-success" />
                 <p className="text-base font-semibold text-foreground">感谢您的反馈！</p>
                 <p className="text-sm text-muted-foreground text-center">
                   您的反馈已发送给管理员，我们会尽快处理。

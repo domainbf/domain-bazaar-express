@@ -17,28 +17,28 @@ const STEPS = [
     icon: Upload,
     title: '上架域名',
     desc: '填写域名信息、定价策略，几分钟完成上架。支持固定价格或接受报价两种模式。',
-    color: 'bg-blue-500/15 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+    color: 'bg-info/15 text-info  ',
   },
   {
     step: '02',
     icon: ShieldCheck,
     title: '验证所有权',
     desc: '通过 DNS TXT 记录一键验证，获得"已认证"标识，买家更信任，成交率更高。',
-    color: 'bg-green-500/15 text-green-600 dark:bg-green-900/30 dark:text-green-400',
+    color: 'bg-success/15 text-success  ',
   },
   {
     step: '03',
     icon: MessageSquare,
     title: '与买家沟通',
     desc: '买家发起报价后，通过内置消息系统直接沟通，平台提供交易记录留存保障。',
-    color: 'bg-purple-500/15 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
+    color: 'bg-primary/15 text-primary  ',
   },
   {
     step: '04',
     icon: Handshake,
     title: '安全完成交割',
     desc: '资金进入第三方托管，你完成域名转移后资金自动释放，交易全程有保障。',
-    color: 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400',
+    color: 'bg-warning/10 text-warning  ',
   },
 ];
 
@@ -206,7 +206,7 @@ export const SellDomainPage = () => {
                 <ul className="space-y-2 flex-1 mb-5">
                   {tier.features.map(feat => (
                     <li key={feat} className="flex items-center gap-2 text-sm">
-                      <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
+                      <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                       <span>{feat}</span>
                     </li>
                   ))}
@@ -240,7 +240,7 @@ export const SellDomainPage = () => {
               <div key={t.name} className="p-5 rounded-xl border border-border bg-card hover:shadow-md transition-shadow">
                 <div className="flex gap-0.5 mb-3">
                   {[1,2,3,4,5].map(n => (
-                    <Star key={n} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    <Star key={n} className="h-4 w-4 fill-warning text-warning" />
                   ))}
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed mb-4">"{t.text}"</p>

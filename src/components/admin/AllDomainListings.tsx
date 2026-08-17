@@ -413,25 +413,25 @@ export const AllDomainListings = () => {
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-green-600">{stats.available}</p>
+            <p className="text-2xl font-bold text-success">{stats.available}</p>
             <p className="text-xs text-muted-foreground">可售</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-blue-600">{stats.sold}</p>
+            <p className="text-2xl font-bold text-info">{stats.sold}</p>
             <p className="text-xs text-muted-foreground">已售</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-purple-600">{stats.verified}</p>
+            <p className="text-2xl font-bold text-primary">{stats.verified}</p>
             <p className="text-xs text-muted-foreground">已验证</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-orange-600">¥{stats.totalValue.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-warning">¥{stats.totalValue.toLocaleString()}</p>
             <p className="text-xs text-muted-foreground">总价值</p>
           </CardContent>
         </Card>
@@ -546,7 +546,7 @@ export const AllDomainListings = () => {
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{domain.name}</span>
                     {domain.highlight && (
-                      <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                      <Star className="h-4 w-4 text-warning fill-warning" />
                     )}
                   </div>
                 </td>
@@ -562,12 +562,12 @@ export const AllDomainListings = () => {
                 </td>
                 <td className="p-4">
                   {domain.verification_status === 'verified' ? (
-                    <span className="inline-flex items-center text-green-600 text-sm">
+                    <span className="inline-flex items-center text-success text-sm">
                       <Check className="h-4 w-4 mr-1" />
                       已验证
                     </span>
                   ) : domain.verification_status === 'pending' ? (
-                    <span className="text-yellow-600 text-sm">待验证</span>
+                    <span className="text-warning text-sm">待验证</span>
                   ) : (
                     <span className="text-muted-foreground text-sm">未验证</span>
                   )}
@@ -621,7 +621,7 @@ export const AllDomainListings = () => {
                         }
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-red-600" onClick={() => confirmDeleteDomain(domain)}>
+                      <DropdownMenuItem className="text-destructive" onClick={() => confirmDeleteDomain(domain)}>
                         <Trash2 className="h-4 w-4 mr-2" />
                         删除
                       </DropdownMenuItem>
@@ -735,7 +735,7 @@ export const AllDomainListings = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>域名 <span className="text-red-500">*</span></Label>
+              <Label>域名 <span className="text-destructive">*</span></Label>
               <Input
                 placeholder="example.com"
                 value={newSoldDomain.name}

@@ -52,7 +52,7 @@ const CompactDomainCard = ({
     badgeTone === 'success'
       ? 'bg-success/10 text-success'
       : badgeTone === 'warning'
-        ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400'
+        ? 'bg-warning/10 text-warning '
         : 'bg-primary/10 text-primary';
 
   return (

@@ -52,12 +52,12 @@ export const DomainTable = ({ domains, onView, onEdit, onDelete }: DomainTablePr
               <TableCell className="font-medium">{domain.name}</TableCell>
               <TableCell>${domain.price?.toLocaleString()}</TableCell>
               <TableCell>
-                <Badge className={domain.status === 'available' ? 'bg-green-500 text-white' : domain.status === 'sold' ? 'bg-red-500 text-white' : 'bg-yellow-400 text-white'}>
+                <Badge className={domain.status === 'available' ? 'bg-success text-white' : domain.status === 'sold' ? 'bg-destructive text-white' : 'bg-warning/10 text-white'}>
                   {React.createElement('span', {}, domain.status === 'available' ? '可售' : domain.status === 'sold' ? '已售' : '预留')}
                 </Badge>
               </TableCell>
               <TableCell>
-                <Badge className={domain.verification_status === 'verified' ? 'bg-green-500 text-white' : domain.verification_status === 'pending' ? 'bg-yellow-400 text-white' : 'bg-gray-400 text-white'}>
+                <Badge className={domain.verification_status === 'verified' ? 'bg-success text-white' : domain.verification_status === 'pending' ? 'bg-warning/10 text-white' : 'bg-gray-400 text-white'}>
                   {React.createElement('span', {}, domain.verification_status === 'verified' ? '已验证' : domain.verification_status === 'pending' ? '待验证' : '未验证')}
                 </Badge>
               </TableCell>
@@ -82,7 +82,7 @@ export const DomainTable = ({ domains, onView, onEdit, onDelete }: DomainTablePr
                 )}
                 {onDelete && (
                   <Button variant="ghost" size="sm" onClick={() => onDelete(domain)}>
-                    <Trash2 className="h-4 w-4 text-red-500" />
+                    <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 )}
               </TableCell>

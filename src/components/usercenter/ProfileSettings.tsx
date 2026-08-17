@@ -173,9 +173,9 @@ export const ProfileSettings = () => {
     
     switch (profile.verification_status) {
       case 'verified':
-        return { status: 'verified', text: '已认证', color: 'bg-green-500/10 text-green-700 dark:text-green-400' };
+        return { status: 'verified', text: '已认证', color: 'bg-success/10 text-success ' };
       case 'pending':
-        return { status: 'pending', text: '待认证', color: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400' };
+        return { status: 'pending', text: '待认证', color: 'bg-warning/10 text-warning ' };
       case 'rejected':
         return { status: 'rejected', text: '认证失败', color: 'bg-destructive/10 text-destructive' };
       default:
@@ -249,7 +249,7 @@ export const ProfileSettings = () => {
                 支持 JPG/PNG/GIF/WebP，最大 500KB
               </p>
               {profile?.seller_verified && (
-                <div className="flex items-center gap-1 text-green-600">
+                <div className="flex items-center gap-1 text-success">
                   <CheckCircle className="h-4 w-4" />
                   <span className="text-sm">卖家已认证</span>
                 </div>
@@ -265,7 +265,7 @@ export const ProfileSettings = () => {
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  姓名 <span className="text-red-500">*</span>
+                  姓名 <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   value={formData.full_name}
@@ -408,12 +408,12 @@ export const ProfileSettings = () => {
                 <Label>卖家状态</Label>
                 <div className="mt-2 flex items-center gap-2">
                   {profile?.seller_verified ? (
-                    <div className="flex items-center gap-2 text-green-600">
+                    <div className="flex items-center gap-2 text-success">
                       <CheckCircle className="h-4 w-4" />
                       <span className="text-sm">已认证卖家</span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 text-yellow-600">
+                    <div className="flex items-center gap-2 text-warning">
                       <AlertCircle className="h-4 w-4" />
                       <span className="text-sm">待认证卖家</span>
                     </div>

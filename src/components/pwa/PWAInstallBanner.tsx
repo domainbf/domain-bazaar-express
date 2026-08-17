@@ -106,7 +106,7 @@ export const PWAInstallBanner = () => {
             style={{ background: 'linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 50%, #16213e 100%)' }}>
 
             {/* Animated top accent bar */}
-            <div className="h-0.5 w-full bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-400" />
+            <div className="h-0.5 w-full bg-gradient-to-r from-info via-primary to-info" />
 
             {/* Shimmer overlay */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
@@ -135,7 +135,7 @@ export const PWAInstallBanner = () => {
                   </div>
                   <p className="text-xs text-white/60 leading-relaxed">
                     {isIOS
-                      ? <>点击底部 <Share className="inline h-3 w-3 mb-0.5 text-blue-400" /> 分享，选择<span className="text-blue-400 font-medium">「添加到主屏幕」</span>即可</>
+                      ? <>点击底部 <Share className="inline h-3 w-3 mb-0.5 text-info" /> 分享，选择<span className="text-info font-medium">「添加到主屏幕」</span>即可</>
                       : '一键安装，随时随地快速访问域名市场'}
                   </p>
 

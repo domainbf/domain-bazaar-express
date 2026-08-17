@@ -146,7 +146,7 @@ export const AdminTelemetry = () => {
             <Card key={type}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                  {isErr ? <AlertTriangle className="w-3.5 h-3.5 text-destructive" /> : <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
+                  {isErr ? <AlertTriangle className="w-3.5 h-3.5 text-destructive" /> : <CheckCircle2 className="w-3.5 h-3.5 text-success" />}
                   {EVENT_LABELS[type]}
                 </div>
                 <div className={`text-2xl font-bold ${isErr ? 'text-destructive' : 'text-foreground'}`}>{count}</div>
@@ -191,7 +191,7 @@ export const AdminTelemetry = () => {
                     <TableRow key={r.domain}>
                       <TableCell className="font-mono text-xs break-all">{r.domain}</TableCell>
                       <TableCell className="text-right">{r.total}</TableCell>
-                      <TableCell className="text-right text-emerald-600">{r.ok}</TableCell>
+                      <TableCell className="text-right text-success">{r.ok}</TableCell>
                       <TableCell className="text-right">
                         {r.error > 0 ? <Badge variant="destructive">{r.error}</Badge> : <span className="text-muted-foreground">0</span>}
                       </TableCell>

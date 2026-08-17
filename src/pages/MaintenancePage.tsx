@@ -160,7 +160,7 @@ export default function MaintenancePage() {
         {/* Status row */}
         <div className="flex flex-wrap justify-center gap-3 mb-8">
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 border border-border/50 rounded-full px-3 py-1.5">
-            <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-warning animate-pulse" />
             <Wrench className="h-3 w-3" />
             <span>维护进行中</span>
           </div>

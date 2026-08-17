@@ -285,7 +285,7 @@ export const SellDomainQuickListForm = () => {
             <div className="grid grid-cols-3 gap-2 text-center text-xs">
               <div className="p-2.5 rounded-lg bg-background border border-border">
                 <p className="text-muted-foreground text-[10px] uppercase">上架费用</p>
-                <p className="font-bold text-emerald-600">免费</p>
+                <p className="font-bold text-success">免费</p>
               </div>
               <div className="p-2.5 rounded-lg bg-background border border-border">
                 <p className="text-muted-foreground text-[10px] uppercase">成交手续费</p>

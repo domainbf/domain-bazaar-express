@@ -34,7 +34,7 @@ export const VerificationCard = ({ verification, onApprove, onReject }: Verifica
                 href={`https://${verification.domain_listings?.name}${verification.verification_data.fileLocation}`} 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="ml-2 text-blue-600 hover:text-blue-600 dark:text-blue-400"
+                className="ml-2 text-info hover:text-info "
               >
                 <ExternalLink className="h-4 w-4" />
               </a>
@@ -47,7 +47,7 @@ export const VerificationCard = ({ verification, onApprove, onReject }: Verifica
           <Button 
             size="sm" 
             variant="outline" 
-            className="bg-green-500/10 border-green-500/30 text-green-600 hover:bg-green-500/15"
+            className="bg-success/10 border-success/30 text-success hover:bg-success/15"
             onClick={() => onApprove(verification.id)}
           >
             <Check className="w-4 h-4 mr-1" />
@@ -56,7 +56,7 @@ export const VerificationCard = ({ verification, onApprove, onReject }: Verifica
           <Button 
             size="sm" 
             variant="outline" 
-            className="bg-red-500/10 border-red-500/30 text-red-600 hover:bg-red-500/15"
+            className="bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/15"
             onClick={() => onReject(verification.id)}
           >
             <X className="w-4 h-4 mr-1" />

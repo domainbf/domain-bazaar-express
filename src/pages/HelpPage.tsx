@@ -20,7 +20,7 @@ const HELP_SECTIONS = [
     title: '联系我们',
     desc: '发送邮件或填写联系表单，我们在工作日 24 小时内回复。',
     href: '/contact',
-    color: 'text-green-600 bg-green-500/15 dark:bg-green-900/30 dark:text-green-400',
+    color: 'text-success bg-success/15  ',
   },
   {
     icon: Users,
@@ -34,21 +34,21 @@ const HELP_SECTIONS = [
     title: '安全中心',
     desc: '了解账号安全、交易安全和资金保护的最佳实践。',
     href: '/security-center',
-    color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/30 dark:text-orange-400',
+    color: 'text-warning bg-warning/10  ',
   },
   {
     icon: MessageCircle,
     title: '纠纷申诉',
     desc: '遇到交易纠纷？提交申诉，平台介入保障你的权益。',
     href: '/dispute',
-    color: 'text-red-600 bg-red-500/15 dark:bg-red-900/30 dark:text-red-400',
+    color: 'text-destructive bg-destructive/15  ',
   },
   {
     icon: HelpCircle,
     title: '平台服务',
     desc: '了解资金托管、域名验证等平台核心服务的使用方法。',
     href: '/platform-services',
-    color: 'text-teal-600 bg-teal-100 dark:bg-teal-900/30 dark:text-teal-400',
+    color: 'text-success bg-success/10  ',
   },
 ];
 

@@ -224,7 +224,7 @@ export const UserCenter = () => {
                       </AvatarFallback>
                     </Avatar>
                     {profile?.seller_verified && (
-                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-background/30">
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-success rounded-full flex items-center justify-center border-2 border-background/30">
                         <Shield className="w-2.5 h-2.5 text-success-foreground" />
                       </div>
                     )}
@@ -425,7 +425,7 @@ function MobileProfileSection({
                 </AvatarFallback>
               </Avatar>
               {profile?.seller_verified && (
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-background dark:border-foreground/20">
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-success rounded-full flex items-center justify-center border-2 border-background dark:border-foreground/20">
                   <Shield className="w-2.5 h-2.5 text-success-foreground" />
                 </div>
               )}

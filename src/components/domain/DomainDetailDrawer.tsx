@@ -42,7 +42,7 @@ import { DomainListing } from '@/types/domain';
 const STATUS_TONES: Record<string, string> = {
   available: 'bg-success/10 text-success border-success/20',
   active: 'bg-success/10 text-success border-success/20',
-  reserved: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',
+  reserved: 'bg-warning/10 text-warning  border-warning/20',
   sold: 'bg-muted text-muted-foreground border-border',
   pending: 'bg-primary/10 text-primary border-primary/20',
 };

@@ -25,11 +25,11 @@ interface Offer {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; icon: React.FC<{ className?: string }>; classes: string }> = {
-  accepted:  { label: '已接受', icon: CheckCircle2,   classes: 'bg-green-500/10 text-green-600 border-green-500/30' },
-  rejected:  { label: '已拒绝', icon: XCircle,        classes: 'bg-red-500/10 text-red-600 border-red-500/30' },
-  pending:   { label: '待处理', icon: Clock,           classes: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/30' },
+  accepted:  { label: '已接受', icon: CheckCircle2,   classes: 'bg-success/10 text-success border-success/30' },
+  rejected:  { label: '已拒绝', icon: XCircle,        classes: 'bg-destructive/10 text-destructive border-destructive/30' },
+  pending:   { label: '待处理', icon: Clock,           classes: 'bg-warning/10 text-warning border-warning/30' },
   expired:   { label: '已过期', icon: AlertCircle,     classes: 'bg-gray-500/10 text-muted-foreground border-border' },
-  countered: { label: '已还价', icon: ArrowLeftRight,  classes: 'bg-blue-500/10 text-blue-600 border-blue-500/30' },
+  countered: { label: '已还价', icon: ArrowLeftRight,  classes: 'bg-info/10 text-info border-info/30' },
 };
 
 const getStatusBadge = (status: string) => {
@@ -48,9 +48,9 @@ const getPriceComparison = (offerAmount: number, currentPrice: number) => {
   if (!currentPrice) return null;
   const diff = ((offerAmount - currentPrice) / currentPrice) * 100;
   if (diff > 0)
-    return <span className="flex items-center text-green-600 text-xs"><TrendingUp className="h-3 w-3 mr-0.5" />+{diff.toFixed(0)}%</span>;
+    return <span className="flex items-center text-success text-xs"><TrendingUp className="h-3 w-3 mr-0.5" />+{diff.toFixed(0)}%</span>;
   if (diff < 0)
-    return <span className="flex items-center text-red-600 text-xs"><TrendingDown className="h-3 w-3 mr-0.5" />{diff.toFixed(0)}%</span>;
+    return <span className="flex items-center text-destructive text-xs"><TrendingDown className="h-3 w-3 mr-0.5" />{diff.toFixed(0)}%</span>;
   return <span className="flex items-center text-muted-foreground text-xs"><Minus className="h-3 w-3 mr-0.5" />0%</span>;
 };
 
@@ -104,8 +104,8 @@ export const OfferHistory: React.FC<OfferHistoryProps> = ({ domainId, currentPri
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { label: '最高出价', value: `${currency}${stats.highest.toLocaleString()}`, color: 'text-green-600' },
-            { label: '最低出价', value: `${currency}${stats.lowest.toLocaleString()}`, color: 'text-red-600' },
+            { label: '最高出价', value: `${currency}${stats.highest.toLocaleString()}`, color: 'text-success' },
+            { label: '最低出价', value: `${currency}${stats.lowest.toLocaleString()}`, color: 'text-destructive' },
             { label: '平均出价', value: `${currency}${Math.round(stats.average).toLocaleString()}`, color: 'text-primary' },
             { label: '共计出价', value: `${stats.total} 次`, color: 'text-foreground' },
           ].map(({ label, value, color }) => (
@@ -122,8 +122,8 @@ export const OfferHistory: React.FC<OfferHistoryProps> = ({ domainId, currentPri
           <div
             key={offer.id}
             className={`flex items-center justify-between p-3 sm:p-4 border rounded-xl hover:bg-muted/30 transition-colors ${
-              offer.status === 'accepted' ? 'border-green-500/30 bg-green-500/10/50' :
-              offer.status === 'countered' ? 'border-blue-500/30 bg-blue-500/10/50' : ''
+              offer.status === 'accepted' ? 'border-success/30 bg-success/10/50' :
+              offer.status === 'countered' ? 'border-info/30 bg-info/10/50' : ''
             }`}
           >
             <div className="flex items-center gap-3 min-w-0">

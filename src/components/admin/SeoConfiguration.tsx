@@ -166,12 +166,12 @@ export const SeoConfiguration = () => {
         </div>
       </div>
 
-      <Card className="bg-blue-500/10 border-blue-500/30">
+      <Card className="bg-info/10 border-info/30">
         <CardContent className="py-4 flex items-start gap-3">
-          <Info className="h-5 w-5 text-blue-600 mt-0.5" />
-          <div className="text-sm text-blue-600 dark:text-blue-400">
+          <Info className="h-5 w-5 text-info mt-0.5" />
+          <div className="text-sm text-info ">
             <p className="font-medium mb-1">SEO优化提示</p>
-            <ul className="list-disc list-inside space-y-1 text-blue-700">
+            <ul className="list-disc list-inside space-y-1 text-info">
               <li>标题长度建议在50-60个字符之间</li>
               <li>描述长度建议在150-160个字符之间</li>
               <li>关键词用英文逗号分隔，建议5-10个核心关键词</li>
@@ -382,16 +382,16 @@ export const SeoConfiguration = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-green-500" />
+            <CheckCircle className="h-5 w-5 text-success" />
             搜索结果预览
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="bg-card border rounded-lg p-4 max-w-xl">
-            <div className="text-blue-600 text-lg hover:underline cursor-pointer">
+            <div className="text-info text-lg hover:underline cursor-pointer">
               {settings.meta_title || '您的网站标题'}
             </div>
-            <div className="text-green-700 text-sm">
+            <div className="text-success text-sm">
               {settings.canonical_url || window.location.origin} ›
             </div>
             <div className="text-muted-foreground text-sm mt-1">

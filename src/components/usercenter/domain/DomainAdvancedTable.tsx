@@ -37,10 +37,10 @@ interface Props {
 
 const statusBadge = (status?: string) => {
   const map: Record<string, { label: string; cls: string }> = {
-    available: { label: '可售', cls: 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30' },
-    pending: { label: '暂不出售', cls: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/30' },
-    sold: { label: '已售', cls: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30' },
-    reserved: { label: '保留', cls: 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30' },
+    available: { label: '可售', cls: 'bg-success/10 text-success  border-success/30' },
+    pending: { label: '暂不出售', cls: 'bg-warning/10 text-warning  border-warning/30' },
+    sold: { label: '已售', cls: 'bg-info/10 text-info  border-info/30' },
+    reserved: { label: '保留', cls: 'bg-primary/10 text-primary  border-primary/30' },
   };
   const s = map[status || ''] || { label: '未知', cls: '' };
   return <Badge className={s.cls} variant="outline">{s.label}</Badge>;
@@ -83,9 +83,9 @@ export const DomainAdvancedTable = ({ domains, onDomainUpdate }: Props) => {
       ),
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          {row.original.highlight && <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500 shrink-0" />}
+          {row.original.highlight && <Star className="w-3.5 h-3.5 text-warning fill-warning shrink-0" />}
           <span className="font-medium">{row.original.name}</span>
-          {row.original.is_verified && <Shield className="w-3.5 h-3.5 text-green-500" />}
+          {row.original.is_verified && <Shield className="w-3.5 h-3.5 text-success" />}
         </div>
       ),
     },

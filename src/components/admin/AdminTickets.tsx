@@ -51,17 +51,17 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.FC<{ className?: string }> }> = {
-  open: { label: '待处理', color: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20', icon: Clock },
-  in_progress: { label: '处理中', color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20', icon: RefreshCw },
-  resolved: { label: '已解决', color: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20', icon: CheckCircle },
+  open: { label: '待处理', color: 'bg-warning/10 text-warning  border-warning/20', icon: Clock },
+  in_progress: { label: '处理中', color: 'bg-info/10 text-info  border-info/20', icon: RefreshCw },
+  resolved: { label: '已解决', color: 'bg-success/10 text-success  border-success/20', icon: CheckCircle },
   closed: { label: '已关闭', color: 'bg-muted text-muted-foreground border-border', icon: XCircle },
 };
 
 const PRIORITY_CONFIG: Record<string, { label: string; color: string }> = {
   low: { label: '低', color: 'text-muted-foreground' },
   normal: { label: '普通', color: 'text-foreground' },
-  high: { label: '高', color: 'text-orange-500' },
-  urgent: { label: '紧急', color: 'text-red-500' },
+  high: { label: '高', color: 'text-warning' },
+  urgent: { label: '紧急', color: 'text-destructive' },
 };
 
 async function sendTicketEmail(opts: { to: string | string[]; subject: string; html: string }) {

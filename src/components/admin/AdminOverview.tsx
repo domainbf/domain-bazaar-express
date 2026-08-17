@@ -51,9 +51,9 @@ export const AdminOverview = ({ stats, isLoading }: AdminOverviewProps) => {
       change: `+${stats.newUsersToday}`,
       changeLabel: '今日新增',
       icon: Users,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-500/10',
-      borderColor: 'border-blue-500/30',
+      color: 'text-info',
+      bgColor: 'bg-info/10',
+      borderColor: 'border-info/30',
       trend: stats.newUsersToday > 0 ? 'up' : 'stable'
     },
     {
@@ -62,9 +62,9 @@ export const AdminOverview = ({ stats, isLoading }: AdminOverviewProps) => {
       change: `+${stats.newDomainsToday}`,
       changeLabel: '今日新增',
       icon: Globe,
-      color: 'text-green-600',
-      bgColor: 'bg-green-500/10',
-      borderColor: 'border-green-500/30',
+      color: 'text-success',
+      bgColor: 'bg-success/10',
+      borderColor: 'border-success/30',
       trend: stats.newDomainsToday > 0 ? 'up' : 'stable'
     },
     {
@@ -73,9 +73,9 @@ export const AdminOverview = ({ stats, isLoading }: AdminOverviewProps) => {
       change: stats.totalDomains > 0 ? `${((stats.activeListings / stats.totalDomains) * 100).toFixed(1)}%` : '0%',
       changeLabel: '占总数',
       icon: TrendingUp,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-500/10',
-      borderColor: 'border-purple-500/30',
+      color: 'text-primary',
+      bgColor: 'bg-primary/10',
+      borderColor: 'border-primary/30',
       trend: 'stable'
     },
     {
@@ -84,9 +84,9 @@ export const AdminOverview = ({ stats, isLoading }: AdminOverviewProps) => {
       change: `${stats.completedTransactions}`,
       changeLabel: '笔交易',
       icon: DollarSign,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-500/10',
-      borderColor: 'border-orange-500/30',
+      color: 'text-warning',
+      bgColor: 'bg-warning/10',
+      borderColor: 'border-warning/30',
       trend: stats.completedTransactions > 0 ? 'up' : 'stable'
     }
   ];
@@ -96,27 +96,27 @@ export const AdminOverview = ({ stats, isLoading }: AdminOverviewProps) => {
       label: '域名验证率',
       value: stats.totalDomains > 0 ? Math.round((stats.verifiedDomains / stats.totalDomains) * 100) : 0,
       target: 80,
-      color: 'bg-green-500/100'
+      color: 'bg-success/100'
     },
     {
       label: '报价处理率',
       value: stats.totalOffers > 0 ? Math.round(((stats.totalOffers - stats.pendingOffers) / stats.totalOffers) * 100) : 0,
       target: 90,
-      color: 'bg-blue-500/100'
+      color: 'bg-info/100'
     },
     {
       label: '用户活跃度',
       value: stats.totalUsers > 0 ? Math.min(Math.round((stats.totalViews / (stats.totalUsers * 10)) * 100), 100) : 0,
       target: 70,
-      color: 'bg-purple-500/100'
+      color: 'bg-primary/100'
     }
   ];
 
   const quickStats = [
-    { label: '待审核验证', value: stats.pendingVerifications, icon: Clock, color: 'text-yellow-600', bgColor: 'bg-yellow-500/10' },
-    { label: '已验证域名', value: stats.verifiedDomains, icon: CheckCircle, color: 'text-green-600', bgColor: 'bg-green-500/10' },
-    { label: '总浏览量', value: stats.totalViews, icon: Eye, color: 'text-blue-600', bgColor: 'bg-blue-500/10' },
-    { label: '待处理报价', value: stats.pendingOffers, icon: MessageSquare, color: 'text-purple-600', bgColor: 'bg-purple-500/10' }
+    { label: '待审核验证', value: stats.pendingVerifications, icon: Clock, color: 'text-warning', bgColor: 'bg-warning/10' },
+    { label: '已验证域名', value: stats.verifiedDomains, icon: CheckCircle, color: 'text-success', bgColor: 'bg-success/10' },
+    { label: '总浏览量', value: stats.totalViews, icon: Eye, color: 'text-info', bgColor: 'bg-info/10' },
+    { label: '待处理报价', value: stats.pendingOffers, icon: MessageSquare, color: 'text-primary', bgColor: 'bg-primary/10' }
   ];
 
   if (isLoading) {
@@ -148,9 +148,9 @@ export const AdminOverview = ({ stats, isLoading }: AdminOverviewProps) => {
                     <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
                     <div className="flex items-center space-x-2">
                       {stat.trend === 'up' ? (
-                        <ArrowUpRight className="h-4 w-4 text-green-500" />
+                        <ArrowUpRight className="h-4 w-4 text-success" />
                       ) : stat.trend === 'down' ? (
-                        <ArrowDownRight className="h-4 w-4 text-red-500" />
+                        <ArrowDownRight className="h-4 w-4 text-destructive" />
                       ) : null}
                       <Badge variant={stat.trend === 'up' ? 'default' : 'secondary'} className="text-xs">
                         {stat.change}
@@ -174,7 +174,7 @@ export const AdminOverview = ({ stats, isLoading }: AdminOverviewProps) => {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
-              <Zap className="h-5 w-5 text-yellow-500" />
+              <Zap className="h-5 w-5 text-warning" />
               实时概览
             </CardTitle>
           </CardHeader>
@@ -200,7 +200,7 @@ export const AdminOverview = ({ stats, isLoading }: AdminOverviewProps) => {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
-              <Target className="h-5 w-5 text-blue-500" />
+              <Target className="h-5 w-5 text-info" />
               关键绩效指标
             </CardTitle>
           </CardHeader>
@@ -209,7 +209,7 @@ export const AdminOverview = ({ stats, isLoading }: AdminOverviewProps) => {
               <div key={index} className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="font-medium">{metric.label}</span>
-                  <span className={metric.value >= metric.target ? 'text-green-600' : 'text-yellow-600'}>
+                  <span className={metric.value >= metric.target ? 'text-success' : 'text-warning'}>
                     {metric.value}% / {metric.target}%
                   </span>
                 </div>
@@ -230,35 +230,35 @@ export const AdminOverview = ({ stats, isLoading }: AdminOverviewProps) => {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
-            <Activity className="h-5 w-5 text-green-500" />
+            <Activity className="h-5 w-5 text-success" />
             系统状态
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="flex items-center gap-3 p-3 bg-green-500/10 rounded-lg">
-              <div className="w-3 h-3 rounded-full bg-green-500/100 animate-pulse" />
+            <div className="flex items-center gap-3 p-3 bg-success/10 rounded-lg">
+              <div className="w-3 h-3 rounded-full bg-success/100 animate-pulse" />
               <div>
                 <p className="text-sm font-medium">数据库</p>
                 <p className="text-xs text-muted-foreground">运行正常</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-3 bg-green-500/10 rounded-lg">
-              <div className="w-3 h-3 rounded-full bg-green-500/100 animate-pulse" />
+            <div className="flex items-center gap-3 p-3 bg-success/10 rounded-lg">
+              <div className="w-3 h-3 rounded-full bg-success/100 animate-pulse" />
               <div>
                 <p className="text-sm font-medium">Edge Functions</p>
                 <p className="text-xs text-muted-foreground">运行正常</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-3 bg-green-500/10 rounded-lg">
-              <div className="w-3 h-3 rounded-full bg-green-500/100 animate-pulse" />
+            <div className="flex items-center gap-3 p-3 bg-success/10 rounded-lg">
+              <div className="w-3 h-3 rounded-full bg-success/100 animate-pulse" />
               <div>
                 <p className="text-sm font-medium">邮件服务</p>
                 <p className="text-xs text-muted-foreground">运行正常</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-3 bg-green-500/10 rounded-lg">
-              <div className="w-3 h-3 rounded-full bg-green-500/100 animate-pulse" />
+            <div className="flex items-center gap-3 p-3 bg-success/10 rounded-lg">
+              <div className="w-3 h-3 rounded-full bg-success/100 animate-pulse" />
               <div>
                 <p className="text-sm font-medium">存储服务</p>
                 <p className="text-xs text-muted-foreground">运行正常</p>

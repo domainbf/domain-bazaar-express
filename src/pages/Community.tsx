@@ -15,10 +15,10 @@ import {
 } from 'lucide-react';
 
 const BOARDS = [
-  { icon: Lightbulb, color: 'text-yellow-500', title: '新手入门', desc: '域名基础知识与常见问答' },
-  { icon: Target, color: 'text-blue-500', title: '投资交流', desc: '分享挑域名、估值与投资经验' },
-  { icon: MessageSquare, color: 'text-green-500', title: '交易咨询', desc: '买卖流程、议价与过户答疑' },
-  { icon: Award, color: 'text-purple-500', title: '成功案例', desc: '真实的域名成交故事与复盘' },
+  { icon: Lightbulb, color: 'text-warning', title: '新手入门', desc: '域名基础知识与常见问答' },
+  { icon: Target, color: 'text-info', title: '投资交流', desc: '分享挑域名、估值与投资经验' },
+  { icon: MessageSquare, color: 'text-success', title: '交易咨询', desc: '买卖流程、议价与过户答疑' },
+  { icon: Award, color: 'text-primary', title: '成功案例', desc: '真实的域名成交故事与复盘' },
 ];
 
 const GUIDELINES = [

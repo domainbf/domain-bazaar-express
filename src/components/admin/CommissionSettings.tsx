@@ -169,7 +169,7 @@ export const CommissionSettings = () => {
                   <span>平台手续费 ({ratePercent}%)</span>
                   <span>-¥{example.fee.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between font-semibold text-green-600">
+                <div className="flex justify-between font-semibold text-success">
                   <span>卖家实际到账</span>
                   <span>¥{example.seller.toLocaleString()}</span>
                 </div>
@@ -189,7 +189,7 @@ export const CommissionSettings = () => {
             <Button onClick={saveSettings} disabled={isSaving} data-testid="button-save-commission">
               {isSaving ? <LoadingSpinner size="sm" /> : <><Save className="w-4 h-4 mr-2" />保存设置</>}
             </Button>
-            <Badge variant="outline" className="text-green-600 border-green-500/30">
+            <Badge variant="outline" className="text-success border-success/30">
               <DollarSign className="w-3 h-3 mr-1" />
               当前费率：{ratePercent}%
             </Badge>

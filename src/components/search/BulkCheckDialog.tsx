@@ -30,10 +30,10 @@ const parseInput = (raw: string): string[] => {
 };
 
 const statusMeta: Record<Row['status'], { label: string; className: string; icon: any }> = {
-  available: { label: '在售', className: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30', icon: CheckCircle2 },
-  pending: { label: '暂不出售', className: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/30', icon: XCircle },
-  sold: { label: '已售出', className: 'bg-blue-500/10 text-blue-600 border-blue-500/30', icon: CheckCircle2 },
-  reserved: { label: '已保留', className: 'bg-purple-500/10 text-purple-600 border-purple-500/30', icon: XCircle },
+  available: { label: '在售', className: 'bg-success/10 text-success border-success/30', icon: CheckCircle2 },
+  pending: { label: '暂不出售', className: 'bg-warning/10 text-warning border-warning/30', icon: XCircle },
+  sold: { label: '已售出', className: 'bg-info/10 text-info border-info/30', icon: CheckCircle2 },
+  reserved: { label: '已保留', className: 'bg-primary/10 text-primary border-primary/30', icon: XCircle },
   not_listed: { label: '未上架', className: 'bg-muted text-muted-foreground border-border', icon: XCircle },
 };
 
@@ -147,7 +147,7 @@ export const BulkCheckDialog = ({ trigger }: { trigger?: React.ReactNode }) => {
         {summary && (
           <div className="flex gap-2 text-xs">
             <Badge variant="secondary">共 {summary.total} 个</Badge>
-            <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+            <Badge className="bg-success/10 text-success border-success/30">
               可购 {summary.available}
             </Badge>
             <Badge variant="outline">本站已上架 {summary.listed}</Badge>
