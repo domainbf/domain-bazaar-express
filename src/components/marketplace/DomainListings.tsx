@@ -75,7 +75,13 @@ const FavoriteHeart = ({ domainId, onDark }: { domainId: string; onDark?: boolea
       data-testid={`button-favorite-${domainId}`}
       aria-label={active ? '取消收藏' : '收藏'}
       className={cn(
- XX
+        'h-8 w-8 shrink-0 flex items-center justify-center rounded-full transition-colors backdrop-blur-sm',
+        onDark ? 'bg-invert-foreground/10 hover:bg-invert-foreground/20' : 'bg-muted hover:bg-accent',
+        active
+          ? 'text-destructive'
+          : onDark
+            ? 'text-invert-foreground/60 hover:text-invert-foreground'
+            : 'text-muted-foreground hover:text-foreground',
       )}
     >
       <Heart className={cn('h-4 w-4', active && 'fill-current')} />
