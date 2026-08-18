@@ -23,7 +23,7 @@ const SecurityCenter: React.FC = () => {
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Navbar />
       
-      <div className="max-w-5xl mx-auto px-4 py-12">
+      <div className="max-w-6xl mx-auto px-4 py-12">
         <div className="text-center mb-12">
           <Shield className="h-16 w-16 mx-auto mb-4 text-primary" />
           <h1 className="text-4xl font-bold mb-4">安全中心</h1>

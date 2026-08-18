@@ -54,7 +54,7 @@ const AnonymousLanding = () => {
         </div>
       </section>
       <section className="py-12 px-4">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <h2 className="text-xl font-semibold text-center mb-2">四步开启卖家旅程</h2>
           <p className="text-muted-foreground text-center text-sm mb-8">简单流程，轻松完成域名变现</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -76,7 +76,7 @@ const AnonymousLanding = () => {
         </div>
       </section>
       <section className="py-12 px-4 bg-muted/30 border-t border-border/50">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <h2 className="text-xl font-semibold text-center mb-8">卖家专属权益</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
             {BENEFITS.map((b) => (

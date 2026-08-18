@@ -39,7 +39,7 @@ export default function FavoritesPage() {
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-8">
       <Navbar />
-      <main className="max-w-5xl mx-auto px-4 py-6">
+      <main className="max-w-6xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <Link to="/marketplace">

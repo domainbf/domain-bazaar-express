@@ -68,7 +68,7 @@ export const UserProfilePage = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="max-w-5xl mx-auto px-4 py-12"><LoadingSpinner /></div>
+        <div className="max-w-6xl mx-auto px-4 py-12"><LoadingSpinner /></div>
       </div>
     );
   }
@@ -77,7 +77,7 @@ export const UserProfilePage = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="max-w-5xl mx-auto px-4 py-12">
+        <div className="max-w-6xl mx-auto px-4 py-12">
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>错误</AlertTitle>
@@ -105,7 +105,7 @@ export const UserProfilePage = () => {
 
       {/* Profile Banner */}
       <div className="bg-muted/30 border-b border-border">
-        <div className="max-w-5xl mx-auto px-4 py-10">
+        <div className="max-w-6xl mx-auto px-4 py-10">
           <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
             <ArrowLeft className="h-4 w-4" />
             返回市场
@@ -197,7 +197,7 @@ export const UserProfilePage = () => {
       </div>
 
       {/* Tabs Content */}
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8">
         <Tabs defaultValue="domains">
           <TabsList className="mb-6">
             <TabsTrigger value="domains" data-testid="tab-seller-domains">

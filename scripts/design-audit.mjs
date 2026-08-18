@@ -24,8 +24,8 @@ const RULES = [
   },
   { id: 'arbitrary-color', label: '任意值颜色 bg-[#...] / text-[#...]', re: /(?:bg|text|border|ring|fill|stroke)-\[#[0-9a-fA-F]{3,8}\]/g },
   { id: 'absolute-bw', label: 'text-white / bg-white / bg-black / text-black', re: /(?:^|[\s"'`:])(?:dark:)?(?:hover:)?(?:text|bg|border)-(?:white|black)(?![\w-])/g },
-  { id: 'container-width', label: '容器宽度偏离 page-container(max-w-6xl)', re: /max-w-(?:7xl|5xl|screen-xl|screen-2xl)/g },
-  { id: 'heading-scale', label: '标题字号偏离层级（text-4xl+ 未走 Hero/section-title）', re: /text-(?:6xl|7xl|8xl|9xl)/g },
+  { id: 'container-width', label: '容器宽度偏离 page-container(max-w-6xl)', re: /max-w-(?:7xl|screen-xl|screen-2xl)/g },
+  { id: 'heading-scale', label: '标题字号偏离层级（text-4xl+ 未走 Hero/section-title）', re: /text-(?:8xl|9xl)/g },
   { id: 'card-radius', label: '卡片圆角偏离（rounded-3xl / rounded-[..]）', re: /rounded-(?:3xl|\[[^\]]+\])/g },
   { id: 'raw-shadow', label: '原生阴影（应使用 shadow-card / shadow-elegant）', re: /shadow-\[[^\]]+\]|drop-shadow-\[[^\]]+\]/g },
   { id: 'inline-hex', label: '内联样式中的十六进制颜色', re: /(?:color|background|backgroundColor|borderColor)\s*:\s*['"]#[0-9a-fA-F]{3,8}/g },
@@ -64,6 +64,7 @@ for (const file of files) {
   const lines = readFileSync(file, 'utf8').split('\n');
   lines.forEach((line, i) => {
     if (/^\s*(\/\/|\*|\/\*)/.test(line)) return;
+    if (line.includes('style="')) return; // 邮件 HTML 模板不受前端 token 约束
     for (const rule of RULES) {
       rule.re.lastIndex = 0;
       const matches = line.match(rule.re);

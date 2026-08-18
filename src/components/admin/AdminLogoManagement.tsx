@@ -432,7 +432,7 @@ export function AdminLogoManagement() {
                   <TableRow key={d.id}>
                     <TableCell>
                       {d.logoUrl ? (
-                        <img src={d.logoUrl} alt="" className="w-9 h-9 rounded border object-cover bg-white" />
+                        <img src={d.logoUrl} alt="" className="w-9 h-9 rounded border object-cover bg-card" />
                       ) : (
                         <div className="w-9 h-9 rounded border flex items-center justify-center text-muted-foreground bg-muted/30">
                           <ImageIcon className="h-4 w-4" />

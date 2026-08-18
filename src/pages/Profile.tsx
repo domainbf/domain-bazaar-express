@@ -65,7 +65,7 @@ export const Profile = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <div className="max-w-5xl mx-auto px-4 py-12">
+      <div className="max-w-6xl mx-auto px-4 py-12">
         <h1 className="text-3xl font-bold text-foreground mb-8">个人资料</h1>
         
         <Tabs defaultValue="profile" className="w-full">

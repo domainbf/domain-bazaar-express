@@ -178,7 +178,7 @@ export default function DisputePage() {
         </section>
 
         <section className="py-10 px-4">
-          <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8">
+          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8">
             <div className="space-y-6">
               <div>
                 <h2 className="text-lg font-semibold mb-4">申诉处理流程</h2>

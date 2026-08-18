@@ -94,7 +94,7 @@ export const AuctionsPage = () => {
       <div className={isMobile ? 'pb-20' : ''}>
         {/* Header */}
         <section className={`bg-gradient-to-br from-foreground to-foreground/90 text-background dark:from-card dark:to-muted dark:text-foreground ${isMobile ? 'py-8 px-4' : 'py-12'}`}>
-          <div className={isMobile ? '' : 'max-w-5xl mx-auto px-6'}>
+          <div className={isMobile ? '' : 'max-w-6xl mx-auto px-6'}>
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-2">
@@ -121,7 +121,7 @@ export const AuctionsPage = () => {
 
         {/* Tab Row + Stats */}
         <section className="border-b border-border bg-card">
-          <div className={isMobile ? 'px-4 py-3' : 'max-w-5xl mx-auto px-6 py-3'}>
+          <div className={isMobile ? 'px-4 py-3' : 'max-w-6xl mx-auto px-6 py-3'}>
             <div className="flex items-center justify-between">
               <div className="flex gap-1">
                 {(['active', 'ended'] as const).map(t => (
@@ -153,7 +153,7 @@ export const AuctionsPage = () => {
         </section>
 
         {/* Content */}
-        <div className={isMobile ? 'px-4 py-5' : 'max-w-5xl mx-auto px-6 py-8'}>
+        <div className={isMobile ? 'px-4 py-5' : 'max-w-6xl mx-auto px-6 py-8'}>
 
           {/* Selected Auction Detail */}
           {selectedAuction && (

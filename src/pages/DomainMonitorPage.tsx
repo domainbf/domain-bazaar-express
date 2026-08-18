@@ -80,7 +80,7 @@ export default function DomainMonitorPage() {
         </section>
 
         <section className="py-12 px-4">
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <h2 className="text-xl font-semibold text-center mb-2">监控功能</h2>
             <p className="text-muted-foreground text-center text-sm mb-8">全方位守护你的域名投资机会</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
