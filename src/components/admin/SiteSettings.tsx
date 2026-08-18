@@ -1456,7 +1456,7 @@ export const SiteSettings = () => {
                 {/* 浅色 Logo */}
                 <div className="space-y-3">
                   <Label className="font-semibold">浅色模式 Logo</Label>
-                  <div className="border rounded-lg p-4 bg-white flex flex-col items-center gap-3 min-h-[120px] justify-center">
+                  <div className="border rounded-lg p-4 bg-card flex flex-col items-center gap-3 min-h-[120px] justify-center">
                     {brandInfo.logo_url ? (
                       <img src={brandInfo.logo_url} alt="Light Logo" className="max-h-16 max-w-full object-contain" />
                     ) : (

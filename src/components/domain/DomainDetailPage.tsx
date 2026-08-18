@@ -522,7 +522,7 @@ export const DomainDetailPage = () => {
         {/* 移动端底部固定操作栏 */}
         {!isOwner && domain.status === 'available' && (
           <div
-            className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t border-border shadow-[0_-4px_20px_-8px_rgba(0,0,0,0.15)]"
+            className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t border-border shadow-elegant"
             style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
           >
             <div className="flex items-center gap-2 p-3">
