@@ -64,7 +64,9 @@ for (const file of files) {
   const lines = readFileSync(file, 'utf8').split('\n');
   lines.forEach((line, i) => {
     if (/^\s*(\/\/|\*|\/\*)/.test(line)) return;
-    if (line.includes('style="')) return; // 邮件 HTML 模板不受前端 token 约束
+    // 邮件 HTML 模板（收件箱环境无法使用 CSS 变量）不受前端 token 约束
+    if (line.includes('style="') || /amountBlock\(|infoBox\(|emailShell\(/.test(line)) return;
+    if (/design-audit-ignore/.test(line)) return;
     for (const rule of RULES) {
       rule.re.lastIndex = 0;
       const matches = line.match(rule.re);
