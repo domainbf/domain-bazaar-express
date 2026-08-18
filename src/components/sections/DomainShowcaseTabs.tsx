@@ -136,7 +136,7 @@ export const DomainShowcaseTabs = () => {
 
   return (
     <section className="py-14 bg-gradient-to-b from-background to-success/30  border-t border-border">
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-6xl mx-auto px-4">
         <div className="flex items-center justify-center gap-3 mb-6">
           <Trophy className="w-5 h-5 text-warning" />
           <h2 className="text-2xl font-bold text-foreground">域名精选 · 成交案例</h2>

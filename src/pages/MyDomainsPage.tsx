@@ -15,7 +15,7 @@ export function MyDomainsPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar unreadCount={unreadCount} />
 
-      <div className={`flex-1 max-w-7xl mx-auto w-full px-4 py-6 ${isMobile ? 'pb-24' : ''}`}>
+      <div className={`flex-1 max-w-6xl mx-auto w-full px-4 py-6 ${isMobile ? 'pb-24' : ''}`}>
         <div className="flex items-center gap-3 mb-6">
           <Button
             variant="ghost"

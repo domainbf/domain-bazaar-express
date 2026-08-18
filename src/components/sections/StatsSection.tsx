@@ -12,7 +12,7 @@ export const StatsSection = () => {
 
   return (
     <section className="py-20 relative z-10 overflow-hidden">
-      <div className="relative max-w-7xl mx-auto px-4">
+      <div className="relative max-w-6xl mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}

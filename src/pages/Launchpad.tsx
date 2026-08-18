@@ -263,7 +263,7 @@ export default function Launchpad() {
     <div className="min-h-screen bg-background">
       <Navbar unreadCount={unreadCount} />
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-12">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}

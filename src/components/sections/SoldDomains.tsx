@@ -20,7 +20,7 @@ export const SoldDomains = () => {
 
   return (
     <section className="py-14 bg-gradient-to-b from-background to-success/5 border-t border-border overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-6xl mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}

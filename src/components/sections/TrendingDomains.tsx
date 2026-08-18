@@ -73,7 +73,7 @@ export const TrendingDomains = () => {
   if (isLoading) {
     return (
       <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 text-center">
+        <div className="max-w-6xl mx-auto px-4 text-center">
           <LoadingSpinner />
         </div>
       </section>
@@ -84,7 +84,7 @@ export const TrendingDomains = () => {
 
   return (
     <section className="py-20 relative z-10 overflow-hidden bg-card">
-      <div className="relative max-w-7xl mx-auto px-4">
+      <div className="relative max-w-6xl mx-auto px-4">
         <div className="flex items-center justify-between mb-10">
           <div>
             <p className="text-sm font-semibold text-muted-foreground uppercase tracking-widest mb-1">实时热门</p>
