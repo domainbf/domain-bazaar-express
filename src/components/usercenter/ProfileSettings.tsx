@@ -363,7 +363,7 @@ export const ProfileSettings = () => {
             >
               {isLoading ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
                   保存中...
                 </>
               ) : (

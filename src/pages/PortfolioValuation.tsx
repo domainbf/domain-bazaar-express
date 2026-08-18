@@ -195,7 +195,7 @@ export default function PortfolioValuation() {
 
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 space-y-6 print:py-2">
+    <div className="max-w-6xl mx-auto px-4 py-8 space-y-6 print:py-2">
       <div className="flex items-center justify-between gap-3 flex-wrap print:hidden">
         <div>
           <h1 className="text-2xl font-semibold flex items-center gap-2">

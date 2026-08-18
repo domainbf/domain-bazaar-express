@@ -12,7 +12,7 @@ const features = [
 export const FeaturesSection = () => {
   return (
     <section className="py-24 relative overflow-hidden bg-background">
-      <div className="relative max-w-7xl mx-auto px-4 z-10">
+      <div className="relative max-w-6xl mx-auto px-4 z-10">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}

@@ -231,7 +231,7 @@ export const SellDomainQuickListForm = () => {
               className={cn(
  'group relative block overflow-hidden isolate rounded-2xl border border-invert-foreground/10',
  'bg-invert text-invert-foreground',
- 'p-6 sm:p-8 min-h-[280px] shadow-[0_16px_40px_-16px_rgba(0,0,0,0.5)]',
+ 'p-6 sm:p-8 min-h-[280px] shadow-elegant',
               )}
             >
               <div

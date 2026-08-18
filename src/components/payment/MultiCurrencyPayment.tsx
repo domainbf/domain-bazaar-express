@@ -232,7 +232,7 @@ export const MultiCurrencyPayment: React.FC<MultiCurrencyPaymentProps> = ({
   const total = calculateTotal();
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-invert/60 z-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
@@ -385,7 +385,7 @@ export const MultiCurrencyPayment: React.FC<MultiCurrencyPaymentProps> = ({
           >
             {isLoading ? (
               <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
                 处理中...
               </>
             ) : (

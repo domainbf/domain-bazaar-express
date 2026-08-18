@@ -102,8 +102,8 @@ export const PWAInstallBanner = () => {
           transition={{ type: 'spring', stiffness: 340, damping: 32 }}
           className="fixed bottom-20 left-3 right-3 z-50 md:left-auto md:right-5 md:w-[340px]"
         >
-          <div className="relative overflow-hidden rounded-2xl shadow-2xl border border-white/10"
-            style={{ background: 'linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 50%, #16213e 100%)' }}>
+          <div className="relative overflow-hidden rounded-2xl shadow-2xl border border-invert-foreground/10"
+            style={{ background: 'linear-gradient(135deg, hsl(var(--invert)) 0%, hsl(var(--card)) 60%, hsl(var(--invert)) 100%)' }}>
 
             {/* Animated top accent bar */}
             <div className="h-0.5 w-full bg-gradient-to-r from-info via-primary to-info" />
@@ -114,7 +114,7 @@ export const PWAInstallBanner = () => {
                 animate={{ x: ['-100%', '200%'] }}
                 transition={{ duration: 2.5, repeat: Infinity, ease: 'linear', repeatDelay: 1.5 }}
                 className="absolute top-0 bottom-0 w-1/3 opacity-10"
-                style={{ background: 'linear-gradient(90deg, transparent, white, transparent)' }}
+                style={{ background: 'linear-gradient(90deg, transparent, hsl(var(--invert-foreground)), transparent)' }}
               />
             </div>
 
@@ -123,17 +123,17 @@ export const PWAInstallBanner = () => {
 
                 {/* App icon */}
                 <div className="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
-                  style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)' }}>
-                  <span className="text-white font-bold text-lg leading-none">N</span>
+                  style={{ background: 'var(--gradient-primary)' }}>
+                  <span className="text-primary-foreground font-bold text-lg leading-none">N</span>
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 mb-0.5">
-                    <p className="text-sm font-bold text-white">把域名市场装进口袋</p>
+                    <p className="text-sm font-bold text-invert-foreground">把域名市场装进口袋</p>
                     <span className="text-base">📱</span>
                   </div>
-                  <p className="text-xs text-white/60 leading-relaxed">
+                  <p className="text-xs text-invert-foreground/60 leading-relaxed">
                     {isIOS
                       ? <>点击底部 <Share className="inline h-3 w-3 mb-0.5 text-info" /> 分享，选择<span className="text-info font-medium">「添加到主屏幕」</span>即可</>
                       : '一键安装，随时随地快速访问域名市场'}
@@ -142,8 +142,8 @@ export const PWAInstallBanner = () => {
                   {!isIOS && (
                     <button
                       onClick={handleInstall}
-                      className="mt-2.5 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-opacity hover:opacity-80 active:scale-95"
-                      style={{ background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)' }}
+                      className="mt-2.5 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-80 active:scale-95"
+                      style={{ background: 'var(--gradient-primary)' }}
                     >
                       <ArrowDownToLine className="h-3 w-3" />
                       立即安装
@@ -156,7 +156,7 @@ export const PWAInstallBanner = () => {
                   {/* SVG Countdown Ring */}
                   <div className="relative w-9 h-9">
                     <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                      <circle cx="18" cy="18" r={radius} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="2.5" />
+                      <circle cx="18" cy="18" r={radius} fill="none" stroke="hsl(var(--invert-foreground) / 0.15)" strokeWidth="2.5" />
                       <motion.circle
                         cx="18" cy="18" r={radius}
                         fill="none"
@@ -170,12 +170,12 @@ export const PWAInstallBanner = () => {
                       />
                       <defs>
                         <linearGradient id="countdown-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="#3b82f6" />
-                          <stop offset="100%" stopColor="#a855f7" />
+                          <stop offset="0%" stopColor="hsl(var(--primary))" />
+                          <stop offset="100%" stopColor="hsl(var(--primary-glow))" />
                         </linearGradient>
                       </defs>
                     </svg>
-                    <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold text-white/80">
+                    <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold text-invert-foreground/80">
                       {countdown}
                     </span>
                   </div>
@@ -183,7 +183,7 @@ export const PWAInstallBanner = () => {
                   {/* Close button */}
                   <button
                     onClick={dismiss}
-                    className="w-6 h-6 rounded-full flex items-center justify-center text-white/40 hover:text-white/80 hover:bg-white/10 transition-colors"
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-invert-foreground/40 hover:text-invert-foreground/80 hover:bg-invert-foreground/10 transition-colors"
                     aria-label="关闭"
                   >
                     <X className="h-3.5 w-3.5" />
@@ -192,10 +192,10 @@ export const PWAInstallBanner = () => {
               </div>
 
               {/* Progress bar */}
-              <div className="mt-3 h-0.5 rounded-full bg-white/10 overflow-hidden">
+              <div className="mt-3 h-0.5 rounded-full bg-invert-foreground/10 overflow-hidden">
                 <motion.div
                   className="h-full rounded-full"
-                  style={{ background: 'linear-gradient(90deg, #3b82f6, #a855f7)' }}
+                  style={{ background: 'var(--gradient-primary)' }}
                   initial={{ width: '100%' }}
                   animate={{ width: '0%' }}
                   transition={{ duration: AUTO_CLOSE_MS / 1000, ease: 'linear' }}

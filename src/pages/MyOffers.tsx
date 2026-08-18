@@ -124,7 +124,7 @@ export default function MyOffers() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar unreadCount={unreadCount} />
-      <div className={`flex-1 max-w-5xl mx-auto w-full px-4 py-6 space-y-6 ${isMobile ? 'pb-24' : ''}`}>
+      <div className={`flex-1 max-w-6xl mx-auto w-full px-4 py-6 space-y-6 ${isMobile ? 'pb-24' : ''}`}>
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"

@@ -52,7 +52,7 @@ export default function EscrowPage() {
         </section>
 
         <section className="py-12 px-4">
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <h2 className="text-xl font-semibold text-center mb-2">托管交易流程</h2>
             <p className="text-muted-foreground text-center text-sm mb-8">每一笔交易都经历以下四个受保护的阶段</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">

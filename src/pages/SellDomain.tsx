@@ -81,7 +81,7 @@ export const SellDomainPage = () => {
 
       {/* Hero */}
       <section className="bg-gradient-to-br from-foreground to-foreground/90 text-background dark:from-card dark:via-muted/80 dark:to-card dark:text-foreground py-24 md:py-32">
-        <div className="max-w-5xl mx-auto px-6 text-center">
+        <div className="max-w-6xl mx-auto px-6 text-center">
           <Badge className="mb-6 bg-background/10 dark:bg-muted text-background dark:text-foreground border-background/20 dark:border-border text-sm px-4 py-1.5">
             🔥 平台手续费全国最低
           </Badge>
@@ -131,7 +131,7 @@ export const SellDomainPage = () => {
 
       {/* How It Works */}
       <section className="py-16 md:py-20 bg-card">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-2xl md:text-3xl font-bold mb-3">四步完成交易</h2>
             <p className="text-muted-foreground">从上架到成交，最快 24 小时</p>
@@ -160,7 +160,7 @@ export const SellDomainPage = () => {
 
       {/* Features Grid */}
       <section className="py-16 md:py-20 bg-background">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-2xl md:text-3xl font-bold mb-3">为什么选择我们</h2>
             <p className="text-muted-foreground">专为中文域名市场设计的卖家工具</p>
@@ -181,7 +181,7 @@ export const SellDomainPage = () => {
 
       {/* Pricing */}
       <section className="py-16 md:py-20 bg-card">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-2xl md:text-3xl font-bold mb-3">简单透明的定价</h2>
             <p className="text-muted-foreground">上架完全免费，成交后按比例收取手续费</p>
@@ -230,7 +230,7 @@ export const SellDomainPage = () => {
 
       {/* Testimonials */}
       <section className="py-16 md:py-20 bg-background">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-2xl md:text-3xl font-bold mb-3">卖家真实评价</h2>
             <p className="text-muted-foreground">来自已成交卖家的真实反馈</p>

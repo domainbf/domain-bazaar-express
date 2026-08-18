@@ -13,7 +13,8 @@
     "seo:sitemap": "tsx scripts/generate-sitemap.ts",
     "seo:validate": "tsx scripts/validate-jsonld.ts",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "design:audit": "node scripts/design-audit.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
