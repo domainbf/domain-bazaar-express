@@ -30,7 +30,7 @@ export const PageContainer = ({
 );
 
 /* ── Hero 容器（点阵纹理 + aurora 渐变）────────────────────── */
-interface PageHeroProps extends React.HTMLAttributes<HTMLElement> {
+interface PageHeroProps extends Omit<React.HTMLAttributes<HTMLElement>, 'title'> {
   eyebrow?: React.ReactNode;
   title: React.ReactNode;
   subtitle?: React.ReactNode;
