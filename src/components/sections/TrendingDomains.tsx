@@ -72,7 +72,7 @@ export const TrendingDomains = () => {
 
   if (isLoading) {
     return (
-      <section className="py-20">
+      <section className="py-12 md:py-16">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <LoadingSpinner />
         </div>
@@ -83,7 +83,7 @@ export const TrendingDomains = () => {
   if (trendingData.length === 0) return null;
 
   return (
-    <section className="py-20 relative z-10 overflow-hidden bg-card">
+    <section className="py-12 md:py-16 relative z-10 overflow-hidden bg-muted/40">
       <div className="relative max-w-6xl mx-auto px-4">
         <div className="flex items-center justify-between mb-10">
           <div>
@@ -107,7 +107,7 @@ export const TrendingDomains = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="bg-background border border-border p-6 rounded-2xl hover:border-foreground/20 transition-colors"
+              className="bg-card border border-border p-6 rounded-2xl hover:border-primary/30 transition-colors"
             >
               <div className="flex items-center justify-between mb-4">
                 <TrendingUp className="w-5 h-5 text-muted-foreground" />

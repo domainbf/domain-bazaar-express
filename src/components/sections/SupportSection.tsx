@@ -39,7 +39,7 @@ const supportItems = [
 
 const SupportSection = () => {
   return (
-    <section className="py-12 md:py-16 bg-background">
+    <section className="py-12 md:py-16 bg-muted/40">
       <div className="max-w-6xl mx-auto px-4 md:px-8">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -67,7 +67,7 @@ const SupportSection = () => {
               viewport={{ once: true }}
             >
               <Link to={item.link}>
-                <Card className="h-full border border-border bg-card hover:border-foreground/20 transition-colors">
+                <Card className="h-full border border-border bg-card hover:border-primary/30 transition-colors">
                   <CardContent className="p-4 md:p-5">
                     <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-muted border border-border flex items-center justify-center mb-3">
                       <item.icon className="w-5 h-5 md:w-6 md:h-6 text-foreground" />
