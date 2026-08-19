@@ -135,7 +135,7 @@ export const DomainShowcaseTabs = () => {
   };
 
   return (
-    <section className="py-12 md:py-16 bg-muted/40 border-t border-border">
+    <section className="py-12 md:py-16 bg-background border-t border-border">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex items-center justify-center gap-3 mb-6">
           <Trophy className="w-5 h-5 text-warning" />

@@ -361,7 +361,7 @@ const Index = () => {
         <HowItWorksSection />
 
         {/* Features / How It Works (site-config driven) */}
-        <section className="py-12 md:py-16 bg-muted/40 relative overflow-hidden">
+        <section className="py-12 md:py-16 bg-background relative overflow-hidden">
           <div className="relative max-w-6xl mx-auto px-4 md:px-8 z-10">
             <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-10 md:mb-16">
               {siteConfig.how_it_works_title || t('homePage.howItWorks')}
@@ -426,7 +426,7 @@ const Index = () => {
         <Suspense fallback={null}><DomainShowcaseTabs /></Suspense>
 
         {/* CTA */}
-        <section className="py-12 md:py-16 bg-muted/40 relative overflow-hidden">
+        <section className="py-12 md:py-16 bg-background relative overflow-hidden">
           <div className="relative max-w-4xl mx-auto px-4 md:px-8 text-center z-10">
             <h2 className="text-2xl md:text-4xl font-bold mb-6 md:mb-8 text-foreground">
               {siteConfig.cta_title || t('homePage.ctaTitle')}
