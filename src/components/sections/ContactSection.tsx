@@ -10,7 +10,7 @@ export const ContactSection = () => {
   };
 
   return (
-    <section className="py-24 relative z-10">
+    <section className="py-12 md:py-16 relative z-10 bg-muted/40">
       <div className="max-w-6xl mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <motion.div
@@ -19,7 +19,7 @@ export const ContactSection = () => {
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-info mb-6">
+            <h2 className="section-title mb-6">
               联系我们
             </h2>
             <p className="text-muted-foreground mb-8">
@@ -38,7 +38,7 @@ export const ContactSection = () => {
               </div>
               
               <div className="flex items-center space-x-4">
-                <div className="p-3 rounded-full bg-info/10">
+                <div className="p-3 rounded-full bg-primary/10">
                   <Mail className="w-6 h-6 text-info" />
                 </div>
                 <div>
@@ -48,7 +48,7 @@ export const ContactSection = () => {
               </div>
               
               <div className="flex items-center space-x-4">
-                <div className="p-3 rounded-full bg-warning/10">
+                <div className="p-3 rounded-full bg-primary/10">
                   <MessageSquare className="w-6 h-6 text-warning" />
                 </div>
                 <div>
@@ -104,7 +104,7 @@ export const ContactSection = () => {
               
               <Button 
                 type="submit"
-                className="w-full bg-gradient-to-r from-primary to-info hover:from-primary hover:to-info"
+                className="w-full primary-button"
               >
                 提交咨询
               </Button>

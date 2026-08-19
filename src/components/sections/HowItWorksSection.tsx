@@ -38,7 +38,7 @@ const trustItems = [
 
 export const HowItWorksSection = () => {
   return (
-    <section className="py-16 md:py-24 bg-background relative overflow-hidden">
+    <section className="py-12 md:py-16 bg-muted/40 relative overflow-hidden">
       <div className="relative max-w-6xl mx-auto px-4 z-10">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -77,7 +77,7 @@ export const HowItWorksSection = () => {
                   whileTap={{ scale: 0.93 }}
                   transition={{ type: 'spring', stiffness: 320, damping: 18 }}
                 >
-                  <div className="w-[104px] h-[104px] rounded-full bg-muted border border-border flex items-center justify-center mx-auto transition-colors duration-200 group-hover:border-foreground/30">
+                  <div className="w-[104px] h-[104px] rounded-full bg-muted border border-border flex items-center justify-center mx-auto transition-colors duration-200 group-hover:border-primary/40">
                     <Icon className="h-9 w-9 text-foreground" />
                   </div>
                   {/* step badge */}
@@ -121,7 +121,7 @@ export const HowItWorksSection = () => {
                 whileHover={{ y: -4, scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: 'spring', stiffness: 280, damping: 20 }}
-                className="flex items-start gap-3 p-4 rounded-xl bg-muted/60 border border-border hover:border-foreground/30 hover:bg-muted/80 transition-colors duration-200 cursor-default"
+                className="flex items-start gap-3 p-4 rounded-xl bg-muted/60 border border-border hover:border-primary/30 hover:bg-muted/80 transition-colors duration-200 cursor-default"
               >
                 <motion.div
                   className="bg-background p-2.5 rounded-xl shrink-0 mt-0.5 border border-border"
@@ -148,7 +148,7 @@ export const HowItWorksSection = () => {
         >
           <Link to="/marketplace">
             <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} className="inline-block">
-              <Button size="lg" className="gap-2 bg-foreground text-background hover:bg-foreground/90 border-0">
+              <Button size="lg" className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 border-0">
                 立即开始
                 <motion.span
                   animate={{ x: [0, 4, 0] }}

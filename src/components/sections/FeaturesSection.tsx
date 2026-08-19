@@ -11,7 +11,7 @@ const features = [
 
 export const FeaturesSection = () => {
   return (
-    <section className="py-24 relative overflow-hidden bg-background">
+    <section className="py-12 md:py-16 relative overflow-hidden bg-background">
       <div className="relative max-w-6xl mx-auto px-4 z-10">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -32,7 +32,7 @@ export const FeaturesSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
               viewport={{ once: true }}
-              className="bg-card border border-border p-8 rounded-2xl text-center group hover:border-foreground/20 transition-colors"
+              className="bg-card border border-border p-8 rounded-2xl text-center group hover:border-primary/30 transition-colors"
             >
               <div className="w-16 h-16 rounded-2xl bg-muted border border-border flex items-center justify-center mx-auto mb-5 transition-transform duration-300 group-hover:scale-110">
                 <f.icon className="w-8 h-8 text-foreground" />

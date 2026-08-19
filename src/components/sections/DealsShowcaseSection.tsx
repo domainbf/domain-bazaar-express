@@ -96,7 +96,7 @@ export function DealsShowcaseSection() {
   const row2 = padded.slice(half);
 
   return (
-    <section className="py-10 md:py-14 border-y border-border bg-background overflow-hidden">
+    <section className="py-12 md:py-16 border-y border-border bg-background overflow-hidden">
       <div className="max-w-5xl mx-auto px-4 mb-6">
         <motion.div
           className="flex items-center gap-3"

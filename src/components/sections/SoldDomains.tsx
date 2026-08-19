@@ -19,7 +19,7 @@ export const SoldDomains = () => {
   if (soldDomains.length === 0) return null;
 
   return (
-    <section className="py-14 bg-gradient-to-b from-background to-success/5 border-t border-border overflow-hidden">
+    <section className="py-12 md:py-16 bg-background border-t border-border overflow-hidden">
       <div className="max-w-6xl mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -42,7 +42,7 @@ export const SoldDomains = () => {
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.4, delay: i * 0.06 }}
                 viewport={{ once: true }}
-                className="flex-shrink-0 w-56 p-4 bg-card border border-success/30 rounded-xl shadow-sm hover:shadow-md hover:border-success/60 transition-all group"
+                className="flex-shrink-0 w-56 p-4 bg-card border border-border rounded-xl shadow-card hover:border-primary/30 transition-all group"
               >
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="font-semibold text-foreground truncate flex-1 text-sm">{domain.name}</h3>

@@ -11,7 +11,7 @@ export const StatsSection = () => {
   ];
 
   return (
-    <section className="py-20 relative z-10 overflow-hidden">
+    <section className="py-12 md:py-16 relative z-10 overflow-hidden bg-background">
       <div className="relative max-w-6xl mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 16 }}

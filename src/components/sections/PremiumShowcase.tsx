@@ -121,7 +121,7 @@ export const PremiumShowcase = () => {
   const activeMeta = SECTIONS.find((s) => s.key === active)!;
 
   return (
-    <section className="relative py-16 md:py-24 px-4">
+    <section className="relative py-12 md:py-16 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
