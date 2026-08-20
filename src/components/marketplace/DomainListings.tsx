@@ -110,31 +110,23 @@ const HeroStyleCard = ({ domain, index, hero, onSelect }: CardProps) => {
 
   const inner = (
     <>
-      {/* Dotted pattern overlay */}
+      {/* Ink accent bar */}
       <div
         aria-hidden
-        className={cn('absolute inset-0 pointer-events-none', onDark ? 'opacity-[0.10]' : 'opacity-[0.05]')}
-        style={{
-          backgroundImage: 'radial-gradient(circle at 20% 20%, currentColor 1.2px, transparent 1.2px)',
-          backgroundSize: hero ? '20px 20px' : '14px 14px',
-        }}
+        className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-foreground/80 via-primary to-foreground/80"
       />
 
-      {/* Subtle top-glow highlight */}
-      <div
-        aria-hidden
-        className="absolute -top-32 -right-24 h-64 w-64 rounded-full bg-primary/[0.07] blur-3xl pointer-events-none"
-      />
-
-      <div className="relative flex flex-col h-full">
+      {/* Dashed inner frame */}
+      <div className={cn(
+        'relative flex h-full flex-col rounded-xl border border-dashed text-center',
+        onDark ? 'border-invert-foreground/25' : 'border-border',
+        hero ? 'px-5 py-6 sm:px-8 sm:py-8' : 'px-4 py-5 sm:px-5',
+      )}>
         {/* Top: badge + heart */}
-        <div className="flex items-start justify-between gap-2 mb-4">
+        <div className="flex items-start justify-between gap-2">
           <span className={cn(
- 'inline-flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold',
-          onDark
-            ? 'bg-invert-foreground/10 text-invert-foreground'
-            : 'bg-accent text-accent-foreground',
-          'px-2.5 py-1 rounded-full backdrop-blur-sm',
+            'inline-flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold px-2.5 py-1 rounded-full',
+            onDark ? 'bg-invert-foreground/10 text-invert-foreground' : 'bg-accent text-accent-foreground',
           )}>
             {hero && <Star className="h-2.5 w-2.5 fill-current" />}
             {badgeText}
@@ -142,56 +134,63 @@ const HeroStyleCard = ({ domain, index, hero, onSelect }: CardProps) => {
           <FavoriteHeart domainId={domain.id} onDark={onDark} />
         </div>
 
+        {/* Eyebrow */}
+        <p className={cn('mt-3 text-[10px] font-semibold uppercase tracking-[0.28em]', fgSoft)}>
+          {categoryLabel}
+        </p>
+
         {/* Domain wordmark */}
         <h3 className={cn(
-          'font-black uppercase tracking-tight leading-[0.95] break-all',
+          'mt-2 font-black uppercase tracking-tight leading-[1.02] break-all',
           fg,
-          hero ? 'my-6' : 'my-4',
           domainTextSize(domain.name, isFeatured),
         )}>
           {domain.name}
         </h3>
 
-        {/* Bottom: price + CTA */}
-        <div className="mt-auto flex items-end justify-between gap-3">
-          <div>
-            <p className={cn('text-[10px] uppercase tracking-widest mb-1', fgSoft)}>一口价</p>
-            <p className={cn(
-              'font-bold tabular-nums', fg,
-              hero ? 'text-3xl sm:text-4xl' : 'text-2xl',
-            )}>
-              {formatPrice(domain)}
-            </p>
-          </div>
-          <div className={"inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium group-hover:gap-2.5 transition-all " + (onDark ? 'text-invert-foreground/80 group-hover:text-invert-foreground' : 'text-primary')}>
+        {/* Price */}
+        <p className={cn('mt-3 text-[10px] uppercase tracking-[0.28em]', fgSoft)}>一口价</p>
+        <p className={cn('font-black tabular-nums leading-tight', fg, hero ? 'text-3xl sm:text-4xl' : 'text-2xl')}>
+          {formatPrice(domain)}
+        </p>
+
+        {/* CTA pill */}
+        <div className="mt-auto w-full pt-5 text-xs font-semibold">
+
+          <span className={cn(
+            'inline-flex w-full items-center justify-center gap-1.5 rounded-full px-4 py-2.5 transition-colors',
+            onDark
+              ? 'bg-invert-foreground text-invert group-hover:bg-invert-foreground/90'
+              : 'bg-foreground text-background group-hover:bg-foreground/90',
+          )}>
             立即查看 <ArrowUpRight className="h-3.5 w-3.5" />
-          </div>
+          </span>
         </div>
 
-        {/* Meta strip (only if extra data exists) */}
-        {(domain.is_verified || (domain.views ?? 0) > 0) && (
-          <div className={cn('mt-4 pt-3 border-t flex items-center gap-3 text-[10px] uppercase tracking-wider', hairline, fgSoft)}>
-            <span className="inline-flex items-center gap-1"><Tag className="h-2.5 w-2.5" />{categoryLabel}</span>
-            {(domain.views ?? 0) > 0 && (
-              <span className="inline-flex items-center gap-1"><Eye className="h-2.5 w-2.5" />{domain.views}</span>
-            )}
-            {domain.is_verified && (
-              <span className="inline-flex items-center gap-1 ml-auto text-success"><Shield className="h-2.5 w-2.5" />已验证</span>
-            )}
-          </div>
-        )}
+        {/* Meta strip */}
+        <div className={cn('mt-3 flex items-center justify-center gap-3 text-[10px] uppercase tracking-wider', fgSoft)}>
+          {(domain.views ?? 0) > 0 && (
+            <span className="inline-flex items-center gap-1"><Eye className="h-2.5 w-2.5" />{domain.views}</span>
+          )}
+          <span className="inline-flex items-center gap-1"><Tag className="h-2.5 w-2.5" />{categoryLabel}</span>
+          {domain.is_verified && (
+            <span className="inline-flex items-center gap-1 text-success"><Shield className="h-2.5 w-2.5" />已验证</span>
+          )}
+        </div>
       </div>
     </>
   );
 
   const wrapperClass = cn(
-    'group relative block overflow-hidden isolate rounded-2xl transition-all duration-300',
+    'group relative block overflow-hidden isolate rounded-2xl transition-all duration-300 p-1.5',
     onDark
       ? 'bg-invert text-invert-foreground border border-invert-foreground/10 hover:border-primary/50'
       : 'bg-card border border-border hover:border-primary/40 shadow-card hover:shadow-elegant',
     'hover:-translate-y-0.5',
-    hero ? 'p-6 sm:p-8 min-h-[260px] sm:min-h-[300px]' : 'p-5 min-h-[200px]',
+    hero ? 'min-h-[280px] sm:min-h-[320px]' : 'min-h-[230px]',
   );
+
+
 
   return (
     <motion.div
