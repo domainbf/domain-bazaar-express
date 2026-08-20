@@ -155,9 +155,8 @@ const HeroStyleCard = ({ domain, index, hero, onSelect }: CardProps) => {
         </p>
 
         {/* CTA pill */}
-        <div className={cn(
-          'mt-auto pt-5 inline-flex w-full items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-semibold transition-all',
-        )}>
+        <div className="mt-auto w-full pt-5 text-xs font-semibold">
+
           <span className={cn(
             'inline-flex w-full items-center justify-center gap-1.5 rounded-full px-4 py-2.5 transition-colors',
             onDark
