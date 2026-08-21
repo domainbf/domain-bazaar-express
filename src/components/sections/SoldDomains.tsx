@@ -30,7 +30,9 @@ export const SoldDomains = ({ onSelect, grid = false, title = '成功交易案�
 
   const source: Domain[] = (grid ? soldListings : (homeData?.soldDomains ?? []))
     .slice(0, grid ? 60 : 10)
-    .map((d, i): Domain => ({
+    .map((raw, i): Domain => {
+      const d = raw as any;
+      return {
       id: String(d.id ?? `sold-${i}`),
       name: d.name,
       price: Number(d.price) || 0,
@@ -38,8 +40,9 @@ export const SoldDomains = ({ onSelect, grid = false, title = '成功交易案�
       category: 'standard',
       status: 'sold',
       owner_id: '',
-      created_at: d.created_at ?? new Date().toISOString(),
-    }));
+      created_at: d.created_at ?? d.createdAt ?? new Date().toISOString(),
+      };
+    });
 
   if (grid) {
     if (source.length === 0) return null;
