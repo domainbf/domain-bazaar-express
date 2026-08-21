@@ -79,3 +79,42 @@ export const prefetchDomainListings = (queryClient: ReturnType<typeof useQueryCl
     staleTime: 2 * 60 * 1000,
   });
 };
+
+// ─── Sold domains ────────────────────────────────────────────────────────────
+const fetchSoldDomains = async (): Promise<Domain[]> => {
+  const { data, error } = await (supabase as any)
+    .from('domain_listings')
+    .select(LISTING_COLUMNS)
+    .eq('status', 'sold')
+    .order('created_at', { ascending: false })
+    .limit(60);
+
+  if (error) throw new Error(error.message);
+
+  return (data ?? []).map((d: any): Domain => ({
+    id: String(d.id ?? ''),
+    name: String(d.name ?? ''),
+    price: Number(d.price) || 0,
+    currency: String(d.currency ?? 'CNY'),
+    category: String(d.category ?? 'standard'),
+    description: String(d.description ?? ''),
+    status: 'sold',
+    highlight: Boolean(d.highlight),
+    owner_id: String(d.owner_id ?? ''),
+    created_at: String(d.created_at ?? new Date().toISOString()),
+    is_verified: Boolean(d.is_verified),
+    verification_status: String(d.verification_status ?? 'pending'),
+  }));
+};
+
+export const SOLD_LISTINGS_KEY = ['domains', 'sold'] as const;
+
+export const useSoldListings = () =>
+  useQuery({
+    queryKey: SOLD_LISTINGS_KEY,
+    queryFn: fetchSoldDomains,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
