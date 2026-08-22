@@ -156,8 +156,10 @@ export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerI
             </Link>
           </div>
         ) : showOfferForm ? (
-
+          <DomainOfferForm
+            domain={domain}
             domainId={domainId}
+
             sellerId={sellerId}
             initialCurrency={currency}
             listingPrice={price}
