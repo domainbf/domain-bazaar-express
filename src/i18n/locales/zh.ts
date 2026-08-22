@@ -158,6 +158,10 @@ export const zh = {
       favOnlyBadge: '仅收藏', verifiedOnlyShort: '仅已验证', refresh: '刷新',
       loadErrorRetry: '加载域名失败，请重试', reload: '重新加载',
       emptyTitle: '暂无在售域名', emptyDesc: '市场还没有域名，快来第一个上架吧', listDomain: '上架域名',
+      filterLabel: '筛选',
+      tabAvailable: '可报价', tabSold: '已售',
+      soldTitle: '已售域名', soldCount: '共 {{count}} 个已售域名',
+      noSoldTitle: '暂无已售域名', noSoldDesc: '完成的交易会展示在这里',
       noMatchTitle: '没有找到匹配的域名', noMatchDesc: '请尝试调整筛选条件',
     }
   },
