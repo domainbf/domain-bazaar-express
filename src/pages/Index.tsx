@@ -183,104 +183,61 @@ const Index = () => {
               </div>
 
               <TabsContent value="marketplace">
-                <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-8 md:mb-10">
+                <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-6 md:mb-8">
                   {t('homePage.featuredDomains')}
                 </h2>
 
-                {/* Filters — scrollable on mobile with right-fade hint */}
-                <div className="relative mb-8">
-                  <div className="overflow-x-auto pb-3 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' as any }}>
-                    <div className="flex gap-2 md:gap-3 md:flex-wrap md:justify-center min-w-max px-4 md:min-w-0">
-                    {[
-                      { key: 'all', label: t('common.all') },
-                      { key: 'premium', label: t('domains.categories.premium') },
-                      { key: 'short', label: t('domains.categories.short') },
-                      { key: 'dev', label: t('domains.categories.tech') },
-                    ].map(f => (
-                      <Button
-                        key={f.key}
-                        variant={filter === f.key ? 'default' : 'outline'}
-                        onClick={() => setFilter(f.key)}
-                        size="sm"
-                        className="font-bold"
-                      >
-                        {f.label}
-                      </Button>
-                    ))}
-                    </div>
-                  </div>
-                  {/* Right-edge fade hint for mobile */}
-                  <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent md:hidden" />
+                {/* Compact toolbar — search · sort · filters */}
+                <div className="max-w-3xl mx-auto mb-6 md:mb-8">
+                  <FilterToolbar
+                    search={searchQuery}
+                    onSearch={setSearchQuery}
+                    searchPlaceholder={t('marketplace.searchPlaceholder')}
+                    sortValue={sortBy}
+                    onSortChange={(v) => setSortBy(v as any)}
+                    sortOptions={[
+                      { id: 'hot', label: t('homePage.sort.hot') },
+                      { id: 'latest_offer', label: t('homePage.sort.latestOffer') },
+                      { id: 'price_asc', label: t('homePage.sort.priceAsc') },
+                      { id: 'price_desc', label: t('homePage.sort.priceDesc') },
+                    ]}
+                    groups={[
+                      {
+                        id: 'category',
+                        label: t('domains.category'),
+                        value: filter,
+                        onChange: setFilter,
+                        options: [
+                          { id: 'all', label: t('common.all') },
+                          { id: 'premium', label: t('domains.categories.premium') },
+                          { id: 'short', label: t('domains.categories.short') },
+                          { id: 'dev', label: t('domains.categories.tech') },
+                        ],
+                      },
+                      {
+                        id: 'ext',
+                        label: t('domains.suffix'),
+                        value: extFilter,
+                        onChange: setExtFilter,
+                        mono: true,
+                        options: [
+                          { id: 'all', label: t('homePage.allSuffixes') },
+                          ...availableExtensions.map(ext => ({ id: ext, label: ext })),
+                        ],
+                      },
+                    ]}
+                    onClear={() => { setFilter('all'); setExtFilter('all'); setSearchQuery(''); setSortBy('hot'); }}
+                    filterLabel={t('marketplace.ui.filterLabel')}
+                    clearLabel={t('marketplace.ui.clearFilters')}
+                  />
                 </div>
-
-                <div className="max-w-md mx-auto mb-4 flex gap-2">
-                  <div className="relative flex-1">
-                    <Input
-                      type="text"
-                      placeholder={t('marketplace.searchPlaceholder')}
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full h-10 md:h-12 pl-12 pr-4 bg-background border-border focus:border-ring text-foreground font-medium"
-                    />
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-                  </div>
-                  <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-                    <SelectTrigger className="w-[130px] h-10 md:h-12 font-bold text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="hot">{t('homePage.sort.hot')}</SelectItem>
-                      <SelectItem value="latest_offer">{t('homePage.sort.latestOffer')}</SelectItem>
-                      <SelectItem value="price_asc">{t('homePage.sort.priceAsc')}</SelectItem>
-                      <SelectItem value="price_desc">{t('homePage.sort.priceDesc')}</SelectItem>
-
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Extension chips */}
-                {availableExtensions.length > 0 && (
-                  <div className="max-w-2xl mx-auto mb-8 overflow-x-auto scrollbar-hide">
-                    <div className="flex gap-2 justify-start md:justify-center min-w-max px-4 md:px-0">
-                      <button
-                        onClick={() => setExtFilter('all')}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-full border transition-all ${
-                          extFilter === 'all'
-                            ? 'bg-foreground text-background border-foreground'
-                            : 'bg-background text-foreground border-border hover:border-foreground/50'
-                        }`}
-                      >
-                        {t('homePage.allSuffixes')}
-                      </button>
-                      {availableExtensions.map(ext => {
-                        const isActive = extFilter === ext;
-                        const isMatched = matchedExtFromQuery === ext;
-                        return (
-                          <button
-                            key={ext}
-                            onClick={() => setExtFilter(ext)}
-                            className={`text-xs font-mono font-bold px-3 py-1.5 rounded-full border transition-all ${
-                              isActive
-                                ? 'bg-foreground text-background border-foreground'
-                                : isMatched
-                                  ? 'bg-warning/70  text-foreground border-warning/60 ring-2 ring-warning/60'
-                                  : 'bg-background text-foreground border-border hover:border-foreground/50'
-                            }`}
-                          >
-                            {ext}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
 
                 {/* Domain Cards */}
                 {isLoading ? (
                   <SkeletonCardGrid count={6} />
                 ) : filteredDomains.length > 0 ? (
                   <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-8 px-2 md:px-0">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
                       {filteredDomains.map((domain, i) => (
                         <motion.div
                           key={domain.id}
@@ -300,11 +257,12 @@ const Index = () => {
                             sellerId={domain.ownerId || ''}
                             isVerified={domain.isVerified ?? domain.verificationStatus === 'verified'}
                             searchQuery={searchQuery}
-                            
+                            onQuickView={() => setQuickIndex(i)}
                           />
                         </motion.div>
                       ))}
                     </div>
+
                     <div className="text-center space-y-3">
                       <div className="text-xs text-muted-foreground">
                         {t('homePage.resultsCount', { shown: filteredDomains.length, total: sortedDomains.length })}
