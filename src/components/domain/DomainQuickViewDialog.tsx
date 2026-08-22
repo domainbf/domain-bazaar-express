@@ -27,13 +27,16 @@ interface Props {
   sellerId?: string;
   price?: number;
   currency?: string;
+  /** Sold domains are read-only: no offer entry. */
+  isSold?: boolean;
   onPrev?: () => void;
   onNext?: () => void;
   hasPrev?: boolean;
   hasNext?: boolean;
 }
 
-export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerId, price, currency = 'CNY', onPrev, onNext, hasPrev, hasNext }: Props) {
+export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerId, price, currency = 'CNY', isSold = false, onPrev, onNext, hasPrev, hasNext }: Props) {
+
 
   const { user } = useAuth();
   const [offers, setOffers] = useState<OfferRow[]>([]);
