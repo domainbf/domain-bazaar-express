@@ -364,19 +364,19 @@ export const Marketplace = () => {
         )}
 
         {activeTab === 'sold' && (
-        <div className={px}>
-          {soldLoading ? (
-            <DomainListings isLoading domains={[]} isMobile={isMobile} layout={layout} view="grid" />
+          soldLoading ? (
+            <div className={px}>
+              <DomainListings isLoading domains={[]} isMobile={isMobile} layout={layout} view="grid" />
+            </div>
           ) : sortedSold.length === 0 ? (
-            <div className="text-center py-20">
+            <div className={cn(px, 'text-center py-20')}>
               <div className="text-5xl mb-4">🏁</div>
               <h3 className="text-lg font-semibold mb-2">{t('marketplace.ui.noSoldTitle')}</h3>
-              <p className="text-muted-foreground text-sm mb-4">{t('marketplace.ui.noSoldDesc')}</p>
+              <p className="text-muted-foreground text-sm">{t('marketplace.ui.noSoldDesc')}</p>
             </div>
           ) : (
             <SoldDomains onSelect={makeOnSelect(sortedSold)} grid title={t('marketplace.ui.soldTitle')} />
-          )}
-        </div>
+          )
         )}
 
         {/* ── Quick view dialog ─────────────────────────────────── */}
@@ -388,11 +388,13 @@ export const Marketplace = () => {
           sellerId={quickDomain?.d.owner_id}
           price={typeof quickDomain?.d.price === 'number' ? quickDomain.d.price : undefined}
           currency={quickDomain?.d.currency}
+          isSold={activeTab === 'sold'}
           onPrev={() => quickDomain && openAtIndex(quickDomain.index - 1)}
           onNext={() => quickDomain && openAtIndex(quickDomain.index + 1)}
           hasPrev={!!quickDomain && quickDomain.index > 0}
           hasNext={!!quickDomain && quickDomain.index < quickList.length - 1}
         />
+
       </div>
     </div>
   );
