@@ -27,7 +27,8 @@ import { TrustBar } from '@/components/trust/TrustBar';
 import { TestimonialsStrip } from '@/components/trust/TestimonialsStrip';
 
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FilterToolbar } from '@/components/marketplace/FilterToolbar';
+import { DomainQuickViewDialog } from '@/components/domain/DomainQuickViewDialog';
 import { supabase } from '@/integrations/supabase/client';
 
 const DomainEstimator = lazy(() => import('@/components/tools/DomainEstimator').then(m => ({ default: m.DomainEstimator })));
@@ -57,6 +58,7 @@ const Index = () => {
   const [latestOfferMap, setLatestOfferMap] = useState<Record<string, string>>({});
   
   const [visibleCount, setVisibleCount] = useState(12);
+  const [quickIndex, setQuickIndex] = useState<number | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('marketplace');
   const { user } = useAuth();
