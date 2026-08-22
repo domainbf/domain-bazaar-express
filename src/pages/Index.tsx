@@ -297,7 +297,23 @@ const Index = () => {
                     <Button onClick={handleSellDomains}>{t('homePage.addYourDomain')}</Button>
                   </div>
                 )}
+
+                {/* Quick view dialog */}
+                <DomainQuickViewDialog
+                  open={quickIndex !== null}
+                  onClose={() => setQuickIndex(null)}
+                  domain={quickIndex !== null ? (filteredDomains[quickIndex]?.name ?? '') : ''}
+                  domainId={quickIndex !== null ? filteredDomains[quickIndex]?.id : undefined}
+                  sellerId={quickIndex !== null ? filteredDomains[quickIndex]?.ownerId : undefined}
+                  price={quickIndex !== null ? filteredDomains[quickIndex]?.price : undefined}
+                  currency={quickIndex !== null ? filteredDomains[quickIndex]?.currency : undefined}
+                  onPrev={() => setQuickIndex(i => (i !== null && i > 0 ? i - 1 : i))}
+                  onNext={() => setQuickIndex(i => (i !== null && i < filteredDomains.length - 1 ? i + 1 : i))}
+                  hasPrev={quickIndex !== null && quickIndex > 0}
+                  hasNext={quickIndex !== null && quickIndex < filteredDomains.length - 1}
+                />
               </TabsContent>
+
 
               <TabsContent value="estimator">
                 <Suspense fallback={<div className="flex justify-center py-12"><div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
