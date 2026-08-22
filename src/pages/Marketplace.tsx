@@ -14,7 +14,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Domain } from '@/types/domain';
 
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Heart, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SavedSearches } from '@/components/marketplace/SavedSearches';
@@ -38,6 +37,15 @@ const LENGTH_CHIPS: ToolbarOption[] = [
   { id: 'all', label: '不限长度' }, { id: 'xs', label: '≤3' },
   { id: 'sm', label: '4-6' }, { id: 'md', label: '7-10' }, { id: 'lg', label: '>10' },
 ];
+
+const PRICE_RANGES: Record<string, [number, number]> = {
+  under5k: [0, 5000], '5k-20k': [5000, 20000], '20k-100k': [20000, 100000],
+  over100k: [100000, Infinity],
+};
+
+const LENGTH_RANGES: Record<string, [number, number]> = {
+  xs: [0, 3], sm: [4, 6], md: [7, 10], lg: [11, 999],
+};
 
 const SORT_OPTIONS: ToolbarOption[] = [
   { id: 'newest', label: '最新上架' }, { id: 'price_asc', label: '价格 ↑' },
@@ -145,21 +153,15 @@ export const Marketplace = () => {
         d.description?.toLowerCase().includes(q)
       );
     }
-    const pc = PRICE_CHIPS.find(p => p.id === priceChip);
-    if (pc && pc.id !== 'all') {
-      result = result.filter(d => d.price >= Number(pc.id.split('-')[0]) && d.price <= (pc.id === 'over100k' ? Infinity : Number(pc.id.split('-')[1])));
-    }
-    if (priceChip === 'under5k') result = result.filter(d => d.price < 5000);
-    if (priceChip === 'over100k') result = result.filter(d => d.price >= 100000);
+    const pr = PRICE_RANGES[priceChip];
+    if (pr) result = result.filter(d => d.price >= pr[0] && d.price < pr[1]);
     if (verifiedOnly) result = result.filter(d => d.is_verified);
     if (favoritesOnly) result = result.filter(d => favoriteSet.has(d.id));
-    const lc = LENGTH_CHIPS.find(l => l.id === lengthChip);
-    if (lc && lc.id !== 'all') {
-      if (lengthChip === 'xs') result = result.filter(d => domainBase(d.name).length <= 3);
-      else if (lengthChip === 'sm') result = result.filter(d => { const n = domainBase(d.name).length; return n >= 4 && n <= 6; });
-      else if (lengthChip === 'md') result = result.filter(d => { const n = domainBase(d.name).length; return n >= 7 && n <= 10; });
-      else if (lengthChip === 'lg') result = result.filter(d => domainBase(d.name).length > 10);
-    }
+    const lr = LENGTH_RANGES[lengthChip];
+    if (lr) result = result.filter(d => {
+      const n = domainBase(d.name).length;
+      return n >= lr[0] && n <= lr[1];
+    });
 
     result.sort((a, b) => {
       switch (sortBy) {
@@ -243,16 +245,27 @@ export const Marketplace = () => {
         <div className="border-b border-border bg-background sticky top-0 z-20 backdrop-blur-md bg-background/90">
           <div className={px}>
             <div className="flex items-center justify-between gap-3 py-3">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="shrink-0">
-                <TabsList className="rounded-full bg-muted/60">
-                  <TabsTrigger value="available" data-testid="tab-available" className="rounded-full text-xs px-3 data-[state=active]:bg-foreground data-[state=active]:text-background">
-                    可报价
-                  </TabsTrigger>
-                  <TabsTrigger value="sold" data-testid="tab-sold" className="rounded-full text-xs px-3 data-[state=active]:bg-foreground data-[state=active]:text-background">
-                    已售
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
+              <div className="inline-flex shrink-0 rounded-full bg-muted/60 p-0.5" role="tablist">
+                {[
+                  { id: 'available', label: t('marketplace.ui.tabAvailable') },
+                  { id: 'sold', label: t('marketplace.ui.tabSold') },
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={activeTab === tab.id}
+                    data-testid={`tab-${tab.id}`}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={cn(
+                      'rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors',
+                      activeTab === tab.id ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
               <button
                 onClick={handleRefresh}
                 className="text-muted-foreground hover:text-foreground transition-colors p-1"
@@ -314,7 +327,8 @@ export const Marketplace = () => {
         )}
 
         {/* ── Content ───────────────────────────────────────────── */}
-        <TabsContent value="available" className={cn(px, 'mt-0')}>
+        {activeTab === 'available' && (
+        <div className={px}>
           {isError ? (
             <div className="text-center py-16">
               <p className="text-muted-foreground mb-4">{t('marketplace.ui.loadErrorRetry')}</p>
@@ -346,9 +360,11 @@ export const Marketplace = () => {
               onSelect={makeOnSelect(filteredDomains)}
             />
           )}
-        </TabsContent>
+        </div>
+        )}
 
-        <TabsContent value="sold" className={cn(px, 'mt-0')}>
+        {activeTab === 'sold' && (
+        <div className={px}>
           {soldLoading ? (
             <DomainListings isLoading domains={[]} isMobile={isMobile} layout={layout} view="grid" />
           ) : sortedSold.length === 0 ? (
@@ -360,7 +376,8 @@ export const Marketplace = () => {
           ) : (
             <SoldDomains onSelect={makeOnSelect(sortedSold)} grid title={t('marketplace.ui.soldTitle')} />
           )}
-        </TabsContent>
+        </div>
+        )}
 
         {/* ── Quick view dialog ─────────────────────────────────── */}
         <DomainQuickViewDialog
