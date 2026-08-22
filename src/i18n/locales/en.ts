@@ -158,6 +158,10 @@ export const en = {
       favOnlyBadge: 'Favorites', verifiedOnlyShort: 'Verified only', refresh: 'Refresh',
       loadErrorRetry: 'Failed to load domains, please retry', reload: 'Reload',
       emptyTitle: 'No domains listed yet', emptyDesc: 'Be the first to list a domain on the marketplace', listDomain: 'List a domain',
+      filterLabel: 'Filters',
+      tabAvailable: 'Available', tabSold: 'Sold',
+      soldTitle: 'Sold Domains', soldCount: '{{count}} sold domains',
+      noSoldTitle: 'No sold domains yet', noSoldDesc: 'Completed deals will appear here',
       noMatchTitle: 'No matching domains', noMatchDesc: 'Try adjusting your filters',
     }
   },

@@ -27,13 +27,16 @@ interface Props {
   sellerId?: string;
   price?: number;
   currency?: string;
+  /** Sold domains are read-only: no offer entry. */
+  isSold?: boolean;
   onPrev?: () => void;
   onNext?: () => void;
   hasPrev?: boolean;
   hasNext?: boolean;
 }
 
-export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerId, price, currency = 'CNY', onPrev, onNext, hasPrev, hasNext }: Props) {
+export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerId, price, currency = 'CNY', isSold = false, onPrev, onNext, hasPrev, hasNext }: Props) {
+
 
   const { user } = useAuth();
   const [offers, setOffers] = useState<OfferRow[]>([]);
@@ -137,10 +140,26 @@ export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerI
         </DialogHeader>
 
 
-        {showOfferForm ? (
+        {isSold ? (
+          <div className="space-y-4 mt-2">
+            <div className="rounded-lg border border-border bg-muted/40 p-4 text-center">
+              <div className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">成交价格</div>
+              <div className="mt-1 text-2xl font-black tabular-nums text-success">
+                {price ? formatPrice(price, currency) : '—'}
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">该域名已完成交易，不可再提交报价</p>
+            </div>
+            <Link to={getDomainDetailPath(domain)} onClick={onClose} className="block">
+              <Button variant="outline" className="w-full gap-1 rounded-full">
+                查看详情 <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            </Link>
+          </div>
+        ) : showOfferForm ? (
           <DomainOfferForm
             domain={domain}
             domainId={domainId}
+
             sellerId={sellerId}
             initialCurrency={currency}
             listingPrice={price}
