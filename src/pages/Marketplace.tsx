@@ -14,7 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Domain } from '@/types/domain';
 
 import { Button } from '@/components/ui/button';
-import { Heart, TrendingUp } from 'lucide-react';
+import { Heart, TrendingUp, Trophy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SavedSearches } from '@/components/marketplace/SavedSearches';
 import { useQueryClient } from '@tanstack/react-query';
