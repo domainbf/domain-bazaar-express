@@ -153,7 +153,7 @@ export const DomainCard = ({
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: Math.min(index * 0.05, 0.3) }}
-      className={`group relative flex flex-col overflow-hidden rounded-2xl border bg-card p-1.5 shadow-card transition-shadow duration-300 hover:shadow-elegant
+      className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border bg-card p-1.5 shadow-card transition-[box-shadow,border-color] duration-300 hover:shadow-elegant hover:border-primary/40
         ${highlight ? 'border-foreground/40' : 'border-border'}
         ${isSold ? 'opacity-60' : ''}`}
       style={{ willChange: 'transform' }}
@@ -165,7 +165,7 @@ export const DomainCard = ({
       />
 
       {/* Dashed inner frame */}
-      <div className="relative flex flex-1 flex-col rounded-xl border border-dashed border-border px-4 pb-4 pt-3.5 sm:px-5">
+      <div className="relative flex flex-1 flex-col rounded-xl border border-dashed border-border px-3.5 pb-4 pt-3 sm:px-5 sm:pt-3.5">
         {/* Top row: badges + actions */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5">
@@ -181,7 +181,7 @@ export const DomainCard = ({
           <div className="flex items-center gap-1">
             <button
               type="button"
-              className="h-7 w-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100"
+              className="h-9 w-9 sm:h-8 sm:w-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100"
               onClick={async (e) => {
                 e.preventDefault(); e.stopPropagation();
                 try {
@@ -198,7 +198,7 @@ export const DomainCard = ({
             </button>
             <button
               key={heartKey}
-              className={`h-7 w-7 rounded-full flex items-center justify-center transition-all
+              className={`h-9 w-9 sm:h-8 sm:w-8 rounded-full flex items-center justify-center transition-all
                 ${isFavorited
                   ? 'text-destructive hover:bg-destructive/10'
                   : 'text-muted-foreground hover:text-destructive hover:bg-destructive/10'}
@@ -250,7 +250,7 @@ export const DomainCard = ({
         )}
 
         {/* Actions */}
-        <div className="mt-auto w-full pt-5 flex gap-2">
+        <div className="mt-auto w-full pt-4 sm:pt-5 flex gap-2">
           {isSold ? (
             <span className="w-full text-center px-4 py-2.5 rounded-full bg-muted text-muted-foreground font-semibold text-sm">
               已售出
@@ -259,7 +259,7 @@ export const DomainCard = ({
             <>
               <Link to={getDomainDetailPath(domain)} className="flex-1" data-testid={`link-domain-detail-${domainId}`}>
                 <Button
-                  className="w-full rounded-full bg-foreground text-background hover:bg-foreground/90 border-0 text-xs h-9"
+                  className="w-full rounded-full bg-foreground text-background hover:bg-foreground/90 border-0 text-xs h-11 sm:h-9"
                   size="sm"
                 >
                   查看详情 ›
@@ -269,7 +269,7 @@ export const DomainCard = ({
                 <DialogTrigger asChild>
                   <Button
                     variant="outline"
-                    className="flex-1 rounded-full border-border text-xs h-9 hover:bg-muted"
+                    className="flex-1 rounded-full border-border text-xs h-11 sm:h-9 hover:bg-muted"
                     size="sm"
                     onClick={handleOpenDialog}
                     data-testid={`button-offer-${domainId}`}

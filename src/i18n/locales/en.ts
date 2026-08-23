@@ -88,7 +88,7 @@ export const en = {
     searchPlaceholder: 'Search domains or keywords...',
     tabs: { marketplace: 'Marketplace', estimator: 'Valuation', monitor: 'Monitor' },
     sort: {
-      hot: '🔥 Popular', latestOffer: '🆕 Latest Offer',
+      hot: 'Popular', latestOffer: 'Latest Offer',
       priceAsc: '↑ Price Low', priceDesc: '↓ Price High',
     },
     allSuffixes: 'All TLDs',

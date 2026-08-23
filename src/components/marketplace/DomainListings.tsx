@@ -142,6 +142,7 @@ const HeroStyleCard = ({ domain, index, hero, onSelect }: CardProps) => {
         {/* Domain wordmark */}
         <h3 className={cn(
           'mt-2 font-black uppercase tracking-tight leading-[1.02] break-all',
+          'transition-transform duration-300 group-hover:scale-[1.02]',
           fg,
           domainTextSize(domain.name, isFeatured),
         )}>
@@ -158,7 +159,7 @@ const HeroStyleCard = ({ domain, index, hero, onSelect }: CardProps) => {
         <div className="mt-auto w-full pt-5 text-xs font-semibold">
 
           <span className={cn(
-            'inline-flex w-full items-center justify-center gap-1.5 rounded-full px-4 py-2.5 transition-colors',
+            'inline-flex w-full min-h-11 items-center justify-center gap-1.5 rounded-full px-4 py-2.5 transition-colors',
             onDark
               ? 'bg-invert-foreground text-invert group-hover:bg-invert-foreground/90'
               : 'bg-foreground text-background group-hover:bg-foreground/90',
@@ -182,12 +183,14 @@ const HeroStyleCard = ({ domain, index, hero, onSelect }: CardProps) => {
   );
 
   const wrapperClass = cn(
-    'group relative block overflow-hidden isolate rounded-2xl transition-all duration-300 p-1.5',
+    'group relative block overflow-hidden isolate rounded-2xl p-1.5',
+    'transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
+    'active:scale-[0.99] motion-reduce:transition-none',
     onDark
       ? 'bg-invert text-invert-foreground border border-invert-foreground/10 hover:border-primary/50'
       : 'bg-card border border-border hover:border-primary/40 shadow-card hover:shadow-elegant',
-    'hover:-translate-y-0.5',
-    hero ? 'min-h-[280px] sm:min-h-[320px]' : 'min-h-[230px]',
+    'hover:-translate-y-1',
+    hero ? 'min-h-[280px] sm:min-h-[320px]' : 'min-h-[236px]',
   );
 
 
@@ -228,8 +231,8 @@ const CardSkeleton = ({ hero, i }: { hero?: boolean; i: number }) => (
     animate={{ opacity: 1 }}
     transition={{ duration: 0.2, delay: Math.min(i * 0.04, 0.2) }}
     className={cn(
- 'relative rounded-2xl border border-invert-foreground/10 bg-invert overflow-hidden',
-      hero ? 'p-6 sm:p-8 min-h-[260px] sm:min-h-[300px] sm:col-span-2' : 'p-5 min-h-[200px]',
+ 'relative rounded-2xl border border-border bg-card shadow-card overflow-hidden',
+      hero ? 'p-6 sm:p-8 min-h-[280px] sm:min-h-[320px] sm:col-span-2' : 'p-5 min-h-[236px]',
     )}
   >
     <div className="animate-pulse space-y-4">
@@ -250,7 +253,7 @@ export const DomainListings = ({ domains, isLoading, isMobile, layout = 'card', 
   const showHero = view === 'grid' && (layout === 'magazine' || layout === 'bento');
 
   const gridClass = isMobile
-    ? 'grid grid-cols-1 gap-4'
+    ? 'grid grid-cols-1 gap-3'
     : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-fr';
 
   const list = useMemo(() => domains, [domains]);

@@ -14,7 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Domain } from '@/types/domain';
 
 import { Button } from '@/components/ui/button';
-import { Heart, TrendingUp } from 'lucide-react';
+import { Heart, TrendingUp, Trophy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SavedSearches } from '@/components/marketplace/SavedSearches';
 import { useQueryClient } from '@tanstack/react-query';
@@ -370,10 +370,13 @@ export const Marketplace = () => {
             </div>
           ) : sortedSold.length === 0 ? (
             <div className={cn(px, 'text-center py-20')}>
-              <div className="text-5xl mb-4">🏁</div>
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+                <Trophy className="h-6 w-6 text-muted-foreground" />
+              </div>
               <h3 className="text-lg font-semibold mb-2">{t('marketplace.ui.noSoldTitle')}</h3>
               <p className="text-muted-foreground text-sm">{t('marketplace.ui.noSoldDesc')}</p>
             </div>
+
           ) : (
             <SoldDomains onSelect={makeOnSelect(sortedSold)} grid title={t('marketplace.ui.soldTitle')} />
           )

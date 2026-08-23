@@ -88,7 +88,7 @@ export const zh = {
     searchPlaceholder: '搜索域名或关键词...',
     tabs: { marketplace: '域名市场', estimator: '价值评估', monitor: '域名监控' },
     sort: {
-      hot: '🔥 热门', latestOffer: '🆕 最新报价',
+      hot: '热门', latestOffer: '最新报价',
       priceAsc: '↑ 价格从低', priceDesc: '↓ 价格从高',
     },
     allSuffixes: '全部后缀',
