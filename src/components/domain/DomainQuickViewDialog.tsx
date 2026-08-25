@@ -165,12 +165,25 @@ export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerI
               </Button>
             )}
           </div>
-          <div className="flex justify-center pt-1">
+          <div className="flex justify-center gap-2 pt-1">
             <Button type="button" variant="outline" size="sm" onClick={handleCopy} className="h-7 gap-1.5 text-xs">
               {copied ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
               {copied ? '已复制' : '复制域名'}
             </Button>
+            <Button
+              type="button"
+              variant={favorited ? 'default' : 'outline'}
+              size="sm"
+              onClick={handleFavorite}
+              disabled={toggling}
+              className="h-7 gap-1.5 text-xs"
+              aria-label={favorited ? '取消收藏' : '收藏并接收价格提醒'}
+            >
+              <Heart className={`w-3.5 h-3.5 ${favorited ? 'fill-current' : ''}`} />
+              {favorited ? '已收藏' : '收藏提醒'}
+            </Button>
           </div>
+
         </DialogHeader>
 
 
