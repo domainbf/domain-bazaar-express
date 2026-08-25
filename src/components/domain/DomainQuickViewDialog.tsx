@@ -42,10 +42,27 @@ export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerI
 
 
   const { user } = useAuth();
+  const { isFavorited, toggle, toggling } = useFavorites();
   const [offers, setOffers] = useState<OfferRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [showOfferForm, setShowOfferForm] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [whois, setWhois] = useState<any | null>(null);
+  const [whoisLoading, setWhoisLoading] = useState(false);
+  const favorited = domainId ? isFavorited(domainId) : false;
+
+  useEffect(() => {
+    if (!open || !domain) { setWhois(null); return; }
+    let cancelled = false;
+    setWhoisLoading(true);
+    supabase.functions
+      .invoke('whois-query', { body: { domain } })
+      .then(({ data }) => { if (!cancelled) setWhois(data?.success ? data.data : null); })
+      .catch(() => { if (!cancelled) setWhois(null); })
+      .finally(() => { if (!cancelled) setWhoisLoading(false); });
+    return () => { cancelled = true; };
+  }, [open, domain]);
+
 
   const loadOffers = useCallback(async () => {
     if (!domainId) return;
