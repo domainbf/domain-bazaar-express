@@ -273,7 +273,48 @@ export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerI
               </div>
             </div>
 
+            {/* WHOIS summary */}
+            <div className="rounded-lg border border-border">
+              <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
+                <Globe className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">WHOIS 摘要</span>
+                {whoisLoading && <Loader2 className="ml-auto w-3.5 h-3.5 animate-spin text-muted-foreground" />}
+              </div>
+              <div className="px-3 py-2 space-y-1.5 text-xs">
+                {whoisLoading ? (
+                  <p className="text-muted-foreground py-2 text-center">正在查询注册信息…</p>
+                ) : whois ? (
+                  <>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-muted-foreground flex items-center gap-1"><Server className="w-3 h-3" />注册商</span>
+                      <span className="font-medium truncate max-w-[60%] text-right">{whois.registrar || '—'}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-muted-foreground flex items-center gap-1"><CalendarClock className="w-3 h-3" />注册到期</span>
+                      <span className="font-medium tabular-nums">
+                        {fmtDate(whois.expiryDate) || '—'}
+                        {typeof whois.remainingDays === 'number' && whois.remainingDays >= 0 && (
+                          <span className="ml-1 text-muted-foreground">（剩余 {whois.remainingDays} 天）</span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-muted-foreground">注册日期</span>
+                      <span className="font-medium tabular-nums">{fmtDate(whois.createdDate) || '—'}</span>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-muted-foreground py-2 text-center">暂无 WHOIS 信息</p>
+                )}
+              </div>
+            </div>
+
+            <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
+              <BellRing className="w-3 h-3" />收藏后，价格或状态变动会第一时间通知你
+            </p>
+
             {/* Actions */}
+
             <div className="grid grid-cols-2 gap-2">
               <Button
                 onClick={() => setShowOfferForm(true)}
