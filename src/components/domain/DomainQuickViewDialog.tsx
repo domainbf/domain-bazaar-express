@@ -217,7 +217,18 @@ export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerI
           />
         ) : (
           <div className="space-y-4 mt-2">
+            {/* Availability + suggested range */}
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <Badge className="bg-success/10 text-success border-success/30 hover:bg-success/10">可报价</Badge>
+              {minOffer && suggestMax && (
+                <Badge variant="outline" className="gap-1 font-normal">
+                  <Tag className="w-3 h-3" />建议区间 {formatPrice(minOffer, currency)} – {formatPrice(suggestMax, currency)}
+                </Badge>
+              )}
+            </div>
+
             {/* Price block */}
+
             <div className="grid grid-cols-2 gap-2">
               <div className="rounded-lg border border-border p-3 text-center">
                 <div className="text-[10px] uppercase text-muted-foreground tracking-wider">挂牌价</div>
