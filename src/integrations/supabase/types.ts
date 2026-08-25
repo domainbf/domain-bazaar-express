@@ -364,6 +364,7 @@ export type Database = {
           name: string
           owner_id: string | null
           price: number
+          sort_order: number
           status: string | null
           verification_status: string | null
         }
@@ -378,6 +379,7 @@ export type Database = {
           name: string
           owner_id?: string | null
           price: number
+          sort_order?: number
           status?: string | null
           verification_status?: string | null
         }
@@ -392,6 +394,7 @@ export type Database = {
           name?: string
           owner_id?: string | null
           price?: number
+          sort_order?: number
           status?: string | null
           verification_status?: string | null
         }
