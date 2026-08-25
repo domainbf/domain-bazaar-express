@@ -52,6 +52,8 @@ export const DomainOfferForm = ({
   const [submitState, setSubmitState] = useState<{ status: 'submitted' | 'reviewing' | 'emailed'; amount: number; currency: string } | null>(null);
   const [showReason, setShowReason] = useState(false);
   const captchaRef = useRef<HCaptcha>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+
   const inflightRef = useRef<string | null>(null);
   const submittedKeysRef = useRef<Set<string>>(new Set());
   // 提交节流：两次提交之间至少间隔 15 秒，防止误触与刷单
@@ -213,7 +215,7 @@ export const DomainOfferForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 mt-4">
       {!isAuthenticated && (
         <div className="bg-warning/10 border border-warning/30 p-3 rounded-md mb-4">
           <p className="text-warning  text-sm">
