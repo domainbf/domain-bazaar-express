@@ -110,6 +110,35 @@ export const DomainOfferForm = ({
     setError({ message, type: type as any, reason });
   };
 
+  /** 失败后一键重试：解除节流与在途标记，若验证码已失效则提示重新验证 */
+  const handleRetry = () => {
+    setError(null);
+    setShowReason(false);
+    inflightRef.current = null;
+    lastSubmitRef.current = 0;
+    setCooldown(0);
+    if (!captchaToken) {
+      try { captchaRef.current?.resetCaptcha(); } catch { /* noop */ }
+      toast.info('请重新完成人机验证后提交');
+      return;
+    }
+    setTimeout(() => formRef.current?.requestSubmit(), 0);
+  };
+
+  /** 提交成功后继续提交新的报价 */
+  const handleNewOffer = () => {
+    setSubmitState(null);
+    setError(null);
+    setOffer('');
+    setMessage('');
+    setCaptchaToken(null);
+    submittedKeysRef.current.clear();
+    inflightRef.current = null;
+    try { captchaRef.current?.resetCaptcha(); } catch { /* noop */ }
+  };
+
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
