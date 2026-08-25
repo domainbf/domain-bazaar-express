@@ -249,9 +249,9 @@ export const DomainOfferForm = ({
                     {showReason ? t('offer.form.hideReason') : t('offer.form.showReason')}
                   </button>
                 )}
-                {(error.type === 'network' || error.type === 'email_failed' || error.type === 'db_error') && (
-                  <button type="button" onClick={() => { setError(null); }}
-                    className="text-xs text-destructive underline hover:no-underline">
+                {(error.type === 'network' || error.type === 'email_failed' || error.type === 'db_error' || error.type === 'unknown') && (
+                  <button type="button" onClick={handleRetry}
+                    className="text-xs text-destructive font-semibold underline hover:no-underline">
                     {t('offer.form.resubmit')}
                   </button>
                 )}
@@ -262,8 +262,12 @@ export const DomainOfferForm = ({
       )}
 
       {submitState && (
-        <div className="rounded-md border border-border bg-muted/40 p-3 space-y-2 mb-2">
-          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('offer.form.statusHeading')}</div>
+        <div className="rounded-md border border-success/40 bg-success/5 p-3 space-y-2 mb-2">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-success" />
+            <span className="text-sm font-semibold text-foreground">报价已成功提交</span>
+          </div>
+          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground pt-1">{t('offer.form.statusHeading')}</div>
           <div className="space-y-1.5 text-sm">
             <div className="flex items-center gap-2 text-foreground">
               <CheckCircle2 className="w-4 h-4 text-success" />
@@ -283,11 +287,20 @@ export const DomainOfferForm = ({
               )}
             </div>
           </div>
-          <Button type="button" variant="outline" size="sm" className="w-full" onClick={onClose}>
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <Link to="/my-offers" onClick={onClose}>
+              <Button type="button" variant="outline" size="sm" className="w-full">查看我的报价</Button>
+            </Link>
+            <Button type="button" variant="ghost" size="sm" className="w-full" onClick={handleNewOffer}>
+              再提交一个报价
+            </Button>
+          </div>
+          <Button type="button" size="sm" className="w-full" onClick={onClose}>
             {t('offer.form.done')}
           </Button>
         </div>
       )}
+
 
       <div className="space-y-2">
         <label className="text-sm font-medium text-foreground">
