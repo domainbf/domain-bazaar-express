@@ -1,14 +1,17 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/currency';
 import { getDomainDetailPath } from '@/lib/domainRouting';
 import { DomainOfferForm } from './DomainOfferForm';
-import { Loader2, History, ArrowRight, Tag, Copy, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, History, ArrowRight, Tag, Copy, Check, ChevronLeft, ChevronRight, Heart, Globe, CalendarClock, Server, BellRing } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFavorites } from '@/hooks/useFavorites';
 import { toast } from 'sonner';
+
 
 
 interface OfferRow {
@@ -39,10 +42,27 @@ export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerI
 
 
   const { user } = useAuth();
+  const { isFavorited, toggle, toggling } = useFavorites();
   const [offers, setOffers] = useState<OfferRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [showOfferForm, setShowOfferForm] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [whois, setWhois] = useState<any | null>(null);
+  const [whoisLoading, setWhoisLoading] = useState(false);
+  const favorited = domainId ? isFavorited(domainId) : false;
+
+  useEffect(() => {
+    if (!open || !domain) { setWhois(null); return; }
+    let cancelled = false;
+    setWhoisLoading(true);
+    supabase.functions
+      .invoke('whois-query', { body: { domain } })
+      .then(({ data }) => { if (!cancelled) setWhois(data?.success ? data.data : null); })
+      .catch(() => { if (!cancelled) setWhois(null); })
+      .finally(() => { if (!cancelled) setWhoisLoading(false); });
+    return () => { cancelled = true; };
+  }, [open, domain]);
+
 
   const loadOffers = useCallback(async () => {
     if (!domainId) return;
@@ -93,8 +113,22 @@ export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerI
   }, [open, showOfferForm, hasPrev, hasNext, onPrev, onNext]);
 
   const minOffer = price ? Math.round(price * 0.3) : null;
+  const suggestMax = price ? Math.round(price) : null;
   const highest = offers[0];
   const canNav = !!(onPrev || onNext);
+
+  const handleFavorite = () => {
+    if (!user) { toast.error('请先登录后再收藏'); return; }
+    if (!domainId) { toast.error('该域名暂不支持收藏'); return; }
+    toggle(domainId);
+  };
+
+  const fmtDate = (d?: string | null) => {
+    if (!d) return null;
+    const t = new Date(d);
+    return isNaN(t.getTime()) ? null : t.toLocaleDateString('zh-CN');
+  };
+
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && (onClose(), setShowOfferForm(false))}>
@@ -131,12 +165,25 @@ export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerI
               </Button>
             )}
           </div>
-          <div className="flex justify-center pt-1">
+          <div className="flex justify-center gap-2 pt-1">
             <Button type="button" variant="outline" size="sm" onClick={handleCopy} className="h-7 gap-1.5 text-xs">
               {copied ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
               {copied ? '已复制' : '复制域名'}
             </Button>
+            <Button
+              type="button"
+              variant={favorited ? 'default' : 'outline'}
+              size="sm"
+              onClick={handleFavorite}
+              disabled={toggling}
+              className="h-7 gap-1.5 text-xs"
+              aria-label={favorited ? '取消收藏' : '收藏并接收价格提醒'}
+            >
+              <Heart className={`w-3.5 h-3.5 ${favorited ? 'fill-current' : ''}`} />
+              {favorited ? '已收藏' : '收藏提醒'}
+            </Button>
           </div>
+
         </DialogHeader>
 
 
@@ -170,7 +217,18 @@ export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerI
           />
         ) : (
           <div className="space-y-4 mt-2">
+            {/* Availability + suggested range */}
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <Badge className="bg-success/10 text-success border-success/30 hover:bg-success/10">可报价</Badge>
+              {minOffer && suggestMax && (
+                <Badge variant="outline" className="gap-1 font-normal">
+                  <Tag className="w-3 h-3" />建议区间 {formatPrice(minOffer, currency)} – {formatPrice(suggestMax, currency)}
+                </Badge>
+              )}
+            </div>
+
             {/* Price block */}
+
             <div className="grid grid-cols-2 gap-2">
               <div className="rounded-lg border border-border p-3 text-center">
                 <div className="text-[10px] uppercase text-muted-foreground tracking-wider">挂牌价</div>
@@ -215,7 +273,48 @@ export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerI
               </div>
             </div>
 
+            {/* WHOIS summary */}
+            <div className="rounded-lg border border-border">
+              <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
+                <Globe className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">WHOIS 摘要</span>
+                {whoisLoading && <Loader2 className="ml-auto w-3.5 h-3.5 animate-spin text-muted-foreground" />}
+              </div>
+              <div className="px-3 py-2 space-y-1.5 text-xs">
+                {whoisLoading ? (
+                  <p className="text-muted-foreground py-2 text-center">正在查询注册信息…</p>
+                ) : whois ? (
+                  <>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-muted-foreground flex items-center gap-1"><Server className="w-3 h-3" />注册商</span>
+                      <span className="font-medium truncate max-w-[60%] text-right">{whois.registrar || '—'}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-muted-foreground flex items-center gap-1"><CalendarClock className="w-3 h-3" />注册到期</span>
+                      <span className="font-medium tabular-nums">
+                        {fmtDate(whois.expiryDate) || '—'}
+                        {typeof whois.remainingDays === 'number' && whois.remainingDays >= 0 && (
+                          <span className="ml-1 text-muted-foreground">（剩余 {whois.remainingDays} 天）</span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-muted-foreground">注册日期</span>
+                      <span className="font-medium tabular-nums">{fmtDate(whois.createdDate) || '—'}</span>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-muted-foreground py-2 text-center">暂无 WHOIS 信息</p>
+                )}
+              </div>
+            </div>
+
+            <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
+              <BellRing className="w-3 h-3" />收藏后，价格或状态变动会第一时间通知你
+            </p>
+
             {/* Actions */}
+
             <div className="grid grid-cols-2 gap-2">
               <Button
                 onClick={() => setShowOfferForm(true)}

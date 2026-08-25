@@ -9,6 +9,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { CURRENCIES, formatPrice, getCurrencySymbol, convertCurrency } from '@/lib/currency';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
+
 
 
 interface DomainOfferFormProps {
@@ -52,6 +54,8 @@ export const DomainOfferForm = ({
   const [submitState, setSubmitState] = useState<{ status: 'submitted' | 'reviewing' | 'emailed'; amount: number; currency: string } | null>(null);
   const [showReason, setShowReason] = useState(false);
   const captchaRef = useRef<HCaptcha>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+
   const inflightRef = useRef<string | null>(null);
   const submittedKeysRef = useRef<Set<string>>(new Set());
   // 提交节流：两次提交之间至少间隔 15 秒，防止误触与刷单
@@ -105,6 +109,35 @@ export const DomainOfferForm = ({
   const setErr = (message: string, type: typeof error extends { type: infer T } ? T : never = 'unknown' as any, reason?: string) => {
     setError({ message, type: type as any, reason });
   };
+
+  /** 失败后一键重试：解除节流与在途标记，若验证码已失效则提示重新验证 */
+  const handleRetry = () => {
+    setError(null);
+    setShowReason(false);
+    inflightRef.current = null;
+    lastSubmitRef.current = 0;
+    setCooldown(0);
+    if (!captchaToken) {
+      try { captchaRef.current?.resetCaptcha(); } catch { /* noop */ }
+      toast.info('请重新完成人机验证后提交');
+      return;
+    }
+    setTimeout(() => formRef.current?.requestSubmit(), 0);
+  };
+
+  /** 提交成功后继续提交新的报价 */
+  const handleNewOffer = () => {
+    setSubmitState(null);
+    setError(null);
+    setOffer('');
+    setMessage('');
+    setCaptchaToken(null);
+    submittedKeysRef.current.clear();
+    inflightRef.current = null;
+    try { captchaRef.current?.resetCaptcha(); } catch { /* noop */ }
+  };
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -213,7 +246,7 @@ export const DomainOfferForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 mt-4">
       {!isAuthenticated && (
         <div className="bg-warning/10 border border-warning/30 p-3 rounded-md mb-4">
           <p className="text-warning  text-sm">
@@ -247,9 +280,9 @@ export const DomainOfferForm = ({
                     {showReason ? t('offer.form.hideReason') : t('offer.form.showReason')}
                   </button>
                 )}
-                {(error.type === 'network' || error.type === 'email_failed' || error.type === 'db_error') && (
-                  <button type="button" onClick={() => { setError(null); }}
-                    className="text-xs text-destructive underline hover:no-underline">
+                {(error.type === 'network' || error.type === 'email_failed' || error.type === 'db_error' || error.type === 'unknown') && (
+                  <button type="button" onClick={handleRetry}
+                    className="text-xs text-destructive font-semibold underline hover:no-underline">
                     {t('offer.form.resubmit')}
                   </button>
                 )}
@@ -260,8 +293,12 @@ export const DomainOfferForm = ({
       )}
 
       {submitState && (
-        <div className="rounded-md border border-border bg-muted/40 p-3 space-y-2 mb-2">
-          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('offer.form.statusHeading')}</div>
+        <div className="rounded-md border border-success/40 bg-success/5 p-3 space-y-2 mb-2">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-success" />
+            <span className="text-sm font-semibold text-foreground">报价已成功提交</span>
+          </div>
+          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground pt-1">{t('offer.form.statusHeading')}</div>
           <div className="space-y-1.5 text-sm">
             <div className="flex items-center gap-2 text-foreground">
               <CheckCircle2 className="w-4 h-4 text-success" />
@@ -281,11 +318,20 @@ export const DomainOfferForm = ({
               )}
             </div>
           </div>
-          <Button type="button" variant="outline" size="sm" className="w-full" onClick={onClose}>
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <Link to="/my-offers" onClick={onClose}>
+              <Button type="button" variant="outline" size="sm" className="w-full">查看我的报价</Button>
+            </Link>
+            <Button type="button" variant="ghost" size="sm" className="w-full" onClick={handleNewOffer}>
+              再提交一个报价
+            </Button>
+          </div>
+          <Button type="button" size="sm" className="w-full" onClick={onClose}>
             {t('offer.form.done')}
           </Button>
         </div>
       )}
+
 
       <div className="space-y-2">
         <label className="text-sm font-medium text-foreground">
