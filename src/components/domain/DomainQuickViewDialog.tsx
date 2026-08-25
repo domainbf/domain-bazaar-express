@@ -113,8 +113,22 @@ export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerI
   }, [open, showOfferForm, hasPrev, hasNext, onPrev, onNext]);
 
   const minOffer = price ? Math.round(price * 0.3) : null;
+  const suggestMax = price ? Math.round(price) : null;
   const highest = offers[0];
   const canNav = !!(onPrev || onNext);
+
+  const handleFavorite = () => {
+    if (!user) { toast.error('请先登录后再收藏'); return; }
+    if (!domainId) { toast.error('该域名暂不支持收藏'); return; }
+    toggle(domainId);
+  };
+
+  const fmtDate = (d?: string | null) => {
+    if (!d) return null;
+    const t = new Date(d);
+    return isNaN(t.getTime()) ? null : t.toLocaleDateString('zh-CN');
+  };
+
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && (onClose(), setShowOfferForm(false))}>
