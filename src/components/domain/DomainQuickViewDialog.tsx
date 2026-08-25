@@ -1,14 +1,17 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/currency';
 import { getDomainDetailPath } from '@/lib/domainRouting';
 import { DomainOfferForm } from './DomainOfferForm';
-import { Loader2, History, ArrowRight, Tag, Copy, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, History, ArrowRight, Tag, Copy, Check, ChevronLeft, ChevronRight, Heart, Globe, CalendarClock, Server, BellRing } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFavorites } from '@/hooks/useFavorites';
 import { toast } from 'sonner';
+
 
 
 interface OfferRow {
