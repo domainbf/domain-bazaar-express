@@ -36,6 +36,7 @@ import { DomainWhoisInfo } from "./DomainWhoisInfo";
 import { OfferHistory } from "./OfferHistory";
 import { SimilarDomainsGrid } from "./SimilarDomainsGrid";
 import { DomainShareButtons } from "./DomainShareButtons";
+import { DomainPublicSummary } from "./DomainPublicSummary";
 import { CurrencyConverter } from "./CurrencyConverter";
 import { DomainAuction } from "@/components/auction/DomainAuction";
 import { CreateAuctionDialog } from "@/components/auction/CreateAuctionDialog";
