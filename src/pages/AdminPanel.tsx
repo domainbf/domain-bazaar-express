@@ -22,6 +22,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 // ── Lazy-loaded admin sections: keeps the initial admin bundle small ───────
 const AdminDashboard = lazy(() => import('@/components/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 const PendingVerifications = lazy(() => import('@/components/admin/PendingVerifications').then(m => ({ default: m.PendingVerifications })));
+const DomainManagerPanel = lazy(() => import('@/components/admin/DomainManagerPanel').then(m => ({ default: m.DomainManagerPanel })));
 const AllDomainListings = lazy(() => import('@/components/admin/AllDomainListings').then(m => ({ default: m.AllDomainListings })));
 const UserManagement = lazy(() => import('@/components/admin/UserManagement').then(m => ({ default: m.UserManagement })));
 const ContentManagement = lazy(() => import('@/components/admin/ContentManagement').then(m => ({ default: m.ContentManagement })));
@@ -151,6 +152,7 @@ export const AdminPanel = () => {
       title: '域名管理',
       items: [
         { id: 'domains', label: '全部域名', icon: Globe, keywords: 'domain 列表' },
+        { id: 'domain-manager', label: '域名上架管理', icon: Plus, keywords: 'domain 新增 编辑 排序 已售' },
         { id: 'verifications', label: '待审验证', icon: CheckSquare, badge: pendingVerifications, keywords: 'verify dns' },
         { id: 'auctions', label: '拍卖管理', icon: Gavel, keywords: 'auction 竞价' },
         { id: 'bulk', label: '批量操作', icon: Layers, keywords: 'bulk 导入' },
@@ -369,6 +371,7 @@ export const AdminPanel = () => {
       case 'diagnostics': return <AdminDiagnostics />;
       case 'merge-strategy': return <MergeStrategyManager />;
       case 'domains': return <AllDomainListings />;
+      case 'domain-manager': return <DomainManagerPanel />;
       case 'verifications': return <PendingVerifications />;
       case 'auctions': return <AdminAuctionManagement />;
       case 'bulk': return <BulkDomainOperations />;
