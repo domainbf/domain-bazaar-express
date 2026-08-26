@@ -15,7 +15,7 @@ import {
   Users, Star, Home, BookOpen, Search, Sliders, CreditCard,
   Settings, Activity, Menu, ChevronRight, ChevronDown, LogOut, RefreshCw,
   MessageSquare, Package, Scale, Bell, Headphones, Inbox,
-  ScrollText, GitMerge, SearchCode, ImageIcon, Wallet, Clock,
+  ScrollText, GitMerge, SearchCode, ImageIcon, Wallet, Clock, Plus,
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
