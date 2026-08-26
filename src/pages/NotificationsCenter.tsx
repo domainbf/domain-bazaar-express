@@ -40,6 +40,8 @@ export default function NotificationsCenter() {
       if (filter === 'unread' && n.is_read) return false;
       if (filter === 'transaction' && n.type !== 'transaction') return false;
       if (filter === 'receipt' && !isReceipt(n)) return false;
+      if (filter === 'watch' && !isWatch(n)) return false;
+      if (filter === 'offer' && !isOffer(n)) return false;
       if (s && !`${n.title} ${n.message}`.toLowerCase().includes(s)) return false;
       return true;
     });
