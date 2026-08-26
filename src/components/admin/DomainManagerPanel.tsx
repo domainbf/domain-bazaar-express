@@ -246,7 +246,7 @@ export const DomainManagerPanel = () => {
                 <Select value={form.currency} onValueChange={v => setForm(f => ({ ...f, currency: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {Object.keys(CURRENCIES).map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    {CURRENCIES.map(c => <SelectItem key={c.code} value={c.code}>{c.code} · {c.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
