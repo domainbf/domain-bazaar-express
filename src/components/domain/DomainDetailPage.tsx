@@ -36,6 +36,7 @@ import { DomainWhoisInfo } from "./DomainWhoisInfo";
 import { OfferHistory } from "./OfferHistory";
 import { SimilarDomainsGrid } from "./SimilarDomainsGrid";
 import { DomainShareButtons } from "./DomainShareButtons";
+import { DomainPublicSummary } from "./DomainPublicSummary";
 import { CurrencyConverter } from "./CurrencyConverter";
 import { DomainAuction } from "@/components/auction/DomainAuction";
 import { CreateAuctionDialog } from "@/components/auction/CreateAuctionDialog";
@@ -353,6 +354,16 @@ export const DomainDetailPage = () => {
                 </p>
               </div>
             )}
+          </div>
+
+          {/* 公开分享摘要：报价状态 / 建议区间 / WHOIS */}
+          <div className="mt-6">
+            <DomainPublicSummary
+              domainName={domain.name}
+              price={domain.price}
+              currency={(domain as any).currency || 'CNY'}
+              status={domain.status}
+            />
           </div>
 
           {/* 分享按钮 */}
