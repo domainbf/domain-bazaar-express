@@ -356,6 +356,16 @@ export const DomainDetailPage = () => {
             )}
           </div>
 
+          {/* 公开分享摘要：报价状态 / 建议区间 / WHOIS */}
+          <div className="mt-6">
+            <DomainPublicSummary
+              domainName={domain.name}
+              price={domain.price}
+              currency={(domain as any).currency || 'CNY'}
+              status={domain.status}
+            />
+          </div>
+
           {/* 分享按钮 */}
           <div className="mt-6 pt-4 border-t border-border">
             <DomainShareButtons domainName={domain.name} />
