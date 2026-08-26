@@ -10,6 +10,8 @@ import { CheckCheck, Inbox, RefreshCw, Search, Bell } from 'lucide-react';
 const FILTERS = [
   { key: 'all', label: '全部' },
   { key: 'unread', label: '未读' },
+  { key: 'watch', label: '收藏 / 价格提醒' },
+  { key: 'offer', label: '报价' },
   { key: 'transaction', label: '订单进度' },
   { key: 'receipt', label: '收据 / 邮件' },
 ] as const;
@@ -18,6 +20,13 @@ type FilterKey = typeof FILTERS[number]['key'];
 
 const isReceipt = (n: any) =>
   /收据|receipt|邮件|发送失败/i.test(`${n?.title || ''} ${n?.message || ''}`);
+
+/** 收藏域名的价格 / 状态变动提醒（由 domain_listings 触发器写入） */
+const isWatch = (n: any) =>
+  /关注域名|价格变动|价格由|状态更新|收藏/i.test(`${n?.title || ''} ${n?.message || ''}`);
+
+const isOffer = (n: any) => n?.type === 'offer' || /报价/.test(`${n?.title || ''}`);
+
 
 export default function NotificationsCenter() {
   const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead, refreshNotifications } =
