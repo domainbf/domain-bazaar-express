@@ -301,17 +301,19 @@ export const BulkDomainImport = ({ onSuccess }: BulkDomainImportProps) => {
 
               {validDomains.length > 0 && (
                 <div className="border rounded-md overflow-hidden">
-                  <div className="bg-muted/50 px-3 py-2 text-xs font-medium text-muted-foreground grid grid-cols-3 gap-2">
+                  <div className="bg-muted/50 px-3 py-2 text-xs font-medium text-muted-foreground grid grid-cols-4 gap-2">
                     <span>域名</span>
-                    <span>价格 (¥)</span>
+                    <span>价格</span>
                     <span>分类</span>
+                    <span>排序</span>
                   </div>
                   <div className="max-h-40 overflow-y-auto divide-y">
                     {validDomains.slice(0, 50).map((d, i) => (
-                      <div key={i} className="px-3 py-1.5 text-sm grid grid-cols-3 gap-2">
-                        <span className="font-mono text-xs">{d.name}</span>
-                        <span>{d.price != null ? `¥${d.price.toLocaleString()}` : '—'}</span>
-                        <span className="text-muted-foreground">{d.category}</span>
+                      <div key={i} className="px-3 py-1.5 text-sm grid grid-cols-4 gap-2">
+                        <span className="font-mono text-xs truncate">{d.name}</span>
+                        <span className="tabular-nums">{d.price != null ? formatPrice(d.price, d.currency) : '—'}</span>
+                        <span className="text-muted-foreground truncate">{d.category}</span>
+                        <span className="text-muted-foreground tabular-nums">{d.sortOrder}</span>
                       </div>
                     ))}
                     {validDomains.length > 50 && (
