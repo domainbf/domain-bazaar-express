@@ -63,18 +63,26 @@ function parseCSV(text: string): ParsedDomain[] {
     const rawPrice = cols[1] ? parseFloat(cols[1].replace(/[^0-9.]/g, '')) : null;
     const description = cols[2] || '';
     const category = cols[3] || 'other';
+    const rawCurrency = (cols[4] || '').replace(/^["']|["']$/g, '').trim().toUpperCase();
+    const currency = rawCurrency || 'CNY';
+    const rawSort = cols[5] ? parseInt(cols[5].replace(/[^0-9-]/g, ''), 10) : 0;
+    const sortOrder = Number.isFinite(rawSort) ? rawSort : 0;
+    const base = { name: rawName, price: null as number | null, description, category, currency, sortOrder };
 
     if (!rawName) {
-      return { name: '', price: null, description, category, valid: false, error: `第${idx + 2}行：域名为空` };
+      return { ...base, name: '', valid: false, error: `第${idx + 2}行：域名为空` };
     }
     if (!parseDomainName(rawName)) {
-      return { name: rawName, price: null, description, category, valid: false, error: `第${idx + 2}行：无效域名格式 "${rawName}"` };
+      return { ...base, valid: false, error: `第${idx + 2}行：无效域名格式 "${rawName}"` };
     }
     if (rawPrice !== null && (isNaN(rawPrice) || rawPrice < 0)) {
-      return { name: rawName, price: null, description, category, valid: false, error: `第${idx + 2}行：无效价格 "${cols[1]}"` };
+      return { ...base, valid: false, error: `第${idx + 2}行：无效价格 "${cols[1]}"` };
+    }
+    if (rawCurrency && !SUPPORTED_CURRENCIES.includes(currency)) {
+      return { ...base, valid: false, error: `第${idx + 2}行：不支持的币种 "${cols[4]}"` };
     }
 
-    return { name: rawName, price: rawPrice, description, category, valid: true };
+    return { ...base, price: rawPrice, valid: true };
   });
 }
 
