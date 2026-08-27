@@ -17,6 +17,7 @@ import {
 import { Plus, Search, RefreshCw, Edit, Trash2, BadgeCheck, Loader2, ArrowUp, ArrowDown } from 'lucide-react';
 import { CURRENCIES, formatPrice } from '@/lib/currency';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
+import { BulkDomainImport } from '@/components/usercenter/BulkDomainImport';
 
 interface Row {
   id: string;
@@ -149,6 +150,7 @@ export const DomainManagerPanel = () => {
           <Button variant="outline" size="sm" onClick={load} disabled={loading}>
             <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />刷新
           </Button>
+          <BulkDomainImport onSuccess={load} />
           <Button size="sm" onClick={openAdd}><Plus className="h-4 w-4 mr-1" />新增域名</Button>
         </div>
       </CardHeader>

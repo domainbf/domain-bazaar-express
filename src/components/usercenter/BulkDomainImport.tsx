@@ -9,12 +9,15 @@ import { Upload, FileText, CheckCircle2, XCircle, AlertTriangle, Download } from
 import { apiPost } from '@/lib/apiClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { CURRENCIES, formatPrice } from '@/lib/currency';
 
 interface ParsedDomain {
   name: string;
   price: number | null;
   description: string;
   category: string;
+  currency: string;
+  sortOrder: number;
   valid: boolean;
   error?: string;
 }
@@ -22,6 +25,8 @@ interface ParsedDomain {
 interface BulkDomainImportProps {
   onSuccess?: () => void;
 }
+
+const SUPPORTED_CURRENCIES = CURRENCIES.map((c) => c.code);
 
 function parseDomainName(raw: string): boolean {
   const trimmed = raw.trim().toLowerCase();
@@ -61,18 +66,26 @@ function parseCSV(text: string): ParsedDomain[] {
     const rawPrice = cols[1] ? parseFloat(cols[1].replace(/[^0-9.]/g, '')) : null;
     const description = cols[2] || '';
     const category = cols[3] || 'other';
+    const rawCurrency = (cols[4] || '').replace(/^["']|["']$/g, '').trim().toUpperCase();
+    const currency = rawCurrency || 'CNY';
+    const rawSort = cols[5] ? parseInt(cols[5].replace(/[^0-9-]/g, ''), 10) : 0;
+    const sortOrder = Number.isFinite(rawSort) ? rawSort : 0;
+    const base = { name: rawName, price: null as number | null, description, category, currency, sortOrder };
 
     if (!rawName) {
-      return { name: '', price: null, description, category, valid: false, error: `第${idx + 2}行：域名为空` };
+      return { ...base, name: '', valid: false, error: `第${idx + 2}行：域名为空` };
     }
     if (!parseDomainName(rawName)) {
-      return { name: rawName, price: null, description, category, valid: false, error: `第${idx + 2}行：无效域名格式 "${rawName}"` };
+      return { ...base, valid: false, error: `第${idx + 2}行：无效域名格式 "${rawName}"` };
     }
     if (rawPrice !== null && (isNaN(rawPrice) || rawPrice < 0)) {
-      return { name: rawName, price: null, description, category, valid: false, error: `第${idx + 2}行：无效价格 "${cols[1]}"` };
+      return { ...base, valid: false, error: `第${idx + 2}行：无效价格 "${cols[1]}"` };
+    }
+    if (rawCurrency && !SUPPORTED_CURRENCIES.includes(currency)) {
+      return { ...base, valid: false, error: `第${idx + 2}行：不支持的币种 "${cols[4]}"` };
     }
 
-    return { name: rawName, price: rawPrice, description, category, valid: true };
+    return { ...base, price: rawPrice, valid: true };
   });
 }
 
@@ -131,7 +144,8 @@ export const BulkDomainImport = ({ onSuccess }: BulkDomainImportProps) => {
             description: d.description || null,
             category: d.category || 'standard',
             status: 'available',
-            currency: 'CNY',
+            currency: d.currency || 'CNY',
+            sort_order: d.sortOrder || 0,
           });
           success++;
         } catch {
@@ -165,11 +179,11 @@ export const BulkDomainImport = ({ onSuccess }: BulkDomainImportProps) => {
   };
 
   const downloadTemplate = () => {
-    const header = 'domain,price,description,category\n';
+    const header = 'domain,price,description,category,currency,sort_order\n';
     const rows = [
- 'example.com,9999,优质短域名,technology',
- 'mystore.cn,4999,电商品牌域名,business',
- 'coolapp.io,2999,应用程序域名,technology',
+      'example.com,9999,优质短域名,technology,CNY,100',
+      'mystore.cn,4999,电商品牌域名,business,USD,90',
+      'coolapp.io,2999,应用程序域名,technology,EUR,80',
     ].join('\n');
     const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -210,7 +224,8 @@ export const BulkDomainImport = ({ onSuccess }: BulkDomainImportProps) => {
           <Alert>
             <FileText className="h-4 w-4" />
             <AlertDescription>
-              支持 CSV 格式，列顺序：<strong>域名, 价格, 描述, 分类</strong>。价格和描述可留空。
+              支持 CSV 格式，列顺序：<strong>域名, 价格, 描述, 分类, 币种, 排序</strong>。
+              描述与分类可留空；币种默认 CNY（支持 {SUPPORTED_CURRENCIES.join(' / ')}），排序值越大越靠前。
             </AlertDescription>
           </Alert>
 
@@ -245,7 +260,7 @@ export const BulkDomainImport = ({ onSuccess }: BulkDomainImportProps) => {
           <div>
             <p className="text-sm text-muted-foreground mb-2">或直接粘贴 CSV 内容：</p>
             <Textarea
-              placeholder={"domain,price,description,category\nexample.com,9999,优质域名,technology\nmysite.cn,4999,,business"}
+              placeholder={"domain,price,description,category,currency,sort_order\nexample.com,9999,优质域名,technology,CNY,100\nmysite.cn,4999,,business,USD,50"}
               value={csvText}
               onChange={(e) => handleTextChange(e.target.value)}
               className="font-mono text-sm h-36 resize-none"
@@ -287,17 +302,19 @@ export const BulkDomainImport = ({ onSuccess }: BulkDomainImportProps) => {
 
               {validDomains.length > 0 && (
                 <div className="border rounded-md overflow-hidden">
-                  <div className="bg-muted/50 px-3 py-2 text-xs font-medium text-muted-foreground grid grid-cols-3 gap-2">
+                  <div className="bg-muted/50 px-3 py-2 text-xs font-medium text-muted-foreground grid grid-cols-4 gap-2">
                     <span>域名</span>
-                    <span>价格 (¥)</span>
+                    <span>价格</span>
                     <span>分类</span>
+                    <span>排序</span>
                   </div>
                   <div className="max-h-40 overflow-y-auto divide-y">
                     {validDomains.slice(0, 50).map((d, i) => (
-                      <div key={i} className="px-3 py-1.5 text-sm grid grid-cols-3 gap-2">
-                        <span className="font-mono text-xs">{d.name}</span>
-                        <span>{d.price != null ? `¥${d.price.toLocaleString()}` : '—'}</span>
-                        <span className="text-muted-foreground">{d.category}</span>
+                      <div key={i} className="px-3 py-1.5 text-sm grid grid-cols-4 gap-2">
+                        <span className="font-mono text-xs truncate">{d.name}</span>
+                        <span className="tabular-nums">{d.price != null ? formatPrice(d.price, d.currency) : '—'}</span>
+                        <span className="text-muted-foreground truncate">{d.category}</span>
+                        <span className="text-muted-foreground tabular-nums">{d.sortOrder}</span>
                       </div>
                     ))}
                     {validDomains.length > 50 && (
