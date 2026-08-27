@@ -178,11 +178,11 @@ export const BulkDomainImport = ({ onSuccess }: BulkDomainImportProps) => {
   };
 
   const downloadTemplate = () => {
-    const header = 'domain,price,description,category\n';
+    const header = 'domain,price,description,category,currency,sort_order\n';
     const rows = [
- 'example.com,9999,优质短域名,technology',
- 'mystore.cn,4999,电商品牌域名,business',
- 'coolapp.io,2999,应用程序域名,technology',
+      'example.com,9999,优质短域名,technology,CNY,100',
+      'mystore.cn,4999,电商品牌域名,business,USD,90',
+      'coolapp.io,2999,应用程序域名,technology,EUR,80',
     ].join('\n');
     const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
