@@ -223,7 +223,8 @@ export const BulkDomainImport = ({ onSuccess }: BulkDomainImportProps) => {
           <Alert>
             <FileText className="h-4 w-4" />
             <AlertDescription>
-              支持 CSV 格式，列顺序：<strong>域名, 价格, 描述, 分类</strong>。价格和描述可留空。
+              支持 CSV 格式，列顺序：<strong>域名, 价格, 描述, 分类, 币种, 排序</strong>。
+              描述与分类可留空；币种默认 CNY（支持 {SUPPORTED_CURRENCIES.join(' / ')}），排序值越大越靠前。
             </AlertDescription>
           </Alert>
 
