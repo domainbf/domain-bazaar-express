@@ -15,6 +15,8 @@ interface ParsedDomain {
   price: number | null;
   description: string;
   category: string;
+  currency: string;
+  sortOrder: number;
   valid: boolean;
   error?: string;
 }
