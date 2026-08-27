@@ -17,6 +17,7 @@ import {
 import { Plus, Search, RefreshCw, Edit, Trash2, BadgeCheck, Loader2, ArrowUp, ArrowDown } from 'lucide-react';
 import { CURRENCIES, formatPrice } from '@/lib/currency';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
+import { BulkDomainImport } from '@/components/usercenter/BulkDomainImport';
 
 interface Row {
   id: string;
