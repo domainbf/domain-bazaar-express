@@ -9,6 +9,7 @@ import { Upload, FileText, CheckCircle2, XCircle, AlertTriangle, Download } from
 import { apiPost } from '@/lib/apiClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { CURRENCIES, formatPrice } from '@/lib/currency';
 
 interface ParsedDomain {
   name: string;
