@@ -143,7 +143,8 @@ export const BulkDomainImport = ({ onSuccess }: BulkDomainImportProps) => {
             description: d.description || null,
             category: d.category || 'standard',
             status: 'available',
-            currency: 'CNY',
+            currency: d.currency || 'CNY',
+            sort_order: d.sortOrder || 0,
           });
           success++;
         } catch {
