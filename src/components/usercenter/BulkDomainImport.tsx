@@ -259,7 +259,7 @@ export const BulkDomainImport = ({ onSuccess }: BulkDomainImportProps) => {
           <div>
             <p className="text-sm text-muted-foreground mb-2">或直接粘贴 CSV 内容：</p>
             <Textarea
-              placeholder={"domain,price,description,category\nexample.com,9999,优质域名,technology\nmysite.cn,4999,,business"}
+              placeholder={"domain,price,description,category,currency,sort_order\nexample.com,9999,优质域名,technology,CNY,100\nmysite.cn,4999,,business,USD,50"}
               value={csvText}
               onChange={(e) => handleTextChange(e.target.value)}
               className="font-mono text-sm h-36 resize-none"
