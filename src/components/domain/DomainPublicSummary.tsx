@@ -63,21 +63,22 @@ export const DomainPublicSummary = ({ domainName, price, currency, status }: Dom
   }, [shareUrl]);
 
   useEffect(() => {
-    const set = (sel: string, attr: string, val: string) => {
-      let el = document.head.querySelector(sel) as HTMLMetaElement | null;
+    const set = (kind: 'property' | 'name', key: string, val: string) => {
+      let el = document.head.querySelector(`meta[${kind}="${key}"]`) as HTMLMetaElement | null;
       if (!el) {
         el = document.createElement('meta');
-        el.setAttribute(sel.includes('property') ? 'property' : 'name', sel.replace(/.*="(.*)"]/, '$1'));
+        el.setAttribute(kind, key);
         document.head.appendChild(el);
       }
-      el.setAttribute(attr, val);
+      el.setAttribute('content', val);
     };
-    set('meta[property="og:title"]', 'content', shareTitle);
-    set('meta[property="og:description"]', 'content', shareDesc);
-    set('meta[property="og:url"]', 'content', shareUrl);
-    set('meta[name="twitter:title"]', 'content', shareTitle);
-    set('meta[name="twitter:description"]', 'content', shareDesc);
-    set('meta[name="twitter:card"]', 'content', 'summary_large_image');
+    set('property', 'og:title', shareTitle);
+    set('property', 'og:description', shareDesc);
+    set('property', 'og:url', shareUrl);
+    set('property', 'og:type', 'website');
+    set('name', 'twitter:title', shareTitle);
+    set('name', 'twitter:description', shareDesc);
+    set('name', 'twitter:card', 'summary_large_image');
   }, [shareTitle, shareDesc, shareUrl]);
 
   const copyLink = async () => {
