@@ -175,7 +175,7 @@ export const DomainPublicSummary = ({ domainName, price, currency, status }: Dom
             <div className="rounded-lg border border-border p-2.5">
               <div className="text-[11px] text-muted-foreground flex items-center gap-1"><CalendarClock className="w-3 h-3" /> 注册日期</div>
               <div className="font-medium truncate">
-                {whois.creation_date ? new Date(whois.creation_date).toLocaleDateString('zh-CN') : '—'}
+                {created ? new Date(created).toLocaleDateString('zh-CN') : '—'}
               </div>
             </div>
             <div className="rounded-lg border border-border p-2.5">
