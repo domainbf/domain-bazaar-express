@@ -51,6 +51,7 @@ export default function MyOffers() {
   const [rows, setRows] = useState<OfferRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<string>('all');
+  const [timeline, setTimeline] = useState<{ id: string; name?: string } | null>(null);
 
   const load = async () => {
     if (!user) return;
