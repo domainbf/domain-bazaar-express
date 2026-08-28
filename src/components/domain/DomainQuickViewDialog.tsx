@@ -273,6 +273,9 @@ export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerI
               </div>
             </div>
 
+            {/* My offers timeline */}
+            <MyOfferTimeline domainId={domainId} />
+
             {/* WHOIS summary */}
             <div className="rounded-lg border border-border">
               <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
