@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import QRCode from 'qrcode';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/currency';
 import { toast } from 'sonner';
-import { Link2, CalendarClock, Server, Globe, Gauge, Loader2 } from 'lucide-react';
+import { Link2, CalendarClock, Server, Globe, Gauge, Loader2, QrCode, Download, Share2 } from 'lucide-react';
 
 interface DomainPublicSummaryProps {
   domainName: string;
