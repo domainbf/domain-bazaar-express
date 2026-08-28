@@ -45,23 +45,102 @@ export const DomainPublicSummary = ({ domainName, price, currency, status }: Dom
   const expiry = whois?.expiration_date || whois?.expiry_date || whois?.expires_at || null;
   const daysLeft = expiry ? Math.ceil((new Date(expiry).getTime() - Date.now()) / 86400000) : null;
 
+  const shareUrl = useMemo(
+    () => `${typeof window !== 'undefined' ? window.location.origin : ''}/domain/${domainName.toLowerCase()}`,
+    [domainName],
+  );
+  const shareTitle = `${domainName.toUpperCase()} · 域名出售${price > 0 ? ` · ${formatPrice(price, currency)}` : ''}`;
+  const shareDesc =
+    status === 'sold'
+      ? `${domainName.toUpperCase()} 已成交，浏览更多优质域名。`
+      : `${domainName.toUpperCase()} 现可报价，建议区间 ${formatPrice(low, currency)} — ${formatPrice(high, currency)}，支持担保交易与安全过户。`;
+
+  const [qr, setQr] = useState<string>('');
+  useEffect(() => {
+    QRCode.toDataURL(shareUrl, { width: 480, margin: 1, color: { dark: '#111111', light: '#ffffff' } })
+      .then(setQr)
+      .catch(() => setQr(''));
+  }, [shareUrl]);
+
+  useEffect(() => {
+    const set = (sel: string, attr: string, val: string) => {
+      let el = document.head.querySelector(sel) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute(sel.includes('property') ? 'property' : 'name', sel.replace(/.*="(.*)"]/, '$1'));
+        document.head.appendChild(el);
+      }
+      el.setAttribute(attr, val);
+    };
+    set('meta[property="og:title"]', 'content', shareTitle);
+    set('meta[property="og:description"]', 'content', shareDesc);
+    set('meta[property="og:url"]', 'content', shareUrl);
+    set('meta[name="twitter:title"]', 'content', shareTitle);
+    set('meta[name="twitter:description"]', 'content', shareDesc);
+    set('meta[name="twitter:card"]', 'content', 'summary_large_image');
+  }, [shareTitle, shareDesc, shareUrl]);
+
   const copyLink = async () => {
-    const url = `${window.location.origin}/domain/${domainName.toLowerCase()}`;
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(shareUrl);
       toast.success('公开详情页链接已复制');
     } catch {
       toast.error('复制失败，请手动复制地址栏链接');
     }
   };
 
+  const nativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: shareTitle, text: shareDesc, url: shareUrl });
+        return;
+      } catch { /* cancelled */ }
+    }
+    copyLink();
+  };
+
+  const downloadQr = () => {
+    if (!qr) return;
+    const a = document.createElement('a');
+    a.href = qr;
+    a.download = `${domainName.toLowerCase()}-qrcode.png`;
+    a.click();
+  };
+
   return (
     <div className="rounded-xl border border-border bg-card p-5 space-y-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <Badge variant="outline" className={st.className}>{st.label}</Badge>
-        <Button variant="outline" size="sm" onClick={copyLink}>
-          <Link2 className="w-3.5 h-3.5 mr-1.5" /> 复制分享链接
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={copyLink}>
+            <Link2 className="w-3.5 h-3.5 mr-1.5" /> 复制链接
+          </Button>
+          <Button size="sm" onClick={nativeShare}>
+            <Share2 className="w-3.5 h-3.5 mr-1.5" /> 分享
+          </Button>
+        </div>
+      </div>
+
+      {/* 分享预览 + 二维码 */}
+      <div className="rounded-lg border border-border overflow-hidden">
+        <div className="flex items-stretch gap-3 p-3">
+          <div className="shrink-0 w-24 h-24 rounded-md border border-border bg-background flex items-center justify-center p-1.5">
+            {qr ? (
+              <img src={qr} alt={`${domainName} 分享二维码`} className="w-full h-full object-contain" loading="lazy" />
+            ) : (
+              <QrCode className="w-6 h-6 text-muted-foreground" />
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">分享预览</div>
+            <div className="text-sm font-semibold truncate mt-0.5">{shareTitle}</div>
+            <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{shareDesc}</p>
+            <div className="text-[11px] text-muted-foreground truncate mt-1">{shareUrl}</div>
+            <Button variant="ghost" size="sm" className="h-6 px-2 mt-1 text-[11px]" onClick={downloadQr} disabled={!qr}>
+              <Download className="w-3 h-3 mr-1" /> 下载二维码
+            </Button>
+          </div>
+        </div>
       </div>
 
       {status === 'available' && price > 0 && (
