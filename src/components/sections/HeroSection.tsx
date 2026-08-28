@@ -1,4 +1,4 @@
-import { Search, Sparkles, ArrowRight, Zap, Shield, TrendingUp, ListChecks } from 'lucide-react';
+import { Search, Sparkles, ArrowRight, Zap, Shield, TrendingUp, ListChecks, SlidersHorizontal, ChevronDown, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState, useMemo, useRef, useEffect } from 'react';
@@ -25,6 +25,7 @@ export const HeroSection = () => {
   const [selectedTld, setSelectedTld] = useState<string>('');
   const [priceRange, setPriceRange] = useState<string>('any');
   const [focused, setFocused] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const navigate = useNavigate();
   const { config } = useSiteSettings();
   const { data: homeData } = useHomeData();
