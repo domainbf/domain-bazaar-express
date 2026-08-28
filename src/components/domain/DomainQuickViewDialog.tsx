@@ -10,6 +10,7 @@ import { DomainOfferForm } from './DomainOfferForm';
 import { Loader2, History, ArrowRight, Tag, Copy, Check, ChevronLeft, ChevronRight, Heart, Globe, CalendarClock, Server, BellRing } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/hooks/useFavorites';
+import { MyOfferTimeline } from './MyOfferTimeline';
 import { toast } from 'sonner';
 
 
@@ -272,6 +273,9 @@ export function DomainQuickViewDialog({ open, onClose, domain, domainId, sellerI
                 )}
               </div>
             </div>
+
+            {/* My offers timeline */}
+            <MyOfferTimeline domainId={domainId} />
 
             {/* WHOIS summary */}
             <div className="rounded-lg border border-border">

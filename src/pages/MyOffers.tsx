@@ -12,6 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatPrice } from '@/lib/currency';
 import { Inbox, Mail, Clock, CheckCircle2, XCircle, MessageSquare, RefreshCw, ArrowRight, ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import { OfferTimelineDialog } from '@/components/offers/OfferTimelineDialog';
 
 interface OfferRow {
   id: string;
@@ -50,6 +51,7 @@ export default function MyOffers() {
   const [rows, setRows] = useState<OfferRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<string>('all');
+  const [timeline, setTimeline] = useState<{ id: string; name?: string } | null>(null);
 
   const load = async () => {
     if (!user) return;
@@ -207,6 +209,13 @@ export default function MyOffers() {
                       {formatPrice(Number(r.amount), (r.currency || 'CNY') as any)}
                     </div>
                     <div className="flex items-center gap-2 justify-end">
+                      <button
+                        type="button"
+                        className="text-[11px] underline text-muted-foreground hover:text-foreground"
+                        onClick={() => setTimeline({ id: r.id, name: r.domain_name })}
+                      >
+                        审核进度
+                      </button>
                       {r.transaction_id ? (
                         <Link to={`/order/${r.transaction_id}`} className="text-[11px] underline inline-flex items-center gap-0.5">
                           查看订单 <ArrowRight className="w-3 h-3" />
@@ -258,6 +267,13 @@ export default function MyOffers() {
         </CardContent>
       </Card>
       </div>
+
+      <OfferTimelineDialog
+        offerId={timeline?.id ?? null}
+        domainName={timeline?.name}
+        open={!!timeline}
+        onOpenChange={(v) => !v && setTimeline(null)}
+      />
     </div>
   );
 }
