@@ -42,7 +42,9 @@ export const DomainPublicSummary = ({ domainName, price, currency, status }: Dom
   const low = Math.round(price * 0.7);
   const high = Math.round(price * 0.95);
 
-  const expiry = whois?.expiration_date || whois?.expiry_date || whois?.expires_at || null;
+  const expiry =
+    whois?.expiryDate || whois?.expiration_date || whois?.expiry_date || whois?.expires_at || null;
+  const created = whois?.createdDate || whois?.creation_date || whois?.created_at || null;
   const daysLeft = expiry ? Math.ceil((new Date(expiry).getTime() - Date.now()) / 86400000) : null;
 
   const shareUrl = useMemo(
@@ -173,7 +175,7 @@ export const DomainPublicSummary = ({ domainName, price, currency, status }: Dom
             <div className="rounded-lg border border-border p-2.5">
               <div className="text-[11px] text-muted-foreground flex items-center gap-1"><CalendarClock className="w-3 h-3" /> 注册日期</div>
               <div className="font-medium truncate">
-                {whois.creation_date ? new Date(whois.creation_date).toLocaleDateString('zh-CN') : '—'}
+                {created ? new Date(created).toLocaleDateString('zh-CN') : '—'}
               </div>
             </div>
             <div className="rounded-lg border border-border p-2.5">
