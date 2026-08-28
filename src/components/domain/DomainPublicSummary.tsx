@@ -42,7 +42,9 @@ export const DomainPublicSummary = ({ domainName, price, currency, status }: Dom
   const low = Math.round(price * 0.7);
   const high = Math.round(price * 0.95);
 
-  const expiry = whois?.expiration_date || whois?.expiry_date || whois?.expires_at || null;
+  const expiry =
+    whois?.expiryDate || whois?.expiration_date || whois?.expiry_date || whois?.expires_at || null;
+  const created = whois?.createdDate || whois?.creation_date || whois?.created_at || null;
   const daysLeft = expiry ? Math.ceil((new Date(expiry).getTime() - Date.now()) / 86400000) : null;
 
   const shareUrl = useMemo(
