@@ -12,6 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatPrice } from '@/lib/currency';
 import { Inbox, Mail, Clock, CheckCircle2, XCircle, MessageSquare, RefreshCw, ArrowRight, ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import { OfferTimelineDialog } from '@/components/offers/OfferTimelineDialog';
 
 interface OfferRow {
   id: string;
