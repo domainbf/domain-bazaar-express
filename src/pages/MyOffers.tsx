@@ -208,6 +208,13 @@ export default function MyOffers() {
                       {formatPrice(Number(r.amount), (r.currency || 'CNY') as any)}
                     </div>
                     <div className="flex items-center gap-2 justify-end">
+                      <button
+                        type="button"
+                        className="text-[11px] underline text-muted-foreground hover:text-foreground"
+                        onClick={() => setTimeline({ id: r.id, name: r.domain_name })}
+                      >
+                        审核进度
+                      </button>
                       {r.transaction_id ? (
                         <Link to={`/order/${r.transaction_id}`} className="text-[11px] underline inline-flex items-center gap-0.5">
                           查看订单 <ArrowRight className="w-3 h-3" />
