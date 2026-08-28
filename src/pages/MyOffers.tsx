@@ -267,6 +267,13 @@ export default function MyOffers() {
         </CardContent>
       </Card>
       </div>
+
+      <OfferTimelineDialog
+        offerId={timeline?.id ?? null}
+        domainName={timeline?.name}
+        open={!!timeline}
+        onOpenChange={(v) => !v && setTimeline(null)}
+      />
     </div>
   );
 }
