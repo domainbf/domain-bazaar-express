@@ -218,63 +218,109 @@ export const HeroSection = () => {
             </AnimatePresence>
           </div>
 
-          {/* TLD quick filters */}
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-1.5">
-            <span className="text-xs text-muted-foreground mr-1">{t('hero.tldLabel')}</span>
+          {/* Collapsible quick filters */}
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
             <button
-              onClick={() => setSelectedTld('')}
-              className={`text-xs font-mono font-semibold px-3 py-1.5 rounded-full border transition-all ${
-                selectedTld === ''
-                  ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                  : 'bg-card text-foreground border-border hover:border-primary/40'
-              }`}
+              onClick={() => setFiltersOpen((v) => !v)}
+              className="inline-flex items-center gap-1.5 text-xs font-medium px-3.5 py-1.5 rounded-full border border-border bg-card text-muted-foreground hover:text-foreground hover:border-primary/40 transition-all"
+              data-testid="button-toggle-hero-filters"
+              aria-expanded={filtersOpen}
             >
-              {t('hero.all')}
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              {t('hero.filtersToggle', '筛选')}
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${filtersOpen ? 'rotate-180' : ''}`} />
             </button>
-            {POPULAR_TLDS.map((tld) => (
-              <button
-                key={tld}
-                onClick={() => setSelectedTld(selectedTld === tld ? '' : tld)}
-                className={`text-xs font-mono font-semibold px-3 py-1.5 rounded-full border transition-all ${
-                  selectedTld === tld
-                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                    : 'bg-card text-foreground border-border hover:border-primary/40'
-                }`}
-              >
-                {tld}
-              </button>
-            ))}
-          </div>
 
-          {/* Price range */}
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
-            <span className="text-xs text-muted-foreground mr-1">{t('hero.priceLabel')}</span>
-            {PRICE_RANGES.map((r) => (
+            {/* Active selection summary (visible when collapsed) */}
+            {!filtersOpen && selectedTld && (
               <button
-                key={r.key}
-                onClick={() => setPriceRange(r.key)}
-                className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-all ${
-                  priceRange === r.key
-                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                    : 'bg-card text-foreground border-border hover:border-primary/40'
-                }`}
+                onClick={() => setSelectedTld('')}
+                className="inline-flex items-center gap-1 text-xs font-mono font-semibold px-3 py-1.5 rounded-full bg-primary text-primary-foreground shadow-sm"
               >
-                {r.label}
+                {selectedTld}
+                <X className="w-3 h-3" />
               </button>
-            ))}
-          </div>
+            )}
+            {!filtersOpen && priceRange !== 'any' && (
+              <button
+                onClick={() => setPriceRange('any')}
+                className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-full bg-primary text-primary-foreground shadow-sm"
+              >
+                {PRICE_RANGES.find((r) => r.key === priceRange)?.label}
+                <X className="w-3 h-3" />
+              </button>
+            )}
 
-          {/* Bulk check trigger */}
-          <div className="mt-4 flex justify-center">
             <BulkCheckDialog
               trigger={
-                <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-foreground">
+                <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-foreground h-7 px-2.5">
                   <ListChecks className="w-3.5 h-3.5" />
                   {t('hero.bulkCheck')}
                 </Button>
               }
             />
           </div>
+
+          <AnimatePresence initial={false}>
+            {filtersOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.22, ease: 'easeInOut' }}
+                className="overflow-hidden"
+              >
+                <div className="pt-4 space-y-3">
+                  {/* TLD quick filters */}
+                  <div className="flex flex-wrap items-center justify-center gap-1.5">
+                    <span className="text-xs text-muted-foreground mr-1">{t('hero.tldLabel')}</span>
+                    <button
+                      onClick={() => setSelectedTld('')}
+                      className={`text-xs font-mono font-semibold px-3 py-1.5 rounded-full border transition-all ${
+                        selectedTld === ''
+                          ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                          : 'bg-card text-foreground border-border hover:border-primary/40'
+                      }`}
+                    >
+                      {t('hero.all')}
+                    </button>
+                    {POPULAR_TLDS.map((tld) => (
+                      <button
+                        key={tld}
+                        onClick={() => setSelectedTld(selectedTld === tld ? '' : tld)}
+                        className={`text-xs font-mono font-semibold px-3 py-1.5 rounded-full border transition-all ${
+                          selectedTld === tld
+                            ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                            : 'bg-card text-foreground border-border hover:border-primary/40'
+                        }`}
+                      >
+                        {tld}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Price range */}
+                  <div className="flex flex-wrap items-center justify-center gap-1.5">
+                    <span className="text-xs text-muted-foreground mr-1">{t('hero.priceLabel')}</span>
+                    {PRICE_RANGES.map((r) => (
+                      <button
+                        key={r.key}
+                        onClick={() => setPriceRange(r.key)}
+                        className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-all ${
+                          priceRange === r.key
+                            ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                            : 'bg-card text-foreground border-border hover:border-primary/40'
+                        }`}
+                      >
+                        {r.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
         </motion.div>
 
         {/* Trust signals */}
