@@ -321,17 +321,6 @@ export const HeroSection = () => {
             )}
           </AnimatePresence>
 
-          {/* Bulk check trigger moved into filter row above */}
-          <div className="hidden justify-center">
-            <BulkCheckDialog
-              trigger={
-                <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-foreground">
-                  <ListChecks className="w-3.5 h-3.5" />
-                  {t('hero.bulkCheck')}
-                </Button>
-              }
-            />
-          </div>
         </motion.div>
 
         {/* Trust signals */}
