@@ -111,6 +111,7 @@ export const zh = {
       k5k20: '¥5k – 20k', gt20k: '> ¥20,000',
     },
     bulkCheck: '批量检查多个域名',
+    filtersToggle: '筛选',
     available: '可售',
     trust: {
       escrow: '担保交易', fastTransfer: '秒级过户',

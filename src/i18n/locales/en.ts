@@ -111,6 +111,7 @@ export const en = {
       k5k20: '¥5k – 20k', gt20k: '> ¥20,000',
     },
     bulkCheck: 'Bulk check multiple domains',
+    filtersToggle: 'Filters',
     available: 'Available',
     trust: {
       escrow: 'Escrow protected', fastTransfer: 'Instant transfer',
