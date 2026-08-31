@@ -17,8 +17,10 @@ type Prefs = Record<string, any>;
 const DEFAULTS: Prefs = {
   email_offer: true, email_transaction: true, email_message: false,
   email_dispute: true, email_system: false,
+  email_review: true, email_sold: true,
   site_offer: true, site_transaction: true, site_message: true,
   site_dispute: true, site_system: true,
+  site_review: true, site_sold: true,
   email_enabled: true,
   email_frequency: 'instant', // instant | daily | weekly
   site_enabled: true,
@@ -29,6 +31,8 @@ const GROUPS: { key: string; label: string; desc: string }[] = [
   { key: 'offer', label: '报价通知', desc: '收到/发送域名报价、报价被接受或拒绝' },
   { key: 'transaction', label: '交易通知', desc: '订单状态、付款、过户与完成' },
   { key: 'message', label: '站内消息', desc: '来自其他用户的私信' },
+  { key: 'review', label: '审核通知', desc: '实名认证（KYC）、域名与报价的审核结果' },
+  { key: 'sold', label: '售出通知', desc: '域名成功售出、买家付款与结算到账' },
   { key: 'dispute', label: '纠纷通知', desc: '纠纷申诉、进展与裁决' },
   { key: 'system', label: '系统通知', desc: '系统公告、维护与安全提醒' },
 ];
