@@ -19,9 +19,12 @@ import { MessagesPage } from "@/components/messages/MessageCenter";
 import { useEffect, useState } from "react";
 import {
   User, Shield, Link as LinkIcon, ShoppingBag, FileText,
-  Wallet, Heart, AlertTriangle, CheckCircle2, Inbox, Activity, Bookmark
+  Wallet, Heart, AlertTriangle, CheckCircle2, Inbox, Activity, Bookmark,
+  ShieldCheck, Star
 } from "lucide-react";
 import { CustomUrlSettings } from "@/components/usercenter/CustomUrlSettings";
+import { MyReviewsPanel } from "@/components/usercenter/MyReviewsPanel";
+import KycForm from "@/components/seller/KycForm";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ComponentErrorBoundary } from "@/components/common/ComponentErrorBoundary";
 
@@ -45,20 +48,34 @@ const PROFILE_TABS = [
   { id: 'info',      label: '个人信息', icon: User },
   { id: 'security',  label: '账户安全', icon: Shield },
   { id: 'customurl', label: '个性链接', icon: LinkIcon },
+  { id: 'kyc',       label: '卖家认证', icon: ShieldCheck },
+  { id: 'reviews',   label: '我的评价', icon: Star },
   { id: 'activity',  label: '活动记录', icon: Activity },
 ];
 
 /* Persist sub-tab selection across visits */
-const usePersistedTab = (key: string, fallback: string, valid: string[]) => {
+const usePersistedTab = (key: string, fallback: string, valid: string[], urlParam?: string) => {
   const [tab, setTab] = useState(() => {
     try {
+      if (urlParam) {
+        const fromUrl = new URLSearchParams(window.location.search).get(urlParam);
+        if (fromUrl && valid.includes(fromUrl)) return fromUrl;
+      }
       const saved = sessionStorage.getItem(key);
       return saved && valid.includes(saved) ? saved : fallback;
     } catch { return fallback; }
   });
   useEffect(() => {
     try { sessionStorage.setItem(key, tab); } catch { /* ignore */ }
-  }, [key, tab]);
+    if (!urlParam) return;
+    try {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get(urlParam) !== tab) {
+        url.searchParams.set(urlParam, tab);
+        window.history.replaceState({}, '', `${url.pathname}${url.search}`);
+      }
+    } catch { /* ignore */ }
+  }, [key, tab, urlParam]);
   return [tab, setTab] as const;
 };
 
@@ -86,6 +103,8 @@ function ProfileContent({ tab }: { tab: string }) {
       {tab === 'info'      && <ProfileSettings />}
       {tab === 'security'  && <AccountSecurity />}
       {tab === 'customurl' && <CustomUrlSettings />}
+      {tab === 'kyc'       && <KycForm />}
+      {tab === 'reviews'   && <MyReviewsPanel />}
       {tab === 'activity'  && <ActivityLogPanel />}
     </div>
   );
@@ -124,8 +143,8 @@ function MobilePillNav({
 }
 
 export const UserCenterTabsContent = () => {
-  const [txTab, setTxTab] = usePersistedTab('uc-tx-tab', 'transactions', TX_TABS.map(t => t.id));
-  const [profileTab, setProfileTab] = usePersistedTab('uc-profile-tab', 'info', PROFILE_TABS.map(t => t.id));
+  const [txTab, setTxTab] = usePersistedTab('uc-tx-tab', 'transactions', TX_TABS.map(t => t.id), 'sub');
+  const [profileTab, setProfileTab] = usePersistedTab('uc-profile-tab', 'info', PROFILE_TABS.map(t => t.id), 'sub');
   const isMobile = useIsMobile();
 
   return (
