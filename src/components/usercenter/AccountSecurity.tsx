@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Shield, Key, Mail, Eye, EyeOff, Clock, MapPin, Loader2, CheckCircle, AlertTriangle, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiPost } from '@/lib/apiClient';
+import { supabase } from '@/integrations/supabase/client';
 import { TwoFactorAuth } from './TwoFactorAuth';
 import { DeviceManagement } from './DeviceManagement';
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -46,8 +46,13 @@ export const AccountSecurity = () => {
 
     setIsChangingPassword(true);
     try {
-      await apiPost('/auth/change-password', { currentPassword, newPassword });
-      toast.success('密码已更新，请重新登录');
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+        // Lovable Cloud 对已登录用户改密要求校验当前密码
+        current_password: currentPassword,
+      } as any);
+      if (error) throw error;
+      toast.success('密码已更新');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -75,8 +80,15 @@ export const AccountSecurity = () => {
 
     setIsChangingEmail(true);
     try {
-      await apiPost('/auth/change-email', { newEmail, password: emailPassword });
-      toast.success('邮箱已更新，请重新登录');
+      // 先用当前密码校验身份，避免会话被盗用后直接换绑邮箱
+      const { error: reauthError } = await supabase.auth.signInWithPassword({
+        email: user?.email || '',
+        password: emailPassword,
+      });
+      if (reauthError) throw new Error('当前密码不正确');
+      const { error } = await supabase.auth.updateUser({ email: newEmail });
+      if (error) throw error;
+      toast.success('验证邮件已发送至新邮箱，请点击链接完成换绑');
       setNewEmail('');
       setEmailPassword('');
       setShowEmailForm(false);
