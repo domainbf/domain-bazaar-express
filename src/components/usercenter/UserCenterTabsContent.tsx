@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { CustomUrlSettings } from "@/components/usercenter/CustomUrlSettings";
 import { MyReviewsPanel } from "@/components/usercenter/MyReviewsPanel";
+import { KycProgress } from "@/components/usercenter/KycProgress";
 import KycForm from "@/components/seller/KycForm";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ComponentErrorBoundary } from "@/components/common/ComponentErrorBoundary";
@@ -103,7 +104,12 @@ function ProfileContent({ tab }: { tab: string }) {
       {tab === 'info'      && <ProfileSettings />}
       {tab === 'security'  && <AccountSecurity />}
       {tab === 'customurl' && <CustomUrlSettings />}
-      {tab === 'kyc'       && <KycForm />}
+      {tab === 'kyc'       && (
+        <div className="space-y-5 max-w-4xl">
+          <KycProgress />
+          <div id="kyc-form" className="scroll-mt-24"><KycForm /></div>
+        </div>
+      )}
       {tab === 'reviews'   && <MyReviewsPanel />}
       {tab === 'activity'  && <ActivityLogPanel />}
     </div>
