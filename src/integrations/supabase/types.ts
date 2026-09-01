@@ -1492,6 +1492,8 @@ export type Database = {
           avatar_url: string | null
           balance: number | null
           bio: string | null
+          buyer_rating: number
+          buyer_review_count: number
           company_name: string | null
           contact_email: string | null
           contact_phone: string | null
@@ -1504,6 +1506,7 @@ export type Database = {
           payment_info: Json | null
           preferred_payment_methods: string[] | null
           seller_rating: number | null
+          seller_review_count: number
           seller_verified: boolean | null
           total_sales: number | null
           updated_at: string
@@ -1515,6 +1518,8 @@ export type Database = {
           avatar_url?: string | null
           balance?: number | null
           bio?: string | null
+          buyer_rating?: number
+          buyer_review_count?: number
           company_name?: string | null
           contact_email?: string | null
           contact_phone?: string | null
@@ -1527,6 +1532,7 @@ export type Database = {
           payment_info?: Json | null
           preferred_payment_methods?: string[] | null
           seller_rating?: number | null
+          seller_review_count?: number
           seller_verified?: boolean | null
           total_sales?: number | null
           updated_at?: string
@@ -1538,6 +1544,8 @@ export type Database = {
           avatar_url?: string | null
           balance?: number | null
           bio?: string | null
+          buyer_rating?: number
+          buyer_review_count?: number
           company_name?: string | null
           contact_email?: string | null
           contact_phone?: string | null
@@ -1550,6 +1558,7 @@ export type Database = {
           payment_info?: Json | null
           preferred_payment_methods?: string[] | null
           seller_rating?: number | null
+          seller_review_count?: number
           seller_verified?: boolean | null
           total_sales?: number | null
           updated_at?: string
@@ -1746,6 +1755,7 @@ export type Database = {
           id_number: string
           id_selfie_url: string | null
           id_type: string
+          kyc_type: string
           notes: string | null
           payout_account: string
           payout_account_name: string | null
@@ -1769,6 +1779,7 @@ export type Database = {
           id_number: string
           id_selfie_url?: string | null
           id_type: string
+          kyc_type?: string
           notes?: string | null
           payout_account: string
           payout_account_name?: string | null
@@ -1792,6 +1803,7 @@ export type Database = {
           id_number?: string
           id_selfie_url?: string | null
           id_type?: string
+          kyc_type?: string
           notes?: string | null
           payout_account?: string
           payout_account_name?: string | null
@@ -2290,6 +2302,48 @@ export type Database = {
       }
     }
     Views: {
+      public_reputation: {
+        Row: {
+          avatar_url: string | null
+          buyer_rating: number | null
+          buyer_review_count: number | null
+          full_name: string | null
+          seller_rating: number | null
+          seller_review_count: number | null
+          seller_verified: boolean | null
+          total_sales: number | null
+          user_id: string | null
+          username: string | null
+          verification_status: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          buyer_rating?: number | null
+          buyer_review_count?: number | null
+          full_name?: string | null
+          seller_rating?: number | null
+          seller_review_count?: number | null
+          seller_verified?: boolean | null
+          total_sales?: number | null
+          user_id?: string | null
+          username?: string | null
+          verification_status?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          buyer_rating?: number | null
+          buyer_review_count?: number | null
+          full_name?: string | null
+          seller_rating?: number | null
+          seller_review_count?: number | null
+          seller_verified?: boolean | null
+          total_sales?: number | null
+          user_id?: string | null
+          username?: string | null
+          verification_status?: string | null
+        }
+        Relationships: []
+      }
       user_domain_stats: {
         Row: {
           available_domains: number | null
@@ -2371,6 +2425,7 @@ export type Database = {
         Args: { _actor: string; _txn_id: string }
         Returns: Json
       }
+      recalc_user_reputation: { Args: { _user_id: string }; Returns: undefined }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       transfer_domain_ownership: {
