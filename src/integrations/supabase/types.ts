@@ -2248,7 +2248,9 @@ export type Database = {
           reported: boolean
           reviewed_user_id: string | null
           reviewer_id: string | null
+          status: string
           transaction_id: string | null
+          updated_at: string
         }
         Insert: {
           comment?: string | null
@@ -2259,7 +2261,9 @@ export type Database = {
           reported?: boolean
           reviewed_user_id?: string | null
           reviewer_id?: string | null
+          status?: string
           transaction_id?: string | null
+          updated_at?: string
         }
         Update: {
           comment?: string | null
@@ -2270,7 +2274,9 @@ export type Database = {
           reported?: boolean
           reviewed_user_id?: string | null
           reviewer_id?: string | null
+          status?: string
           transaction_id?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
