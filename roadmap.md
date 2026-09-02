@@ -1,0 +1,5 @@
+- [ ] buyer journey verification
+- [ ] offer review queue and status progression
+- [ ] reputation aggregation and marketplace/detail display
+- [ ] buyer center and separated KYC flows
+- [ ] browser regression and final verification
