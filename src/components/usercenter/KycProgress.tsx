@@ -94,7 +94,7 @@ export const KycProgress = ({ onFix, kycType = 'seller' }: { onFix?: () => void;
 
   const scrollToForm = () => {
     onFix?.();
-    document.getElementById('kyc-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById(`kyc-form-${kycType}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   if (loading) {
