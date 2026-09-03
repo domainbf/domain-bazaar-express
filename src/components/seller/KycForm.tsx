@@ -54,7 +54,9 @@ const STATUS_LABEL: Record<string, { label: string; tone: any; icon: any }> = {
   incomplete: { label: '待补充', tone: 'outline', icon: AlertTriangle },
 };
 
-export default function KycForm({ onStatusChange, compact }: Props) {
+export default function KycForm({ onStatusChange, compact, kycType = 'seller' }: Props) {
+  const isBuyer = kycType === 'buyer';
+
   const { user } = useAuth();
   const [record, setRecord] = useState<KycRecord | null>(null);
   const [loading, setLoading] = useState(true);
