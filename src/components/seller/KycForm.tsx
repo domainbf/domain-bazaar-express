@@ -138,7 +138,9 @@ export default function KycForm({ onStatusChange, compact, kycType = 'seller' }:
       .from('seller_kyc')
       .select('*')
       .eq('user_id', user.id)
+      .eq('kyc_type', kycType)
       .maybeSingle();
+
     if (data) {
       setRecord(data);
       setForm({
