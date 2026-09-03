@@ -60,7 +60,7 @@ export const KycProgress = ({ onFix, kycType = 'seller' }: { onFix?: () => void;
   useEffect(() => {
     if (!user) return;
     const channel = supabase
-      .channel(`kyc-progress-${user.id}`)
+      .channel(`kyc-progress-${kycType}-${user.id}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'seller_kyc', filter: `user_id=eq.${user.id}` },
@@ -68,18 +68,21 @@ export const KycProgress = ({ onFix, kycType = 'seller' }: { onFix?: () => void;
       )
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
-  }, [user, load]);
+  }, [user, load, kycType]);
 
   const status = row?.status || 'none';
   const meta = STATUS[status] ?? STATUS.none;
 
   const checklist = [
     { key: 'basic', label: '真实姓名与证件号', icon: FileText, done: !!(row?.full_name?.trim() && row?.id_number?.trim()) },
-    { key: 'payout', label: '收款账户信息', icon: Wallet, done: !!row?.payout_account?.trim() },
+    ...(kycType === 'seller'
+      ? [{ key: 'payout', label: '收款账户信息', icon: Wallet, done: !!row?.payout_account?.trim() }]
+      : []),
     { key: 'front', label: '证件正面照', icon: IdCard, done: !!row?.id_front_url },
     { key: 'back', label: '证件反面照', icon: IdCard, done: !!row?.id_back_url },
     { key: 'selfie', label: '手持证件自拍', icon: UserSquare, done: !!row?.id_selfie_url },
   ];
+
   const doneCount = checklist.filter(c => c.done).length;
   const percent = Math.round((doneCount / checklist.length) * 100);
 
