@@ -165,25 +165,39 @@ export default function KycForm({ onStatusChange, compact, kycType = 'seller' }:
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, [user?.id]);
+  useEffect(() => { load(); }, [user?.id, kycType]);
 
   useEffect(() => {
     if (!user) return;
     const channel = supabase
-      .channel('kyc-' + user.id)
+      .channel(`kyc-${kycType}-` + user.id)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'seller_kyc', filter: `user_id=eq.${user.id}` }, () => load())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user?.id]);
+  }, [user?.id, kycType]);
 
   const submit = async () => {
     if (!user) return;
-    if (!form.full_name.trim() || !form.id_number.trim() || !form.payout_account.trim()) {
-      return toast.error('请填写真实姓名、证件号与收款账户');
+    if (!form.full_name.trim() || !form.id_number.trim()) {
+      return toast.error('请填写真实姓名与证件号码');
+    }
+    if (!isBuyer && !form.payout_account.trim()) {
+      return toast.error('请填写收款账户');
     }
     setSaving(true);
     try {
-      const payload = { ...form, user_id: user.id, status: 'pending', review_note: null };
+      const payload: Record<string, any> = {
+        ...form,
+        user_id: user.id,
+        kyc_type: kycType,
+        status: 'pending',
+        review_note: null,
+      };
+      if (isBuyer) {
+        // 买家认证无需收款资料，占位以满足非空约束
+        payload.payout_method = 'none';
+        payload.payout_account = form.payout_account.trim() || 'N/A';
+      }
       if (record) {
         const { error } = await (supabase as any).from('seller_kyc').update(payload).eq('id', record.id);
         if (error) throw error;
@@ -191,6 +205,7 @@ export default function KycForm({ onStatusChange, compact, kycType = 'seller' }:
         const { error } = await (supabase as any).from('seller_kyc').insert(payload);
         if (error) throw error;
       }
+
       toast.success('资料已提交，1-3 个工作日内审核完成');
       await load();
     } catch (e: any) {
