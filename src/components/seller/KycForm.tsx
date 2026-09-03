@@ -285,29 +285,34 @@ export default function KycForm({ onStatusChange, compact, kycType = 'seller' }:
           <Field label="国家 / 地区">
             <Input value={form.country} disabled={locked} onChange={(e) => setForm({ ...form, country: e.target.value })} placeholder="CN" />
           </Field>
-          <Field label="收款方式">
-            <Select value={form.payout_method} onValueChange={(v) => setForm({ ...form, payout_method: v })} disabled={locked}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="alipay">支付宝</SelectItem>
-                <SelectItem value="wechat">微信支付</SelectItem>
-                <SelectItem value="bank">银行卡</SelectItem>
-                <SelectItem value="usdt">USDT (TRC20)</SelectItem>
-                <SelectItem value="paypal">PayPal</SelectItem>
-              </SelectContent>
-            </Select>
-          </Field>
-          <Field label="收款账户" required>
-            <Input value={form.payout_account} disabled={locked} onChange={(e) => setForm({ ...form, payout_account: e.target.value })} placeholder="账号 / 邮箱 / 钱包地址" />
-          </Field>
-          <Field label="收款人姓名">
-            <Input value={form.payout_account_name} disabled={locked} onChange={(e) => setForm({ ...form, payout_account_name: e.target.value })} />
-          </Field>
-          {form.payout_method === 'bank' && (
-            <Field label="开户银行" full>
-              <Input value={form.bank_name} disabled={locked} onChange={(e) => setForm({ ...form, bank_name: e.target.value })} />
-            </Field>
+          {!isBuyer && (
+            <>
+              <Field label="收款方式">
+                <Select value={form.payout_method} onValueChange={(v) => setForm({ ...form, payout_method: v })} disabled={locked}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="alipay">支付宝</SelectItem>
+                    <SelectItem value="wechat">微信支付</SelectItem>
+                    <SelectItem value="bank">银行卡</SelectItem>
+                    <SelectItem value="usdt">USDT (TRC20)</SelectItem>
+                    <SelectItem value="paypal">PayPal</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field label="收款账户" required>
+                <Input value={form.payout_account} disabled={locked} onChange={(e) => setForm({ ...form, payout_account: e.target.value })} placeholder="账号 / 邮箱 / 钱包地址" />
+              </Field>
+              <Field label="收款人姓名">
+                <Input value={form.payout_account_name} disabled={locked} onChange={(e) => setForm({ ...form, payout_account_name: e.target.value })} />
+              </Field>
+              {form.payout_method === 'bank' && (
+                <Field label="开户银行" full>
+                  <Input value={form.bank_name} disabled={locked} onChange={(e) => setForm({ ...form, bank_name: e.target.value })} />
+                </Field>
+              )}
+            </>
           )}
+
         </div>
         <Field label="备注 (可选)">
           <Textarea rows={2} value={form.notes} disabled={locked} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
