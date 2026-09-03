@@ -37,7 +37,7 @@ const STATUS: Record<string, { label: string; tone: 'default' | 'secondary' | 'd
 const STEPS = ['填写资料', '上传证件', '提交审核', '审核结果'];
 
 /** KYC 进度总览：审核状态、资料清单、退回后一键补充 */
-export const KycProgress = ({ onFix }: { onFix?: () => void }) => {
+export const KycProgress = ({ onFix, kycType = 'seller' }: { onFix?: () => void; kycType?: 'seller' | 'buyer' }) => {
   const { user } = useAuth();
   const [row, setRow] = useState<KycRow | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,10 +48,12 @@ export const KycProgress = ({ onFix }: { onFix?: () => void }) => {
       .from('seller_kyc')
       .select('id,status,review_note,reviewed_at,created_at,updated_at,full_name,id_number,payout_account,id_front_url,id_back_url,id_selfie_url')
       .eq('user_id', user.id)
+      .eq('kyc_type', kycType)
       .maybeSingle();
     setRow((data as KycRow) || null);
     setLoading(false);
-  }, [user]);
+  }, [user, kycType]);
+
 
   useEffect(() => { load(); }, [load]);
 
