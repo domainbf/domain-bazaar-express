@@ -37,7 +37,7 @@ const STATUS: Record<string, { label: string; tone: 'default' | 'secondary' | 'd
 const STEPS = ['填写资料', '上传证件', '提交审核', '审核结果'];
 
 /** KYC 进度总览：审核状态、资料清单、退回后一键补充 */
-export const KycProgress = ({ onFix }: { onFix?: () => void }) => {
+export const KycProgress = ({ onFix, kycType = 'seller' }: { onFix?: () => void; kycType?: 'seller' | 'buyer' }) => {
   const { user } = useAuth();
   const [row, setRow] = useState<KycRow | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,17 +48,19 @@ export const KycProgress = ({ onFix }: { onFix?: () => void }) => {
       .from('seller_kyc')
       .select('id,status,review_note,reviewed_at,created_at,updated_at,full_name,id_number,payout_account,id_front_url,id_back_url,id_selfie_url')
       .eq('user_id', user.id)
+      .eq('kyc_type', kycType)
       .maybeSingle();
     setRow((data as KycRow) || null);
     setLoading(false);
-  }, [user]);
+  }, [user, kycType]);
+
 
   useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
     if (!user) return;
     const channel = supabase
-      .channel(`kyc-progress-${user.id}`)
+      .channel(`kyc-progress-${kycType}-${user.id}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'seller_kyc', filter: `user_id=eq.${user.id}` },
@@ -66,18 +68,21 @@ export const KycProgress = ({ onFix }: { onFix?: () => void }) => {
       )
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
-  }, [user, load]);
+  }, [user, load, kycType]);
 
   const status = row?.status || 'none';
   const meta = STATUS[status] ?? STATUS.none;
 
   const checklist = [
     { key: 'basic', label: '真实姓名与证件号', icon: FileText, done: !!(row?.full_name?.trim() && row?.id_number?.trim()) },
-    { key: 'payout', label: '收款账户信息', icon: Wallet, done: !!row?.payout_account?.trim() },
+    ...(kycType === 'seller'
+      ? [{ key: 'payout', label: '收款账户信息', icon: Wallet, done: !!row?.payout_account?.trim() }]
+      : []),
     { key: 'front', label: '证件正面照', icon: IdCard, done: !!row?.id_front_url },
     { key: 'back', label: '证件反面照', icon: IdCard, done: !!row?.id_back_url },
     { key: 'selfie', label: '手持证件自拍', icon: UserSquare, done: !!row?.id_selfie_url },
   ];
+
   const doneCount = checklist.filter(c => c.done).length;
   const percent = Math.round((doneCount / checklist.length) * 100);
 
@@ -89,7 +94,7 @@ export const KycProgress = ({ onFix }: { onFix?: () => void }) => {
 
   const scrollToForm = () => {
     onFix?.();
-    document.getElementById('kyc-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById(`kyc-form-${kycType}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   if (loading) {
