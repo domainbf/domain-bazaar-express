@@ -42,7 +42,10 @@ export interface KycRecord {
 interface Props {
   onStatusChange?: (status: string) => void;
   compact?: boolean;
+  /** 'seller' = 卖家认证（含收款资料）；'buyer' = 买家实名认证 */
+  kycType?: 'seller' | 'buyer';
 }
+
 
 const STATUS_LABEL: Record<string, { label: string; tone: any; icon: any }> = {
   pending: { label: '审核中', tone: 'secondary', icon: Clock },
