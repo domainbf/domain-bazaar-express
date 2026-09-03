@@ -223,7 +223,7 @@ export default function KycForm({ onStatusChange, compact, kycType = 'seller' }:
     <Card>
       <CardHeader className={compact ? 'pb-3' : ''}>
         <CardTitle className="text-base flex items-center gap-2 flex-wrap">
-          <ShieldCheck className="w-4 h-4" /> 实名认证与收款资料
+          <ShieldCheck className="w-4 h-4" /> {isBuyer ? '买家实名认证' : '卖家实名认证与收款资料'}
           {meta && (
             <Badge variant={meta.tone} className="ml-auto">
               <meta.icon className="w-3 h-3 mr-1" />{meta.label}
@@ -235,11 +235,16 @@ export default function KycForm({ onStatusChange, compact, kycType = 'seller' }:
           <p className="text-xs text-muted-foreground mt-1">审核已通过 · {record?.reviewed_at ? new Date(record.reviewed_at).toLocaleString('zh-CN') : ''}</p>
         )}
         {status === 'pending' && (
-          <p className="text-xs text-muted-foreground mt-1">资料已进入审核队列，通过后即可申请提现。</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {isBuyer ? '资料已进入审核队列，通过后可参与大额交易与托管。' : '资料已进入审核队列，通过后即可申请提现。'}
+          </p>
         )}
         {status === 'none' && !loading && (
-          <p className="text-xs text-muted-foreground mt-1">首次提现前需完成实名认证并绑定收款账户。</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {isBuyer ? '完成买家实名认证后，可参与大额交易与资金托管。' : '首次提现前需完成实名认证并绑定收款账户。'}
+          </p>
         )}
+
       </CardHeader>
       <CardContent className="space-y-3">
         {status === 'rejected' && (
