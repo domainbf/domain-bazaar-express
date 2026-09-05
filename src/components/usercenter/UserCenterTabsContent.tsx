@@ -96,6 +96,7 @@ function TxContent({ tab }: { tab: string }) {
       {tab === 'wallet'       && <WalletPanel />}
       {tab === 'favorites'    && <FavoriteDomains />}
       {tab === 'searches'     && <SavedSearchesPanel />}
+      {tab === 'buyer'        && <BuyerCenterPanel />}
     </div>
   );
 }
@@ -109,8 +110,14 @@ function ProfileContent({ tab }: { tab: string }) {
       {tab === 'customurl' && <CustomUrlSettings />}
       {tab === 'kyc'       && (
         <div className="space-y-5 max-w-4xl">
-          <KycProgress />
-          <div id="kyc-form" className="scroll-mt-24"><KycForm /></div>
+          <KycProgress kycType="seller" />
+          <div id="kyc-form-seller" className="scroll-mt-24"><KycForm kycType="seller" /></div>
+        </div>
+      )}
+      {tab === 'kycbuyer'  && (
+        <div className="space-y-5 max-w-4xl">
+          <KycProgress kycType="buyer" />
+          <div id="kyc-form-buyer" className="scroll-mt-24"><KycForm kycType="buyer" /></div>
         </div>
       )}
       {tab === 'reviews'   && <MyReviewsPanel />}
@@ -118,6 +125,7 @@ function ProfileContent({ tab }: { tab: string }) {
     </div>
   );
 }
+
 
 /* Mobile pill selector — horizontal scroll, no overflow clipping */
 function MobilePillNav({
