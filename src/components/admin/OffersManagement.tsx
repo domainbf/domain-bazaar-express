@@ -107,6 +107,49 @@ export const OffersManagement = () => {
     setReview({ offer, action });
   };
 
+  /** 报价通过后自动生成订单，避免流程卡死 */
+  const ensureOrderForOffer = async (offer: Offer) => {
+    try {
+      const { data: existing } = await (supabase as any)
+        .from('transactions').select('id').eq('offer_id', offer.id).maybeSingle();
+      if (existing?.id) return existing.id as string;
+
+      // transactions.domain_id 指向 domains 表，需按域名反查
+      let domainId: string | null = null;
+      if (offer.domain_name) {
+        const { data: d } = await (supabase as any)
+          .from('domains').select('id').ilike('name', offer.domain_name).maybeSingle();
+        domainId = d?.id ?? null;
+      }
+      if (!domainId) {
+        toast.warning('报价已通过，但未找到对应域名记录，订单需手动创建');
+        return null;
+      }
+
+      const { data: created, error } = await (supabase as any)
+        .from('transactions')
+        .insert({
+          domain_id: domainId,
+          offer_id: offer.id,
+          buyer_id: offer.buyer_id,
+          seller_id: offer.seller_id,
+          amount: offer.amount,
+          status: 'pending',
+          payment_method: 'pending',
+          progress_stage: 'confirmed',
+          notes: '由管理员通过报价审核自动创建',
+        })
+        .select('id')
+        .single();
+      if (error) throw error;
+      toast.success('订单已自动创建，买家可继续付款');
+      return created?.id as string;
+    } catch (e: any) {
+      toast.error('订单创建失败：' + (e.message || ''));
+      return null;
+    }
+  };
+
   const submitReview = async () => {
     if (!review) return;
     if (review.action === 'rejected' && !reviewNote.trim()) {
@@ -131,6 +174,7 @@ export const OffersManagement = () => {
         ? { ...o, status: review.action, reviewed_by: user?.id ?? null, reviewed_at: now, review_note: reviewNote.trim() || null }
         : o));
       toast.success(review.action === 'accepted' ? '报价已通过审核' : '报价已驳回');
+      if (review.action === 'accepted') await ensureOrderForOffer(review.offer);
       setReview(null);
     } catch (e: any) {
       toast.error('审核失败：' + (e.message || ''));
@@ -203,6 +247,12 @@ export const OffersManagement = () => {
       setOffers(prev => prev.map(o => selectedIds.has(o.id)
         ? { ...o, status: bulkReview, reviewed_by: user?.id ?? null, reviewed_at: now, review_note: bulkNote.trim() || null }
         : o));
+      if (bulkReview === 'accepted') {
+        for (const id of ids) {
+          const o = offers.find(x => x.id === id);
+          if (o) await ensureOrderForOffer(o);
+        }
+      }
       toast.success(`${bulkReview === 'accepted' ? '已批量通过' : '已批量驳回'} ${ids.length} 条报价`);
       setSelectedIds(new Set());
       setBulkReview(null);
