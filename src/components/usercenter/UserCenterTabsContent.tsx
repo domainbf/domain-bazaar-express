@@ -26,6 +26,8 @@ import { CustomUrlSettings } from "@/components/usercenter/CustomUrlSettings";
 import { MyReviewsPanel } from "@/components/usercenter/MyReviewsPanel";
 import { KycProgress } from "@/components/usercenter/KycProgress";
 import KycForm from "@/components/seller/KycForm";
+import { BuyerCenterPanel } from "@/components/usercenter/BuyerCenterPanel";
+
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ComponentErrorBoundary } from "@/components/common/ComponentErrorBoundary";
 
@@ -43,6 +45,7 @@ const TX_TABS = [
   { id: 'disputes',     label: '纠纷申诉', shortLabel: '纠纷', icon: AlertTriangle },
   { id: 'favorites',    label: '我的收藏', shortLabel: '收藏', icon: Heart },
   { id: 'searches',     label: '搜索订阅', shortLabel: '订阅', icon: Bookmark },
+  { id: 'buyer',        label: '买家中心', shortLabel: '买家', icon: ShoppingBag },
 ];
 
 const PROFILE_TABS = [
@@ -50,9 +53,11 @@ const PROFILE_TABS = [
   { id: 'security',  label: '账户安全', icon: Shield },
   { id: 'customurl', label: '个性链接', icon: LinkIcon },
   { id: 'kyc',       label: '卖家认证', icon: ShieldCheck },
+  { id: 'kycbuyer',  label: '买家认证', icon: ShieldCheck },
   { id: 'reviews',   label: '我的评价', icon: Star },
   { id: 'activity',  label: '活动记录', icon: Activity },
 ];
+
 
 /* Persist sub-tab selection across visits */
 const usePersistedTab = (key: string, fallback: string, valid: string[], urlParam?: string) => {
@@ -93,6 +98,7 @@ function TxContent({ tab }: { tab: string }) {
       {tab === 'wallet'       && <WalletPanel />}
       {tab === 'favorites'    && <FavoriteDomains />}
       {tab === 'searches'     && <SavedSearchesPanel />}
+      {tab === 'buyer'        && <BuyerCenterPanel />}
     </div>
   );
 }
@@ -106,8 +112,14 @@ function ProfileContent({ tab }: { tab: string }) {
       {tab === 'customurl' && <CustomUrlSettings />}
       {tab === 'kyc'       && (
         <div className="space-y-5 max-w-4xl">
-          <KycProgress />
-          <div id="kyc-form" className="scroll-mt-24"><KycForm /></div>
+          <KycProgress kycType="seller" />
+          <div id="kyc-form-seller" className="scroll-mt-24"><KycForm kycType="seller" /></div>
+        </div>
+      )}
+      {tab === 'kycbuyer'  && (
+        <div className="space-y-5 max-w-4xl">
+          <KycProgress kycType="buyer" />
+          <div id="kyc-form-buyer" className="scroll-mt-24"><KycForm kycType="buyer" /></div>
         </div>
       )}
       {tab === 'reviews'   && <MyReviewsPanel />}
@@ -115,6 +127,7 @@ function ProfileContent({ tab }: { tab: string }) {
     </div>
   );
 }
+
 
 /* Mobile pill selector — horizontal scroll, no overflow clipping */
 function MobilePillNav({

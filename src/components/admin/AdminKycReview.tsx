@@ -29,6 +29,7 @@ interface KycRow {
   id_front_url?: string | null;
   id_back_url?: string | null;
   id_selfie_url?: string | null;
+  kyc_type?: string | null;
 }
 
 const STATUS: Record<string, { label: string; tone: any }> = {
@@ -43,6 +44,7 @@ export function AdminKycReview() {
   const [rows, setRows] = useState<KycRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('pending');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'seller' | 'buyer'>('all');
   const [selected, setSelected] = useState<KycRow | null>(null);
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
@@ -74,7 +76,9 @@ export function AdminKycReview() {
 
   useEffect(() => { load(); }, []);
 
-  const filtered = filter === 'all' ? rows : rows.filter((r) => r.status === filter);
+  const filtered = rows
+    .filter((r) => (filter === 'all' ? true : r.status === filter))
+    .filter((r) => (typeFilter === 'all' ? true : (r.kyc_type || 'seller') === typeFilter));
 
   const decide = async (status: 'approved' | 'rejected') => {
     if (!selected || !user) return;
@@ -105,7 +109,7 @@ export function AdminKycReview() {
           <h2 className="text-xl font-semibold flex items-center gap-2">
             <ShieldCheck className="w-5 h-5" /> 实名认证与提现审核
           </h2>
-          <p className="text-sm text-muted-foreground mt-1">审核卖家的身份资料与收款账户，通过后卖家方可提现。</p>
+          <p className="text-sm text-muted-foreground mt-1">审核买卖双方的身份资料：卖家通过后可提现，买家通过后可参与大额交易。</p>
         </div>
         <Button variant="outline" size="sm" onClick={load}>
           <RefreshCw className="w-4 h-4 mr-1.5" /> 刷新
@@ -118,6 +122,14 @@ export function AdminKycReview() {
           <TabsTrigger value="approved">已通过</TabsTrigger>
           <TabsTrigger value="rejected">已拒绝</TabsTrigger>
           <TabsTrigger value="all">全部</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      <Tabs value={typeFilter} onValueChange={(v) => setTypeFilter(v as any)}>
+        <TabsList>
+          <TabsTrigger value="all">全部类型</TabsTrigger>
+          <TabsTrigger value="seller">卖家认证 ({rows.filter(r => (r.kyc_type || 'seller') === 'seller').length})</TabsTrigger>
+          <TabsTrigger value="buyer">买家认证 ({rows.filter(r => r.kyc_type === 'buyer').length})</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -139,10 +151,17 @@ export function AdminKycReview() {
                       <div className="min-w-0">
                         <div className="font-medium truncate">{r.full_name}</div>
                         <div className="text-[11px] text-muted-foreground truncate">
-                          {r.payout_method.toUpperCase()} · {r.payout_account}
+                          {(r.kyc_type || 'seller') === 'buyer'
+                            ? `${r.id_type} · ${r.id_number}`
+                            : `${r.payout_method?.toUpperCase()} · ${r.payout_account}`}
                         </div>
                       </div>
-                      <Badge variant={meta.tone}>{meta.label}</Badge>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <Badge variant="outline" className="text-[10px]">
+                          {(r.kyc_type || 'seller') === 'buyer' ? '买家' : '卖家'}
+                        </Badge>
+                        <Badge variant={meta.tone}>{meta.label}</Badge>
+                      </div>
                     </div>
                     <div className="text-[11px] text-muted-foreground mt-1">
                       {new Date(r.created_at).toLocaleString('zh-CN')}
@@ -168,10 +187,14 @@ export function AdminKycReview() {
                 <Row label="国家" value={selected.country || '—'} />
                 <Row label="电话" value={selected.phone || '—'} />
                 <div className="border-t pt-2" />
-                <Row label="收款方式" value={selected.payout_method.toUpperCase()} />
-                <Row label="账户" value={selected.payout_account} />
-                <Row label="户名" value={selected.payout_account_name || '—'} />
-                {selected.bank_name && <Row label="开户行" value={selected.bank_name} />}
+                {(selected.kyc_type || 'seller') === 'seller' && (
+                  <>
+                    <Row label="收款方式" value={selected.payout_method?.toUpperCase() || '—'} />
+                    <Row label="账户" value={selected.payout_account} />
+                    <Row label="户名" value={selected.payout_account_name || '—'} />
+                    {selected.bank_name && <Row label="开户行" value={selected.bank_name} />}
+                  </>
+                )}
                 <div className="border-t pt-2" />
                 <div className="grid grid-cols-3 gap-2">
                   {([
