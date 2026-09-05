@@ -43,6 +43,7 @@ const TX_TABS = [
   { id: 'disputes',     label: '纠纷申诉', shortLabel: '纠纷', icon: AlertTriangle },
   { id: 'favorites',    label: '我的收藏', shortLabel: '收藏', icon: Heart },
   { id: 'searches',     label: '搜索订阅', shortLabel: '订阅', icon: Bookmark },
+  { id: 'buyer',        label: '买家中心', shortLabel: '买家', icon: ShoppingBag },
 ];
 
 const PROFILE_TABS = [
@@ -50,9 +51,11 @@ const PROFILE_TABS = [
   { id: 'security',  label: '账户安全', icon: Shield },
   { id: 'customurl', label: '个性链接', icon: LinkIcon },
   { id: 'kyc',       label: '卖家认证', icon: ShieldCheck },
+  { id: 'kycbuyer',  label: '买家认证', icon: ShieldCheck },
   { id: 'reviews',   label: '我的评价', icon: Star },
   { id: 'activity',  label: '活动记录', icon: Activity },
 ];
+
 
 /* Persist sub-tab selection across visits */
 const usePersistedTab = (key: string, fallback: string, valid: string[], urlParam?: string) => {
