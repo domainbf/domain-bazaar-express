@@ -26,6 +26,8 @@ import { CustomUrlSettings } from "@/components/usercenter/CustomUrlSettings";
 import { MyReviewsPanel } from "@/components/usercenter/MyReviewsPanel";
 import { KycProgress } from "@/components/usercenter/KycProgress";
 import KycForm from "@/components/seller/KycForm";
+import { BuyerCenterPanel } from "@/components/usercenter/BuyerCenterPanel";
+
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ComponentErrorBoundary } from "@/components/common/ComponentErrorBoundary";
 
