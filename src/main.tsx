@@ -7,6 +7,11 @@ import { HelmetProvider } from 'react-helmet-async';
 import { ThemeProvider } from 'next-themes';
 import App from './App.tsx'
 import './index.css'
+import '@fontsource/instrument-serif/400.css'
+import '@fontsource/instrument-serif/400-italic.css'
+import '@fontsource/work-sans/400.css'
+import '@fontsource/work-sans/500.css'
+import '@fontsource/work-sans/600.css'
 import { AuthProvider } from './contexts/AuthContext.tsx'
 import { LoadingProvider } from './contexts/LoadingContext.tsx'
 import './i18n'

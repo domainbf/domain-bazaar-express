@@ -3,3 +3,4 @@
 - [ ] reputation aggregation and marketplace/detail display
 - [ ] buyer center and separated KYC flows
 - [ ] browser regression and final verification
+- [ ] redesign daily picks and featured-domain list in the selected editorial direction

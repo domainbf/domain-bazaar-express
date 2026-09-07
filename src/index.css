@@ -61,6 +61,8 @@
     --info-foreground: 0 0% 100%;
     --invert: 224 34% 8%;
     --invert-foreground: 220 20% 96%;
+    --signal: 84 100% 62%;
+    --signal-foreground: 0 0% 4%;
     --border: 220 16% 90%;
     --input: 220 16% 92%;
     --ring: 224 32% 12%;
@@ -106,6 +108,8 @@
     --info-foreground: 224 20% 8%;
     --invert: 0 0% 100%;
     --invert-foreground: 224 20% 8%;
+    --signal: 84 100% 62%;
+    --signal-foreground: 0 0% 4%;
     --border: 224 14% 18%;
     --input: 224 14% 16%;
     --ring: 0 0% 100%;
