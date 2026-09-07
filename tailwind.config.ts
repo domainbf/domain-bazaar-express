@@ -69,6 +69,14 @@ export default {
           DEFAULT: "hsl(var(--invert))",
           foreground: "hsl(var(--invert-foreground))",
         },
+        signal: {
+          DEFAULT: "hsl(var(--signal))",
+          foreground: "hsl(var(--signal-foreground))",
+        },
+      },
+      fontFamily: {
+        editorial: ['"Instrument Serif"', 'serif'],
+        sans: ['"Work Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       backgroundImage: {
         "gradient-primary": "var(--gradient-primary)",

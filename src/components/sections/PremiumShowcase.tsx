@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Crown, Clock, Wand2, ArrowRight, Sparkles } from 'lucide-react';
+import { Flame, Crown, Clock, Wand2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useHomeData, HomeDomainItem } from '@/hooks/useHomeData';
 import { SkeletonCardGrid } from '@/components/common/SkeletonCard';
+import { formatPrice } from '@/lib/currency';
 
 type SectionKey = 'trending' | 'premium' | 'expiring' | 'ai';
 
@@ -37,60 +38,38 @@ const CompactDomainCard = ({
   price,
   currency,
   badge,
-  badgeTone = 'primary',
+  index,
   href,
 }: {
   domain: string;
   price?: number;
   currency?: string;
   badge?: string;
-  badgeTone?: 'primary' | 'success' | 'warning';
+  index: number;
   href: string;
 }) => {
-  const symbol = currency === 'USD' ? '$' : '¥';
-  const toneClasses =
-    badgeTone === 'success'
-      ? 'bg-success/10 text-success'
-      : badgeTone === 'warning'
-        ? 'bg-warning/10 text-warning '
-        : 'bg-primary/10 text-primary';
-
   return (
     <Link
       to={href}
-      className="group relative flex flex-col justify-between p-5 rounded-2xl bg-card border border-border hover:border-primary/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-elegant overflow-hidden"
+      className="group flex min-h-36 flex-col justify-between bg-card p-5 transition-colors hover:bg-muted/40 md:min-h-40"
     >
-      {/* subtle gradient wash on hover */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-primary/[0.06] to-transparent pointer-events-none" />
-
-      <div className="relative flex items-start justify-between gap-2 mb-6">
-        {badge && (
-          <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${toneClasses}`}>
-            {badge}
-          </span>
-        )}
-        <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all ml-auto" />
+      <div className="flex items-start justify-between gap-3 font-sans text-[10px] font-semibold uppercase text-muted-foreground">
+        <span>{String(index).padStart(2, '0')}</span>
+        <span>{badge}</span>
       </div>
-
-      <div className="relative">
-        <div
-          className="font-semibold text-foreground truncate tracking-tight mb-2"
-          style={{ fontSize: 'clamp(1rem, 2.4vw, 1.375rem)' }}
-          title={domain}
-        >
+      <div className="mt-7 min-w-0">
+        <div className="break-all font-editorial text-3xl leading-none text-foreground md:text-4xl" title={domain}>
           {domain}
         </div>
         {typeof price === 'number' && price > 0 ? (
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-xs text-muted-foreground">起价</span>
-            <span className="font-bold text-foreground tabular-nums">
-              {symbol}
-              {price.toLocaleString()}
-            </span>
-          </div>
+          <p className="mt-3 font-sans text-xs font-semibold tabular-nums text-foreground">{formatPrice(price, currency)}</p>
         ) : (
-          <div className="text-xs text-muted-foreground">议价 · 联系卖家</div>
+          <p className="mt-3 font-sans text-xs text-muted-foreground">议价 · 联系卖家</p>
         )}
+      </div>
+      <div className="mt-5 flex items-center justify-between border-t border-border pt-3 font-sans text-[10px] font-semibold text-muted-foreground transition-colors group-hover:text-foreground">
+        <span>查看详情</span>
+        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
       </div>
     </Link>
   );
@@ -118,48 +97,49 @@ export const PremiumShowcase = () => {
     return [] as HomeDomainItem[];
   }, [active, domains]);
 
-  const activeMeta = SECTIONS.find((s) => s.key === active)!;
+  const activeMeta = SECTIONS.find((s) => s.key === active) ?? SECTIONS[0];
+  const displayItems = active === 'ai'
+    ? aiNames.map((item, index) => ({ id: `ai-${index}`, ...item, price: item.est, currency: 'CNY', category: 'AI 生成' }))
+    : items;
+  const lead = displayItems[0];
+  const sideItems = displayItems.slice(1, 3);
+  const indexItems = displayItems.slice(3, 8);
 
   return (
-    <section className="relative py-12 md:py-16 px-4">
-      <div className="max-w-6xl mx-auto">
+    <section className="relative border-y border-border bg-background px-4 py-14 md:py-20">
+      <div className="mx-auto max-w-6xl">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
+        <div className="flex flex-col gap-7 border-b border-foreground pb-6 md:flex-row md:items-end md:justify-between">
           <div>
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 mb-3 rounded-full border border-border bg-card text-xs font-medium text-muted-foreground">
-              <Sparkles className="w-3 h-3" /> 每日精选
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
-              为你精心策展的域名
-            </h2>
-            <p className="mt-2 text-muted-foreground">{activeMeta.desc}</p>
+            <p className="mb-2 font-sans text-[10px] font-semibold uppercase text-muted-foreground">域见•你策展 · 每日更新</p>
+            <h2 className="font-editorial text-6xl font-normal leading-none text-foreground md:text-7xl">每日精选</h2>
+            <p className="mt-3 font-sans text-sm text-muted-foreground">{activeMeta.desc}</p>
           </div>
-          <Link to="/marketplace">
-            <Button variant="outline" className="rounded-full">
-              查看全部
-              <ArrowRight className="w-4 h-4 ml-1.5" />
-            </Button>
-          </Link>
+          <Button asChild variant="ghost" className="w-fit rounded-none border-b border-signal px-0 hover:bg-transparent">
+            <Link to="/marketplace">查看全部精选 <ArrowRight className="h-4 w-4" /></Link>
+          </Button>
         </div>
 
         {/* Tabs */}
-        <div className="flex flex-wrap gap-2 mb-8">
+        <div className="flex gap-6 overflow-x-auto py-6 no-scrollbar">
           {SECTIONS.map((s) => {
             const Icon = s.icon;
             const isActive = s.key === active;
             return (
-              <button
+              <Button
                 key={s.key}
+                type="button"
+                variant="ghost"
                 onClick={() => setActive(s.key)}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                className={`h-auto shrink-0 rounded-none px-0 py-1 font-sans text-xs font-semibold transition-colors ${
                   isActive
-                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                    : 'bg-card text-foreground border-border hover:border-primary/40 hover:bg-accent'
+                    ? 'border-b-2 border-signal text-foreground hover:bg-transparent'
+                    : 'text-muted-foreground hover:bg-transparent hover:text-foreground'
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="h-3.5 w-3.5" />
                 {s.label}
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -173,72 +153,42 @@ export const PremiumShowcase = () => {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.28 }}
           >
-            {active !== 'ai' ? (
-              isLoading ? (
+            {isLoading && active !== 'ai' ? (
                 <SkeletonCardGrid count={8} />
-              ) : items.length ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
-                  {items.map((d, i) => (
-                    <motion.div
-                      key={d.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.28, delay: Math.min(i, 8) * 0.04 }}
-                    >
-                      <CompactDomainCard
-                        domain={d.name}
-                        price={d.price}
-                        currency={d.currency}
-                        href={`/domain/${encodeURIComponent(d.name)}`}
-                        badge={
-                          active === 'trending'
-                            ? '热搜'
-                            : active === 'premium'
-                              ? '精品'
-                              : '即将截止'
-                        }
-                        badgeTone={active === 'expiring' ? 'warning' : active === 'premium' ? 'primary' : 'success'}
-                      />
-                    </motion.div>
+            ) : lead ? (
+              <div className="border border-border bg-border">
+                <div className="grid gap-px md:grid-cols-12">
+                  <Link to={active === 'ai' ? `/marketplace?search=${encodeURIComponent(lead.name)}` : `/domain/${encodeURIComponent(lead.name)}`} className="group flex min-h-[360px] flex-col justify-between bg-card p-6 md:col-span-7 md:min-h-[470px] md:p-10">
+                    <div className="flex items-start justify-between">
+                      <span className="bg-signal px-3 py-1 font-sans text-[10px] font-semibold text-signal-foreground">本期头条</span>
+                      <span className="font-editorial text-2xl italic text-muted-foreground">01</span>
+                    </div>
+                    <div className="my-12 min-w-0">
+                      <h3 className="break-all font-editorial text-6xl leading-[0.9] text-foreground md:text-8xl">{lead.name}</h3>
+                      <div className="mt-6 flex items-center gap-4">
+                        <span className="h-px w-10 bg-foreground" />
+                        <span className="font-sans text-base font-medium tabular-nums text-muted-foreground">{formatPrice(lead.price, lead.currency)}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-end justify-between gap-4 border-t border-border pt-5">
+                      <span className="font-sans text-xs text-muted-foreground">{lead.category || '精品域名'}</span>
+                      <span className="inline-flex items-center gap-2 bg-primary px-5 py-3 font-sans text-xs font-semibold text-primary-foreground transition-colors group-hover:bg-signal group-hover:text-signal-foreground">查看域名 <ArrowRight className="h-4 w-4" /></span>
+                    </div>
+                  </Link>
+                  <div className="grid gap-px bg-border md:col-span-5 md:grid-rows-2">
+                    {sideItems.map((d, i) => (
+                      <CompactDomainCard key={d.id} domain={d.name} price={d.price} currency={d.currency} badge={d.category || (active === 'ai' ? 'AI 生成' : '精选')} index={i + 2} href={active === 'ai' ? `/marketplace?search=${encodeURIComponent(d.name)}` : `/domain/${encodeURIComponent(d.name)}`} />
+                    ))}
+                  </div>
+                </div>
+                <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-5">
+                  {indexItems.map((d, i) => (
+                    <CompactDomainCard key={d.id} domain={d.name} price={d.price} currency={d.currency} badge={d.category || (active === 'ai' ? 'AI 生成' : '精选')} index={i + 4} href={active === 'ai' ? `/marketplace?search=${encodeURIComponent(d.name)}` : `/domain/${encodeURIComponent(d.name)}`} />
                   ))}
-                </div>
-              ) : (
-                <div className="text-center py-14 text-muted-foreground rounded-2xl border border-border bg-card">
-                  暂无数据
-                </div>
-              )
-            ) : (
-              <div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
-                  {aiNames.map((a, i) => (
-                    <motion.div
-                      key={a.name}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.28, delay: Math.min(i, 8) * 0.04 }}
-                    >
-                      <CompactDomainCard
-                        domain={a.name}
-                        price={a.est}
-                        currency="CNY"
-                        badge="AI 生成"
-                        badgeTone="primary"
-                        href={`/marketplace?search=${encodeURIComponent(a.name)}`}
-                      />
-                    </motion.div>
-                  ))}
-                </div>
-                <div className="mt-6 text-center">
-                  <Button
-                    variant="outline"
-                    className="rounded-full"
-                    onClick={() => setActive('ai')}
-                  >
-                    <Wand2 className="w-4 h-4 mr-1.5" />
-                    再生成一组
-                  </Button>
                 </div>
               </div>
+            ) : (
+              <div className="border border-border bg-card py-14 text-center text-muted-foreground">暂无数据</div>
             )}
           </motion.div>
         </AnimatePresence>
