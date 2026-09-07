@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { DomainListRow } from './DomainListRow';
+import { formatPrice as formatCurrencyPrice } from '@/lib/currency';
 
 // Kept for backwards compatibility — layout choice is now purely a density hint.
 export type MarketplaceLayout = 'card' | 'bento' | 'magazine' | 'masonry';
@@ -31,14 +32,8 @@ const CATEGORY_LABELS: Record<string, string> = {
   business: '商业', keyword: '关键词',
 };
 
-const CURRENCY_SYMBOL: Record<string, string> = {
-  CNY: '¥', USD: '$', EUR: '€', GBP: '£', JPY: '¥', HKD: 'HK$',
-  SGD: 'S$', AUD: 'A$', CAD: 'C$', KRW: '₩', TWD: 'NT$', THB: '฿',
-};
-
 const formatPrice = (d: Domain) => {
-  const sym = CURRENCY_SYMBOL[(d.currency || 'CNY').toUpperCase()] || '¥';
-  return d.price > 0 ? `${sym}${d.price.toLocaleString()}` : `${sym}0`;
+  return d.price > 0 ? formatCurrencyPrice(d.price, d.currency) : '面议';
 };
 
 // Auto-shrink domain text so long names never overflow the card.
@@ -93,83 +88,68 @@ const FavoriteHeart = ({ domainId, onDark }: { domainId: string; onDark?: boolea
 interface CardProps {
   domain: Domain;
   index: number;
-  hero?: boolean;
+  variant?: 'lead' | 'side' | 'index';
   onSelect?: (d: Domain, i: number) => void;
 }
 
-const HeroStyleCard = ({ domain, index, hero, onSelect }: CardProps) => {
-  const isFeatured = !!(hero || domain.highlight);
+const HeroStyleCard = ({ domain, index, variant = 'index', onSelect }: CardProps) => {
+  const isLead = variant === 'lead';
+  const isSide = variant === 'side';
+  const isFeatured = !!(isLead || domain.highlight);
   const categoryLabel = domain.category ? (CATEGORY_LABELS[domain.category] || domain.category) : '标准';
-  const badgeText = hero ? '本期头条' : (domain.highlight ? '★ 精选' : categoryLabel);
-  // Only the hero card uses the inverted surface — every other card matches the
-  // light card language used across the homepage and the rest of the site.
-  const onDark = !!hero;
+  const badgeText = isLead ? '本期头条' : (domain.highlight ? '精选' : categoryLabel);
+  const onDark = isSide;
   const fg = onDark ? 'text-invert-foreground' : 'text-foreground';
   const fgSoft = onDark ? 'text-invert-foreground/60' : 'text-muted-foreground';
-  const hairline = onDark ? 'border-invert-foreground/10' : 'border-border';
 
   const inner = (
     <>
-      {/* Ink accent bar */}
-      <div
-        aria-hidden
-        className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-foreground/80 via-primary to-foreground/80"
-      />
-
-      {/* Dashed inner frame */}
       <div className={cn(
-        'relative flex h-full flex-col rounded-xl border border-dashed text-center',
-        onDark ? 'border-invert-foreground/25' : 'border-border',
-        hero ? 'px-5 py-6 sm:px-8 sm:py-8' : 'px-4 py-5 sm:px-5',
+        'relative flex h-full flex-col text-left',
+        isLead ? 'p-6 md:p-10' : 'p-5 md:p-6',
       )}>
-        {/* Top: badge + heart */}
+        {/* Top: index + favorite */}
         <div className="flex items-start justify-between gap-2">
           <span className={cn(
-            'inline-flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold px-2.5 py-1 rounded-full',
-            onDark ? 'bg-invert-foreground/10 text-invert-foreground' : 'bg-accent text-accent-foreground',
+            'inline-flex items-center gap-2 font-sans text-[10px] font-semibold uppercase',
+            isLead ? 'bg-signal px-3 py-1 text-signal-foreground' : fgSoft,
           )}>
-            {hero && <Star className="h-2.5 w-2.5 fill-current" />}
+            {!isLead && <span className={cn('font-editorial text-lg italic leading-none', fgSoft)}>{String(index + 1).padStart(2, '0')}</span>}
+            {isLead && <Star className="h-2.5 w-2.5 fill-current" />}
             {badgeText}
           </span>
           <FavoriteHeart domainId={domain.id} onDark={onDark} />
         </div>
 
-        {/* Eyebrow */}
-        <p className={cn('mt-3 text-[10px] font-semibold uppercase tracking-[0.28em]', fgSoft)}>
-          {categoryLabel}
-        </p>
-
         {/* Domain wordmark */}
         <h3 className={cn(
-          'mt-2 font-black uppercase tracking-tight leading-[1.02] break-all',
-          'transition-transform duration-300 group-hover:scale-[1.02]',
+          'break-all font-editorial font-normal leading-[0.94]',
+          'transition-transform duration-300 group-hover:translate-x-1 motion-reduce:transition-none',
           fg,
-          domainTextSize(domain.name, isFeatured),
+          isLead ? domainTextSize(domain.name, true) : isSide ? 'mt-16 text-4xl sm:text-5xl' : 'mt-10 text-3xl sm:text-4xl',
         )}>
           {domain.name}
         </h3>
 
         {/* Price */}
-        <p className={cn('mt-3 text-[10px] uppercase tracking-[0.28em]', fgSoft)}>一口价</p>
-        <p className={cn('font-black tabular-nums leading-tight', fg, hero ? 'text-3xl sm:text-4xl' : 'text-2xl')}>
-          {formatPrice(domain)}
-        </p>
+        <div className={cn('mt-auto pt-6', isLead ? 'space-y-6' : 'space-y-4')}>
+          <div className="flex items-center gap-4">
+            <span className={cn('h-px w-10', onDark ? 'bg-invert-foreground/30' : 'bg-foreground')} />
+            <p className={cn('font-sans text-sm font-semibold tabular-nums', isLead ? 'text-base' : '', fgSoft)}>{formatPrice(domain)}</p>
+          </div>
 
-        {/* CTA pill */}
-        <div className="mt-auto w-full pt-5 text-xs font-semibold">
-
+          {/* CTA strip */}
           <span className={cn(
-            'inline-flex w-full min-h-11 items-center justify-center gap-1.5 rounded-full px-4 py-2.5 transition-colors',
-            onDark
-              ? 'bg-invert-foreground text-invert group-hover:bg-invert-foreground/90'
-              : 'bg-foreground text-background group-hover:bg-foreground/90',
+            'flex items-center justify-between border-t pt-3 font-sans text-[10px] font-semibold transition-colors',
+            onDark ? 'border-invert-foreground/10 text-invert-foreground/50 group-hover:text-signal' : 'border-border text-muted-foreground group-hover:text-foreground',
           )}>
-            立即查看 <ArrowUpRight className="h-3.5 w-3.5" />
+            <span>查看详情</span>
+            <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
           </span>
         </div>
 
         {/* Meta strip */}
-        <div className={cn('mt-3 flex items-center justify-center gap-3 text-[10px] uppercase tracking-wider', fgSoft)}>
+        <div className={cn('mt-3 flex flex-wrap items-center gap-3 font-sans text-[10px]', fgSoft)}>
           {(domain.views ?? 0) > 0 && (
             <span className="inline-flex items-center gap-1"><Eye className="h-2.5 w-2.5" />{domain.views}</span>
           )}
@@ -183,14 +163,10 @@ const HeroStyleCard = ({ domain, index, hero, onSelect }: CardProps) => {
   );
 
   const wrapperClass = cn(
-    'group relative block overflow-hidden isolate rounded-2xl p-1.5',
-    'transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
-    'active:scale-[0.99] motion-reduce:transition-none',
-    onDark
-      ? 'bg-invert text-invert-foreground border border-invert-foreground/10 hover:border-primary/50'
-      : 'bg-card border border-border hover:border-primary/40 shadow-card hover:shadow-elegant',
-    'hover:-translate-y-1',
-    hero ? 'min-h-[280px] sm:min-h-[320px]' : 'min-h-[236px]',
+    'group relative block overflow-hidden isolate bg-card',
+    'transition-colors duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+    onDark ? 'bg-invert text-invert-foreground hover:bg-invert/95' : 'bg-card hover:bg-muted/40',
+    isLead ? 'min-h-[360px] md:min-h-[470px]' : isSide ? 'min-h-[220px] md:min-h-[234px]' : 'min-h-[180px]',
   );
 
 
@@ -200,7 +176,7 @@ const HeroStyleCard = ({ domain, index, hero, onSelect }: CardProps) => {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1], delay: Math.min(index * 0.03, 0.24) }}
-      className={hero ? 'sm:col-span-2' : ''}
+      className="h-full"
     >
       {onSelect ? (
         <button
@@ -231,8 +207,8 @@ const CardSkeleton = ({ hero, i }: { hero?: boolean; i: number }) => (
     animate={{ opacity: 1 }}
     transition={{ duration: 0.2, delay: Math.min(i * 0.04, 0.2) }}
     className={cn(
- 'relative rounded-2xl border border-border bg-card shadow-card overflow-hidden',
-      hero ? 'p-6 sm:p-8 min-h-[280px] sm:min-h-[320px] sm:col-span-2' : 'p-5 min-h-[236px]',
+      'relative overflow-hidden border border-border bg-card',
+      hero ? 'p-6 sm:p-8 min-h-[320px] sm:min-h-[420px]' : 'p-5 min-h-[180px]',
     )}
   >
     <div className="animate-pulse space-y-4">
@@ -269,7 +245,7 @@ export const DomainListings = ({ domains, isLoading, isMobile, layout = 'card', 
       );
     }
     return (
-      <div className={gridClass}>
+      <div className={showHero ? 'grid grid-cols-1 gap-px border border-border bg-border md:grid-cols-12' : gridClass}>
         {Array.from({ length: 8 }).map((_, i) => (
           <CardSkeleton key={i} i={i} hero={showHero && i === 0} />
         ))}
@@ -294,6 +270,36 @@ export const DomainListings = ({ domains, isLoading, isMobile, layout = 'card', 
     );
   }
 
+  if (showHero) {
+    const lead = list[0];
+    const side = list.slice(1, 3);
+    const rest = list.slice(3);
+
+    if (!lead) return null;
+
+    return (
+      <div className="border border-border bg-border">
+        <div className="grid gap-px md:grid-cols-12">
+          <div className="md:col-span-7">
+            <HeroStyleCard domain={lead} index={0} variant="lead" onSelect={onSelect} />
+          </div>
+          <div className="grid gap-px bg-border md:col-span-5 md:grid-rows-2">
+            {side.map((d, i) => (
+              <HeroStyleCard key={d.id} domain={d} index={i + 1} variant="side" onSelect={onSelect} />
+            ))}
+          </div>
+        </div>
+        {rest.length > 0 && (
+          <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+            {rest.map((d, i) => (
+              <HeroStyleCard key={d.id} domain={d} index={i + 3} variant="index" onSelect={onSelect} />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className={gridClass}>
       {list.map((d, i) => (
@@ -301,7 +307,7 @@ export const DomainListings = ({ domains, isLoading, isMobile, layout = 'card', 
           key={d.id}
           domain={d}
           index={i}
-          hero={showHero && i === 0}
+          variant="index"
           onSelect={onSelect}
         />
       ))}
