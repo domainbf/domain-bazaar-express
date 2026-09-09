@@ -95,7 +95,6 @@ interface CardProps {
 const HeroStyleCard = ({ domain, index, variant = 'index', onSelect }: CardProps) => {
   const isLead = variant === 'lead';
   const isSide = variant === 'side';
-  const isFeatured = !!(isLead || domain.highlight);
   const categoryLabel = domain.category ? (CATEGORY_LABELS[domain.category] || domain.category) : '标准';
   const badgeText = isLead ? '本期头条' : (domain.highlight ? '精选' : categoryLabel);
   const onDark = isSide;
