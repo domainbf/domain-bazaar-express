@@ -33,12 +33,20 @@ const generateAiNames = () => {
   return list;
 };
 
+const leadNameSize = (name: string) => {
+  if (name.length <= 10) return 'text-6xl md:text-8xl';
+  if (name.length <= 14) return 'text-5xl md:text-7xl';
+  if (name.length <= 20) return 'text-4xl md:text-6xl';
+  return 'text-3xl md:text-5xl';
+};
+
 const CompactDomainCard = ({
   domain,
   price,
   currency,
   badge,
   index,
+  inverted = false,
   href,
 }: {
   domain: string;
@@ -46,28 +54,31 @@ const CompactDomainCard = ({
   currency?: string;
   badge?: string;
   index: number;
+  inverted?: boolean;
   href: string;
 }) => {
   return (
     <Link
       to={href}
-      className="group flex min-h-36 flex-col justify-between bg-card p-5 transition-colors hover:bg-muted/40 md:min-h-40"
+      className={inverted
+        ? 'group flex min-h-36 flex-col justify-between bg-invert p-5 text-invert-foreground transition-colors hover:bg-invert/95 md:min-h-40'
+        : 'group flex min-h-36 flex-col justify-between bg-card p-5 transition-colors hover:bg-muted/40 md:min-h-40'}
     >
-      <div className="flex items-start justify-between gap-3 font-sans text-[10px] font-semibold uppercase text-muted-foreground">
+      <div className={inverted ? 'flex items-start justify-between gap-3 font-sans text-[10px] font-semibold uppercase text-invert-foreground/50' : 'flex items-start justify-between gap-3 font-sans text-[10px] font-semibold uppercase text-muted-foreground'}>
         <span>{String(index).padStart(2, '0')}</span>
         <span>{badge}</span>
       </div>
       <div className="mt-7 min-w-0">
-        <div className="break-all font-editorial text-3xl leading-none text-foreground md:text-4xl" title={domain}>
+        <div className={inverted ? 'break-all font-editorial text-3xl leading-none text-invert-foreground md:text-4xl' : 'break-all font-editorial text-3xl leading-none text-foreground md:text-4xl'} title={domain}>
           {domain}
         </div>
         {typeof price === 'number' && price > 0 ? (
-          <p className="mt-3 font-sans text-xs font-semibold tabular-nums text-foreground">{formatPrice(price, currency)}</p>
+          <p className={inverted ? 'mt-3 font-sans text-xs font-semibold tabular-nums text-signal' : 'mt-3 font-sans text-xs font-semibold tabular-nums text-foreground'}>{formatPrice(price, currency)}</p>
         ) : (
           <p className="mt-3 font-sans text-xs text-muted-foreground">议价 · 联系卖家</p>
         )}
       </div>
-      <div className="mt-5 flex items-center justify-between border-t border-border pt-3 font-sans text-[10px] font-semibold text-muted-foreground transition-colors group-hover:text-foreground">
+      <div className={inverted ? 'mt-5 flex items-center justify-between border-t border-invert-foreground/10 pt-3 font-sans text-[10px] font-semibold text-invert-foreground/50 transition-colors group-hover:text-signal' : 'mt-5 flex items-center justify-between border-t border-border pt-3 font-sans text-[10px] font-semibold text-muted-foreground transition-colors group-hover:text-foreground'}>
         <span>查看详情</span>
         <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
       </div>
@@ -164,7 +175,7 @@ export const PremiumShowcase = () => {
                       <span className="font-editorial text-2xl italic text-muted-foreground">01</span>
                     </div>
                     <div className="my-12 min-w-0">
-                      <h3 className="break-all font-editorial text-6xl leading-[0.9] text-foreground md:text-8xl">{lead.name}</h3>
+                      <h3 className={`break-all font-editorial leading-[0.9] text-foreground ${leadNameSize(lead.name)}`}>{lead.name}</h3>
                       <div className="mt-6 flex items-center gap-4">
                         <span className="h-px w-10 bg-foreground" />
                         <span className="font-sans text-base font-medium tabular-nums text-muted-foreground">{formatPrice(lead.price, lead.currency)}</span>
@@ -177,7 +188,7 @@ export const PremiumShowcase = () => {
                   </Link>
                   <div className="grid gap-px bg-border md:col-span-5 md:grid-rows-2">
                     {sideItems.map((d, i) => (
-                      <CompactDomainCard key={d.id} domain={d.name} price={d.price} currency={d.currency} badge={d.category || (active === 'ai' ? 'AI 生成' : '精选')} index={i + 2} href={active === 'ai' ? `/marketplace?search=${encodeURIComponent(d.name)}` : `/domain/${encodeURIComponent(d.name)}`} />
+                      <CompactDomainCard key={d.id} domain={d.name} price={d.price} currency={d.currency} badge={d.category || (active === 'ai' ? 'AI 生成' : '精选')} index={i + 2} inverted={i === 0} href={active === 'ai' ? `/marketplace?search=${encodeURIComponent(d.name)}` : `/domain/${encodeURIComponent(d.name)}`} />
                     ))}
                   </div>
                 </div>
