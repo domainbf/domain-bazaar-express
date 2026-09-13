@@ -55,6 +55,7 @@ const AdminDiagnostics = lazy(() => import('@/components/admin/AdminDiagnostics'
 const AdminOrderOperations = lazy(() => import('@/components/admin/AdminOrderOperations').then(m => ({ default: m.AdminOrderOperations })));
 const AdminKycReview = lazy(() => import('@/components/admin/AdminKycReview').then(m => ({ default: m.AdminKycReview })));
 const AdminWithdrawals = lazy(() => import('@/components/admin/AdminWithdrawals').then(m => ({ default: m.AdminWithdrawals })));
+const AdminFeaturedRequests = lazy(() => import('@/components/admin/AdminFeaturedRequests').then(m => ({ default: m.AdminFeaturedRequests })));
 
 interface NavItem {
   id: string;
