@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Domain } from '@/types/domain';
-import { Star, ArrowUpRight, Heart, Shield, Eye, Tag } from 'lucide-react';
+import { Star, ArrowUpRight, Heart, Shield, Eye, Tag, ReceiptText } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useAuth } from '@/contexts/AuthContext';
