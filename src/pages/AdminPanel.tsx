@@ -97,6 +97,7 @@ export const AdminPanel = () => {
   const [pendingOffers, setPendingOffers] = useState(0);
   const [pendingTickets, setPendingTickets] = useState(0);
   const [pendingKyc, setPendingKyc] = useState(0);
+  const [pendingFeatured, setPendingFeatured] = useState(0);
   const [newFeedback, setNewFeedback] = useState(0);
   const [navQuery, setNavQuery] = useState('');
   const [collapsed, setCollapsed] = useState<string[]>(() => {
