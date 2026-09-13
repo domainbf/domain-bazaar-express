@@ -253,7 +253,7 @@ export const AdminPanel = () => {
   const activeItem = allItems.find(i => i.id === activeTab);
   const activeGroup = navGroups.find(g => g.items.some(i => i.id === activeTab));
 
-  const totalPending = pendingVerifications + pendingDisputes + pendingOffers + pendingTickets + pendingKyc + newFeedback;
+  const totalPending = pendingVerifications + pendingDisputes + pendingOffers + pendingTickets + pendingKyc + newFeedback + pendingFeatured;
 
   const q = navQuery.trim().toLowerCase();
   const filteredGroups = navGroups
