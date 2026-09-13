@@ -1,11 +1,41 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Crown, Clock, Wand2, ArrowRight } from 'lucide-react';
+import { Flame, Crown, Clock, Wand2, ArrowRight, ReceiptText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useHomeData, HomeDomainItem } from '@/hooks/useHomeData';
 import { SkeletonCardGrid } from '@/components/common/SkeletonCard';
 import { formatPrice } from '@/lib/currency';
+import { useAuth } from '@/contexts/AuthContext';
+import { useFeaturedRealtimeSync } from '@/hooks/useFeaturedRequests';
+
+/** Buyer entry inside a card that is itself a link — keeps markup valid. */
+const BuyerEntry = ({ onDark }: { onDark?: boolean }) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  if (!user) return null;
+  const go = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate('/user-center?tab=buyer');
+  };
+  return (
+    <span
+      role="button"
+      tabIndex={0}
+      onClick={go}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') go(e); }}
+      aria-label="前往买家中心查看报价与订单"
+      data-testid="button-buyer-center-featured"
+      className={onDark
+        ? 'inline-flex shrink-0 items-center gap-1 rounded-full bg-invert-foreground/10 px-2.5 py-1 text-[10px] font-semibold text-invert-foreground/70 transition-colors hover:bg-invert-foreground/20 hover:text-invert-foreground'
+        : 'inline-flex shrink-0 items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-[10px] font-semibold text-muted-foreground transition-colors hover:bg-accent hover:text-foreground'}
+    >
+      <ReceiptText className="h-3 w-3" />
+      买家中心
+    </span>
+  );
+};
 
 type SectionKey = 'trending' | 'premium' | 'expiring' | 'ai';
 
@@ -78,9 +108,9 @@ const CompactDomainCard = ({
           <p className="mt-3 font-sans text-xs text-muted-foreground">议价 · 联系卖家</p>
         )}
       </div>
-      <div className={inverted ? 'mt-5 flex items-center justify-between border-t border-invert-foreground/10 pt-3 font-sans text-[10px] font-semibold text-invert-foreground/50 transition-colors group-hover:text-signal' : 'mt-5 flex items-center justify-between border-t border-border pt-3 font-sans text-[10px] font-semibold text-muted-foreground transition-colors group-hover:text-foreground'}>
-        <span>查看详情</span>
-        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+      <div className={inverted ? 'mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-invert-foreground/10 pt-3 font-sans text-[10px] font-semibold text-invert-foreground/50 transition-colors group-hover:text-signal' : 'mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 font-sans text-[10px] font-semibold text-muted-foreground transition-colors group-hover:text-foreground'}>
+        <span className="inline-flex items-center gap-1">查看详情 <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" /></span>
+        <BuyerEntry onDark={inverted} />
       </div>
     </Link>
   );
@@ -90,6 +120,7 @@ export const PremiumShowcase = () => {
   const [active, setActive] = useState<SectionKey>('trending');
   const { data: homeData, isLoading } = useHomeData();
   const aiNames = useMemo(generateAiNames, [active === 'ai']);
+  useFeaturedRealtimeSync();
 
   const domains = homeData?.hotDomains ?? [];
 
@@ -181,8 +212,11 @@ export const PremiumShowcase = () => {
                         <span className="font-sans text-base font-medium tabular-nums text-muted-foreground">{formatPrice(lead.price, lead.currency)}</span>
                       </div>
                     </div>
-                    <div className="flex items-end justify-between gap-4 border-t border-border pt-5">
-                      <span className="font-sans text-xs text-muted-foreground">{lead.category || '精品域名'}</span>
+                    <div className="flex flex-wrap items-end justify-between gap-3 border-t border-border pt-5">
+                      <span className="inline-flex flex-wrap items-center gap-2 font-sans text-xs text-muted-foreground">
+                        {lead.category || '精品域名'}
+                        <BuyerEntry />
+                      </span>
                       <span className="inline-flex items-center gap-2 bg-primary px-5 py-3 font-sans text-xs font-semibold text-primary-foreground transition-colors group-hover:bg-signal group-hover:text-signal-foreground">查看域名 <ArrowRight className="h-4 w-4" /></span>
                     </div>
                   </Link>

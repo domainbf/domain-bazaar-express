@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Domain } from '@/types/domain';
-import { Star, ArrowUpRight, Heart, Shield, Eye, Tag } from 'lucide-react';
+import { Star, ArrowUpRight, Heart, Shield, Eye, Tag, ReceiptText } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useAuth } from '@/contexts/AuthContext';
@@ -84,6 +84,37 @@ const FavoriteHeart = ({ domainId, onDark }: { domainId: string; onDark?: boolea
   );
 };
 
+// ─── Buyer entry: jump straight to the buyer centre (offers + orders) ───────
+const BuyerEntry = ({ onDark }: { onDark?: boolean }) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  if (!user) return null;
+  const go = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate('/user-center?tab=buyer');
+  };
+  return (
+    <span
+      role="button"
+      tabIndex={0}
+      onClick={go}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') go(e); }}
+      data-testid="button-buyer-center"
+      aria-label="前往买家中心查看报价与订单"
+      className={cn(
+        'inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 font-sans text-[10px] font-semibold transition-colors',
+        onDark
+          ? 'bg-invert-foreground/10 text-invert-foreground/70 hover:bg-invert-foreground/20 hover:text-invert-foreground'
+          : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground',
+      )}
+    >
+      <ReceiptText className="h-3 w-3" />
+      买家中心
+    </span>
+  );
+};
+
 // ─── The one and only card style ────────────────────────────────────────────
 interface CardProps {
   domain: Domain;
@@ -139,11 +170,14 @@ const HeroStyleCard = ({ domain, index, variant = 'index', onSelect }: CardProps
 
           {/* CTA strip */}
           <span className={cn(
-            'flex items-center justify-between border-t pt-3 font-sans text-[10px] font-semibold transition-colors',
+            'flex flex-wrap items-center justify-between gap-2 border-t pt-3 font-sans text-[10px] font-semibold transition-colors',
             onDark ? 'border-invert-foreground/10 text-invert-foreground/50 group-hover:text-signal' : 'border-border text-muted-foreground group-hover:text-foreground',
           )}>
-            <span>查看详情</span>
-            <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+            <span className="inline-flex items-center gap-1">
+              查看详情
+              <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+            </span>
+            <BuyerEntry onDark={onDark} />
           </span>
         </div>
 

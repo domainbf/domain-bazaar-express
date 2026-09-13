@@ -55,6 +55,7 @@ const AdminDiagnostics = lazy(() => import('@/components/admin/AdminDiagnostics'
 const AdminOrderOperations = lazy(() => import('@/components/admin/AdminOrderOperations').then(m => ({ default: m.AdminOrderOperations })));
 const AdminKycReview = lazy(() => import('@/components/admin/AdminKycReview').then(m => ({ default: m.AdminKycReview })));
 const AdminWithdrawals = lazy(() => import('@/components/admin/AdminWithdrawals').then(m => ({ default: m.AdminWithdrawals })));
+const AdminFeaturedRequests = lazy(() => import('@/components/admin/AdminFeaturedRequests').then(m => ({ default: m.AdminFeaturedRequests })));
 
 interface NavItem {
   id: string;
@@ -96,6 +97,7 @@ export const AdminPanel = () => {
   const [pendingOffers, setPendingOffers] = useState(0);
   const [pendingTickets, setPendingTickets] = useState(0);
   const [pendingKyc, setPendingKyc] = useState(0);
+  const [pendingFeatured, setPendingFeatured] = useState(0);
   const [newFeedback, setNewFeedback] = useState(0);
   const [navQuery, setNavQuery] = useState('');
   const [collapsed, setCollapsed] = useState<string[]>(() => {
@@ -121,13 +123,14 @@ export const AdminPanel = () => {
 
   const loadBadges = async () => {
     try {
-      const [verRes, disputeRes, offerRes, ticketRes, kycRes, feedbackRes] = await Promise.all([
+      const [verRes, disputeRes, offerRes, ticketRes, kycRes, feedbackRes, featuredRes] = await Promise.all([
         supabase.from('domain_verifications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('disputes').select('id', { count: 'exact', head: true }).eq('status', 'open'),
         supabase.from('domain_offers').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('support_tickets').select('id', { count: 'exact', head: true }).eq('status', 'open'),
         (supabase as any).from('seller_kyc').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('user_feedback').select('id', { count: 'exact', head: true }).eq('status', 'new'),
+        (supabase as any).from('featured_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       ]);
       setPendingVerifications(verRes.count ?? 0);
       setPendingDisputes(disputeRes.count ?? 0);
@@ -135,6 +138,7 @@ export const AdminPanel = () => {
       setPendingTickets(ticketRes.count ?? 0);
       setPendingKyc(kycRes?.count ?? 0);
       setNewFeedback(feedbackRes?.count ?? 0);
+      setPendingFeatured(featuredRes?.count ?? 0);
     } catch {}
   };
 
@@ -154,6 +158,7 @@ export const AdminPanel = () => {
         { id: 'domains', label: '全部域名', icon: Globe, keywords: 'domain 列表' },
         { id: 'domain-manager', label: '域名上架管理', icon: Plus, keywords: 'domain 新增 编辑 排序 已售' },
         { id: 'verifications', label: '待审验证', icon: CheckSquare, badge: pendingVerifications, keywords: 'verify dns' },
+        { id: 'featured-requests', label: '精选审核', icon: Star, badge: pendingFeatured, keywords: 'featured 精选 申请 审核' },
         { id: 'auctions', label: '拍卖管理', icon: Gavel, keywords: 'auction 竞价' },
         { id: 'bulk', label: '批量操作', icon: Layers, keywords: 'bulk 导入' },
         { id: 'logos', label: 'Logo 管理', icon: ImageIcon, keywords: 'logo 徽章 图标' },
@@ -248,7 +253,7 @@ export const AdminPanel = () => {
   const activeItem = allItems.find(i => i.id === activeTab);
   const activeGroup = navGroups.find(g => g.items.some(i => i.id === activeTab));
 
-  const totalPending = pendingVerifications + pendingDisputes + pendingOffers + pendingTickets + pendingKyc + newFeedback;
+  const totalPending = pendingVerifications + pendingDisputes + pendingOffers + pendingTickets + pendingKyc + newFeedback + pendingFeatured;
 
   const q = navQuery.trim().toLowerCase();
   const filteredGroups = navGroups
@@ -373,6 +378,7 @@ export const AdminPanel = () => {
       case 'domains': return <AllDomainListings />;
       case 'domain-manager': return <DomainManagerPanel />;
       case 'verifications': return <PendingVerifications />;
+      case 'featured-requests': return <AdminFeaturedRequests />;
       case 'auctions': return <AdminAuctionManagement />;
       case 'bulk': return <BulkDomainOperations />;
       case 'logos': return <AdminLogoManagement />;
