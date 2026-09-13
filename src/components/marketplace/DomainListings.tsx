@@ -170,11 +170,14 @@ const HeroStyleCard = ({ domain, index, variant = 'index', onSelect }: CardProps
 
           {/* CTA strip */}
           <span className={cn(
-            'flex items-center justify-between border-t pt-3 font-sans text-[10px] font-semibold transition-colors',
+            'flex flex-wrap items-center justify-between gap-2 border-t pt-3 font-sans text-[10px] font-semibold transition-colors',
             onDark ? 'border-invert-foreground/10 text-invert-foreground/50 group-hover:text-signal' : 'border-border text-muted-foreground group-hover:text-foreground',
           )}>
-            <span>查看详情</span>
-            <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+            <span className="inline-flex items-center gap-1">
+              查看详情
+              <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+            </span>
+            <BuyerEntry onDark={onDark} />
           </span>
         </div>
 
