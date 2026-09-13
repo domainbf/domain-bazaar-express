@@ -378,6 +378,7 @@ export const AdminPanel = () => {
       case 'domains': return <AllDomainListings />;
       case 'domain-manager': return <DomainManagerPanel />;
       case 'verifications': return <PendingVerifications />;
+      case 'featured-requests': return <AdminFeaturedRequests />;
       case 'auctions': return <AdminAuctionManagement />;
       case 'bulk': return <BulkDomainOperations />;
       case 'logos': return <AdminLogoManagement />;
