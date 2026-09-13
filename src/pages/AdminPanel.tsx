@@ -123,7 +123,7 @@ export const AdminPanel = () => {
 
   const loadBadges = async () => {
     try {
-      const [verRes, disputeRes, offerRes, ticketRes, kycRes, feedbackRes] = await Promise.all([
+      const [verRes, disputeRes, offerRes, ticketRes, kycRes, feedbackRes, featuredRes] = await Promise.all([
         supabase.from('domain_verifications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('disputes').select('id', { count: 'exact', head: true }).eq('status', 'open'),
         supabase.from('domain_offers').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
