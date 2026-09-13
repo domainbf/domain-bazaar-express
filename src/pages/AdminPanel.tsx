@@ -138,6 +138,7 @@ export const AdminPanel = () => {
       setPendingTickets(ticketRes.count ?? 0);
       setPendingKyc(kycRes?.count ?? 0);
       setNewFeedback(feedbackRes?.count ?? 0);
+      setPendingFeatured(featuredRes?.count ?? 0);
     } catch {}
   };
 
