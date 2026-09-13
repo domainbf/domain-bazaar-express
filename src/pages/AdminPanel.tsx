@@ -130,6 +130,7 @@ export const AdminPanel = () => {
         supabase.from('support_tickets').select('id', { count: 'exact', head: true }).eq('status', 'open'),
         (supabase as any).from('seller_kyc').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('user_feedback').select('id', { count: 'exact', head: true }).eq('status', 'new'),
+        (supabase as any).from('featured_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       ]);
       setPendingVerifications(verRes.count ?? 0);
       setPendingDisputes(disputeRes.count ?? 0);
