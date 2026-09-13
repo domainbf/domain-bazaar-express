@@ -158,6 +158,7 @@ export const AdminPanel = () => {
         { id: 'domains', label: '全部域名', icon: Globe, keywords: 'domain 列表' },
         { id: 'domain-manager', label: '域名上架管理', icon: Plus, keywords: 'domain 新增 编辑 排序 已售' },
         { id: 'verifications', label: '待审验证', icon: CheckSquare, badge: pendingVerifications, keywords: 'verify dns' },
+        { id: 'featured-requests', label: '精选审核', icon: Star, badge: pendingFeatured, keywords: 'featured 精选 申请 审核' },
         { id: 'auctions', label: '拍卖管理', icon: Gavel, keywords: 'auction 竞价' },
         { id: 'bulk', label: '批量操作', icon: Layers, keywords: 'bulk 导入' },
         { id: 'logos', label: 'Logo 管理', icon: ImageIcon, keywords: 'logo 徽章 图标' },
