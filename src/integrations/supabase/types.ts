@@ -1061,6 +1061,56 @@ export type Database = {
           },
         ]
       }
+      featured_requests: {
+        Row: {
+          created_at: string
+          domain_id: string
+          domain_name: string
+          id: string
+          reason: string | null
+          requester_id: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewer_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          domain_id: string
+          domain_name: string
+          id?: string
+          reason?: string | null
+          requester_id: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          domain_id?: string
+          domain_name?: string
+          id?: string
+          reason?: string | null
+          requester_id?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "featured_requests_domain_id_fkey"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "domain_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       languages: {
         Row: {
           code: string
