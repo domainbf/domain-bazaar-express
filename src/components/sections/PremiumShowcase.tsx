@@ -212,8 +212,11 @@ export const PremiumShowcase = () => {
                         <span className="font-sans text-base font-medium tabular-nums text-muted-foreground">{formatPrice(lead.price, lead.currency)}</span>
                       </div>
                     </div>
-                    <div className="flex items-end justify-between gap-4 border-t border-border pt-5">
-                      <span className="font-sans text-xs text-muted-foreground">{lead.category || '精品域名'}</span>
+                    <div className="flex flex-wrap items-end justify-between gap-3 border-t border-border pt-5">
+                      <span className="inline-flex flex-wrap items-center gap-2 font-sans text-xs text-muted-foreground">
+                        {lead.category || '精品域名'}
+                        <BuyerEntry />
+                      </span>
                       <span className="inline-flex items-center gap-2 bg-primary px-5 py-3 font-sans text-xs font-semibold text-primary-foreground transition-colors group-hover:bg-signal group-hover:text-signal-foreground">查看域名 <ArrowRight className="h-4 w-4" /></span>
                     </div>
                   </Link>
