@@ -1,11 +1,41 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Crown, Clock, Wand2, ArrowRight } from 'lucide-react';
+import { Flame, Crown, Clock, Wand2, ArrowRight, ReceiptText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useHomeData, HomeDomainItem } from '@/hooks/useHomeData';
 import { SkeletonCardGrid } from '@/components/common/SkeletonCard';
 import { formatPrice } from '@/lib/currency';
+import { useAuth } from '@/contexts/AuthContext';
+import { useFeaturedRealtimeSync } from '@/hooks/useFeaturedRequests';
+
+/** Buyer entry inside a card that is itself a link — keeps markup valid. */
+const BuyerEntry = ({ onDark }: { onDark?: boolean }) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  if (!user) return null;
+  const go = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate('/user-center?tab=buyer');
+  };
+  return (
+    <span
+      role="button"
+      tabIndex={0}
+      onClick={go}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') go(e); }}
+      aria-label="前往买家中心查看报价与订单"
+      data-testid="button-buyer-center-featured"
+      className={onDark
+        ? 'inline-flex shrink-0 items-center gap-1 rounded-full bg-invert-foreground/10 px-2.5 py-1 text-[10px] font-semibold text-invert-foreground/70 transition-colors hover:bg-invert-foreground/20 hover:text-invert-foreground'
+        : 'inline-flex shrink-0 items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-[10px] font-semibold text-muted-foreground transition-colors hover:bg-accent hover:text-foreground'}
+    >
+      <ReceiptText className="h-3 w-3" />
+      买家中心
+    </span>
+  );
+};
 
 type SectionKey = 'trending' | 'premium' | 'expiring' | 'ai';
 
