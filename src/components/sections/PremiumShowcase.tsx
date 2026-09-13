@@ -108,9 +108,9 @@ const CompactDomainCard = ({
           <p className="mt-3 font-sans text-xs text-muted-foreground">议价 · 联系卖家</p>
         )}
       </div>
-      <div className={inverted ? 'mt-5 flex items-center justify-between border-t border-invert-foreground/10 pt-3 font-sans text-[10px] font-semibold text-invert-foreground/50 transition-colors group-hover:text-signal' : 'mt-5 flex items-center justify-between border-t border-border pt-3 font-sans text-[10px] font-semibold text-muted-foreground transition-colors group-hover:text-foreground'}>
-        <span>查看详情</span>
-        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+      <div className={inverted ? 'mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-invert-foreground/10 pt-3 font-sans text-[10px] font-semibold text-invert-foreground/50 transition-colors group-hover:text-signal' : 'mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 font-sans text-[10px] font-semibold text-muted-foreground transition-colors group-hover:text-foreground'}>
+        <span className="inline-flex items-center gap-1">查看详情 <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" /></span>
+        <BuyerEntry onDark={inverted} />
       </div>
     </Link>
   );
