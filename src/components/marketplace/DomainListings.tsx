@@ -84,6 +84,37 @@ const FavoriteHeart = ({ domainId, onDark }: { domainId: string; onDark?: boolea
   );
 };
 
+// ─── Buyer entry: jump straight to the buyer centre (offers + orders) ───────
+const BuyerEntry = ({ onDark }: { onDark?: boolean }) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  if (!user) return null;
+  const go = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate('/user-center?tab=buyer');
+  };
+  return (
+    <span
+      role="button"
+      tabIndex={0}
+      onClick={go}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') go(e); }}
+      data-testid="button-buyer-center"
+      aria-label="前往买家中心查看报价与订单"
+      className={cn(
+        'inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 font-sans text-[10px] font-semibold transition-colors',
+        onDark
+          ? 'bg-invert-foreground/10 text-invert-foreground/70 hover:bg-invert-foreground/20 hover:text-invert-foreground'
+          : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground',
+      )}
+    >
+      <ReceiptText className="h-3 w-3" />
+      买家中心
+    </span>
+  );
+};
+
 // ─── The one and only card style ────────────────────────────────────────────
 interface CardProps {
   domain: Domain;
