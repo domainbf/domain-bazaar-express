@@ -120,6 +120,7 @@ export const PremiumShowcase = () => {
   const [active, setActive] = useState<SectionKey>('trending');
   const { data: homeData, isLoading } = useHomeData();
   const aiNames = useMemo(generateAiNames, [active === 'ai']);
+  useFeaturedRealtimeSync();
 
   const domains = homeData?.hotDomains ?? [];
 
