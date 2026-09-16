@@ -10,6 +10,7 @@ import { getDomainDetailPath } from '@/lib/domainRouting';
 import { formatPrice } from '@/lib/currency';
 import { DomainActions } from '../DomainActions';
 import { DomainStatusManager } from '../DomainStatusManager';
+import { FeaturedRequestButton } from '@/components/domain/FeaturedRequestButton';
 import { CreateAuctionDialog } from '@/components/auction/CreateAuctionDialog';
 import { toast } from 'sonner';
 
