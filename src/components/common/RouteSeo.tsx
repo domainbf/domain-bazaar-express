@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
-import { getCanonicalUrl, getHreflangAlternates } from '@/lib/canonicalUrl';
+import { getCanonicalUrl, getHreflangAlternates, SITE_ORIGIN } from '@/lib/canonicalUrl';
 
 interface SeoEntry {
   title: string;
