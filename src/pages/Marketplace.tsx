@@ -121,6 +121,8 @@ export const Marketplace = () => {
   }, [searchQuery, tldFilter, priceChip, sortBy, verifiedOnly, favoritesOnly, lengthChip, activeTab]);
 
   const layout: MarketplaceLayout = 'magazine';
+  // 精选审核通过后，列表实时同步
+  useFeaturedRealtimeSync();
 
   const isMobile = useIsMobile();
   const { user } = useAuth();
