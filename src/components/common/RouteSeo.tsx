@@ -6,20 +6,28 @@ interface SeoEntry {
   title: string;
   description: string;
   noindex?: boolean;
+  /** 站内绝对路径，会自动拼接站点域名 */
+  image?: string;
+  keywords?: string;
 }
 
 const SITE_NAME = '域见•你';
+/** 分享/搜索结果封面（1200x630） */
+const SHARE_IMAGE = '/og-marketplace.jpg';
 const DEFAULT: SeoEntry = {
   title: '域见•你 — 精品域名交易平台｜安全托管·AI估值·域名拍卖',
   description: '域见•你 精品域名交易平台：海量优质域名一站选购，支持安全托管交易、AI 智能估值、域名拍卖与过户保障。',
+  image: SHARE_IMAGE,
 };
 
 /** 精确路径 → 元信息 */
 const EXACT: Record<string, SeoEntry> = {
  '/': DEFAULT,
  '/marketplace': {
-    title: '域名市场 — 精品域名在售列表｜域见•你',
-    description: '浏览域见•你精品域名市场：按价格、长度、后缀筛选优质域名，支持收藏、议价与安全托管交易。',
+    title: '精品域名市场 — 精选域名在售列表与实时报价｜域见•你',
+    description: '域见•你精选域名市场：每日更新的精品域名在售列表，可按后缀、价格、长度与已验证状态筛选，支持一口价购买、在线议价与资金托管过户。',
+    image: SHARE_IMAGE,
+    keywords: '精选域名,域名市场,域名交易,买域名,精品域名出售,域名报价,域名托管交易',
   },
  '/auctions': {
     title: '域名拍卖 — 竞价抢购优质域名｜域见•你',
