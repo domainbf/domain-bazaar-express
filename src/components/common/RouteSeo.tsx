@@ -160,6 +160,12 @@ export const RouteSeo = () => {
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={entry.title} />
       <meta name="twitter:description" content={entry.description} />
+      {entry.keywords ? <meta name="keywords" content={entry.keywords} /> : null}
+      {entry.image ? <meta property="og:image" content={`${SITE_ORIGIN}${entry.image}`} /> : null}
+      {entry.image ? <meta property="og:image:width" content="1200" /> : null}
+      {entry.image ? <meta property="og:image:height" content="630" /> : null}
+      {entry.image ? <meta property="og:image:alt" content={entry.title} /> : null}
+      {entry.image ? <meta name="twitter:image" content={`${SITE_ORIGIN}${entry.image}`} /> : null}
       {!entry.noindex && alternates.map(a => (
         <link key={a.hrefLang} rel="alternate" hrefLang={a.hrefLang} href={a.href} />
       ))}
