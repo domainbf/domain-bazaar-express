@@ -20,6 +20,7 @@ import { SavedSearches } from '@/components/marketplace/SavedSearches';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useFeaturedRealtimeSync } from '@/hooks/useFeaturedRequests';
 
 
 const getDomainExtension = (domain: string): string => {
@@ -121,6 +122,8 @@ export const Marketplace = () => {
   }, [searchQuery, tldFilter, priceChip, sortBy, verifiedOnly, favoritesOnly, lengthChip, activeTab]);
 
   const layout: MarketplaceLayout = 'magazine';
+  // 精选审核通过后，列表实时同步
+  useFeaturedRealtimeSync();
 
   const isMobile = useIsMobile();
   const { user } = useAuth();
