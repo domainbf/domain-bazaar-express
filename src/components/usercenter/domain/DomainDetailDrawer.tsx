@@ -123,6 +123,7 @@ export const DomainDetailDrawer = ({ domain, open, onOpenChange, onUpdate }: Dom
               <DomainStatusManager domain={domain} onStatusChange={onUpdate} />
               <DomainActions domain={domain} mode="edit" onSuccess={onUpdate} />
               <DomainActions domain={domain} mode="delete" onSuccess={onUpdate} />
+              <FeaturedRequestButton domainId={domain.id} domainName={domain.name} />
             </div>
           </div>
         </div>
