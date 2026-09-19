@@ -298,7 +298,7 @@ Deno.serve(async (req) => {
         fee,
         status: 'pending',
         buyer_note: buyer_note || null,
-        metadata: { domain_name, return_url },
+        metadata: { domain_name, return_url, order_id: order_id || null },
       })
       .select()
       .single()
