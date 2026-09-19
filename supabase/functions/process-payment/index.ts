@@ -7,12 +7,15 @@ const corsHeaders = {
 
 interface PaymentRequest {
   gateway: string
-  amount: number
-  currency: string
-  domain_id: string
-  domain_name: string
+  amount?: number
+  currency?: string
+  domain_id?: string
+  domain_name?: string
   return_url?: string
   buyer_note?: string
+  /** Pay an existing order (public.transactions.id) */
+  order_id?: string
+
 }
 
 // PayPal: Create order via REST API
