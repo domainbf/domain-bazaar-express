@@ -14,6 +14,8 @@ export interface HomeDomainItem {
   isVerified?: boolean;
   verificationStatus?: string;
   createdAt?: string;
+  views?: number;
+
 }
 
 export interface HomeData {
