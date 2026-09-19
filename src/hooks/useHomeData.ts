@@ -114,9 +114,29 @@ export const fetchHomeData = async (): Promise<HomeData> => {
     if (row.value) logoMap[id] = row.value as string;
   }
 
-  const hotDomains = hotRows.map((listing: any) => mapListingToHomeItem(listing, logoMap));
+  // 真实浏览量：用于「正在热搜」按真实点击量排序
+  const viewsMap: Record<string, number> = {};
+  if (neededDomainIds.length > 0) {
+    const chunks: string[][] = [];
+    for (let i = 0; i < neededDomainIds.length; i += 200) chunks.push(neededDomainIds.slice(i, i + 200));
+    const analyticsResults = await Promise.all(
+      chunks.map((chunk) =>
+        supabase.from('domain_analytics').select('domain_id, views').in('domain_id', chunk)
+      )
+    );
+    for (const res of analyticsResults) {
+      for (const row of (res.data ?? [])) {
+        viewsMap[String((row as any).domain_id)] = Number((row as any).views) || 0;
+      }
+    }
+  }
 
-  const soldDomains = soldRows.map((listing: any) => mapListingToHomeItem(listing, logoMap));
+  const withViews = (item: HomeDomainItem): HomeDomainItem => ({ ...item, views: viewsMap[item.id] ?? 0 });
+
+  const hotDomains = hotRows.map((listing: any) => withViews(mapListingToHomeItem(listing, logoMap)));
+
+  const soldDomains = soldRows.map((listing: any) => withViews(mapListingToHomeItem(listing, logoMap)));
+
 
   let auctionDomains: HomeDomainItem[] = [];
   if (auctionRows.length > 0 && auctionDomainRes.data?.length) {
