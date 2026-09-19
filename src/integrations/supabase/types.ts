@@ -1063,6 +1063,7 @@ export type Database = {
       }
       featured_requests: {
         Row: {
+          auto_approved: boolean
           created_at: string
           domain_id: string
           domain_name: string
@@ -1076,6 +1077,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          auto_approved?: boolean
           created_at?: string
           domain_id: string
           domain_name: string
@@ -1089,6 +1091,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          auto_approved?: boolean
           created_at?: string
           domain_id?: string
           domain_name?: string
@@ -1544,6 +1547,7 @@ export type Database = {
           bio: string | null
           buyer_rating: number
           buyer_review_count: number
+          buyer_verified: boolean
           company_name: string | null
           contact_email: string | null
           contact_phone: string | null
@@ -1570,6 +1574,7 @@ export type Database = {
           bio?: string | null
           buyer_rating?: number
           buyer_review_count?: number
+          buyer_verified?: boolean
           company_name?: string | null
           contact_email?: string | null
           contact_phone?: string | null
@@ -1596,6 +1601,7 @@ export type Database = {
           bio?: string | null
           buyer_rating?: number
           buyer_review_count?: number
+          buyer_verified?: boolean
           company_name?: string | null
           contact_email?: string | null
           contact_phone?: string | null

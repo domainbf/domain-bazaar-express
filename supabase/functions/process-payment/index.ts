@@ -7,12 +7,15 @@ const corsHeaders = {
 
 interface PaymentRequest {
   gateway: string
-  amount: number
-  currency: string
-  domain_id: string
-  domain_name: string
+  amount?: number
+  currency?: string
+  domain_id?: string
+  domain_name?: string
   return_url?: string
   buyer_note?: string
+  /** Pay an existing order (public.transactions.id) */
+  order_id?: string
+
 }
 
 // PayPal: Create order via REST API
@@ -221,7 +224,41 @@ Deno.serve(async (req) => {
     }
 
     const body: PaymentRequest = await req.json()
-    const { gateway, amount, currency = 'CNY', domain_id, domain_name, return_url = '', buyer_note = '' } = body
+    const { gateway, return_url = '', buyer_note = '', order_id = '' } = body
+    let amount = Number(body.amount || 0)
+    let currency = body.currency || 'CNY'
+    let domain_id = body.domain_id || ''
+    let domain_name = body.domain_name || ''
+
+    // Paying an existing order: source amount/domain from the order itself so
+    // the client can never change the price.
+    if (order_id) {
+      const { data: order, error: orderErr } = await supabase
+        .from('transactions')
+        .select('id, amount, currency, domain_id, buyer_id, status, progress_stage')
+        .eq('id', order_id)
+        .maybeSingle()
+      if (orderErr || !order) {
+        return new Response(JSON.stringify({ error: '订单不存在' }), {
+          status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+      if (order.buyer_id !== user.id) {
+        return new Response(JSON.stringify({ error: '无权支付该订单' }), {
+          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+      if (order.status === 'completed' || ['paid', 'transferred', 'completed'].includes(String(order.progress_stage || ''))) {
+        return new Response(JSON.stringify({ error: '该订单已完成付款' }), {
+          status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+      amount = Number(order.amount || 0)
+      currency = order.currency || 'CNY'
+      domain_id = String(order.domain_id)
+      const { data: d } = await supabase.from('domains').select('name').eq('id', domain_id).maybeSingle()
+      domain_name = d?.name || domain_name || '域名'
+    }
 
     if (!gateway || !amount || !domain_id) {
       return new Response(JSON.stringify({ error: '缺少必要参数' }), {
@@ -229,6 +266,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
+
 
     // Load gateway settings from DB
     const { data: gatewaySetting, error: gwError } = await supabase
@@ -260,7 +298,7 @@ Deno.serve(async (req) => {
         fee,
         status: 'pending',
         buyer_note: buyer_note || null,
-        metadata: { domain_name, return_url },
+        metadata: { domain_name, return_url, order_id: order_id || null },
       })
       .select()
       .single()

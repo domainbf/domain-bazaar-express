@@ -122,17 +122,28 @@ Deno.serve(async (req) => {
       const now = new Date().toISOString()
       const orderNumber = `ORD-${now.slice(0, 10).replace(/-/g, '')}-${txn.id.replace(/-/g, '').slice(0, 8)}`
 
-      const { data: existing } = await supabase
-        .from('transactions').select('id')
-        .eq('payment_id', txn.gateway_transaction_id || txn.id).maybeSingle()
+      // 1) An order the buyer paid from the buyer center, 2) an order already
+      // linked to this payment, 3) a brand-new order created by the payment.
+      let orderId: string | undefined
+      if (metadata.order_id) {
+        const { data: linked } = await supabase
+          .from('transactions').select('id').eq('id', metadata.order_id).maybeSingle()
+        orderId = linked?.id
+      }
+      if (!orderId) {
+        const { data: existing } = await supabase
+          .from('transactions').select('id')
+          .eq('payment_id', txn.gateway_transaction_id || txn.id).maybeSingle()
+        orderId = existing?.id
+      }
 
-      let orderId: string
-      if (existing?.id) {
-        orderId = existing.id
+      if (orderId) {
         await supabase.from('transactions').update({
           status: 'completed', progress_stage: 'paid',
-          stage_history: { submitted: txn.created_at, paid: now },
+          payment_method: txn.gateway,
+          payment_id: txn.gateway_transaction_id || txn.id,
           currency: txn.currency || 'CNY', order_number: orderNumber,
+          stage_history: { submitted: txn.created_at, paid: now },
         }).eq('id', orderId)
       } else {
         const { data: inserted } = await supabase.from('transactions').insert({
@@ -145,11 +156,21 @@ Deno.serve(async (req) => {
         orderId = inserted?.id
       }
 
+      // Settle the order: marks it 成交, transfers ownership, credits the
+      // seller's wallet and refreshes the seller's reputation counters.
+      if (orderId) {
+        const { error: settleErr } = await supabase.rpc('complete_order_and_credit_seller', {
+          _txn_id: orderId, _actor: txn.user_id,
+        })
+        if (settleErr) console.error('order settle failed', settleErr)
+      }
+
       await supabase.from('notifications').insert({
         user_id: txn.user_id, title: '🎉 支付成功',
-        message: `域名 ${metadata.domain_name || ''} 购买成功，订单 ${orderNumber}`,
+        message: `域名 ${metadata.domain_name || ''} 购买成功，订单 ${orderNumber} 已成交`,
         type: 'payment', action_url: `/order/${orderId}`,
       })
+
 
       if (orderId) {
         fetch(`${supabaseUrl}/functions/v1/send-order-receipt`, {
