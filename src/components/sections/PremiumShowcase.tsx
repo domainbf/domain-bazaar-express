@@ -125,7 +125,14 @@ export const PremiumShowcase = () => {
   const domains = homeData?.hotDomains ?? [];
 
   const items = useMemo(() => {
-    if (active === 'trending') return domains.slice(0, 8);
+    // 「正在热搜」= 真实浏览量最高的在售域名
+    if (active === 'trending') {
+      return [...domains]
+        .sort((a, b) => (b.views || 0) - (a.views || 0)
+          || new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+        .slice(0, 8);
+    }
+
     if (active === 'premium') return [...domains].sort((a, b) => (b.price || 0) - (a.price || 0)).slice(0, 8);
     if (active === 'expiring') {
       return [...domains]
