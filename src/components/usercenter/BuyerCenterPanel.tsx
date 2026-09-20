@@ -241,9 +241,21 @@ export const BuyerCenterPanel = () => {
           ))}
         </CardContent>
       </Card>
+
+      {payOrder && (
+        <PayOrderDialog
+          open={!!payOrder}
+          onOpenChange={(o) => { if (!o) { setPayOrder(null); load(); } }}
+          orderId={payOrder.id}
+          amount={Number(payOrder.amount)}
+          currency={payOrder.currency || 'CNY'}
+          domainName={payOrder.domain_name}
+        />
+      )}
     </div>
   );
 };
+
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
