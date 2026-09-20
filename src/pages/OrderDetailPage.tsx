@@ -198,7 +198,24 @@ export default function OrderDetailPage() {
               支付流水：<span className="font-mono text-foreground">{txn.payment_id}</span>
             </div>
           )}
+
+          {!orderPaid && (
+            <div className="px-6 py-4 flex flex-wrap items-center justify-between gap-3 no-print">
+              <span className="text-sm text-muted-foreground">该订单尚未付款，付款成功后自动成交。</span>
+              <Button data-testid="button-pay-order" onClick={() => setPayOpen(true)}>立即付款</Button>
+            </div>
+          )}
         </motion.div>
+
+        <PayOrderDialog
+          open={payOpen}
+          onOpenChange={(o) => { setPayOpen(o); if (!o) void load(); }}
+          orderId={txn.id}
+          amount={Number(txn.amount)}
+          currency={txn.currency || 'CNY'}
+          domainName={domainName}
+        />
+
 
         <div className="print-avoid-break">
           <OrderProgressTracker orderId={txn.id} initialStage={txn.progress_stage as any} initialHistory={txn.stage_history || {}} buyerId={txn.buyer_id} sellerId={txn.seller_id} />
