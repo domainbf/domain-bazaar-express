@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { OrderProgressTracker } from '@/components/order/OrderProgressTracker';
 import { toast } from 'sonner';
+import { PayOrderDialog } from '@/components/payment/PayOrderDialog';
+
 
 interface Txn {
   id: string;
