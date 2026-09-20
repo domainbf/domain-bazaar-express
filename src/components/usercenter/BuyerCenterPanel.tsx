@@ -244,9 +244,8 @@ export const BuyerCenterPanel = () => {
                 </Button>
               </div>
             </div>
-
-            </div>
           ))}
+
         </CardContent>
       </Card>
 
