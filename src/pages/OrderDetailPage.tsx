@@ -49,6 +49,11 @@ export default function OrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [deliveries, setDeliveries] = useState<DeliveryLog[]>([]);
+  const [payOpen, setPayOpen] = useState(false);
+
+  const orderPaid = !!txn && (txn.status === 'completed'
+    || ['paid', 'activated', 'transferred', 'completed'].includes(txn.progress_stage || ''));
+
 
   const loadDeliveries = async (txnId: string) => {
     const { data } = await supabase
