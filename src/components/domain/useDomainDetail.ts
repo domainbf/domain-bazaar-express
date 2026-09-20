@@ -118,7 +118,7 @@ const fetchDomainDetails = async (identifier: string | undefined) => {
     domainRow.owner_id
       ? supabase
           .from('profiles')
-          .select('id, username, full_name, avatar_url, bio, seller_rating, seller_verified')
+          .select('id, username, full_name, avatar_url, bio, seller_rating, seller_review_count, seller_verified, buyer_verified, total_sales')
           .eq('id', domainRow.owner_id)
           .maybeSingle()
       : Promise.resolve({ data: null, error: null }),
