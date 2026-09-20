@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { formatPrice } from '@/lib/currency';
 import { toast } from 'sonner';
+import { PayOrderDialog } from '@/components/payment/PayOrderDialog';
+
 import {
   ShoppingBag, CreditCard, Star, RefreshCw, ArrowRight, ShieldCheck, Globe,
 } from 'lucide-react';
