@@ -42,6 +42,10 @@ const STAGE_LABEL: Record<string, string> = {
   completed: '已完成',
 };
 
+/** 已完成付款的订单不再显示付款入口 */
+const isPaid = (o: OrderRow) =>
+  o.status === 'completed' || ['paid', 'activated', 'transferred', 'completed'].includes(o.progress_stage || '');
+
 /** 买家中心：成交订单、支付记录与买家信誉 */
 export const BuyerCenterPanel = () => {
   const { user } = useAuth();
@@ -49,7 +53,9 @@ export const BuyerCenterPanel = () => {
   const [payments, setPayments] = useState<PaymentRow[]>([]);
   const [reputation, setReputation] = useState<{ buyer_rating: number; buyer_review_count: number } | null>(null);
   const [kycStatus, setKycStatus] = useState<string>('none');
+  const [payOrder, setPayOrder] = useState<OrderRow | null>(null);
   const [loading, setLoading] = useState(true);
+
 
   const load = useCallback(async () => {
     if (!user) return;
