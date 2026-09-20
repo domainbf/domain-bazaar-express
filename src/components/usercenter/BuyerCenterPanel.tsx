@@ -222,10 +222,21 @@ export const BuyerCenterPanel = () => {
                 <span className="tabular-nums font-semibold text-sm">
                   {formatPrice(Number(o.amount), o.currency || 'CNY')}
                 </span>
+                {!isPaid(o) && (
+                  <Button
+                    size="sm"
+                    data-testid={`button-pay-order-${o.id}`}
+                    onClick={() => setPayOrder(o)}
+                  >
+                    立即付款
+                  </Button>
+                )}
                 <Button asChild size="sm" variant="ghost">
                   <Link to={`/order/${o.id}`}>详情<ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
                 </Button>
               </div>
+            </div>
+
             </div>
           ))}
         </CardContent>
