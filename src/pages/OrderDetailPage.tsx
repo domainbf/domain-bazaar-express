@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { OrderProgressTracker } from '@/components/order/OrderProgressTracker';
 import { toast } from 'sonner';
+import { PayOrderDialog } from '@/components/payment/PayOrderDialog';
+
 
 interface Txn {
   id: string;
@@ -49,6 +51,11 @@ export default function OrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [deliveries, setDeliveries] = useState<DeliveryLog[]>([]);
+  const [payOpen, setPayOpen] = useState(false);
+
+  const orderPaid = !!txn && (txn.status === 'completed'
+    || ['paid', 'activated', 'transferred', 'completed'].includes(txn.progress_stage || ''));
+
 
   const loadDeliveries = async (txnId: string) => {
     const { data } = await supabase
@@ -198,7 +205,24 @@ export default function OrderDetailPage() {
               支付流水：<span className="font-mono text-foreground">{txn.payment_id}</span>
             </div>
           )}
+
+          {!orderPaid && (
+            <div className="px-6 py-4 flex flex-wrap items-center justify-between gap-3 no-print">
+              <span className="text-sm text-muted-foreground">该订单尚未付款，付款成功后自动成交。</span>
+              <Button data-testid="button-pay-order" onClick={() => setPayOpen(true)}>立即付款</Button>
+            </div>
+          )}
         </motion.div>
+
+        <PayOrderDialog
+          open={payOpen}
+          onOpenChange={(o) => { setPayOpen(o); if (!o) void load(); }}
+          orderId={txn.id}
+          amount={Number(txn.amount)}
+          currency={txn.currency || 'CNY'}
+          domainName={domainName}
+        />
+
 
         <div className="print-avoid-break">
           <OrderProgressTracker orderId={txn.id} initialStage={txn.progress_stage as any} initialHistory={txn.stage_history || {}} buyerId={txn.buyer_id} sellerId={txn.seller_id} />

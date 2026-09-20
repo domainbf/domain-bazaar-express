@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { formatPrice } from '@/lib/currency';
 import { toast } from 'sonner';
+import { PayOrderDialog } from '@/components/payment/PayOrderDialog';
+
 import {
   ShoppingBag, CreditCard, Star, RefreshCw, ArrowRight, ShieldCheck, Globe,
 } from 'lucide-react';
@@ -42,6 +44,10 @@ const STAGE_LABEL: Record<string, string> = {
   completed: '已完成',
 };
 
+/** 已完成付款的订单不再显示付款入口 */
+const isPaid = (o: OrderRow) =>
+  o.status === 'completed' || ['paid', 'activated', 'transferred', 'completed'].includes(o.progress_stage || '');
+
 /** 买家中心：成交订单、支付记录与买家信誉 */
 export const BuyerCenterPanel = () => {
   const { user } = useAuth();
@@ -49,7 +55,9 @@ export const BuyerCenterPanel = () => {
   const [payments, setPayments] = useState<PaymentRow[]>([]);
   const [reputation, setReputation] = useState<{ buyer_rating: number; buyer_review_count: number } | null>(null);
   const [kycStatus, setKycStatus] = useState<string>('none');
+  const [payOrder, setPayOrder] = useState<OrderRow | null>(null);
   const [loading, setLoading] = useState(true);
+
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -222,17 +230,39 @@ export const BuyerCenterPanel = () => {
                 <span className="tabular-nums font-semibold text-sm">
                   {formatPrice(Number(o.amount), o.currency || 'CNY')}
                 </span>
+                {!isPaid(o) && (
+                  <Button
+                    size="sm"
+                    data-testid={`button-pay-order-${o.id}`}
+                    onClick={() => setPayOrder(o)}
+                  >
+                    立即付款
+                  </Button>
+                )}
                 <Button asChild size="sm" variant="ghost">
                   <Link to={`/order/${o.id}`}>详情<ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
                 </Button>
               </div>
             </div>
           ))}
+
         </CardContent>
       </Card>
+
+      {payOrder && (
+        <PayOrderDialog
+          open={!!payOrder}
+          onOpenChange={(o) => { if (!o) { setPayOrder(null); load(); } }}
+          orderId={payOrder.id}
+          amount={Number(payOrder.amount)}
+          currency={payOrder.currency || 'CNY'}
+          domainName={payOrder.domain_name}
+        />
+      )}
     </div>
   );
 };
+
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
