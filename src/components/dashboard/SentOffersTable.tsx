@@ -69,34 +69,27 @@ export const SentOffersTable = ({ offers, onRefresh }: SentOffersTableProps) => 
       if (!user) { toast.error('请先登录'); return; }
       if (action === 'accept') {
         const counterAmt = parsed.counterAmount ?? offer.amount;
-        const { error: pErr } = await supabase.from('domain_offers').update({ status: 'accepted', amount: counterAmt }).eq('id', offer.id);
-        if (pErr) throw new Error(pErr.message);
-
-        // Create transaction record when buyer accepts seller's counter-offer
-        if (offer.domain_id && offer.seller_id && user?.id) {
-          try {
-            const { data: txData, error: txError } = await supabase.from('transactions').insert({
-              buyer_id: user.id,
-              seller_id: offer.seller_id,
-              domain_id: offer.domain_id,
-              offer_id: offer.id,
-              amount: counterAmt,
-              payment_method: 'pending',
-              status: 'pending',
-            }).select('id').single();
-            if (!txError && txData?.id) {
-              toast.success('已接受卖家还价，交易已创建');
-              setCounterResponseDialog(null);
-              if (onRefresh) await onRefresh();
-              navigate('/user-center?tab=transactions');
-              return;
-            }
-          } catch (txErr) {
-            console.error('Transaction creation error:', txErr);
-          }
+        if (counterAmt !== offer.amount) {
+          const { error: aErr } = await supabase.from('domain_offers').update({ amount: counterAmt }).eq('id', offer.id);
+          if (aErr) throw new Error(aErr.message);
         }
 
-        toast.success('已接受卖家还价');
+        const { data, error } = await (supabase as any).rpc('accept_domain_offer', { _offer_id: offer.id });
+        if (error) throw new Error(error.message);
+        if (!data?.ok) {
+          const map: Record<string, string> = {
+            forbidden: '您没有权限接受该还价',
+            offer_not_found: '报价不存在或已被撤回',
+            listing_not_found: '未找到对应的域名记录',
+          };
+          throw new Error(map[data?.error] || '接受还价失败，请稍后重试');
+        }
+
+        toast.success('已接受卖家还价，订单已生成，请前往付款');
+        setCounterResponseDialog(null);
+        if (onRefresh) await onRefresh();
+        navigate('/user-center?tab=buyer');
+        return;
       } else {
         const { error: rErr } = await supabase.from('domain_offers').update({ status: 'rejected' }).eq('id', offer.id);
         if (rErr) throw new Error(rErr.message);
