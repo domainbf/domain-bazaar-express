@@ -110,40 +110,19 @@ export const OffersManagement = () => {
   /** 报价通过后自动生成订单，避免流程卡死 */
   const ensureOrderForOffer = async (offer: Offer) => {
     try {
-      const { data: existing } = await (supabase as any)
-        .from('transactions').select('id').eq('offer_id', offer.id).maybeSingle();
-      if (existing?.id) return existing.id as string;
-
-      // transactions.domain_id 指向 domains 表，需按域名反查
-      let domainId: string | null = null;
-      if (offer.domain_name) {
-        const { data: d } = await (supabase as any)
-          .from('domains').select('id').ilike('name', offer.domain_name).maybeSingle();
-        domainId = d?.id ?? null;
-      }
-      if (!domainId) {
-        toast.warning('报价已通过，但未找到对应域名记录，订单需手动创建');
+      const { data, error } = await (supabase as any).rpc('accept_domain_offer', { _offer_id: offer.id });
+      if (error) throw error;
+      if (!data?.ok) {
+        const map: Record<string, string> = {
+          forbidden: '没有权限接受该报价',
+          offer_not_found: '报价不存在或已被撤回',
+          listing_not_found: '未找到对应的域名记录',
+        };
+        toast.warning('报价已通过，但订单未生成：' + (map[data?.error] || '未知原因'));
         return null;
       }
-
-      const { data: created, error } = await (supabase as any)
-        .from('transactions')
-        .insert({
-          domain_id: domainId,
-          offer_id: offer.id,
-          buyer_id: offer.buyer_id,
-          seller_id: offer.seller_id,
-          amount: offer.amount,
-          status: 'pending',
-          payment_method: 'pending',
-          progress_stage: 'confirmed',
-          notes: '由管理员通过报价审核自动创建',
-        })
-        .select('id')
-        .single();
-      if (error) throw error;
-      toast.success('订单已自动创建，买家可继续付款');
-      return created?.id as string;
+      if (!data.reused) toast.success('订单已自动创建，买家可继续付款');
+      return data.transaction_id as string;
     } catch (e: any) {
       toast.error('订单创建失败：' + (e.message || ''));
       return null;
