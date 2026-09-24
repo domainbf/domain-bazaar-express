@@ -68,30 +68,31 @@ export const ReceivedOffersTable = ({ offers, onRefresh }: ReceivedOffersTablePr
       const offerData = offers.find(o => o.id === offerId) as any;
       if (!offerData) { toast.error('报价不存在'); return; }
 
-      const { error: pErr } = await supabase.from('domain_offers').update({ status: action }).eq('id', offerId);
-      if (pErr) throw new Error(pErr.message);
-
-      // Create transaction record when seller accepts
+      // Accepting goes through a server-side routine that also creates the order
       let newTransactionId: string | null = null;
-      if (action === 'accepted' && offerData.buyer_id) {
-        try {
-          const { data: txData, error: txError } = await supabase.from('transactions').insert({
-              buyer_id: offerData.buyer_id,
-              seller_id: user?.id,
-              domain_id: offerData.domain_id,
-              offer_id: offerId,
-              amount: offerData.amount,
-              payment_method: 'pending',
-              status: 'pending',
-            }).select('id').single();
-            if (!txError && txData?.id) newTransactionId = txData.id;
-        } catch (txErr) {
-          console.error('Transaction creation error:', txErr);
+      if (action === 'accepted') {
+        const { data, error } = await (supabase as any).rpc('accept_domain_offer', { _offer_id: offerId });
+        if (error) throw new Error(error.message);
+        if (!data?.ok) {
+          const map: Record<string, string> = {
+            forbidden: '您没有权限接受该报价',
+            offer_not_found: '报价不存在或已被撤回',
+            listing_not_found: '未找到对应的域名记录',
+          };
+          throw new Error(map[data?.error] || '接受报价失败，请稍后重试');
         }
+        newTransactionId = data.transaction_id ?? null;
+      } else {
+        const { error: pErr } = await supabase.from('domain_offers').update({ status: action }).eq('id', offerId);
+        if (pErr) throw new Error(pErr.message);
       }
 
       const actionText = action === 'accepted' ? '已接受' : (action === 'rejected' ? '已拒绝' : '已完成');
-      toast.success(`报价${actionText}，通知已发送给买家`);
+      toast.success(
+        action === 'accepted'
+          ? '报价已接受，订单已生成并通知买家付款'
+          : `报价${actionText}，通知已发送给买家`
+      );
       setConfirmDialog(null);
       await onRefresh();
       if (action === 'accepted' && newTransactionId) navigate(`/user-center?tab=transactions`);
