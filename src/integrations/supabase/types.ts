@@ -2414,6 +2414,7 @@ export type Database = {
       }
     }
     Functions: {
+      accept_domain_offer: { Args: { _offer_id: string }; Returns: Json }
       admin_change_password: {
         Args: { p_new_password: string; p_user_email: string }
         Returns: Json
